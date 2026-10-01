@@ -1,0 +1,2 @@
+# AllStat
+Unifikovaný analytický dashboard
