@@ -17,6 +17,10 @@ require_once __DIR__ . '/lib/csrf.php';
 require_once __DIR__ . '/lib/repository.php';
 require_once __DIR__ . '/lib/growth.php';
 require_once __DIR__ . '/lib/funnels.php';
+// Updater je jen ve veřejném balíčku; interní instalace (nasazovaná ručně) ho mít nemusí.
+if (is_file(__DIR__ . '/lib/updater.php')) {
+    require_once __DIR__ . '/lib/updater.php';
+}
 
 allstat_session_start($config);
 $pdo = allstat_db($config);
@@ -315,7 +319,14 @@ if ($isGenericView) {
             $staleTitle = $staleCount === 1
                 ? '1 zdroj se dlouho neozval'
                 : ($staleCount >= 2 && $staleCount <= 4 ? $staleCount . ' zdroje se dlouho neozvaly' : $staleCount . ' zdrojů se dlouho neozvalo');
+            $updateNotice = function_exists('allstat_update_notice') ? allstat_update_notice($pdo, $user) : null;
             ?>
+            <?php if ($updateNotice): ?>
+            <a class="update-card" href="admin/update.php">
+                <i data-lucide="download" aria-hidden="true"></i>
+                <span><strong>Nová verze <?= h($updateNotice['version']) ?></strong><small>Máš <?= h($updateNotice['installed']) ?>, klikni pro aktualizaci</small></span>
+            </a>
+            <?php endif; ?>
             <div class="sync-card">
                 <span class="status-dot <?= $syncOk ? 'status-dot-ok' : 'status-dot-warning' ?>" aria-hidden="true"></span>
                 <strong data-data-mode><?php
