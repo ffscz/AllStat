@@ -113,6 +113,28 @@ allstat_admin_header('Nastavení', 'settings', $user, $config);
     </div>
 </div>
 
+<?php
+// Verze a aktualizace jen tam, kde je updater (veřejný balíček); interní instalace ho mít nemusí.
+$updateStatus = null;
+if (is_file(__DIR__ . '/../lib/updater.php')) {
+    require_once __DIR__ . '/../lib/updater.php';
+    $updateStatus = allstat_update_check($pdo, false, 4);
+}
+?>
+<?php if ($updateStatus !== null): ?>
+<div class="admin-card">
+    <div class="admin-card-header">
+        <div>
+            <h2>Verze a aktualizace</h2>
+            <p><?php if ($updateStatus['installed'] === null): ?>Interní instalace (bez souboru VERSION), aktualizace nasazuje vývojář.<?php else: ?>Nainstalovaná verze <strong><?= h($updateStatus['installed']) ?></strong><?= $updateStatus['available'] ? ', k dispozici je <strong>' . h($updateStatus['latest']['version']) . '</strong>' : ', je aktuální' ?>.<?php endif; ?></p>
+        </div>
+        <?php if ($updateStatus['installed'] !== null): ?>
+            <a class="<?= $updateStatus['available'] ? 'button-primary' : 'button-secondary' ?>" href="update.php"><?= $updateStatus['available'] ? 'Aktualizovat' : 'Aktualizace' ?></a>
+        <?php endif; ?>
+    </div>
+</div>
+<?php endif; ?>
+
 <div class="admin-card">
     <div class="admin-card-header">
         <div>

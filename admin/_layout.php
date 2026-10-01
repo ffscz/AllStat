@@ -66,6 +66,20 @@ function allstat_admin_header(string $title, string $active, array $user, array 
                     <a class="<?= $active === $item['key'] ? 'active' : '' ?>" href="<?= h($item['href']) ?>"><?= allstat_icon($item['icon']) ?><span><?= h($item['label']) ?></span></a>
                 <?php endforeach; ?>
             </nav>
+            <?php
+            // Upozornění na novou verzi (jen administrátor, jen instalace z veřejného balíčku; čte se z cache).
+            $updateNotice = null;
+            if (($user['role'] ?? '') === 'admin' && ($GLOBALS['pdo'] ?? null) instanceof PDO && is_file(__DIR__ . '/../lib/updater.php')) {
+                require_once __DIR__ . '/../lib/updater.php';
+                $updateNotice = allstat_update_notice($GLOBALS['pdo'], $user);
+            }
+            ?>
+            <?php if ($updateNotice && $active !== 'update'): ?>
+            <a class="update-card" href="<?= h(allstat_url($config, 'admin/update.php')) ?>">
+                <i data-lucide="download" aria-hidden="true"></i>
+                <span><strong>Nová verze <?= h($updateNotice['version']) ?></strong><small>Máš <?= h($updateNotice['installed']) ?>, klikni pro aktualizaci</small></span>
+            </a>
+            <?php endif; ?>
         </aside>
         <div class="nav-backdrop" data-admin-backdrop aria-hidden="true"></div>
         <main class="admin-main">

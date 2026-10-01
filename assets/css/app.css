@@ -2969,3 +2969,126 @@ sup.growth-partial { margin-left: 1px; font-size: 11px; }
         gap: 8px;
     }
 }
+
+/* Upozornění na novou verzi v bočním panelu (lib/updater.php, jen administrátor). */
+.update-card {
+    display: grid;
+    grid-template-columns: 18px 1fr;
+    gap: 10px;
+    align-items: start;
+    margin-top: auto;
+    padding: 12px 14px;
+    border: 1px solid color-mix(in srgb, var(--blue) 30%, var(--line));
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--blue) 8%, var(--surface));
+    color: var(--text);
+    text-decoration: none;
+}
+
+.update-card:hover,
+.update-card:focus-visible {
+    background: color-mix(in srgb, var(--blue) 14%, var(--surface));
+}
+
+.update-card svg {
+    width: 18px;
+    height: 18px;
+    color: var(--blue);
+}
+
+.update-card strong {
+    display: block;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.update-card small {
+    display: block;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.update-card + .sync-card {
+    margin-top: 10px;
+}
+
+/* Stránka Aktualizace */
+.update-facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin: 0 0 14px;
+}
+
+.update-facts dt {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.update-facts dd {
+    margin: 2px 0 0;
+    font-size: 16px;
+    font-weight: 650;
+}
+
+.update-subhead {
+    margin: 18px 0 8px;
+    font-size: 14px;
+}
+
+.update-subhead:first-child {
+    margin-top: 0;
+}
+
+.update-notes {
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface-muted);
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.update-checks {
+    display: grid;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 13px;
+}
+
+.update-checks .is-ok span {
+    color: var(--green);
+    font-weight: 700;
+}
+
+.update-checks .is-bad span {
+    color: var(--rose);
+    font-weight: 700;
+}
+
+.update-modified {
+    margin-top: 10px;
+    font-size: 13px;
+}
+
+.form-stack .update-confirm {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    color: var(--text);
+    font-size: 13px;
+}
+
+.form-stack .update-confirm input {
+    width: 16px;
+    min-height: 16px;
+    height: 16px;
+    margin-top: 2px;
+}
+
+.update-history td:last-child {
+    min-width: 280px;
+    white-space: normal;
+}

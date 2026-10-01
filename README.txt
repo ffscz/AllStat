@@ -40,6 +40,15 @@ docs/INSTALACE.html. Otevřete ho dvojklikem ve svém počítači (před nahrán
 Složku "docs" a tento soubor můžete po instalaci ze serveru smazat.
 
 
+Změny ve verzi 1.2.0
+--------------------
+ * Aktualizace jedním tlačítkem: AllStat sám zjistí novou verzi na GitHubu, administrátor ji uvidí
+   v bočním panelu a nainstaluje ze stránky Aktualizace (Nastavení, Verze a aktualizace). Balíček je
+   podepsaný, přepisované soubory se zálohují a předchozí verzi jde vrátit. Upravený .htaccess zůstane.
+ * Z verze 1.1.0 a starší je potřeba na 1.2.0 aktualizovat ještě ručně (docs/INSTALACE.html, kapitola 8),
+   další verze už půjdou tlačítkem.
+
+
 Změny ve verzi 1.1.0
 --------------------
  * Trychtýře: konverzní cesty z GA4 eventů (například návštěva, spuštění kalkulačky, dokončení,

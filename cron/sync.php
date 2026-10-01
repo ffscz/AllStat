@@ -115,6 +115,15 @@ foreach ($connections as $row) {
 allstat_add_sync_log_global($pdo, $okCount, $errCount, $skipCount, $batchMode ? [$remaining, $doneToday + $okCount + $errCount] : null);
 $pdo->query("SELECT RELEASE_LOCK('allstat_cron_sync')");
 
+// Kontrola nové verze AllStatu (nejvýš jednou za 12 h, jen instalace z veřejného balíčku); chyba sítě cron neshodí.
+try {
+    if (is_file(__DIR__ . '/../lib/updater.php')) {
+        require_once __DIR__ . '/../lib/updater.php';
+        allstat_update_check($pdo);
+    }
+} catch (Throwable) {
+}
+
 echo json_encode([
     'ok' => $errCount === 0,
     'range' => $start . ' → ' . $end,

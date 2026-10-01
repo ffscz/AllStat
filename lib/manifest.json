@@ -1,5 +1,5 @@
 {
-    "version": "1.1.0",
+    "version": "1.2.0",
     "files": {
         "LICENSE": {
             "s": 35823,
@@ -14,8 +14,8 @@
             "h": "197d993c9b171119b526eb886ce832b074d029940d7a3b67c1297761e486c99c"
         },
         "admin/_layout.php": {
-            "s": 7718,
-            "h": "d1d708fd444e829924b48dc701cc506bace9940a7d51284c6ed936b2b5a04168"
+            "s": 8646,
+            "h": "c6d0068762768ae36fa16c3b5c773d52b38c1c9fbd3929fb78c025c57d75ae49"
         },
         "admin/clarity-import.php": {
             "s": 12219,
@@ -94,8 +94,8 @@
             "h": "8cc8732740cf5690ea8e4515f56962aaaf07e160a0456ae7b71fced5daec4850"
         },
         "admin/settings.php": {
-            "s": 14742,
-            "h": "acfa2bf04db644c7862f058dcd5b2422c683f5894e50de2c19f52be16d042a2a"
+            "s": 15895,
+            "h": "881b48bea4dd5d9dd4fe2f9c51e7182700a75403fa208fe6b0d59c0c16dcbeb3"
         },
         "admin/setup-2fa.php": {
             "s": 4503,
@@ -116,6 +116,10 @@
         "admin/sources.php": {
             "s": 7765,
             "h": "fd8f932ff84543c834f546e7b5faf9dd0a41d45818fdc9d47881d0f4f93a9d44"
+        },
+        "admin/update.php": {
+            "s": 8437,
+            "h": "f4994a18f2ab317820383ea4899d44b2835282a07cd375dfc19d877a8af501d3"
         },
         "admin/users.php": {
             "s": 11879,
@@ -138,8 +142,8 @@
             "h": "98924e0657b9c713ee960069f847013df3dccc1c9cd81c1831f92fc55dd764cb"
         },
         "assets/css/app.css": {
-            "s": 72020,
-            "h": "83bdbd6124a6dce75fb5f5b26a95f7a13010dd72bc8cab395f8b502cdc63769b"
+            "s": 74232,
+            "h": "f41a1f8df0d06899bc4fb2e7a0c97273a8fb57b4d37885b187609ab6cb999504"
         },
         "assets/img/help/bs-1-obsah-exportovat-data.webp": {
             "s": 25846,
@@ -202,8 +206,8 @@
             "h": "18ae399f81182bc9de916e9c77b195df20cc58d6f2d55a62b085a299f1bf1780"
         },
         "cron/sync.php": {
-            "s": 5760,
-            "h": "3c56ef84f242dc08da5bf1e4ff6a8d7dcfacc6c3f726ba8d4e779345f437ca35"
+            "s": 6066,
+            "h": "661637eeb10ee27844555023dfd2f2fef372d22d00bb5b47dc37dd320a8f5cd1"
         },
         "data-deletion.php": {
             "s": 4453,
@@ -214,8 +218,8 @@
             "h": "77010f323ada1f123d7ffc3c6fcf6c15991cbc0c1f3cabd3a878017ea09931a7"
         },
         "index.php": {
-            "s": 77032,
-            "h": "cdd771094207bf5f4f8ee4799264bc344a378fa56c0c6110a84bbf66e024325e"
+            "s": 77727,
+            "h": "914625d5ca7e89ee7572f52b9e5959842758de9d221a479579b8f779244515e7"
         },
         "install.php": {
             "s": 1363,
@@ -321,6 +325,10 @@
             "s": 2713,
             "h": "9df275dcfc85e3a826604368e2791352ac357fa357b1cb406b92d914923b1479"
         },
+        "lib/updater.php": {
+            "s": 23237,
+            "h": "ccde1090cc841d6b8c3e979ddcd288e225031af9e64b069a5c62f9c6d821f855"
+        },
         "lib/users.php": {
             "s": 7820,
             "h": "72c42bc02eca99f6168fddb8f540a8a3f64938907d31cea14ece029b2ef2b4f1"
@@ -396,6 +404,28 @@
         "views/provider/youtube.php": {
             "s": 14617,
             "h": "c0733848e7f0923f95c557a08335850f8fdb1cf5aec9f6f554a165673d1deaf8"
+        }
+    },
+    "protected": {
+        ".htaccess": {
+            "s": 2316,
+            "h": "e0cbc125105f61e9a0cfb050b44a1f7b97b312e142d00fc3404e111b49bd2717"
+        },
+        "allstat-mcp/.htaccess": {
+            "s": 427,
+            "h": "f48d2378a536d7c043cc37df143868edd171a911d11e3f8fa881244e62b2ecef"
+        },
+        "docs/.htaccess": {
+            "s": 103,
+            "h": "8721431113cefa6d4f12245da02a1bbb1c563f5f858aff009322288d4b6d1339"
+        },
+        "lib/.htaccess": {
+            "s": 119,
+            "h": "96abbbae24ce225fa9499867c23305649215490642f16f146e55b7a7565b509e"
+        },
+        "views/.htaccess": {
+            "s": 119,
+            "h": "537bce5e60ad7f63947d1417c4d5cd006b81fb60bda0daa89ab8a0f330363469"
         }
     }
 }

@@ -80,7 +80,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
   <div class="brand"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span> AllStat</div>
   <h1>Instalační příručka</h1>
   <p class="lead">AllStat sbírá na jednom místě statistiky vašeho webu a sociálních sítí a ukládá je do vaší vlastní databáze. Tahle příručka vás provede instalací na běžný webhosting, krok za krokem. Počítejte s 30 minutami.</p>
-  <p class="meta">Verze balíčku 1.1.0 · Příručku otevřete ve svém počítači, na hosting ji nahrávat nemusíte.</p>
+  <p class="meta">Verze balíčku 1.2.0 · Příručku otevřete ve svém počítači, na hosting ji nahrávat nemusíte.</p>
 </header>
 
 <nav class="toc" aria-label="Obsah">
@@ -176,7 +176,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
 
 <ol class="steps">
   <li><h4>Rozbalte balíček v počítači</h4>
-    <p>Balíček <code>allstat-1.1.0.zip</code> rozbalte (ve Windows: pravé tlačítko, „Extrahovat vše“). Vznikne složka <code>allstat</code>.</p></li>
+    <p>Balíček <code>allstat-1.2.0.zip</code> rozbalte (ve Windows: pravé tlačítko, „Extrahovat vše“). Vznikne složka <code>allstat</code>.</p></li>
   <li><h4>Připojte se k hostingu</h4>
     <p>V programu FileZilla (nebo jiném FTP klientu) zadejte server, uživatele, heslo a port, které jste dostali od poskytovatele hostingu. Když hosting nabízí šifrované spojení (FTPS nebo SFTP), zvolte ho.</p></li>
   <li><h4>Otevřete složku webu</h4>
@@ -472,6 +472,16 @@ RewriteRule ^\.well-known/oauth-protected-resource/allstat(?:/mcp)?/?$ /allstat/
 
 
 <h2 id="aktualizace"><span class="n">8</span>Aktualizace na novější verzi</h2>
+<h3>Jedním tlačítkem (od verze 1.2.0)</h3>
+<p>AllStat si sám kontroluje, jestli na <a href="https://github.com/ffscz/AllStat/releases">github.com/ffscz/AllStat</a> nevyšla nová verze (při denním cronu, nejvýš dvakrát denně). Když ano, uvidí administrátor v bočním panelu kartu „Nová verze“. Běžní uživatelé ji nevidí.</p>
+<ul>
+  <li>Klikněte na kartu (nebo Nastavení, Verze a aktualizace). Stránka Aktualizace ukáže, co je nového, a zkontroluje server.</li>
+  <li>Potvrďte, že máte zálohu databáze, a klikněte na „Aktualizovat“. AllStat balíček stáhne, ověří jeho podpis, zálohuje soubory, které přepíše, a vymění je. Trvá to pár sekund. Databáze se doplní sama při dalším načtení.</li>
+  <li>Bez platného podpisu autora se nic nenainstaluje. Soubory <code>config.php</code> a <code>config-keys.php</code> zůstanou beze změny. Když jste upravili <code>.htaccess</code>, nepřepíše se a nová verze se uloží vedle jako <code>.htaccess.new</code>.</li>
+  <li>Kdyby se po aktualizaci něco nelíbilo, na stejné stránce je tlačítko „Vrátit na předchozí verzi“. Vrátí soubory, databáze zůstane (starší verze s ní funguje).</li>
+</ul>
+<p>Automatická aktualizace potřebuje, aby PHP smělo zapisovat do složky aplikace (na běžných hostinzích to platí). Když to server nedovolí, stránka to ukáže a aktualizujete ručně podle postupu níže.</p>
+<h3>Ručně přes FTP (starší verze nebo bez práva zápisu)</h3>
 <p>Novou verzi dostanete jako nový ZIP balíček. Aktualizace trvá asi deset minut a vaše data zůstanou, protože se mění jen soubory aplikace.</p>
 <ol class="steps">
   <li><h4>Uložte zálohu</h4><p>Exportujte databázi (v phpMyAdminu „Exportovat“) a stáhněte si <code>config.php</code> a <code>config-keys.php</code>.</p></li>
@@ -612,7 +622,7 @@ location ~ ^/allstat/(lib|views|docs)/ { deny all; }</code></pre>
 <table>
   <thead><tr><th>Údaj</th><th>Hodnota</th></tr></thead>
   <tbody>
-    <tr><td>Verze balíčku</td><td>1.1.0</td></tr>
+    <tr><td>Verze balíčku</td><td>1.2.0</td></tr>
     <tr><td>Licence</td><td>GNU GPL verze 3 (soubor <code>LICENSE</code>), zdrojový kód a aktualizace na github.com/ffscz/AllStat</td></tr>
     <tr><td>Jazyk aplikace</td><td>čeština</td></tr>
     <tr><td>Požadavky na server</td><td>PHP 8.1 a novější (doporučeno 8.3), MySQL 5.7.8 a novější nebo MariaDB 10.3 a novější, Apache nebo LiteSpeed (nginx s vlastními pravidly, viz kapitola 10)</td></tr>
@@ -671,7 +681,7 @@ location ~ ^/allstat/(lib|views|docs)/ { deny all; }</code></pre>
 </ul>
 
 <footer>
-  AllStat, verze 1.1.0 · Instalační příručka. Obrázky ukazují ukázková data.
+  AllStat, verze 1.2.0 · Instalační příručka. Obrázky ukazují ukázková data.
 </footer>
 
 </div>
