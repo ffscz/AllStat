@@ -2718,3 +2718,254 @@ sup.growth-partial { margin-left: 1px; font-size: 11px; }
     color: var(--muted);
     font-size: 12px;
 }
+
+/* ===================== Trychtýř (?view=funnel, views/funnel.php) =====================
+   Pruhy kroků a rozpad. Žádné barevné proužky na kartách: výraznost dělá pozadí a typografie. */
+.funnel-root {
+    display: grid;
+    gap: 14px;
+}
+
+.funnel-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px 28px;
+}
+
+.funnel-head-main {
+    flex: 1 1 320px;
+    min-width: 0;
+}
+
+.funnel-kicker {
+    margin: 0 0 4px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 650;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.funnel-head h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 650;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+
+.funnel-meta {
+    margin: 6px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.funnel-head .text-link {
+    margin-top: 8px;
+}
+
+.funnel-total {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 18px;
+    border-radius: 8px;
+    background: var(--surface-muted);
+}
+
+.funnel-total strong {
+    font-size: 34px;
+    font-weight: 650;
+    line-height: 1;
+}
+
+.funnel-total span {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.funnel-total small {
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 550;
+}
+
+.funnel-warnings ul {
+    margin: 6px 0 0;
+    padding-left: 18px;
+    font-weight: 450;
+    line-height: 1.5;
+}
+
+.funnel-bars {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.funnel-bar {
+    display: grid;
+    grid-template-columns: minmax(170px, 250px) minmax(120px, 1fr) 130px minmax(290px, auto);
+    align-items: center;
+    gap: 8px 16px;
+    padding: 12px 0;
+    border-top: 1px solid var(--line);
+}
+
+.funnel-bar:first-child {
+    border-top: 0;
+}
+
+.funnel-bar-name {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.funnel-bar-name > span:last-child {
+    min-width: 0;
+}
+
+.funnel-bar-name strong {
+    display: block;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.funnel-bar-name small {
+    display: block;
+    color: var(--muted);
+    font-size: 11px;
+    overflow-wrap: anywhere;
+}
+
+.funnel-bar-name .status-badge {
+    margin-top: 4px;
+}
+
+.funnel-bar-n {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--blue) 14%, var(--surface));
+    color: var(--blue);
+    font-size: 12px;
+    font-weight: 650;
+}
+
+.funnel-bar-track {
+    height: 24px;
+    border-radius: 6px;
+    background: var(--surface-muted);
+    overflow: hidden;
+}
+
+.funnel-bar-fill {
+    height: 100%;
+    border-radius: 6px;
+    background: var(--blue);
+}
+
+.funnel-bar-fill.is-goal {
+    background: var(--green);
+}
+
+.funnel-bar-count {
+    text-align: right;
+}
+
+.funnel-bar-count strong {
+    font-size: 19px;
+    font-weight: 650;
+}
+
+.funnel-bar-count small {
+    display: block;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.funnel-bar-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(90px, 1fr));
+    gap: 8px 14px;
+    margin: 0;
+}
+
+.funnel-bar-stats dt {
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.funnel-bar-stats dd {
+    margin: 2px 0 0;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.funnel-bar-stats dd small {
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 450;
+}
+
+/* Rozpad: přepínač je odkaz (celý pohled se překresluje serverově), vzhled jako .seg-btn. */
+.seg-toggle a.seg-btn {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.seg-toggle a.seg-btn.is-active {
+    color: #fff;
+}
+
+.funnel-table th {
+    white-space: normal;
+    min-width: 96px;
+    vertical-align: bottom;
+}
+
+.funnel-table th:first-child {
+    min-width: 160px;
+}
+
+.table-panel .notice {
+    margin: 0 0 12px;
+}
+
+@media (max-width: 1100px) {
+    .funnel-bar {
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            "name count"
+            "track track"
+            "stats stats";
+    }
+
+    .funnel-bar-name { grid-area: name; }
+    .funnel-bar-track { grid-area: track; }
+    .funnel-bar-count { grid-area: count; }
+    .funnel-bar-stats { grid-area: stats; }
+}
+
+@media (max-width: 640px) {
+    .funnel-total {
+        width: 100%;
+    }
+
+    .funnel-bar-stats {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+    }
+}

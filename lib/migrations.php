@@ -11,7 +11,7 @@ require_once __DIR__ . '/providers.php';
  * v allstat_default_providers, nové výchozí settings) ZVEDNI tuhle konstantu — jinak se změna na
  * produkci neprovede. Formát: YYYY-MM-DD.N.
  */
-const ALLSTAT_SCHEMA_VERSION = '2026-10-01.2';
+const ALLSTAT_SCHEMA_VERSION = '2026-10-01.3';
 
 function allstat_schema_is_current(PDO $pdo): bool
 {
@@ -393,6 +393,37 @@ function allstat_migrate(PDO $pdo): void
         KEY events_daily_domain_date_idx (domain_id, metric_date)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_czech_ci");
 
+    // Trychtýře (2026-10-01): events_source_daily = eventy z trychtýřů rozpadlé podle zdroje/média/kampaně
+    // (plní GA4 sync jen pro eventy z aktivních trychtýřů), allstat_funnels = konfigurace trychtýřů (kroky v JSON).
+    // Unikátní klíč: 4 + 3 + 4 × 120 + 4 × 190 + 4 × 120 + 4 × 190 + 4 × 2 B = 2 495 B (< 3 072 B, MySQL 8.4 i MariaDB 11.4).
+    $pdo->exec("CREATE TABLE IF NOT EXISTS events_source_daily (
+        id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        domain_id INT UNSIGNED NOT NULL,
+        metric_date DATE NOT NULL,
+        event_name VARCHAR(120) NOT NULL,
+        channel VARCHAR(80) NOT NULL DEFAULT '',
+        source VARCHAR(190) NOT NULL DEFAULT '',
+        medium VARCHAR(120) NOT NULL DEFAULT '',
+        campaign VARCHAR(190) NOT NULL DEFAULT '',
+        event_count INT UNSIGNED NOT NULL DEFAULT 0,
+        total_users INT UNSIGNED NOT NULL DEFAULT 0,
+        UNIQUE KEY events_source_daily_unique (domain_id, metric_date, event_name, source, medium, campaign),
+        KEY events_source_daily_domain_date_idx (domain_id, metric_date)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_czech_ci");
+
+    $pdo->exec("CREATE TABLE IF NOT EXISTS allstat_funnels (
+        id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        domain_id INT UNSIGNED NOT NULL,
+        name VARCHAR(120) NOT NULL,
+        steps_json TEXT NOT NULL,
+        breakdown VARCHAR(20) NOT NULL DEFAULT 'channel',
+        is_active TINYINT(1) NOT NULL DEFAULT 1,
+        sort_order INT NOT NULL DEFAULT 0,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        KEY allstat_funnels_domain_sort_idx (domain_id, sort_order)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_czech_ci");
+
     $pdo->exec("CREATE TABLE IF NOT EXISTS gsc_pages_daily (
         id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
         domain_id INT UNSIGNED NOT NULL,
@@ -759,7 +790,7 @@ function allstat_run_light_maintenance(PDO $pdo): void
     $syncCutoff = (new DateTimeImmutable('today'))->modify('-180 days')->format('Y-m-d H:i:s');
     $auditCutoff = (new DateTimeImmutable('today'))->modify('-365 days')->format('Y-m-d H:i:s');
 
-    foreach (['search_queries_daily', 'landing_pages_daily', 'pages_daily', 'device_daily', 'traffic_sources_daily', 'ai_sources_daily', 'referrers_daily', 'metrics_daily', 'geo_daily', 'events_daily', 'gsc_pages_daily', 'provider_metrics_daily', 'items_daily', 'demographics_daily', 'social_posts'] as $table) {
+    foreach (['search_queries_daily', 'landing_pages_daily', 'pages_daily', 'device_daily', 'traffic_sources_daily', 'ai_sources_daily', 'referrers_daily', 'metrics_daily', 'geo_daily', 'events_daily', 'events_source_daily', 'gsc_pages_daily', 'provider_metrics_daily', 'items_daily', 'demographics_daily', 'social_posts'] as $table) {
         if (allstat_table_exists($pdo, $table)) {
             allstat_batched_delete($pdo, "DELETE FROM $table WHERE metric_date < ?", [$metricCutoff]);
 
@@ -796,6 +827,10 @@ function allstat_run_light_maintenance(PDO $pdo): void
     if (allstat_table_exists($pdo, 'allstat_user_domains')) {
         allstat_batched_delete($pdo, 'DELETE FROM allstat_user_domains WHERE user_id NOT IN (SELECT id FROM allstat_users) OR domain_id NOT IN (SELECT id FROM domains)', []);
     }
+    // Trychtýře po smazaném webu (smazání webu je uklízí samo, tohle je pojistka).
+    if (allstat_table_exists($pdo, 'allstat_funnels')) {
+        allstat_batched_delete($pdo, 'DELETE FROM allstat_funnels WHERE domain_id NOT IN (SELECT id FROM domains)', []);
+    }
 
     if (allstat_table_exists($pdo, 'allstat_login_attempts')) {
         allstat_batched_delete($pdo, 'DELETE FROM allstat_login_attempts WHERE created_at < ?', [$syncCutoff]);
@@ -828,7 +863,7 @@ function allstat_mark_orphan_metric_domains(PDO $pdo): void
         return;
     }
 
-    foreach (['metrics_daily', 'traffic_sources_daily', 'ai_sources_daily', 'referrers_daily', 'landing_pages_daily', 'pages_daily', 'device_daily', 'search_queries_daily', 'geo_daily', 'events_daily', 'gsc_pages_daily', 'provider_metrics_daily', 'items_daily', 'demographics_daily', 'social_posts'] as $table) {
+    foreach (['metrics_daily', 'traffic_sources_daily', 'ai_sources_daily', 'referrers_daily', 'landing_pages_daily', 'pages_daily', 'device_daily', 'search_queries_daily', 'geo_daily', 'events_daily', 'events_source_daily', 'gsc_pages_daily', 'provider_metrics_daily', 'items_daily', 'demographics_daily', 'social_posts'] as $table) {
         if (!allstat_table_exists($pdo, $table)) {
             continue;
         }

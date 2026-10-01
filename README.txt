@@ -40,6 +40,16 @@ docs/INSTALACE.html. Otevřete ho dvojklikem ve svém počítači (před nahrán
 Složku "docs" a tento soubor můžete po instalaci ze serveru smazat.
 
 
+Změny ve verzi 1.1.0
+--------------------
+ * Trychtýře: konverzní cesty z GA4 eventů (například návštěva, spuštění kalkulačky, dokončení,
+   klik na CTA, poptávka). Nastavení v menu Trychtýře (šablony, přetahování kroků, kontrola měření),
+   zobrazení v přehledu s úbytkem mezi kroky, vývojem v čase a rozpadem podle kanálu, zdroje nebo kampaně.
+ * Připojení AI: nový nástroj get_funnel, asistent umí trychtýře číst a hledat, kde se lidé ztrácejí.
+ * Příručka: kapitola o trychtýřích a o přípravě měření v Google Tag Manageru a GA4.
+ * Aktualizace z verze 1.0.x: postup je v docs/INSTALACE.html, kapitola 8. Databáze se doplní sama.
+
+
 Změny ve verzi 1.0.2
 --------------------
  * Přístup k webům podle uživatele: u účtu s rolí Uživatel jde zvolit „Jen vybrané weby“, ostatní

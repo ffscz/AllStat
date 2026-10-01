@@ -469,6 +469,259 @@
         updateMode();
     }
 
+    // Trychtýře: editor kroků. Řádky se přidávají a odebírají, pořadí se mění přetažením (HTML5 drag & drop,
+    // jen za úchyt, aby šel normálně označovat text v polích) nebo šipkami; před odesláním se pole přečíslují
+    // na steps[i][label|event|event_custom]. Bez JS formulář funguje dál: pole jsou indexovaná už na serveru.
+    function bindFunnelEditor() {
+        const editor = document.querySelector('[data-funnel-editor]');
+
+        if (!editor) {
+            return;
+        }
+
+        const list = editor.querySelector('[data-funnel-steps]');
+        const template = editor.querySelector('template[data-funnel-template]');
+        const addButton = editor.querySelector('[data-funnel-add]');
+        const counter = editor.querySelector('[data-funnel-count]');
+        const form = editor.closest('form');
+        const min = Number(editor.dataset.min) || 2;
+        const max = Number(editor.dataset.max) || 10;
+        const CUSTOM = '__custom__';
+        let activity = {};
+
+        try {
+            activity = JSON.parse(editor.dataset.activity || '{}') || {};
+        } catch (error) {
+            activity = {};
+        }
+        editor.classList.add('is-enhanced');
+
+        const rows = () => Array.from(list.querySelectorAll(':scope > [data-funnel-row]'));
+        const rowEvent = (row) => {
+            const select = row.querySelector('[data-funnel-event]');
+
+            return (select.value === CUSTOM ? row.querySelector('[data-funnel-custom]').value : select.value).trim();
+        };
+
+        // Aktivita eventu za 28 dní z mapy, kterou poslal server (malá písmena => počet).
+        function renderActivity(row) {
+            const box = row.querySelector('[data-funnel-activity]');
+            const event = rowEvent(row);
+
+            box.textContent = '';
+            if (!event) {
+                return;
+            }
+
+            const count = Number(activity[event.toLowerCase()] || 0);
+            const badge = document.createElement('span');
+
+            badge.className = `status-badge ${count > 0 ? 'status-ok' : 'status-warning'}`;
+            if (count > 0) {
+                badge.textContent = `${count.toLocaleString('cs-CZ')} za 28 dní`;
+            } else {
+                badge.textContent = 'za 28 dní nepřišel';
+                badge.title = 'Event za posledních 28 dní nepřišel, zkontroluj měření (GTM).';
+            }
+            box.appendChild(badge);
+        }
+
+        // Textové pole pro vlastní název je aktivní jen při volbě „Vlastní název eventu…" (jinak by skrytá
+        // neplatná hodnota blokovala odeslání formuláře).
+        function syncCustom(row) {
+            const isCustom = row.querySelector('[data-funnel-event]').value === CUSTOM;
+
+            row.classList.toggle('is-custom', isCustom);
+            row.querySelector('[data-funnel-custom]').disabled = !isCustom;
+        }
+
+        function refresh() {
+            const all = rows();
+
+            all.forEach((row, index) => {
+                row.querySelector('[data-funnel-no]').textContent = String(index + 1);
+                row.querySelectorAll('[name^="steps["]').forEach((field) => {
+                    field.name = field.name.replace(/^steps\[[^\]]*\]/, `steps[${index}]`);
+                });
+                row.querySelector('[data-funnel-up]').disabled = index === 0;
+                row.querySelector('[data-funnel-down]').disabled = index === all.length - 1;
+                row.querySelector('[data-funnel-remove]').disabled = all.length <= min;
+            });
+            addButton.disabled = all.length >= max;
+            if (counter) {
+                counter.textContent = `${all.length} z ${max} kroků`;
+            }
+        }
+
+        function move(row, direction) {
+            const sibling = direction < 0 ? row.previousElementSibling : row.nextElementSibling;
+
+            if (!sibling) {
+                return;
+            }
+            list.insertBefore(direction < 0 ? row : sibling, direction < 0 ? sibling : row);
+            refresh();
+        }
+
+        list.addEventListener('click', (event) => {
+            const button = event.target.closest('button');
+            const row = button?.closest('[data-funnel-row]');
+
+            if (!button || !row) {
+                return;
+            }
+
+            const isUp = button.hasAttribute('data-funnel-up');
+            const isDown = button.hasAttribute('data-funnel-down');
+
+            if (isUp || isDown) {
+                move(row, isUp ? -1 : 1);
+                // Fokus zůstává na tlačítku, které uživatel mačká; na kraji seznamu přeskočí na protější.
+                const same = row.querySelector(isUp ? '[data-funnel-up]' : '[data-funnel-down]');
+                (same.disabled ? row.querySelector(isUp ? '[data-funnel-down]' : '[data-funnel-up]') : same).focus();
+            } else if (button.hasAttribute('data-funnel-remove') && rows().length > min) {
+                const next = row.nextElementSibling || row.previousElementSibling;
+
+                row.remove();
+                refresh();
+                (next ? next.querySelector('[data-funnel-handle]') : addButton).focus();
+            }
+        });
+
+        list.addEventListener('change', (event) => {
+            const row = event.target.closest('[data-funnel-row]');
+
+            if (row && event.target.matches('[data-funnel-event]')) {
+                syncCustom(row);
+                renderActivity(row);
+                if (event.target.value === CUSTOM) {
+                    row.querySelector('[data-funnel-custom]').focus();
+                }
+            }
+        });
+
+        list.addEventListener('input', (event) => {
+            const row = event.target.closest('[data-funnel-row]');
+
+            if (row && event.target.matches('[data-funnel-custom]')) {
+                renderActivity(row);
+            }
+        });
+
+        // Klávesnice na úchytu: šipka nahoru / dolů posune krok (přístupná varianta přetahování).
+        list.addEventListener('keydown', (event) => {
+            const handle = event.target.closest('[data-funnel-handle]');
+
+            if (handle && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
+                event.preventDefault();
+                move(handle.closest('[data-funnel-row]'), event.key === 'ArrowUp' ? -1 : 1);
+                handle.focus();
+            }
+        });
+
+        addButton.addEventListener('click', () => {
+            if (rows().length >= max) {
+                return;
+            }
+            list.insertAdjacentHTML('beforeend', template.innerHTML.replace(/__INDEX__/g, String(rows().length)));
+
+            const row = rows().pop();
+
+            syncCustom(row);
+            refresh();
+            row.querySelector('input[type="text"]').focus();
+        });
+
+        // Přetahování: řádek je přetažitelný jen po stisku úchytu.
+        let dragged = null;
+        let dropRow = null;
+        let dropAfter = false;
+        const clearMarks = () => rows().forEach((row) => row.classList.remove('is-drop-before', 'is-drop-after'));
+        const finish = () => {
+            if (dragged) {
+                dragged.classList.remove('is-dragging');
+                dragged.draggable = false;
+            }
+            dragged = null;
+            dropRow = null;
+            clearMarks();
+        };
+
+        list.addEventListener('mousedown', (event) => {
+            const handle = event.target.closest('[data-funnel-handle]');
+
+            if (handle) {
+                handle.closest('[data-funnel-row]').draggable = true;
+            }
+        });
+        document.addEventListener('mouseup', () => {
+            if (!dragged) {
+                rows().forEach((row) => { row.draggable = false; });
+            }
+        });
+
+        list.addEventListener('dragstart', (event) => {
+            const row = event.target.closest?.('[data-funnel-row]');
+
+            if (!row || !row.draggable) {
+                return;
+            }
+            dragged = row;
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', 'funnel-step');
+            window.requestAnimationFrame(() => row.classList.add('is-dragging'));
+        });
+
+        list.addEventListener('dragover', (event) => {
+            if (!dragged) {
+                return;
+            }
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'move';
+
+            const row = event.target.closest('[data-funnel-row]');
+
+            clearMarks();
+            dropRow = null;
+            if (!row || row === dragged) {
+                return;
+            }
+
+            const box = row.getBoundingClientRect();
+
+            dropAfter = event.clientY > box.top + box.height / 2;
+            dropRow = row;
+            row.classList.add(dropAfter ? 'is-drop-after' : 'is-drop-before');
+        });
+
+        list.addEventListener('dragleave', (event) => {
+            if (!list.contains(event.relatedTarget)) {
+                clearMarks();
+                dropRow = null;
+            }
+        });
+
+        list.addEventListener('drop', (event) => {
+            if (!dragged) {
+                return;
+            }
+            event.preventDefault();
+            if (dropRow) {
+                list.insertBefore(dragged, dropAfter ? dropRow.nextElementSibling : dropRow);
+                refresh();
+            }
+            finish();
+        });
+
+        list.addEventListener('dragend', finish);
+
+        // Před odesláním pole znovu přečíslovat podle pořadí v DOM (pojistka, kdyby se názvy rozešly).
+        form?.addEventListener('submit', refresh);
+
+        rows().forEach(syncCustom);
+        refresh();
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         bindTheme();
         bindSidebar();
@@ -479,6 +732,7 @@
         bindReportTabs();
         bindLandingPagesAjax();
         bindDomainAccess();
+        bindFunnelEditor();
         refreshIcons();
     });
 })();

@@ -14,6 +14,9 @@
  * Loaded together with helpers, database, providers, repository, growth and share libs.
  */
 
+// Konverzní trychtýře (tool get_funnel): jen čtecí funkce, soubor nic nedělá při načtení.
+require_once __DIR__ . '/funnels.php';
+
 const ALLSTAT_MCP_TOOL_MAX_CHARS = 60000;
 const ALLSTAT_MCP_TOOL_STALE_HOURS = 48;
 
@@ -79,7 +82,7 @@ function allstat_mcp_tool_annotations(string $title): array
 }
 
 /**
- * The 8 tools in a fixed order (deterministic tools/list).
+ * The 9 tools in a fixed order (deterministic tools/list).
  */
 function allstat_mcp_tool_definitions(): array
 {
@@ -191,6 +194,19 @@ function allstat_mcp_tool_definitions(): array
             'Stav synchronizace zdrojů',
             'Vrátí pro jeden web stav synchronizace všech zdrojů dat (stav, poslední synchronizace, poslední den s daty, poznámka) a seznam zastaralých zdrojů. Použijte před analýzou, abyste ověřili, že jsou data aktuální; zastaralá data uveďte v závěrech.',
             $object(allstat_mcp_tool_props_website(), ['website_id'])
+        ),
+        $tool(
+            'get_funnel',
+            'Konverzní trychtýř',
+            'Vrátí konverzní trychtýře webu nastavené v AllStatu (kroky jsou GA4 eventy, například session_start, form_start, form_submit, generate_lead). Bez funnel_id vrátí seznam trychtýřů webu (funnel_id, název, kroky, stav); s funnel_id vrátí za období počty událostí jednotlivých kroků, podíl z předchozího a z prvního kroku, úbytek, celkovou konverzi, rozpad podle kanálu, zdroje a média nebo kampaně a upozornění na kroky, které neměří (event nepřišel). Použijte na otázky, kde lidé na cestě k cíli (poptávka, registrace, nákup) odpadávají a z jakých zdrojů přichází nejvíc cílů. Čísla jsou počty událostí, ne unikátní lidé, takže pozdější krok může mít víc než 100 %. Rozpad podle zdrojů se plní až od první synchronizace GA4 po vytvoření trychtýře. ' . ALLSTAT_MCP_THIRD_PARTY_WARNING,
+            $object(
+                allstat_mcp_tool_props_website() + [
+                    'funnel_id' => ['type' => 'integer', 'minimum' => 1, 'description' => 'ID trychtýře ze seznamu, který tento nástroj vrátí bez funnel_id. Bez něj se vrátí jen seznam trychtýřů webu.'],
+                ] + allstat_mcp_tool_props_period() + [
+                    'breakdown' => ['type' => 'string', 'enum' => array_keys(allstat_funnel_breakdowns()), 'description' => 'Rozpad kroků: channel = kanál, source_medium = zdroj a médium, campaign = kampaň. Bez parametru se použije výchozí rozpad trychtýře.'],
+                ],
+                ['website_id']
+            )
         ),
     ];
 
@@ -971,6 +987,7 @@ function allstat_mcp_tool_call(PDO $pdo, array $config, string $name, array $arg
         'get_top_content' => allstat_mcp_tool_get_top_content($pdo, $config, $a),
         'get_search_queries' => allstat_mcp_tool_get_search_queries($pdo, $config, $a),
         'get_sync_status' => allstat_mcp_tool_get_sync_status($pdo, $config, $a),
+        'get_funnel' => allstat_mcp_tool_get_funnel($pdo, $config, $a),
         default => null,
     };
 }
@@ -2097,4 +2114,206 @@ function allstat_mcp_tool_get_sync_status(PDO $pdo, array $config, array $a): ar
         'sources' => $sources,
         'hints' => $hints,
     ]);
+}
+
+/* ------------------------------------------------------------------------------------------------
+ * Tool 9: get_funnel
+ * ---------------------------------------------------------------------------------------------- */
+
+/** Fraction (0.452) to a Czech percent text ("45,2 %"), "n/a" when it cannot be computed. Not clamped to 100 %. */
+function allstat_mcp_tool_funnel_pct_text(?float $fraction): string
+{
+    return $fraction === null ? 'n/a' : allstat_percent($fraction * 100, abs($fraction) >= 10 ? 0 : 1);
+}
+
+/** Text for a Markdown table cell: sanitized third-party text without the pipe that would break the table. */
+function allstat_mcp_tool_funnel_cell(mixed $value, int $max = 60): string
+{
+    return str_replace('|', '/', allstat_mcp_tool_sanitize($value, $max));
+}
+
+function allstat_mcp_tool_get_funnel(PDO $pdo, array $config, array $a): array
+{
+    $site = allstat_mcp_tool_website($pdo, $a);
+    if (!$site['ok']) {
+        return allstat_mcp_tool_error($site['error']);
+    }
+
+    $breakdownLabels = allstat_funnel_breakdowns();
+    $funnels = allstat_funnels_for_domain($pdo, $site['id'], false);
+    $summary = static fn (array $f): array => [
+        'funnel_id' => $f['id'],
+        'name' => allstat_mcp_tool_sanitize($f['name'], 120),
+        'active' => $f['is_active'],
+        'default_breakdown' => $f['breakdown'],
+        'steps' => array_map(static fn (array $s): array => [
+            'label' => allstat_mcp_tool_sanitize($s['label'], 60),
+            'event' => allstat_mcp_tool_sanitize($s['event'], 40),
+        ], $f['steps']),
+    ];
+    $funnelId = (int) ($a['funnel_id'] ?? 0);
+
+    // Bez funnel_id: seznam trychtýřů webu.
+    if ($funnelId === 0) {
+        $items = array_map($summary, $funnels);
+        $lines = ['# Trychtýře webu ' . $site['name'] . ' (website_id=' . $site['id'] . ')', ''];
+        if ($items) {
+            $lines[] = 'Detail trychtýře (počty kroků, konverze, rozpad podle zdrojů) vrátí get_funnel s parametrem funnel_id.';
+            $lines[] = '';
+            $lines[] = '| funnel_id | Název | Stav | Kroky (popisek = event) | Výchozí rozpad |';
+            $lines[] = '|--:|---|---|---|---|';
+            foreach ($items as $item) {
+                $steps = implode(' → ', array_map(static fn (array $s): string => allstat_mcp_tool_funnel_cell($s['label']) . ' (' . allstat_mcp_tool_funnel_cell($s['event']) . ')', $item['steps']));
+                $lines[] = '| ' . $item['funnel_id'] . ' | ' . allstat_mcp_tool_funnel_cell($item['name'], 120) . ' | ' . ($item['active'] ? 'aktivní' : 'vypnutý') . ' | ' . $steps . ' | ' . ($breakdownLabels[$item['default_breakdown']] ?? $item['default_breakdown']) . ' |';
+            }
+        } else {
+            $lines[] = 'Tento web zatím nemá žádný trychtýř. Trychtýře zakládá administrátor v AllStatu (menu Trychtýře).';
+        }
+        if (isset($a['breakdown']) || isset($a['start']) || isset($a['end'])) {
+            $lines[] = '';
+            $lines[] = '> Pozn.: Parametry období a rozpadu se použijí až s funnel_id.';
+        }
+        $text = allstat_mcp_tool_scrub_string(implode("\n", $lines) . "\n");
+
+        return [
+            'content' => [['type' => 'text', 'text' => $text]],
+            'structuredContent' => allstat_mcp_tool_scrub(['format' => 'markdown', 'website' => allstat_mcp_tool_site_payload($site), 'funnels' => $items]),
+            'isError' => false,
+        ];
+    }
+
+    $funnel = allstat_funnel_get($pdo, $funnelId, $site['id']);
+    if ($funnel === null) {
+        $valid = $funnels
+            ? implode('; ', array_map(static fn (array $f): string => $f['id'] . ' = ' . allstat_mcp_tool_sanitize($f['name'], 120), $funnels))
+            : 'web nemá žádný trychtýř';
+
+        return allstat_mcp_tool_error('Trychtýř funnel_id=' . $funnelId . ' neexistuje u webu ' . $site['name'] . ' (website_id=' . $site['id'] . '). Platné trychtýře: ' . $valid . '. Seznam vrátí get_funnel bez funnel_id.');
+    }
+    $per = allstat_mcp_tool_resolve_period($a);
+    if (!$per['ok']) {
+        return allstat_mcp_tool_error($per['error']);
+    }
+
+    $report = allstat_funnel_report($pdo, $site['id'], $funnel, $per['start'], $per['end'], isset($a['breakdown']) ? (string) $a['breakdown'] : null);
+    $steps = $report['steps'];
+    $bd = $report['breakdown'];
+    $name = allstat_mcp_tool_sanitize($funnel['name'], 120);
+
+    $stepsOut = [];
+    foreach ($steps as $i => $s) {
+        $stepsOut[] = [
+            'position' => $i + 1,
+            'label' => allstat_mcp_tool_sanitize($s['label'], 60),
+            'event' => allstat_mcp_tool_sanitize($s['event'], 40),
+            'count' => (int) $s['count'],
+            'from_previous_pct' => $s['fromPrev'] === null ? null : round($s['fromPrev'] * 100, 1),
+            'from_first_pct' => $s['fromFirst'] === null ? null : round($s['fromFirst'] * 100, 1),
+            'drop_off' => (int) $s['dropOff'],
+        ];
+    }
+    $warnings = array_map(static fn (array $w): string => allstat_mcp_tool_sanitize($w['message'], 240), $report['warnings']);
+
+    // Rozpad: nejvýše 10 řádků + případný řádek „Ostatní“ (lib/funnels.php už řadí a zbytek sloučí).
+    $rows = $bd['rows'];
+    $rest = null;
+    if ($rows && end($rows)['label'] === 'Ostatní') {
+        $rest = array_pop($rows);
+    }
+    $rows = array_slice($rows, 0, 10);
+    if ($rest !== null) {
+        $rows[] = $rest;
+    }
+    $bdRows = array_map(static fn (array $r): array => [
+        'label' => allstat_mcp_tool_sanitize($r['label'], ALLSTAT_MCP_TEXT_DEFAULT),
+        'counts' => array_map('intval', $r['counts']),
+        'overall_pct' => $r['overall'] === null ? null : round($r['overall'] * 100, 1),
+    ], $rows);
+    $coveredLate = $bd['available'] && $bd['coveredFrom'] !== null && $bd['coveredFrom'] > $report['range']['start'];
+
+    $lines = [
+        '# Trychtýř: ' . $name,
+        '',
+        '- Web: ' . $site['name'] . ' (' . $site['url'] . '), website_id=' . $site['id'] . ', funnel_id=' . $funnel['id'],
+        '- Období: ' . $per['label'],
+        '- Stav trychtýře: ' . ($funnel['is_active'] ? 'aktivní' : 'vypnutý (rozpad podle zdrojů se nestahuje)'),
+        '- Celková konverze (poslední krok / první krok): ' . allstat_mcp_tool_funnel_pct_text($report['overall']),
+    ];
+    foreach ($per['notes'] as $note) {
+        $lines[] = '- Pozn. k období: ' . $note;
+    }
+    $lines[] = '';
+    $lines[] = '## Kroky (počty událostí)';
+    $lines[] = '';
+    $lines[] = '| # | Krok | Event | Počet událostí | Z předchozího | Z prvního | Úbytek |';
+    $lines[] = '|--:|---|---|--:|--:|--:|--:|';
+    foreach ($stepsOut as $i => $s) {
+        $lines[] = '| ' . $s['position'] . ' | ' . allstat_mcp_tool_funnel_cell($s['label']) . ' | ' . allstat_mcp_tool_funnel_cell($s['event'], 40)
+            . ' | ' . allstat_number($s['count'])
+            . ' | ' . ($i === 0 ? 'vstup' : allstat_mcp_tool_funnel_pct_text($steps[$i]['fromPrev']))
+            . ' | ' . ($i === 0 ? '100 %' : allstat_mcp_tool_funnel_pct_text($steps[$i]['fromFirst']))
+            . ' | ' . ($i === 0 ? '–' : ($s['drop_off'] > 0 ? '-' . allstat_number($s['drop_off']) : 'žádný')) . ' |';
+    }
+
+    $lines[] = '';
+    $lines[] = '## Rozpad podle: ' . $bd['label'];
+    $lines[] = '';
+    if (!$bd['available']) {
+        $lines[] = 'Rozpad podle zdrojů zatím není k dispozici: plní se od první synchronizace GA4 po vytvoření trychtýře (starší období jde doplnit stažením historie u zdroje GA4). Počty kroků výše jsou kompletní.';
+    } else {
+        if ($coveredLate) {
+            $lines[] = '> Rozpad je k dispozici až od ' . allstat_mcp_tool_cz_date($bd['coveredFrom']) . ', dřívější část období v něm chybí, součty řádků proto mohou být nižší než počty kroků výše.';
+            $lines[] = '';
+        }
+        $head = '| ' . $bd['label'];
+        $sep = '|---';
+        foreach ($stepsOut as $s) {
+            $head .= ' | ' . allstat_mcp_tool_funnel_cell($s['label'], 30);
+            $sep .= '|--:';
+        }
+        $lines[] = $head . ' | Celková konverze |';
+        $lines[] = $sep . '|--:|';
+        foreach ($bdRows as $r) {
+            $lines[] = '| ' . allstat_mcp_tool_funnel_cell($r['label'], ALLSTAT_MCP_TEXT_DEFAULT) . ' | ' . implode(' | ', array_map(static fn (int $c): string => allstat_number($c), $r['counts']))
+                . ' | ' . ($r['overall_pct'] === null ? 'n/a' : allstat_number($r['overall_pct'], 1) . ' %') . ' |';
+        }
+        $lines[] = '';
+        $lines[] = 'Řazeno podle prvního kroku, zobrazeno nejvýše 10 řádků a zbytek sloučen do řádku „Ostatní“. Zdroj a kampaň jsou ze zdroje relace (GA4).';
+    }
+
+    if ($warnings) {
+        $lines[] = '';
+        $lines[] = '## Upozornění';
+        $lines[] = '';
+        foreach ($warnings as $w) {
+            $lines[] = '- ' . $w;
+        }
+    }
+    $lines[] = '';
+    $lines[] = '> Pozn.: Čísla jsou počty událostí z GA4, ne unikátní lidé. Jeden návštěvník může event vyvolat víckrát, proto může být pozdější krok vyšší než předchozí a procenta pak přesáhnou 100 %.';
+    $text = allstat_mcp_tool_scrub_string(implode("\n", $lines) . "\n");
+
+    $structured = allstat_mcp_tool_scrub([
+        'format' => 'markdown',
+        'website' => allstat_mcp_tool_site_payload($site),
+        'period' => allstat_mcp_tool_period_payload($per),
+        'funnel' => ['funnel_id' => $funnel['id'], 'name' => $name, 'active' => $funnel['is_active'], 'breakdown' => $report['funnel']['breakdown']],
+        'steps' => $stepsOut,
+        'overall_pct' => $report['overall'] === null ? null : round($report['overall'] * 100, 1),
+        'breakdown' => [
+            'key' => $bd['key'],
+            'label' => $bd['label'],
+            'available' => $bd['available'],
+            'covered_from' => $bd['coveredFrom'],
+            'rows' => $bdRows,
+        ],
+        'warnings' => $warnings,
+        'note' => 'Počty jsou události GA4, ne unikátní lidé; pozdější krok může být vyšší než předchozí.',
+    ]);
+
+    return [
+        'content' => [['type' => 'text', 'text' => $text]],
+        'structuredContent' => $structured,
+        'isError' => false,
+    ];
 }

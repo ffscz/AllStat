@@ -16,6 +16,7 @@ require_once __DIR__ . '/lib/auth.php';
 require_once __DIR__ . '/lib/csrf.php';
 require_once __DIR__ . '/lib/repository.php';
 require_once __DIR__ . '/lib/growth.php';
+require_once __DIR__ . '/lib/funnels.php';
 
 allstat_session_start($config);
 $pdo = allstat_db($config);
@@ -30,6 +31,10 @@ $user = allstat_require_user($pdo, $config);
 // Default = last 7 days incl. today, so the range is unambiguous and matches the "7 dní" quick-range chip.
 $defaultEnd = (new DateTimeImmutable('today'))->format('Y-m-d');
 $defaultStart = (new DateTimeImmutable('today'))->modify('-6 days')->format('Y-m-d');
+// Pohled „Trychtýř“ (?view=funnel) bez zadaného období ukáže 30 dní: 7 dní je pro trychtýř s málo eventy příliš krátké okno.
+if ((string) ($_GET['view'] ?? '') === 'funnel' && !isset($_GET['start']) && !isset($_GET['end'])) {
+    $defaultStart = (new DateTimeImmutable('today'))->modify('-29 days')->format('Y-m-d');
+}
 $start = allstat_normalize_date($_GET['start'] ?? null, $defaultStart);
 $end = allstat_normalize_date($_GET['end'] ?? null, $defaultEnd);
 [$start, $end] = allstat_limited_range($start, $end);
@@ -81,6 +86,45 @@ if ($isGrowthView) {
     }
     $growthChart = allstat_growth_chart_payload($growth);
 }
+
+// Pohled „Trychtýř“ (?view=funnel&funnel_id=N): trychtýř musí patřit zvolenému webu, id cizího webu nebo neznámé id
+// vede na výchozí pohled (izolace webů řeší allstat_funnel_get). Vypnutý trychtýř vidí jen administrátor (náhled při nastavování).
+$isFunnelView = false;
+$funnel = null;
+$funnelReport = null;
+$funnelChart = null;
+$funnelError = false;
+if (!$isGenericView && $requestedView === 'funnel') {
+    $requestedFunnelId = filter_input(INPUT_GET, 'funnel_id', FILTER_VALIDATE_INT) ?: 0;
+    $funnel = $requestedFunnelId > 0 ? allstat_funnel_get($pdo, $requestedFunnelId, (int) $domainId) : null;
+    if ($funnel !== null && !$funnel['is_active'] && ($user['role'] ?? '') !== 'admin') {
+        $funnel = null;
+    }
+    if ($funnel === null) {
+        allstat_redirect($config, 'index.php?domain_id=' . (int) $domainId);
+    }
+    $isFunnelView = true;
+    $funnelBreakdown = (string) ($_GET['breakdown'] ?? '');
+    try {
+        $funnelReport = allstat_funnel_report($pdo, (int) $domainId, $funnel, $start, $end, isset(allstat_funnel_breakdowns()[$funnelBreakdown]) ? $funnelBreakdown : null);
+        $trend = $funnelReport['trend'];
+        $funnelChart = ['granularity' => $trend['granularity'], 'labels' => [], 'longLabels' => [], 'series' => []];
+        foreach ($trend['labels'] as $iso) {
+            $bucket = new DateTimeImmutable($iso);
+            $funnelChart['labels'][] = $bucket->format('j. n.');
+            $funnelChart['longLabels'][] = ($trend['granularity'] === 'week' ? 'Týden od ' : '') . $bucket->format('j. n. Y');
+        }
+        foreach ($funnelReport['steps'] as $i => $step) {
+            $funnelChart['series'][] = ['name' => $step['label'], 'event' => $step['event'], 'data' => $trend['series'][$i] ?? []];
+        }
+    } catch (Throwable $e) {
+        error_log('AllStat trychtýř: ' . $e->getMessage());
+        $funnelError = true;
+    }
+    $funnelBreakdownKey = (string) ($funnelReport['funnel']['breakdown'] ?? $funnel['breakdown']);
+}
+// Aktivní trychtýře webu do přepínače „Zdroj dat“.
+$funnelOptions = allstat_funnels_for_domain($pdo, (int) $domainId, true);
 $providerPayload = null;
 $clarityBreakdowns = null;
 $metaAdsBreakdown = null;
@@ -239,6 +283,7 @@ if ($isGenericView) {
                 <a href="admin/domains.php"><?= allstat_icon('globe-2') ?><span>Weby</span></a>
                 <a href="admin/sources.php"><?= allstat_icon('database') ?><span>Zdroje dat</span></a>
                 <a href="admin/metrics.php"><?= allstat_icon('line-chart') ?><span>Metriky</span></a>
+                <a href="admin/funnels.php"><?= allstat_icon('filter') ?><span>Trychtýře</span></a>
                 <?php endif; ?>
                 <a href="admin/reports.php"><?= allstat_icon('clipboard-list') ?><span>Reporty</span></a>
                 <?php if ($isAdmin): ?>
@@ -295,11 +340,14 @@ if ($isGenericView) {
                     <h1>Přehled</h1>
                     <span class="title-actions">
                         <button class="icon-button" type="submit" form="dashboardFilters" title="Obnovit data" aria-label="Obnovit data"><i data-lucide="rotate-cw"></i></button>
+                        <?php // Sdílení pro AI umí přehled, růst a zdroje; trychtýř do něj nepatří (AI čte trychtýře přes MCP get_funnel). ?>
+                        <?php if (!$isFunnelView): ?>
                         <button class="icon-button" type="button" id="shareAiBtn" title="Sdílet pro AI (dočasný odkaz)" aria-label="Sdílet pro AI"
                             data-domain="<?= (int) $data['domain']['id'] ?>" data-source="<?= (int) $viewSourceId ?>"
                             data-start="<?= h($data['range']['start']) ?>" data-end="<?= h($data['range']['end']) ?>"
                             data-gran="<?= h($granularity) ?>" data-csrf="<?= h(allstat_csrf_token()) ?>"
                             <?php if ($isGrowthView): ?>data-view="growth" data-months="<?= (int) $growth['window']['n'] ?>"<?php endif; ?>><i data-lucide="sparkles"></i></button>
+                        <?php endif; ?>
                         <button class="avatar-button" id="themeToggle" type="button" title="Motiv" aria-label="Motiv"><i data-lucide="moon"></i></button>
                     </span>
                 </div>
@@ -338,6 +386,10 @@ if ($isGenericView) {
                     $rangeLabel = $rlS->format('j. n. Y') . ' – ' . $rlE->format('j. n. Y');
                 }
                 ?>
+                <?php
+                // Rychlé volby období se mají vracet na stejný pohled (přehled / trychtýř se zvoleným rozpadem).
+                $rangeLinkTail = $isGenericView ? '' : ($isFunnelView ? '&view=funnel&funnel_id=' . (int) $funnel['id'] . '&breakdown=' . rawurlencode($funnelBreakdownKey) : '&view=overview');
+                ?>
                 <div class="topbar-controls">
                 <?php if ($isGrowthView): ?>
                 <div class="quick-ranges" aria-label="Období (uzavřené měsíce)">
@@ -348,7 +400,7 @@ if ($isGenericView) {
                 <?php else: ?>
                 <div class="quick-ranges" aria-label="Rychlý výběr období">
                     <?php foreach ($quickRanges as $label => [$qs, $qe]): ?>
-                        <a class="chip <?= ($curStart === $qs && $curEnd === $qe) ? 'is-active' : '' ?>" data-range-start="<?= h($qs) ?>" data-range-end="<?= h($qe) ?>" href="?domain_id=<?= (int) $data['domain']['id'] ?>&start=<?= h($qs) ?>&end=<?= h($qe) ?>&source_id=<?= (int) $viewSourceId ?><?= $isGenericView ? '' : '&view=overview' ?>"><?= h($label) ?></a>
+                        <a class="chip <?= ($curStart === $qs && $curEnd === $qe) ? 'is-active' : '' ?>" data-range-start="<?= h($qs) ?>" data-range-end="<?= h($qe) ?>" href="?domain_id=<?= (int) $data['domain']['id'] ?>&start=<?= h($qs) ?>&end=<?= h($qe) ?>&source_id=<?= (int) $viewSourceId ?><?= $rangeLinkTail ?>"><?= h($label) ?></a>
                     <?php endforeach; ?>
                 </div>
                 <?php endif; ?>
@@ -372,7 +424,11 @@ if ($isGenericView) {
                         <input type="hidden" name="end" value="<?= h($data['range']['end']) ?>" data-date-end>
                         <div class="date-range-pop" data-date-range-pop role="dialog" aria-label="Výběr období" hidden></div>
                     </div>
-                    <?php if (!$isGenericView): ?><input type="hidden" name="view" value="overview"><?php endif; ?>
+                    <?php if ($isFunnelView): ?>
+                    <input type="hidden" name="view" value="funnel">
+                    <input type="hidden" name="funnel_id" value="<?= (int) $funnel['id'] ?>">
+                    <input type="hidden" name="breakdown" value="<?= h($funnelBreakdownKey) ?>">
+                    <?php elseif (!$isGenericView): ?><input type="hidden" name="view" value="overview"><?php endif; ?>
                     <?php endif; ?>
 
                     <label class="filter-control">
@@ -402,9 +458,9 @@ if ($isGenericView) {
                     ?>
                     <?php
                     // Vlastní listbox místo <select> — nativní <option> neumí SVG ikony providerů.
-                    $pickerLabel = $isGenericView ? $selectedProvider['label'] . ', ' . $selectedProvider['name'] : ($isGrowthView ? 'Růst kanálů' : 'Přehled (GA4 + GSC)');
-                    $pickerIcon = $isGrowthView ? '<i data-lucide="trending-up"></i>' : allstat_provider_icon_svg($isGenericView ? (string) $selectedProvider['provider_key'] : 'overview');
-                    $isOverviewSel = !$isGenericView && !$isGrowthView;
+                    $pickerLabel = $isGenericView ? $selectedProvider['label'] . ', ' . $selectedProvider['name'] : ($isGrowthView ? 'Růst kanálů' : ($isFunnelView ? 'Trychtýř: ' . $funnel['name'] : 'Přehled (GA4 + GSC)'));
+                    $pickerIcon = $isGrowthView ? '<i data-lucide="trending-up"></i>' : ($isFunnelView ? '<i data-lucide="filter"></i>' : allstat_provider_icon_svg($isGenericView ? (string) $selectedProvider['provider_key'] : 'overview'));
+                    $isOverviewSel = !$isGenericView && !$isGrowthView && !$isFunnelView;
                     ?>
                     <div class="filter-control source-picker" data-source-picker data-domain="<?= (int) $data['domain']['id'] ?>" data-start="<?= $isGrowthView ? '' : h($data['range']['start']) ?>" data-end="<?= $isGrowthView ? '' : h($data['range']['end']) ?>">
                         <button type="button" class="source-picker-btn" aria-haspopup="listbox" aria-expanded="false" aria-label="Zdroj dat">
@@ -421,6 +477,15 @@ if ($isGenericView) {
                                 <span class="source-picker-ic"><?= allstat_provider_icon_svg('overview') ?></span>
                                 <span>Přehled (GA4 + GSC)</span>
                             </button>
+                            <?php if ($funnelOptions): ?>
+                                <div class="source-picker-group">Trychtýře</div>
+                                <?php foreach ($funnelOptions as $fOpt): $fSel = $isFunnelView && (int) $fOpt['id'] === (int) $funnel['id']; $fCount = count($fOpt['steps']); ?>
+                                    <button type="button" role="option" class="source-picker-item<?= $fSel ? ' is-selected' : '' ?>" aria-selected="<?= $fSel ? 'true' : 'false' ?>" data-value="0" data-view="funnel" data-funnel="<?= (int) $fOpt['id'] ?>">
+                                        <span class="source-picker-ic"><i data-lucide="filter"></i></span>
+                                        <span><?= h($fOpt['name']) ?> <small>· <?= $fCount ?> <?= $fCount === 1 ? 'krok' : ($fCount < 5 ? 'kroky' : 'kroků') ?></small></span>
+                                    </button>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                             <?php foreach ($genericByGroup as $groupLabel => $opts): ?>
                                 <div class="source-picker-group"><?= h($groupLabel) ?></div>
                                 <?php foreach ($opts as $opt): $optSelected = $viewSourceId === (int) $opt['connection_id']; ?>
@@ -518,6 +583,12 @@ if ($isGenericView) {
                 <div class="notice notice-error">Data pro Růst kanálů se nepodařilo načíst. Zkus obnovit stránku, případně otevři <a class="text-link" href="?view=overview&amp;domain_id=<?= (int) $data['domain']['id'] ?>">Přehled (GA4 + GSC)</a>.</div>
             <?php else: ?>
                 <?php include __DIR__ . '/views/growth.php'; ?>
+            <?php endif; ?>
+            <?php elseif ($isFunnelView): ?>
+            <?php if ($funnelError): ?>
+                <div class="notice notice-error">Data trychtýře se nepodařilo načíst. Zkus obnovit stránku, případně otevři <a class="text-link" href="?view=overview&amp;domain_id=<?= (int) $data['domain']['id'] ?>">Přehled (GA4 + GSC)</a>.</div>
+            <?php else: ?>
+                <?php include __DIR__ . '/views/funnel.php'; ?>
             <?php endif; ?>
             <?php else: ?>
             <?php
@@ -922,10 +993,16 @@ if ($isGenericView) {
     <?php if ($isGrowthView): ?>
     <script nonce="<?= h($nonce) ?>">window.ALLSTAT_VIEW = 'growth'; window.ALLSTAT_GROWTH = <?= allstat_json($growthChart) ?>;</script>
     <?php endif; ?>
+    <?php if ($isFunnelView): ?>
+    <script nonce="<?= h($nonce) ?>">window.ALLSTAT_VIEW = 'funnel'; window.ALLSTAT_FUNNEL = <?= allstat_json($funnelChart) ?>;</script>
+    <?php endif; ?>
     <script src="assets/js/app.js?v=<?= @filemtime(__DIR__ . '/assets/js/app.js') ?: '1' ?>" nonce="<?= h($nonce) ?>"></script>
     <script src="assets/js/select-search.js?v=<?= @filemtime(__DIR__ . '/assets/js/select-search.js') ?: '1' ?>" nonce="<?= h($nonce) ?>"></script>
     <?php if ($isGrowthView): ?>
     <script src="assets/js/growth.js?v=<?= @filemtime(__DIR__ . '/assets/js/growth.js') ?: '1' ?>" nonce="<?= h($nonce) ?>"></script>
+    <?php endif; ?>
+    <?php if ($isFunnelView && !$funnelError): ?>
+    <script src="assets/js/funnel.js?v=<?= @filemtime(__DIR__ . '/assets/js/funnel.js') ?: '1' ?>" nonce="<?= h($nonce) ?>"></script>
     <?php endif; ?>
     <script src="assets/js/table-sort.js?v=<?= @filemtime(__DIR__ . '/assets/js/table-sort.js') ?: '1' ?>" nonce="<?= h($nonce) ?>"></script>
     <script nonce="<?= h($nonce) ?>">
