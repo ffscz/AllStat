@@ -70,6 +70,7 @@ function allstat_delete_domain(PDO $pdo, ?int $actorId, int $id): array
     try {
         allstat_purge_domain_metrics($pdo, $id);
         $pdo->prepare('DELETE FROM allstat_user_domains WHERE domain_id = ?')->execute([$id]);
+        $pdo->prepare('DELETE FROM allstat_funnels WHERE domain_id = ?')->execute([$id]);
         $statement = $pdo->prepare('DELETE FROM domains WHERE id = ?');
         $statement->execute([$id]);
         allstat_audit($pdo, $actorId, null, 'domain_deleted', (string) $id);
@@ -373,7 +374,7 @@ function allstat_delete_connection(PDO $pdo, ?int $actorId, int $id): array
 
 function allstat_purge_domain_metrics(PDO $pdo, int $domainId): void
 {
-    foreach (['search_queries_daily', 'landing_pages_daily', 'traffic_sources_daily', 'metrics_daily', 'sync_logs'] as $table) {
+    foreach (['search_queries_daily', 'landing_pages_daily', 'traffic_sources_daily', 'metrics_daily', 'events_source_daily', 'sync_logs'] as $table) {
         $statement = $pdo->prepare("DELETE FROM $table WHERE domain_id = ?");
         $statement->execute([$domainId]);
     }

@@ -1677,3 +1677,277 @@ tr.row-extra {
         grid-template-columns: 1fr;
     }
 }
+
+/* ===================== Trychtýře (admin/funnels.php) ===================== */
+.funnel-templates {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 12px;
+}
+
+.funnel-template {
+    display: grid;
+    align-content: start;
+    gap: 6px;
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface-muted);
+    color: var(--text);
+    text-decoration: none;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.funnel-template:hover,
+.funnel-template:focus-visible {
+    border-color: var(--blue);
+    background: color-mix(in srgb, var(--blue) 8%, var(--surface));
+}
+
+.funnel-template strong {
+    font-size: 15px;
+    font-weight: 650;
+}
+
+.funnel-template span,
+.funnel-template small {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.funnel-template small {
+    font-size: 12px;
+}
+
+.funnel-list-steps {
+    display: inline-block;
+    max-width: 560px;
+    line-height: 1.5;
+    white-space: normal;
+}
+
+.funnel-form {
+    display: grid;
+    gap: 22px;
+}
+
+.funnel-form .form-actions {
+    margin-top: 0;
+}
+
+/* Pole s nápovědou pod sebou nesmí natáhnout sousední pole (jinak je název vyšší než výběry). */
+.funnel-form .form-grid {
+    align-items: start;
+}
+
+.funnel-editor {
+    display: grid;
+    gap: 12px;
+}
+
+.funnel-editor-head h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 650;
+}
+
+.funnel-editor-head p {
+    margin: 4px 0 0;
+}
+
+.funnel-steps {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.funnel-step-row {
+    display: grid;
+    grid-template-columns: 30px 26px minmax(150px, 1fr) minmax(250px, 1.5fr) minmax(120px, auto) auto;
+    align-items: end;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface-muted);
+}
+
+.funnel-step-row.is-dragging {
+    opacity: 0.45;
+}
+
+.funnel-step-row.is-drop-before {
+    box-shadow: 0 -4px 0 0 var(--blue);
+}
+
+.funnel-step-row.is-drop-after {
+    box-shadow: 0 4px 0 0 var(--blue);
+}
+
+.funnel-step-row label {
+    display: grid;
+    gap: 5px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 550;
+}
+
+.funnel-step-row input[type="text"],
+.funnel-step-row select {
+    width: 100%;
+    min-width: 0;
+    min-height: 40px;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+}
+
+.funnel-step-row input[type="text"]:focus-visible,
+.funnel-step-row select:focus-visible,
+.funnel-icon-btn:focus-visible,
+.funnel-step-handle:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--blue) 60%, transparent);
+    outline-offset: 1px;
+}
+
+.funnel-step-no {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    margin-bottom: 7px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--blue) 14%, var(--surface));
+    color: var(--blue);
+    font-size: 12px;
+    font-weight: 650;
+}
+
+.funnel-step-handle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 40px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--muted);
+    cursor: grab;
+}
+
+.funnel-step-handle:hover {
+    background: color-mix(in srgb, var(--blue) 10%, var(--surface));
+    color: var(--text);
+}
+
+.funnel-step-handle:active {
+    cursor: grabbing;
+}
+
+.funnel-step-event {
+    display: grid;
+    gap: 6px;
+}
+
+.funnel-step-activity {
+    display: flex;
+    align-items: center;
+    min-height: 40px;
+}
+
+.funnel-step-activity .status-badge {
+    white-space: nowrap;
+}
+
+.funnel-step-controls {
+    display: flex;
+    gap: 4px;
+}
+
+.funnel-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+}
+
+.funnel-icon-btn:hover:not(:disabled) {
+    background: var(--surface-muted);
+}
+
+.funnel-icon-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.funnel-icon-btn-danger {
+    color: var(--rose);
+}
+
+.funnel-editor-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Bez JS se řádky nedají přetahovat, přidávat ani odebírat: ovládací prvky se skryjí a vlastní název eventu zůstává u výběru. */
+.funnel-editor:not(.is-enhanced) .funnel-step-handle,
+.funnel-editor:not(.is-enhanced) .funnel-step-controls,
+.funnel-editor:not(.is-enhanced) [data-funnel-add] {
+    display: none;
+}
+
+.funnel-editor.is-enhanced .funnel-step-row:not(.is-custom) .funnel-step-custom {
+    display: none;
+}
+
+.funnel-help {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding-left: 20px;
+    line-height: 1.55;
+}
+
+.funnel-help code {
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: var(--surface-muted);
+    font-size: 12px;
+}
+
+@media (max-width: 900px) {
+    .funnel-step-row {
+        grid-template-columns: 30px 26px minmax(0, 1fr) auto;
+        grid-template-areas:
+            "handle no . controls"
+            "label label label label"
+            "event event event event"
+            "activity activity activity activity";
+        align-items: center;
+    }
+
+    .funnel-step-handle { grid-area: handle; height: 34px; }
+    .funnel-step-no { grid-area: no; margin-bottom: 0; }
+    .funnel-step-controls { grid-area: controls; }
+    .funnel-step-label { grid-area: label; }
+    .funnel-step-event { grid-area: event; }
+    .funnel-step-activity { grid-area: activity; min-height: 0; }
+    .funnel-icon-btn { height: 36px; }
+}

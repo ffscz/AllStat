@@ -1,5 +1,5 @@
 {
-    "version": "1.0.2",
+    "version": "1.1.0",
     "files": {
         "LICENSE": {
             "s": 35823,
@@ -14,8 +14,8 @@
             "h": "197d993c9b171119b526eb886ce832b074d029940d7a3b67c1297761e486c99c"
         },
         "admin/_layout.php": {
-            "s": 7589,
-            "h": "679b5243d4d57253f12dbeb36285df6ca14e5cc22b3ca81a062700feb7493ed7"
+            "s": 7718,
+            "h": "d1d708fd444e829924b48dc701cc506bace9940a7d51284c6ed936b2b5a04168"
         },
         "admin/clarity-import.php": {
             "s": 12219,
@@ -36,6 +36,10 @@
         "admin/feeds.php": {
             "s": 8129,
             "h": "54254912c5bd6d53293e08d8ffde137fe23a05bb091b5918c9029397f3a442bb"
+        },
+        "admin/funnels.php": {
+            "s": 22558,
+            "h": "082b0b85fdc9178ce5c7cb66fd10a2aadc973eb82d3942b8ee0a73c0e3afae1a"
         },
         "admin/index.php": {
             "s": 166,
@@ -130,12 +134,12 @@
             "h": "b673fdbf74343dfe34007d088968823d179ccc8772103678eeea559124b01c0a"
         },
         "assets/css/admin.css": {
-            "s": 35286,
-            "h": "6f0d01fce162633e40cf40c473693122b1ad17b5332c0cee5b1ed1a76071b275"
+            "s": 41062,
+            "h": "98924e0657b9c713ee960069f847013df3dccc1c9cd81c1831f92fc55dd764cb"
         },
         "assets/css/app.css": {
-            "s": 67515,
-            "h": "5ca23ac86b4cec75a79c03bef90cd14336b1011ae86a838e3d43befcc7cab2a2"
+            "s": 72020,
+            "h": "83bdbd6124a6dce75fb5f5b26a95f7a13010dd72bc8cab395f8b502cdc63769b"
         },
         "assets/img/help/bs-1-obsah-exportovat-data.webp": {
             "s": 25846,
@@ -162,12 +166,16 @@
             "h": "3c969f337867403d3acf1bf444d07dc6755f78bc7b407cf0563811e4c49fc3b2"
         },
         "assets/js/admin.js": {
-            "s": 22753,
-            "h": "982e47dc71165415066349e9728b26b85db478f207e5913bbda5ebd8ee215a27"
+            "s": 32533,
+            "h": "e5941dd405a3040056749d3533c19b24936d6a32b9a9ee83f8f85716c629499a"
         },
         "assets/js/app.js": {
-            "s": 41408,
-            "h": "77e82e0309318f02934c070ea889fecd0289cfb821f39eb6d4b10c5c648435c6"
+            "s": 41936,
+            "h": "440cef0af15abd395f86e69d9cdb93537195075e5157eb742f9e4bb0dca43f5d"
+        },
+        "assets/js/funnel.js": {
+            "s": 3842,
+            "h": "8cb1943147c3864ed41c245fa159f53c1e23de8b76f85dc77ba4920c180eb618"
         },
         "assets/js/growth.js": {
             "s": 7988,
@@ -206,16 +214,16 @@
             "h": "77010f323ada1f123d7ffc3c6fcf6c15991cbc0c1f3cabd3a878017ea09931a7"
         },
         "index.php": {
-            "s": 71518,
-            "h": "04811f91849317fed1f8fedb6b5ef8423fa91999060a59d74c3dd9e0af5a2618"
+            "s": 77032,
+            "h": "cdd771094207bf5f4f8ee4799264bc344a378fa56c0c6110a84bbf66e024325e"
         },
         "install.php": {
             "s": 1363,
             "h": "58350a5d7d1f476a2209ced5b338693946c24cc047b915f4d2bbefa859669b3c"
         },
         "lib/admin-repository.php": {
-            "s": 17588,
-            "h": "3b67845746b4fa42b2cdd295e59a2022b626ba03188efee4db6d29b92bca0e9f"
+            "s": 17701,
+            "h": "fb4568b8a66e9aff4a537b6a92a428f800ea21d206ab91d0edde4d3871841a08"
         },
         "lib/ai-sources.php": {
             "s": 2157,
@@ -245,6 +253,10 @@
             "s": 10622,
             "h": "3b74bb87bb79fa94c6524699326a5de5f02b40b365e91388aecb0dc98e32f55d"
         },
+        "lib/funnels.php": {
+            "s": 31810,
+            "h": "990e970aa56bf8c3ecb0d96c7df045e5cb3dab6bff444aab8a3cc5b870ea7832"
+        },
         "lib/growth.php": {
             "s": 28171,
             "h": "e65d27099d6df2c1ab1e907cb790d9c474cf8f2305fd1ce7bb8a067c4acc9a0a"
@@ -262,20 +274,20 @@
             "h": "a6e7c289339e1ff51dd49e93a8a6d1ed6c01759d350f7c1df416624d09ba90e5"
         },
         "lib/mcp-server.php": {
-            "s": 36974,
-            "h": "087cb0305362747acbbd993ccc8fec0e8194775fc46a0be1468c1a1a77fcbcbe"
+            "s": 37040,
+            "h": "dd1b063a6b29d84a00ef2499c9fe5569c38833f69a17c6cd8e244f48796b4caa"
         },
         "lib/mcp-tools.php": {
-            "s": 100744,
-            "h": "613884d6c12acca0086616aecac3f253d7516c0d0553d2b31f5f391a05023e0a"
+            "s": 112898,
+            "h": "d099a1843fff44674b42a0b8c471ebc335a8df61d841e1eb095cf56cd19cd212"
         },
         "lib/meta-connect.php": {
             "s": 12160,
             "h": "d19415a8878dd61589fe6f465541662bbd8bc0da61a6f837ea8c5b12eabb902b"
         },
         "lib/migrations.php": {
-            "s": 49392,
-            "h": "15d1fd2331c6fc2a351107c1a2583ec2f3c0b25a199c2bdf55206297f006220e"
+            "s": 51561,
+            "h": "46cfb7c506eed16022d92419ac6958841d77b2b35bd87b6d2ac692903f63fb04"
         },
         "lib/oauth.php": {
             "s": 24637,
@@ -302,8 +314,8 @@
             "h": "0b4b338eb08db3d25ddb8341e7c8ca36aae9005bd74206a8fdb2cbdf5a772f6c"
         },
         "lib/sync.php": {
-            "s": 35144,
-            "h": "355fff69901ae4fb9bbb6a01b9667ef481280b4b37466faf6c219c2edec9c787"
+            "s": 37295,
+            "h": "7767d939a1caea5433a478b426850f19d9552187b86be1c4b18b612f953b7e1a"
         },
         "lib/totp.php": {
             "s": 2713,
@@ -322,8 +334,8 @@
             "h": "9ae25186aae1d0e1da05c393cae9c01092f1ecf85191ebe7f07abdfe4b792268"
         },
         "schema.sql": {
-            "s": 16071,
-            "h": "1de318aa89be44001d8870d778d14e98f7adfc928074baeb87e02e41298e9c1d"
+            "s": 17630,
+            "h": "4ef91b336dd89affd7feb17d27004ce7acd9d359fe9462db3582a7e44645f79b"
         },
         "share.php": {
             "s": 2006,
@@ -332,6 +344,10 @@
         "terms.php": {
             "s": 4195,
             "h": "85037772b20d5d81512b6fcde6a36941cb71583c0cf3d97a70fef0bb40676d61"
+        },
+        "views/funnel.php": {
+            "s": 11141,
+            "h": "d9b1946aa6834c3475c82dd2462ea490f289d3b111863327e48285463b67b6e5"
         },
         "views/growth.php": {
             "s": 26037,

@@ -20,6 +20,7 @@ function allstat_admin_header(string $title, string $active, array $user, array 
         ['key' => 'domains', 'label' => 'Weby', 'icon' => 'globe-2', 'href' => allstat_url($config, 'admin/domains.php')],
         ['key' => 'sources', 'label' => 'Zdroje dat', 'icon' => 'database', 'href' => allstat_url($config, 'admin/sources.php')],
         ['key' => 'metrics', 'label' => 'Metriky', 'icon' => 'line-chart', 'href' => allstat_url($config, 'admin/metrics.php')],
+        ['key' => 'funnels', 'label' => 'Trychtýře', 'icon' => 'filter', 'href' => allstat_url($config, 'admin/funnels.php')],
         ['key' => 'reports', 'label' => 'Reporty', 'icon' => 'clipboard-list', 'href' => allstat_url($config, 'admin/reports.php')],
         ['key' => 'feeds', 'label' => 'Datový feed', 'icon' => 'sheet', 'href' => allstat_url($config, 'admin/feeds.php')],
     ];

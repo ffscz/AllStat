@@ -75,7 +75,7 @@ function allstat_mcp_server_instructions(PDO $pdo): string
     $org = trim((string) preg_replace('/\s+/u', ' ', str_replace("\u{2014}", "\u{2013}", $org)));
 
     $guide = "AllStat je jen pro čtení: vrací agregované analytické údaje webů a sociálních sítí, žádné osobní údaje.\n"
-        . "Postup: 1) list_websites (website_id, source_id a stav dat). 2) get_report je hotový analytický report v Markdownu; pro konkrétní čísla použij get_channel_growth, get_overview, get_source_metrics, get_top_content, get_search_queries a get_sync_status.\n"
+        . "Postup: 1) list_websites (website_id, source_id a stav dat). 2) get_report je hotový analytický report v Markdownu; pro konkrétní čísla použij get_channel_growth, get_overview, get_source_metrics, get_top_content, get_search_queries a get_sync_status; konverzní trychtýře (kroky a úbytek podle zdroje) get_funnel.\n"
         . "Pravidla: relativní období končí včerejškem (kompletní dny); růst kanálů počítá jen uzavřené měsíce; čísla v reportech jsou česky formátovaná (1 234,5; 12,3 %); časové pásmo Europe/Prague. Před závěry ověř aktuálnost dat (get_sync_status). Odpovídej česky, pokud uživatel nepíše jinak.\n"
         . allstat_mcp_srv_third_party_warning();
 

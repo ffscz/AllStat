@@ -165,6 +165,36 @@ CREATE TABLE IF NOT EXISTS events_daily (
     CONSTRAINT events_daily_domain_fk FOREIGN KEY (domain_id) REFERENCES domains (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_czech_ci;
 
+CREATE TABLE IF NOT EXISTS events_source_daily (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    domain_id INT UNSIGNED NOT NULL,
+    metric_date DATE NOT NULL,
+    event_name VARCHAR(120) NOT NULL,
+    channel VARCHAR(80) NOT NULL DEFAULT '',
+    source VARCHAR(190) NOT NULL DEFAULT '',
+    medium VARCHAR(120) NOT NULL DEFAULT '',
+    campaign VARCHAR(190) NOT NULL DEFAULT '',
+    event_count INT UNSIGNED NOT NULL DEFAULT 0,
+    total_users INT UNSIGNED NOT NULL DEFAULT 0,
+    UNIQUE KEY events_source_daily_unique (domain_id, metric_date, event_name, source, medium, campaign),
+    KEY events_source_daily_domain_date_idx (domain_id, metric_date),
+    CONSTRAINT events_source_daily_domain_fk FOREIGN KEY (domain_id) REFERENCES domains (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_czech_ci;
+
+CREATE TABLE IF NOT EXISTS allstat_funnels (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    domain_id INT UNSIGNED NOT NULL,
+    name VARCHAR(120) NOT NULL,
+    steps_json TEXT NOT NULL,
+    breakdown VARCHAR(20) NOT NULL DEFAULT 'channel',
+    is_active TINYINT(1) NOT NULL DEFAULT 1,
+    sort_order INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    KEY allstat_funnels_domain_sort_idx (domain_id, sort_order),
+    CONSTRAINT allstat_funnels_domain_fk FOREIGN KEY (domain_id) REFERENCES domains (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_czech_ci;
+
 CREATE TABLE IF NOT EXISTS gsc_pages_daily (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     domain_id INT UNSIGNED NOT NULL,

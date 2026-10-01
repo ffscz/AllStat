@@ -16,6 +16,11 @@ const AllStat = (() => {
         return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
     }
 
+    // Pohledy, které se překreslují serverově (plný reload, bez AJAX obnovy přehledu): zdroj (provider), Růst kanálů, Trychtýř.
+    function isServerView() {
+        return Boolean(window.ALLSTAT_PROVIDER) || window.ALLSTAT_VIEW === 'growth' || window.ALLSTAT_VIEW === 'funnel';
+    }
+
     function escapeHtml(value) {
         return String(value ?? '')
             .replaceAll('&', '&amp;')
@@ -588,8 +593,8 @@ const AllStat = (() => {
         }
 
         // Generic provider view re-renders server-side (different payload shape), so it uses a
-        // plain full-reload GET form instead of the overview's AJAX refresh. Růst kanálů taky (serverový pohled).
-        if (window.ALLSTAT_PROVIDER || window.ALLSTAT_VIEW === 'growth') {
+        // plain full-reload GET form instead of the overview's AJAX refresh. Růst kanálů a Trychtýř taky (serverové pohledy).
+        if (isServerView()) {
             return;
         }
 
@@ -618,8 +623,8 @@ const AllStat = (() => {
     function bindQuickRanges() {
         const form = document.getElementById('dashboardFilters');
 
-        // Provider views a Růst kanálů se překreslují serverově (jiný payload) → tam chipy zůstávají jako plné odkazy.
-        if (!form || window.ALLSTAT_PROVIDER || window.ALLSTAT_VIEW === 'growth') {
+        // Provider views, Růst kanálů a Trychtýř se překreslují serverově (jiný payload) → tam chipy zůstávají jako plné odkazy.
+        if (!form || isServerView()) {
             return;
         }
 
@@ -691,11 +696,15 @@ const AllStat = (() => {
                     // Růst kanálů má vlastní měsíční období, denní rozsah se nepřenáší.
                     q.set('view', 'growth');
                 } else {
-                    // Z Růstu kanálů picker nemá denní rozsah → prázdné start/end = výchozích 7 dní.
+                    // Z Růstu kanálů picker nemá denní rozsah → prázdné start/end = výchozích 7 dní (u trychtýře 30 dní).
                     if (picker.dataset.start) { q.set('start', picker.dataset.start); }
                     if (picker.dataset.end) { q.set('end', picker.dataset.end); }
                     if (item.dataset.view === 'overview') {
                         q.set('view', 'overview');
+                    } else if (item.dataset.view === 'funnel') {
+                        // Trychtýř patří webu: picker nese id trychtýře, období se přenáší stejně jako u přehledu.
+                        q.set('view', 'funnel');
+                        q.set('funnel_id', item.dataset.funnel || '0');
                     } else {
                         q.set('source_id', item.dataset.value || '0');
                     }
@@ -769,7 +778,7 @@ const AllStat = (() => {
     function applyFilters() {
         const form = document.getElementById('dashboardFilters');
         if (!form) { return; }
-        if (window.ALLSTAT_PROVIDER || window.ALLSTAT_VIEW === 'growth') { form.submit(); return; }
+        if (isServerView()) { form.submit(); return; }
         document.querySelectorAll('.quick-ranges .chip.is-active').forEach((c) => c.classList.remove('is-active'));
         refreshDashboard(new URLSearchParams(new FormData(form)));
     }

@@ -3,6 +3,7 @@
 require_once __DIR__ . '/oauth.php';
 require_once __DIR__ . '/sync-engines.php';
 require_once __DIR__ . '/ai-sources.php';
+require_once __DIR__ . '/funnels.php';
 
 const ALLSTAT_BACKFILL_MONTHS = 16;
 const ALLSTAT_INCREMENTAL_DAYS = 7;
@@ -430,6 +431,39 @@ function allstat_ga4_sync(PDO $pdo, array $config, array $connection, string $ac
         // keyEvents metric may be unavailable on some properties — skip events, keep the rest.
     }
 
+    // 5b) Trychtýře: eventy z AKTIVNÍCH trychtýřů webu rozpadlé podle kanálu / zdroje / média / kampaně
+    //     (date × eventName × session dimenze) → events_source_daily. Stránkuje se přes offset (max. 20 stran),
+    //     zapisuje se až po stažení všeho (DELETE okna + INSERT v transakci). Chyba nesmí shodit zbytek syncu.
+    $funnelCount = 0;
+    try {
+        $funnelEvents = allstat_funnel_events_for_domain($pdo, $domainId);
+        if ($funnelEvents) {
+            $funnelRows = [];
+            $offset = 0;
+            $pageLimit = 10000;
+            for ($funnelPage = 0; $funnelPage < 20; $funnelPage++) {
+                $funnelReport = $report([
+                    'dateRanges' => [['startDate' => $startDate, 'endDate' => $endDate]],
+                    'dimensions' => [['name' => 'date'], ['name' => 'eventName'], ['name' => 'sessionDefaultChannelGroup'], ['name' => 'sessionSource'], ['name' => 'sessionMedium'], ['name' => 'sessionCampaignName']],
+                    'metrics' => [['name' => 'eventCount'], ['name' => 'totalUsers']],
+                    'dimensionFilter' => ['filter' => ['fieldName' => 'eventName', 'inListFilter' => ['values' => $funnelEvents]]],
+                    'limit' => $pageLimit,
+                    'offset' => $offset,
+                ]);
+                $funnelPageRows = $funnelReport['rows'] ?? [];
+                array_push($funnelRows, ...allstat_funnel_parse_source_rows($funnelReport));
+                $rowCount = (int) ($funnelReport['rowCount'] ?? 0);
+                $offset += $pageLimit;
+                if (count($funnelPageRows) < $pageLimit || $offset >= $rowCount) {
+                    break;
+                }
+            }
+            $funnelCount = allstat_funnel_store_source_rows($pdo, $domainId, $startDate, $endDate, $funnelEvents, $funnelRows);
+        }
+    } catch (Throwable $exception) {
+        error_log('AllStat GA4 trychtýře (domain ' . $domainId . '): ' . $exception->getMessage());
+    }
+
     // 6) AI assistant referrals (date × sessionSource, pre-filtered to known AI tools).
     // Multiple raw hosts can map to one canonical tool, so aggregate per (date, tool) before writing.
     $aiCount = 0;
@@ -718,7 +752,8 @@ function allstat_ga4_sync(PDO $pdo, array $config, array $connection, string $ac
         'utm_rows' => $utmCount,
         'items_rows' => $itemCount,
         'demographics_rows' => $demoCount,
+        'funnel_rows' => $funnelCount,
         'quota' => $latestQuota,
-        'summary' => sprintf('%d dní, %d channel, %d landing, %d pages, %d device, %d geo, %d events, %d AI, %d ref, %d utm, %d items, %d demo (%s → %s)', $dailyCount, $sourceCount, $landingCount, $pageCount, $deviceCount, $geoCount, $eventCount, $aiCount, $referrerCount, $utmCount, $itemCount, $demoCount, $startDate, $endDate),
+        'summary' => sprintf('%d dní, %d channel, %d landing, %d pages, %d device, %d geo, %d events, %d AI, %d ref, %d utm, %d items, %d demo%s (%s → %s)', $dailyCount, $sourceCount, $landingCount, $pageCount, $deviceCount, $geoCount, $eventCount, $aiCount, $referrerCount, $utmCount, $itemCount, $demoCount, $funnelCount > 0 ? sprintf(', %d trychtýř', $funnelCount) : '', $startDate, $endDate),
     ];
 }
