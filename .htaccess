@@ -1,0 +1,51 @@
+# AllStat: bezpečnostní pravidla (Apache 2.4 nebo LiteSpeed). PHP soubory se normálně vykonávají,
+# blokujeme jen přímé stažení citlivých souborů a přidáváme bezpečnostní hlavičky.
+#
+# Kdyby po nahrání na hosting web hlásil "Internal Server Error" (chyba 500), soubor .htaccess
+# přejmenujte na .htaccess.off a stránku obnovte. Pak požádejte poskytovatele hostingu, aby
+# ve složce povolil direktivy Options a Require (AllowOverride), a přejmenujte ho zpět.
+
+# Zákaz výpisu adresářů
+Options -Indexes
+
+# Bezpečnostní hlavičky
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# Zákaz stažení citlivých souborů: SQL schéma, zálohy, dokumentace, logy a dočasné soubory.
+<FilesMatch "(?i)\.(sql|md|docx?|log|bak|old|orig|save|inc|ini|ya?ml|lock|dist|sh|tmp)$|~$">
+    Require all denied
+</FilesMatch>
+
+# Konfigurace a šifrovací klíč: i kdyby PHP na serveru přestalo fungovat, zdrojový kód se nesmí zobrazit.
+<FilesMatch "^(config|config-keys)\.php$">
+    Require all denied
+</FilesMatch>
+
+# Číslo verze a příručka nemají být z internetu vidět
+<FilesMatch "^(VERSION|README\.txt)$">
+    Require all denied
+</FilesMatch>
+
+# Chybové logy hostingu (soubory "error_log" bez přípony)
+<FilesMatch "^error_log$">
+    Require all denied
+</FilesMatch>
+
+# Skryté soubory (.git, .env, ...), kromě adres .well-known, které potřebuje připojení AI (MCP)
+<FilesMatch "^\.(?!well-known)">
+    Require all denied
+</FilesMatch>
+
+# Připojení AI (MCP): adresy MCP serveru a přihlašování (OAuth) obsluhuje front controller ve složce
+# allstat-mcp. Pravidla jsou trvale zapnutá, ale dokud není připojení AI zapnuté v menu "AI konektory",
+# odpovídá server na tyto adresy chybou 404. Hlavička Authorization se musí dostat až do PHP.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+    RewriteRule ^(?:mcp|token|register|revoke|authorize|jwks\.json)/?$ allstat-mcp/index.php [L]
+    RewriteRule ^\.well-known/(?:oauth-authorization-server|openid-configuration|oauth-protected-resource)(?:/.*)?$ allstat-mcp/index.php [L]
+</IfModule>

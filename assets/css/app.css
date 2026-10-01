@@ -1,0 +1,2720 @@
+:root {
+    color-scheme: light;
+    --bg: #f6f8fb;
+    --surface: #ffffff;
+    --surface-muted: #f8fafc;
+    --text: #111827;
+    --muted: #667085;
+    --line: #e5e7eb;
+    --line-strong: #d5dbe5;
+    --shadow: 0 18px 50px rgba(31, 41, 55, 0.08);
+    --blue: #2563eb;
+    --green: #16a34a;
+    --violet: #8b5cf6;
+    --orange: #f59e0b;
+    --cyan: #06b6d4;
+    --rose: #f43f5e;
+    --teal: #14b8a6;
+    --chart-grid: rgba(148, 163, 184, 0.28);
+    --sidebar-width: 272px;
+}
+
+[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #10131a;
+    --surface: #171b24;
+    --surface-muted: #1f2530;
+    --text: #eef2f7;
+    --muted: #a7b0c0;
+    --line: #2b3240;
+    --line-strong: #3a4354;
+    --shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
+    --chart-grid: rgba(148, 163, 184, 0.18);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    min-height: 100%;
+}
+
+body {
+    min-height: 100vh;
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, ui-sans-serif, system-ui, sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 0;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+button,
+input,
+select {
+    font: inherit;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.app-shell {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+    min-height: 100vh;
+}
+
+.sidebar {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 20px 14px;
+    background: var(--surface);
+    border-right: 1px solid var(--line);
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 36px;
+    padding: 0 10px 20px;
+    font-size: 18px;
+    font-weight: 650;
+}
+
+.brand-mark {
+    display: inline-flex;
+    align-items: end;
+    gap: 3px;
+    width: 28px;
+    height: 28px;
+}
+
+.brand-mark span {
+    display: block;
+    width: 6px;
+    border-radius: 2px;
+    background: var(--blue);
+}
+
+.brand-mark span:nth-child(1) {
+    height: 13px;
+    background: #60a5fa;
+}
+
+.brand-mark span:nth-child(2) {
+    height: 22px;
+}
+
+.brand-mark span:nth-child(3) {
+    height: 28px;
+    background: #1d4ed8;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.sidebar-nav a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    padding: 0 14px;
+    border-radius: 8px;
+    color: var(--muted);
+    font-weight: 500;
+}
+
+.sidebar-nav a:hover,
+.sidebar-nav a.active {
+    color: var(--blue);
+    background: color-mix(in srgb, var(--blue) 10%, transparent);
+}
+
+.sidebar-nav svg {
+    width: 19px;
+    height: 19px;
+    stroke-width: 2;
+}
+
+.nav-divider {
+    height: 1px;
+    margin: 12px 0;
+    background: var(--line);
+}
+
+.sync-card {
+    display: grid;
+    grid-template-columns: 12px 1fr;
+    gap: 6px 10px;
+    align-items: start;
+    margin-top: auto;
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface-muted);
+    box-shadow: 0 8px 28px rgba(15, 23, 42, 0.04);
+}
+
+.sync-card strong {
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+/* Vsechny textove spany patri do druheho sloupce (prvni drzi jen tecku stavu). Driv to resil
+   :last-child, ale po pridani radku o zaseknutych zdrojich uz posledni nebyl ten spravny. */
+.sync-card > span:not(.status-dot) {
+    grid-column: 2;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    margin-top: 3px;
+    border-radius: 50%;
+}
+
+.status-dot-ok {
+    background: var(--green);
+}
+
+.status-dot-warning {
+    background: var(--orange);
+}
+
+.main-content {
+    min-width: 0;
+    width: 100%;
+    /* Obsah se na širokých monitorech neroztahuje donekonečna — strop 1440 px, zarovnáno VLEVO k sidebaru. */
+    max-width: 1440px;
+    margin-inline: 0;
+    padding: 0 22px 28px;
+}
+
+/* Rezervace místa pro ikonky, které vykresluje až JS (lucide) — bez skoku layoutu při načtení. */
+i[data-lucide] {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+}
+
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 18px;
+    row-gap: 12px;
+    min-height: 72px;
+    margin: 0 -22px 22px;
+    padding: 12px 22px;
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    border-bottom: 1px solid var(--line);
+    backdrop-filter: blur(12px);
+}
+
+/* Ovládání (chipy + formulář) drží pohromadě a zabalí se jako jeden blok pod nadpis, ne roztříštěně. */
+.topbar-title { margin-right: auto; }
+
+/* Akční ikonky stránky (obnovit / sdílet / motiv) sedí hned vedle názvu stránky — jako v běžných systémech. */
+.title-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 4px;
+}
+
+.topbar-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 12px;
+    justify-content: flex-end;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* Dlouhý „Přehled (GA4 + GSC)" select nesmí přetlačit řádek. */
+.toolbar .filter-control select { max-width: 240px; }
+
+/* Formulář se sám zalomí, když se nevejde na řádek (žádné vodorovné přetečení na středních monitorech). */
+.toolbar { flex-wrap: wrap; min-width: 0; }
+
+/* Na středních monitorech ovládání spadne celé na druhý řádek (bez překryvu s nadpisem). */
+@media (max-width: 1300px) {
+    .topbar-controls { flex-basis: 100%; justify-content: flex-start; }
+}
+
+/* Overlay drawer: zámek scrollu při otevřeném menu. */
+body.nav-locked { overflow: hidden; }
+
+.topbar-title,
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.topbar h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 650;
+}
+
+.icon-button,
+.avatar-button,
+.table-icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+}
+
+.icon-button:hover,
+.avatar-button:hover,
+.table-icon-button:hover {
+    border-color: var(--line-strong);
+    background: var(--surface-muted);
+}
+
+.icon-button svg,
+.avatar-button svg,
+.table-icon-button svg {
+    width: 18px;
+    height: 18px;
+}
+
+.avatar-button {
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--blue) 8%, var(--surface));
+}
+
+.filter-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 38px;
+    padding: 0 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--muted);
+}
+
+.filter-control svg {
+    width: 17px;
+    height: 17px;
+}
+
+.filter-control input,
+.filter-control select,
+.compact-select {
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--text);
+    font-weight: 500;
+}
+
+.date-filter input {
+    width: 126px;
+    flex-shrink: 0; /* datum se nesmí nechat zmáčknout flexem (ořezané „29. 06.") — radši ať se řádek zalomí */
+    cursor: pointer;
+}
+
+/* Jediná (naše) ikona kalendáře vlevo — nativní zdvojené ikonky u obou datumů skrýt; picker otevírá
+   klik do pole (showPicker v app.js). */
+.date-filter input::-webkit-calendar-picker-indicator {
+    display: none;
+}
+
+/* === Vlastní datepicker (rozsah období) — moderní kalendářový popover v designu AllStatu === */
+.date-range { position: relative; }
+
+.date-range-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 550;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.date-range-chev {
+    display: inline-flex;
+    color: var(--muted);
+    transition: transform 0.15s ease;
+}
+.date-range-chev svg { width: 15px; height: 15px; }
+.date-range[data-open] .date-range-chev { transform: rotate(180deg); }
+.date-range[data-open] { border-color: color-mix(in srgb, var(--blue) 55%, var(--line)); }
+
+.date-range-pop {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    z-index: 60;
+    width: 288px;
+    padding: 14px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+}
+
+.dp-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+.dp-title {
+    font-size: 14px;
+    font-weight: 650;
+    color: var(--text);
+    text-transform: capitalize;
+}
+.dp-nav {
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--muted);
+    font-size: 17px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.dp-nav:hover { background: var(--surface-muted); color: var(--text); border-color: var(--line-strong); }
+
+.dp-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+}
+.dp-weekdays { margin-bottom: 4px; }
+.dp-weekdays span {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    padding: 4px 0;
+}
+.dp-days { row-gap: 2px; }
+.dp-empty { visibility: hidden; }
+
+.dp-day {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: background 0.1s ease;
+}
+.dp-day:hover:not(.dp-disabled):not(.dp-sel) { background: var(--surface-muted); }
+
+/* Dny uvnitř rozsahu: souvislý světle modrý pruh (hranaté rohy), krajní dny plná modrá pilulka. */
+.dp-in { background: color-mix(in srgb, var(--blue) 13%, var(--surface)); border-radius: 0; }
+.dp-in.dp-edge-start { border-radius: 9px 0 0 9px; }
+.dp-in.dp-edge-end { border-radius: 0 9px 9px 0; }
+.dp-sel {
+    background: var(--blue);
+    color: #fff;
+    border-radius: 9px;
+    font-weight: 650;
+}
+.dp-today:not(.dp-sel) { box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--blue) 45%, var(--line)); }
+.dp-disabled { color: var(--muted); opacity: 0.32; cursor: not-allowed; }
+
+.dp-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--line);
+}
+.dp-hint { font-size: 11.5px; color: var(--muted); }
+.dp-clear {
+    border: 0;
+    background: transparent;
+    color: var(--blue);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 6px;
+}
+.dp-clear:hover { background: color-mix(in srgb, var(--blue) 10%, var(--surface)); }
+
+/* Na úzkém monitoru se popover neschová za pravý okraj (control bývá vpravo). */
+@media (max-width: 560px) {
+    .date-range-pop { left: auto; right: 0; }
+}
+
+.kpi-grid {
+    display: grid;
+    /* Počet sloupců vyvažuje JS (balanceKpiGrids) podle počtu karet, aby řady byly souměrné
+       (7 karet → 4+3 místo 6+1). Fallback 6 pro případ bez JS. */
+    grid-template-columns: repeat(var(--kpi-cols, 6), minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+/* KPI seskupené do kategorií (Návštěvnost/Zapojení/Konverze/SEO/AI) — čitelnost místo 14 karet naráz. */
+.kpi-group {
+    margin-bottom: 18px;
+}
+
+.kpi-group-title {
+    margin: 0 0 10px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+/* auto-FIT → široké čitelné karty, které VYPLNÍ celou šířku své zóny (žádné prázdné místo vpravo);
+   na užších displejích padá na méně sloupců sama. */
+.kpi-group .kpi-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    margin-bottom: 0;
+}
+
+/* === Přehled: 2 zóny — KPI vlevo (široké karty), rail s grafy vpravo (vyplní šířku velkého monitoru) === */
+.overview-top {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    margin-bottom: 14px;
+}
+
+.overview-kpis { min-width: 0; }
+
+.overview-rail {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+    align-content: start;
+    min-width: 0;
+}
+
+.overview-kpis .kpi-group:last-child { margin-bottom: 0; }
+
+/* Od 1440px výš: KPI vlevo (~60 %), rail s grafy vpravo (~40 %) — vyplní širokoúhlý monitor.
+   Pod 1440 je jednosloupec: KPI na plnou šířku (3+ karty v řadě) a grafy pod nimi ve 2 sloupcích. */
+@media (min-width: 1440px) {
+    .overview-top {
+        grid-template-columns: minmax(0, 1.5fr) minmax(360px, 1fr);
+    }
+    .overview-rail .chart-frame-line { height: 240px; }
+    /* Rail (grafy) posunut dolů o výšku nadpisu skupiny „NÁVŠTĚVNOST", aby horní hrana prvního grafu
+       lícovala s horní hranou prvních KPI karet (jinak karty začínaly níž než graf kvůli nadpisu). */
+    .overview-rail { margin-top: 25px; }
+}
+
+/* Velký monitor: rail dostane víc místa, graf návštěv vyšší. */
+@media (min-width: 1600px) {
+    .overview-top { grid-template-columns: minmax(0, 1.55fr) minmax(420px, 1fr); }
+    .overview-rail .chart-frame-line { height: 280px; }
+}
+
+/* Pod 1440px: rail je plná šířka pod KPI → grafy do 2 sloupců (návštěvy přes obě), ne dlouhý sloupec. */
+@media (min-width: 760px) and (max-width: 1439.98px) {
+    .overview-rail { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .overview-rail .panel-wide { grid-column: 1 / -1; }
+}
+
+.nav-backdrop { display: none; }
+
+.kpi-card,
+.panel {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+}
+
+.kpi-card {
+    min-height: 166px;
+    padding: 18px;
+    overflow: hidden;
+    /* Sloupcový layout: nadpis nahoře (může mít 1-3 řádky), blok hodnota+delta+sparkline ukotvený
+       ke spodní hraně (margin-top:auto na .kpi-value) → hodnoty i grafy lícují napříč celou řadou
+       bez ohledu na to, kolik řádků zabere nadpis. */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Nápověda (tooltip) je širší než úzká karta a karta má overflow:hidden (shimmer při načítání),
+   takže popover se na menším monitoru ořízne. Při najetí/fokusu dočasně povolíme přetečení a
+   zvedneme kartu nad sousední, ať se nápověda ukáže celá. */
+.kpi-card:hover,
+.kpi-card:focus-within {
+    overflow: visible;
+    position: relative;
+    z-index: 5;
+}
+
+.kpi-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 550;
+    line-height: 1.35;
+    /* Minimální výška hlavičky, aby karty s krátkým nadpisem/podtitulem nebyly nižší než ostatní.
+       Dlouhý podtitul se zalomí a hlavička naroste; hodnoty stejně lícují dole (margin-top:auto). */
+    min-height: 50px;
+}
+
+/* Podtitul (celý název účtu) se smí zalomit na víc řádků. */
+.kpi-head small {
+    display: block;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.kpi-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.kpi-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.kpi-help {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    color: var(--muted);
+    cursor: help;
+    position: relative;
+    border-radius: 50%;
+    transition: color 0.15s;
+}
+
+.kpi-help:hover,
+.kpi-help:focus-visible {
+    color: var(--text);
+    outline: none;
+}
+
+.kpi-help svg { width: 14px; height: 14px; }
+
+.kpi-help-popover {
+    position: absolute;
+    right: -8px;
+    top: calc(100% + 8px);
+    z-index: 50;
+    width: 260px;
+    padding: 10px 12px;
+    background: var(--text);
+    color: var(--surface);
+    border-radius: 8px;
+    font-size: 12px;
+    line-height: 1.5;
+    font-weight: 400;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.15);
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity 0.15s, transform 0.15s;
+    pointer-events: none;
+    text-align: left;
+}
+
+.kpi-help-popover::before {
+    content: "";
+    position: absolute;
+    top: -5px;
+    right: 12px;
+    width: 10px;
+    height: 10px;
+    background: var(--text);
+    transform: rotate(45deg);
+}
+
+.kpi-help:hover .kpi-help-popover,
+.kpi-help:focus-visible .kpi-help-popover {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.panel-help {
+    margin: -4px 0 12px;
+    /* Zarovnáno s názvem panelu (dřívější padding 16px text odsazoval od okraje). */
+    padding: 0;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+.panel-help code {
+    background: var(--surface-muted);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 11px;
+}
+
+.kpi-value {
+    /* auto = celý blok (hodnota + delta + sparkline) se ukotví ke spodní hraně karty; volné místo
+       se sesbírá NAD hodnotu, takže hodnoty lícují napříč řadou i při různě vysokých nadpisech. */
+    margin-top: auto;
+    color: var(--text);
+    font-size: 32px;
+    line-height: 1;
+    font-weight: 650;
+}
+
+.kpi-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 2px 8px;
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.trend,
+.positive,
+.negative {
+    font-weight: 600;
+}
+
+.trend-up,
+.positive {
+    color: var(--green);
+}
+
+.trend-down,
+.negative {
+    color: var(--rose);
+}
+
+.trend-none {
+    color: var(--muted);
+}
+
+.quick-ranges {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.quick-ranges .chip {
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 550;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.quick-ranges .chip:hover {
+    color: var(--text);
+    border-color: var(--muted);
+}
+
+.quick-ranges .chip.is-active {
+    background: var(--blue, #2563eb);
+    border-color: var(--blue, #2563eb);
+    color: #fff;
+}
+
+.sparkline-wrap {
+    height: 42px;
+    margin-top: 14px;
+}
+
+.sparkline-wrap canvas {
+    width: 100% !important;
+    height: 42px !important;
+}
+
+.kpi-blue .kpi-icon { color: var(--blue); background: color-mix(in srgb, var(--blue) 12%, transparent); }
+.kpi-green .kpi-icon { color: var(--green); background: color-mix(in srgb, var(--green) 12%, transparent); }
+.kpi-violet .kpi-icon { color: var(--violet); background: color-mix(in srgb, var(--violet) 13%, transparent); }
+.kpi-orange .kpi-icon { color: var(--orange); background: color-mix(in srgb, var(--orange) 14%, transparent); }
+.kpi-cyan .kpi-icon { color: var(--cyan); background: color-mix(in srgb, var(--cyan) 13%, transparent); }
+.kpi-rose .kpi-icon { color: var(--rose); background: color-mix(in srgb, var(--rose) 12%, transparent); }
+.kpi-teal .kpi-icon { color: var(--teal); background: color-mix(in srgb, var(--teal) 13%, transparent); }
+
+.analytics-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(330px, 1fr);
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+.panel {
+    min-width: 0;
+    padding: 20px;
+}
+
+.panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+
+.panel-header h2 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 650;
+}
+
+.panel-header h2 span {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.compact-select {
+    min-width: 116px;
+    height: 36px;
+    padding: 0 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+}
+
+/* Interval grafu = čistý text (ne select-like box) — jen popisek automaticky zvoleného intervalu. */
+.chart-interval {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.chart-interval svg { width: 15px; height: 15px; }
+.chart-interval strong { color: var(--text); font-weight: 600; }
+
+/* Hamburger jen na úzkých displejích — na desktopu je sidebar vždy vidět. */
+.nav-toggle { display: none; }
+
+.chart-frame {
+    position: relative;
+    width: 100%;
+}
+
+.chart-frame-line {
+    height: 280px;
+}
+
+/* Horizontální bar grafy (Zdroje návštěv / Zařízení / Noví vs vracející) — čitelnější a úspornější než donuty.
+   Šířka pruhu = poměr k největší položce; podíl z celku je procento v závorce. */
+.bar-chart {
+    position: relative;
+    display: grid;
+    gap: 7px;
+    padding: 4px 0 2px;
+}
+
+.bar-row {
+    display: grid;
+    grid-template-columns: minmax(104px, 150px) minmax(0, 1fr) 92px;
+    align-items: center;
+    gap: 10px;
+}
+
+.bar-row-label {
+    color: var(--muted);
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.bar-row-track {
+    height: 20px;
+    border-radius: 6px;
+    background: var(--surface-muted);
+    overflow: hidden;
+}
+
+.bar-row-fill {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 0.35s ease;
+}
+
+.bar-row-value {
+    color: var(--muted);
+    font-size: 12px;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.bar-row-value strong {
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 650;
+}
+
+/* Celkový součet v hlavičce panelu (nahrazuje číslo uprostřed donutu). */
+.panel-total {
+    color: var(--muted);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.panel-total strong {
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 650;
+}
+
+/* Trendy v čase — grafy vývoje per metrika (server-renderovaný SVG spojnicový graf). */
+.trend-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 12px;
+    margin-top: 4px;
+}
+
+.trend-card {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+    background: var(--surface);
+}
+
+.trend-card-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.trend-card-label {
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.trend-card-total {
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 650;
+    white-space: nowrap;
+}
+
+.trend-svg {
+    display: block;
+    width: 100%;
+    height: 44px;
+}
+
+/* Jednotné nahrávání souboru napříč AllStat (dashboard i administrace) — native input[type=file]
+   je jinak neupravený „Vybrat soubor". Dashed drop-zone + tlačítko ve stylu .button-secondary. */
+input[type="file"] {
+    display: block;
+    max-width: 100%;
+    font-size: 13px;
+    color: var(--muted);
+    border: 1px dashed var(--line-strong);
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: var(--surface-muted);
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+input[type="file"]:hover {
+    border-color: var(--blue);
+}
+
+input[type="file"]::file-selector-button {
+    font: inherit;
+    font-weight: 600;
+    margin-right: 12px;
+    padding: 8px 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+input[type="file"]::file-selector-button:hover {
+    background: color-mix(in srgb, var(--blue) 10%, var(--surface));
+    border-color: var(--blue);
+    color: var(--blue);
+}
+
+.doughnut-layout {
+    display: grid;
+    grid-template-columns: minmax(150px, 178px) minmax(190px, 1fr);
+    gap: 20px;
+    align-items: center;
+    min-height: 216px;
+}
+
+.doughnut-wrap {
+    position: relative;
+    width: 178px;
+    height: 178px;
+}
+
+.doughnut-center {
+    position: absolute;
+    inset: 50% auto auto 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+.doughnut-center strong {
+    font-size: 19px;
+    font-weight: 650;
+}
+
+.doughnut-center span {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.legend-list {
+    display: grid;
+    gap: 14px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.legend-list li {
+    display: grid;
+    grid-template-columns: 12px minmax(82px, 1fr) minmax(104px, auto);
+    gap: 8px;
+    align-items: center;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.25;
+}
+
+.legend-list strong {
+    color: var(--text);
+    font-weight: 600;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.legend-list small {
+    color: var(--muted);
+    font-weight: 500;
+}
+
+.legend-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+}
+
+.legend-dot-1 { background: var(--blue); }
+.legend-dot-2 { background: var(--green); }
+.legend-dot-3 { background: var(--violet); }
+.legend-dot-4 { background: var(--orange); }
+.legend-dot-5 { background: var(--cyan); }
+.legend-dot-6 { background: var(--rose); }
+
+.legend-empty {
+    display: block;
+    grid-column: 1 / -1;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+/* Two equal-width doughnut panels side by side (Zařízení + Noví vs vracející). */
+.analytics-grid-even {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+/* Segmented toggle (Vstupní / Všechny) in the Top stránky panel header. */
+.seg-toggle {
+    display: inline-flex;
+    gap: 4px;
+    padding: 3px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+}
+
+.seg-btn {
+    padding: 5px 14px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 550;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.seg-btn:hover {
+    color: var(--text);
+}
+
+.seg-btn.is-active {
+    background: var(--blue, #2563eb);
+    color: #fff;
+}
+
+.text-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    color: var(--blue);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.text-link svg {
+    width: 15px;
+    height: 15px;
+}
+
+.tables-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.18fr) minmax(360px, 1.45fr);
+    gap: 14px;
+}
+
+/* Clarity breakdown tables: all four side by side on wide screens, auto-wrapping when narrower. */
+.tables-grid.clarity-breakdowns {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+/* Wide panels (single full-width tables: social posts, Meta Ads breakdowns, sources) span the whole
+   row at every width — otherwise on desktop they sit in one narrow grid column and overflow. */
+.table-panel-wide {
+    grid-column: 1 / -1;
+}
+
+/* Kampaně (UTM): karty místo široké tabulky — panel v tables-grid je úzký, 7 sloupců se do něj nevešlo. */
+.utm-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.utm-item {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.utm-item:first-child {
+    padding-top: 4px;
+}
+
+.utm-item:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+
+.utm-item-top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.utm-name {
+    font-size: 13px;
+    font-weight: 650;
+    overflow-wrap: anywhere;
+}
+
+.utm-value {
+    color: var(--muted);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.utm-value strong {
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.utm-track {
+    height: 8px;
+    border-radius: 6px;
+    background: var(--surface-muted);
+    overflow: hidden;
+}
+
+.utm-fill {
+    height: 100%;
+    border-radius: 6px;
+    background: var(--blue);
+    transition: width 0.35s ease;
+}
+
+.utm-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.utm-chip {
+    background: var(--surface-muted);
+    color: var(--muted);
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 11px;
+    line-height: 18px;
+}
+
+.utm-chip-ok {
+    color: var(--green);
+    font-weight: 600;
+}
+
+.utm-pages {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+/* Content-type subheading + collapsible "all posts" styled like admin "Pokročilé nastavení". */
+.content-subhead { font-size: 13px; font-weight: 650; color: var(--muted); margin: 18px 0 6px; text-transform: uppercase; letter-spacing: .03em; }
+
+/* Sekce hned po tabulkovém gridu (Top příspěvky nemá margin-bottom) potřebuje vlastní horní mezeru,
+   ať Fáze C sekce (Demografie / Složení návštěvníků / Reakce) nejsou „nalepené" na Top 5. */
+.tables-grid + .analytics-grid { margin-top: 14px; }
+
+/* Demografické facety (LinkedIn Demografie/Složení návštěvníků): 2 grafy vedle sebe pro přehlednost,
+   na úzkém displeji pod sebou. Prázdné facety se nerenderují (žádné mezery). */
+.demo-facets {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2px 32px;
+    align-items: start;
+}
+.demo-facets .content-subhead { margin-top: 14px; }
+@media (max-width: 720px) {
+    .demo-facets { grid-template-columns: 1fr; gap: 0; }
+}
+.more-posts {
+    border: 1px dashed color-mix(in srgb, var(--violet) 45%, var(--line));
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--surface);
+    margin-top: 16px;
+}
+.more-posts > summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 14px 46px 14px 18px;
+    position: relative;
+    background: color-mix(in srgb, var(--violet) 6%, var(--surface));
+    transition: background .15s ease;
+}
+.more-posts > summary:hover { background: color-mix(in srgb, var(--violet) 12%, var(--surface)); }
+.more-posts > summary h3 { margin: 0; font-size: 15px; }
+.more-posts > summary p { margin: 3px 0 0; font-size: 13px; color: var(--muted); font-weight: 400; }
+.more-posts > summary::-webkit-details-marker { display: none; }
+.more-posts > summary::after {
+    content: "▾"; position: absolute; right: 18px; top: 16px; font-size: 15px; color: var(--muted); transition: transform .15s ease;
+}
+.more-posts[open] > summary::after { transform: rotate(180deg); }
+.more-posts[open] > summary { border-bottom: 1px dashed color-mix(in srgb, var(--violet) 45%, var(--line)); }
+.more-posts > .table-scroll { padding: 12px 14px 0; }
+.more-posts > .pagination { padding: 0 14px 14px; }
+.content-tabs { display: flex; gap: 6px; margin: 4px 0 8px; flex-wrap: wrap; }
+.content-tab { padding: 6px 14px; border: 1px solid var(--line); background: transparent; border-radius: 8px; cursor: pointer; font: inherit; font-size: 13px; font-weight: 600; color: var(--muted); transition: background .12s, color .12s; }
+.content-tab:hover { color: var(--text); }
+.content-tab.is-active { background: var(--violet); color: #fff; border-color: var(--violet); }
+.csv-inline { margin-top: 14px; }
+.csv-inline-form { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 14px 18px; }
+.csv-inline-form input[type=file] { flex: 1 1 220px; min-width: 180px; }
+/* .button-primary má margin-top:12px z stohovaného layoutu — v tomto flex řádku ho vynulovat, ať je svisle vycentrované s file-inputem. */
+.csv-inline-form .button-primary { margin-top: 0; }
+/* Dva pojmenované sloty (Obsah / Publikum) v jednom rozbalovacím CSV boxu. */
+.csv-inline-block + .csv-inline-block { border-top: 1px solid var(--line); }
+.csv-inline-cap { margin: 0; padding: 12px 18px 0; color: var(--muted); font-size: 13px; }
+.csv-inline-block .csv-inline-form { padding-top: 8px; }
+/* Odkaz uprostřed věty (návod v CSV boxu, výzva v notice): .text-link je jinak inline-flex s margin-top
+   pro samostatný řádek a rozhodil by řádkování odstavce. */
+.csv-inline .text-link,
+.notice .text-link { display: inline; margin-top: 0; }
+.pagination {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+}
+.pagination .is-disabled {
+    opacity: 0.45;
+    pointer-events: none;
+}
+.pagination-info {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+/* Reactions breakdown (FB post sentiment) — emoji + count cells, wrapping on narrow screens. */
+.reaction-row {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
+    margin-top: 6px;
+}
+.reaction-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 12px 6px;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--muted) 8%, transparent);
+}
+.reaction-emoji { font-size: 22px; line-height: 1; }
+.reaction-count { font-size: 18px; font-weight: 700; }
+.reaction-label { font-size: 11px; color: var(--muted); text-align: center; }
+
+/* Per-post reaction breakdown inside the post tables (only non-zero reactions). */
+.rx-cell { line-height: 1.7; }
+.rx {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    margin-right: 6px;
+    font-size: 12px;
+    font-weight: 600;
+}
+.rx-empty { color: var(--muted); }
+
+/* Rozbalovací detail příspěvku (členění podle Meta Business Suite). */
+.post-detail-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    margin-right: 6px;
+    padding: 0;
+    vertical-align: middle;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    background: var(--surface-muted);
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+    transition: transform 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.post-detail-toggle:hover { color: var(--blue); border-color: var(--blue); }
+.post-detail-toggle.is-open { transform: rotate(180deg); color: var(--blue); border-color: var(--blue); }
+.post-detail-toggle .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+.post-detail-row > td { background: var(--surface-muted); padding: 14px 16px; }
+.post-detail {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 14px 22px;
+}
+.post-detail-group h4 {
+    margin: 0 0 6px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+}
+.post-detail-group dl { margin: 0; }
+.post-detail-item {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 3px 0;
+    border-bottom: 1px dotted var(--line);
+}
+.post-detail-item:last-child { border-bottom: 0; }
+.post-detail-item dt { margin: 0; font-size: 12px; color: var(--muted); }
+.post-detail-item dd { margin: 0; font-size: 13px; font-weight: 700; white-space: nowrap; }
+.post-detail-item[title] { cursor: help; }
+
+/* Hodnocení efektivity reklamy (Meta Ads). */
+.ad-verdict-chip {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+    border: 1px solid transparent;
+}
+.ad-verdict-chip.ad-verdict-good { background: color-mix(in srgb, var(--green) 14%, var(--surface)); color: var(--green); border-color: color-mix(in srgb, var(--green) 35%, transparent); }
+.ad-verdict-chip.ad-verdict-ok { background: var(--surface-muted); color: var(--muted); border-color: var(--line); }
+.ad-verdict-chip.ad-verdict-warn { background: color-mix(in srgb, var(--orange) 16%, var(--surface)); color: var(--orange); border-color: color-mix(in srgb, var(--orange) 38%, transparent); }
+.ad-verdict-chip.ad-verdict-bad { background: color-mix(in srgb, var(--rose) 14%, var(--surface)); color: var(--rose); border-color: color-mix(in srgb, var(--rose) 35%, transparent); }
+.ad-verdict-chip.ad-verdict-none { background: var(--surface-muted); color: var(--muted); border-color: var(--line); }
+.ad-verdict .ad-verdict-label { margin: 0 0 4px; font-size: 13px; font-weight: 700; }
+.ad-verdict.ad-verdict-good .ad-verdict-label { color: var(--green); }
+.ad-verdict.ad-verdict-warn .ad-verdict-label { color: var(--orange); }
+.ad-verdict.ad-verdict-bad .ad-verdict-label { color: var(--rose); }
+/* Verdikt bere ve mřížce dvojnásobek místa, ať se odůvodnění nezalamuje po slabikách. */
+.post-detail-group.ad-verdict { grid-column: span 2; min-width: 0; }
+.ad-verdict ul { margin: 0; padding-left: 16px; }
+.ad-verdict li { font-size: 12px; line-height: 1.5; margin-bottom: 2px; }
+.ad-verdict-note { margin: 6px 0 0; font-size: 11px; color: var(--muted); }
+
+/* Auto-recommendations list (Meta Ads — data-driven findings). */
+.rec-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 10px; }
+.rec-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid color-mix(in srgb, var(--muted) 16%, transparent);
+    border-left-width: 4px;
+    background: color-mix(in srgb, var(--muted) 5%, transparent);
+}
+.rec-icon { display: inline-flex; margin-top: 1px; flex: none; }
+.rec-icon svg { width: 18px; height: 18px; }
+.rec-body strong { display: block; font-size: 13px; margin-bottom: 2px; }
+.rec-body p { margin: 0; font-size: 12px; color: var(--muted); line-height: 1.5; }
+.rec-bad { border-left-color: var(--rose); }
+.rec-bad .rec-icon { color: var(--rose); }
+.rec-warn { border-left-color: var(--orange); }
+.rec-warn .rec-icon { color: var(--orange); }
+.rec-good { border-left-color: var(--green); }
+.rec-good .rec-icon { color: var(--green); }
+.rec-info { border-left-color: var(--blue); }
+.rec-info .rec-icon { color: var(--blue); }
+
+/* "Sdílet pro AI" — temporary share link panel. */
+.share-result {
+    margin: 0 24px 14px;
+    padding: 14px 16px;
+    border: 1px solid color-mix(in srgb, var(--violet) 35%, transparent);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--violet) 6%, transparent);
+}
+.share-result-head { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.share-result-head [data-share-expiry] { color: var(--muted); font-weight: 500; }
+.share-close { margin-left: auto; border: 0; background: transparent; font-size: 18px; cursor: pointer; color: var(--muted); line-height: 1; }
+.share-hint { margin: 6px 0 10px; font-size: 12px; color: var(--muted); line-height: 1.5; }
+.share-url-row { display: flex; gap: 8px; }
+.share-url-row input {
+    flex: 1; min-height: 38px; padding: 8px 12px;
+    border: 1px solid color-mix(in srgb, var(--muted) 22%, transparent); border-radius: 8px;
+    background: var(--surface); color: var(--text);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px;
+}
+.share-fmt { margin-top: 8px; font-size: 12px; color: var(--muted); }
+.share-fmt a { color: var(--blue); }
+
+/* Best-time-to-post heatmap: weekday rows × 4-hour buckets, intensity = avg engagement. */
+.post-heatmap {
+    display: grid;
+    grid-template-columns: 44px repeat(6, 1fr);
+    gap: 4px;
+    margin-top: 8px;
+}
+.heatmap-corner { }
+.heatmap-col-label,
+.heatmap-row-label {
+    font-size: 11px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.heatmap-row-label { justify-content: flex-end; padding-right: 6px; font-weight: 600; }
+.heatmap-cell {
+    min-height: 30px;
+    border-radius: 7px;
+    border: 1px solid color-mix(in srgb, var(--muted) 16%, transparent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text, inherit);
+}
+.heatmap-cell.has-posts { border-color: color-mix(in srgb, var(--violet) 40%, transparent); }
+
+/* Top 3 okna pod heatmapou: pořadí + okno + skóre. Výraznost jen pozadím a typografií. */
+.heatmap-top3 {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+}
+.heatmap-top3-item {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--muted) 8%, transparent);
+}
+.heatmap-top3-item.is-first { background: color-mix(in srgb, var(--violet) 12%, transparent); }
+.heatmap-top3-rank { font-weight: 700; font-size: 13px; color: var(--violet); }
+.heatmap-top3-when { font-weight: 700; font-size: 14px; }
+.heatmap-top3-meta { font-size: 12px; color: var(--muted-strong, var(--muted)); }
+
+@media (max-width: 640px) {
+    .reaction-row { grid-template-columns: repeat(3, 1fr); }
+    .post-heatmap { grid-template-columns: 36px repeat(6, 1fr); gap: 3px; }
+    .heatmap-cell { min-height: 26px; font-size: 11px; }
+    .heatmap-top3 { grid-template-columns: 1fr; }
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+th {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+td {
+    font-size: 13px;
+    font-weight: 450;
+}
+
+th:not(:first-child),
+td:not(:first-child) {
+    text-align: right;
+}
+
+tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+/* Řazení kliknutím na záhlaví (assets/js/table-sort.js): nenápadná šipka, zvýraznění aktivního sloupce. */
+th.is-sortable { cursor: pointer; user-select: none; }
+th.is-sortable::after { content: "\21C5"; display: inline-block; margin-left: 5px; font-size: 10px; opacity: .35; transition: opacity .12s; }
+th.is-sortable:hover, th.is-sortable:focus-visible { color: var(--text); }
+th.is-sortable:hover::after { opacity: .7; }
+th.is-sorted-asc, th.is-sorted-desc { color: var(--text); }
+th.is-sorted-asc::after { content: "\25B2"; opacity: 1; }
+th.is-sorted-desc::after { content: "\25BC"; opacity: 1; }
+
+.table-scroll {
+    overflow-x: auto;
+}
+
+.table-muted {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 450;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 42px;
+    height: 22px;
+    padding: 0 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.status-ok {
+    color: #047857;
+    background: rgba(16, 185, 129, 0.16);
+}
+
+.status-warning {
+    color: #b45309;
+    background: rgba(245, 158, 11, 0.18);
+}
+
+.status-info {
+    color: #1d4ed8;
+    background: rgba(37, 99, 235, 0.14);
+}
+
+.status-error {
+    color: #be123c;
+    background: rgba(244, 63, 94, 0.18);
+}
+
+.status-ai {
+    color: #0f766e;
+    background: rgba(20, 184, 166, 0.18);
+}
+
+/* Tmavý režim: badge s vyšším kontrastem (světlý sytý text + silnější podklad) — tmavé odstíny
+   z light režimu na tmavém pozadí působí vybledle/nečitelně. */
+[data-theme="dark"] .status-ok {
+    color: #34d399;
+    background: rgba(16, 185, 129, 0.24);
+}
+
+[data-theme="dark"] .status-warning {
+    color: #fbbf24;
+    background: rgba(245, 158, 11, 0.22);
+}
+
+[data-theme="dark"] .status-info {
+    color: #93c5fd;
+    background: rgba(37, 99, 235, 0.24);
+}
+
+[data-theme="dark"] .status-error {
+    color: #fda4af;
+    background: rgba(244, 63, 94, 0.24);
+}
+
+[data-theme="dark"] .status-ai {
+    color: #2dd4bf;
+    background: rgba(20, 184, 166, 0.24);
+}
+
+.table-icon-button {
+    width: 28px;
+    height: 28px;
+    border: 0;
+    background: transparent;
+}
+
+[data-dashboard][aria-busy="true"] .main-content {
+    cursor: progress;
+}
+
+[data-dashboard][aria-busy="true"] .panel,
+[data-dashboard][aria-busy="true"] .kpi-card {
+    opacity: 0.72;
+}
+
+.kpi-card,
+.panel {
+    position: relative;
+}
+
+.is-loading .kpi-card::after,
+.is-loading .chart-frame::after,
+.is-loading .doughnut-wrap::after,
+.is-loading .table-scroll::after {
+    content: '';
+    position: absolute;
+    inset: 12px;
+    border-radius: 8px;
+    background: linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--line) 72%, transparent) 25%,
+        color-mix(in srgb, var(--surface) 92%, var(--line)) 37%,
+        color-mix(in srgb, var(--line) 72%, transparent) 63%
+    );
+    background-size: 400% 100%;
+    animation: allstat-skeleton 1.1s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.table-scroll,
+.doughnut-wrap {
+    position: relative;
+}
+
+@keyframes allstat-skeleton {
+    0% { background-position: 100% 50%; }
+    100% { background-position: 0 50%; }
+}
+
+.install-body {
+    display: grid;
+    place-items: center;
+    padding: 24px;
+}
+
+.install-panel {
+    width: min(520px, 100%);
+    padding: 30px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+}
+
+.install-panel h1 {
+    margin: 16px 0 8px;
+    font-size: 26px;
+}
+
+.install-panel p {
+    color: var(--muted);
+    line-height: 1.55;
+}
+
+.notice {
+    margin: 12px 0;
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-weight: 550;
+}
+
+.notice-ok {
+    color: #047857;
+    background: rgba(16, 185, 129, 0.14);
+}
+
+.notice-error {
+    color: #be123c;
+    background: rgba(244, 63, 94, 0.14);
+}
+
+[data-theme="dark"] .notice-ok {
+    color: #34d399;
+    background: rgba(16, 185, 129, 0.2);
+}
+
+[data-theme="dark"] .notice-error {
+    color: #fda4af;
+    background: rgba(244, 63, 94, 0.2);
+}
+
+.notice-warn {
+    color: #b45309;
+    background: rgba(245, 158, 11, 0.14);
+    font-weight: 500;
+}
+.notice-warn strong { font-weight: 700; }
+[data-theme="dark"] .notice-warn {
+    color: #fbbf24;
+    background: rgba(245, 158, 11, 0.18);
+}
+
+.button-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    margin-top: 12px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--blue);
+    color: #ffffff;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+@media (max-width: 1280px) {
+    .kpi-grid {
+        grid-template-columns: repeat(3, minmax(180px, 1fr));
+    }
+
+    .tables-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .table-panel-wide {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 980px) {
+    .app-shell {
+        grid-template-columns: 1fr;
+    }
+
+    .nav-toggle { display: inline-flex; }
+
+    /* Mobil/tablet: sidebar = overlay drawer — vysune se zleva PŘES obsah, topbar/hamburger zůstávají nahoře. */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 60;
+        width: min(300px, 84vw);
+        height: 100vh;
+        height: 100dvh;
+        margin: 0;
+        border-right: 1px solid var(--line);
+        border-bottom: 0;
+        box-shadow: var(--shadow);
+        overflow-y: auto;
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+    }
+
+    .app-shell.nav-open .sidebar {
+        transform: translateX(0);
+    }
+
+    .sidebar-nav {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .nav-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 55;
+        background: rgba(15, 23, 42, 0.45);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease;
+    }
+
+    .app-shell.nav-open .nav-backdrop {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .nav-divider {
+        grid-column: 1 / -1;
+    }
+
+    .sync-card {
+        margin-top: 18px;
+    }
+
+    .topbar {
+        position: relative;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 14px 22px;
+    }
+
+    .toolbar {
+        flex-wrap: wrap;
+    }
+
+    .analytics-grid,
+    .tables-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .main-content {
+        padding: 0 14px 22px;
+    }
+
+    .topbar {
+        margin-inline: -14px;
+        padding-inline: 14px;
+    }
+
+    .kpi-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Přehledové KPI: kompaktní 2 sloupce místo 14 karet nad sebou; bez sparkline pro nižší výšku. */
+    .kpi-group .kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .kpi-group .kpi-card {
+        min-height: 0;
+        padding: 13px;
+    }
+
+    .kpi-group .sparkline-wrap {
+        display: none;
+    }
+
+    .kpi-group-title {
+        margin-bottom: 6px;
+    }
+
+    .toolbar,
+    .filter-control,
+    .date-filter {
+        width: 100%;
+    }
+
+    /* Dva selecty (web + zdroj dat) vedle sebe — šetří výšku; datum zůstává přes celou šířku. */
+    .toolbar .filter-control:not(.date-filter) {
+        width: calc(50% - 7px);
+        flex: 1 1 calc(50% - 7px);
+        min-width: 0;
+    }
+
+    /* Obě data si rozdělí řádek flexem (width:100% + flex-shrink:0 z desktopu by přeteklo přes okraj). */
+    .date-filter input {
+        width: auto;
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    .filter-control select {
+        width: 100%;
+    }
+
+    .doughnut-layout {
+        grid-template-columns: 1fr;
+        justify-items: center;
+    }
+
+    .legend-list {
+        width: 100%;
+    }
+
+    .sidebar-nav {
+        grid-template-columns: 1fr;
+    }
+
+    /* Bar grafy: užší sloupec popisků, ať zbyde místo na pruhy. */
+    .bar-row {
+        grid-template-columns: minmax(88px, 118px) minmax(0, 1fr) 84px;
+        gap: 8px;
+    }
+
+    /* Share panel: tlačítka přes celou šířku místo lámání textu do tří řádků vedle inputu. */
+    .share-result .button-primary,
+    .share-url-row .button-secondary {
+        width: 100%;
+    }
+
+    .share-url-row {
+        flex-wrap: wrap;
+    }
+
+    .share-url-row input {
+        flex: 1 1 100%;
+    }
+}
+
+@media (min-width: 981px) and (max-width: 1180px) {
+    .doughnut-layout {
+        grid-template-columns: 1fr;
+        justify-items: center;
+    }
+
+    .legend-list {
+        width: 100%;
+    }
+}
+
+/* Přepínač „Zdroj dat" s ikonami providerů — vlastní listbox, nativní <option> SVG neumí. */
+.source-picker {
+    position: relative;
+    padding: 0;
+}
+
+.source-picker-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 36px;
+    max-width: 320px;
+    padding: 0 12px;
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.source-picker-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.source-picker-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 60;
+    min-width: 300px;
+    max-width: 380px;
+    max-height: 62vh;
+    overflow-y: auto;
+    padding: 6px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+}
+
+.source-picker-group {
+    padding: 10px 10px 4px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+}
+
+.source-picker-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 10px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+}
+
+.source-picker-item:hover,
+.source-picker-item:focus-visible {
+    background: var(--surface-muted);
+}
+
+.source-picker-item.is-selected {
+    background: rgba(37, 99, 235, 0.12);
+    font-weight: 650;
+}
+
+.source-picker-item small {
+    color: var(--muted);
+    font-weight: 450;
+}
+
+.source-picker-item > span:last-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.source-picker-ic {
+    display: inline-flex;
+    width: 16px;
+    flex: none;
+}
+
+@media (max-width: 640px) {
+    .source-picker-menu {
+        left: 0;
+        right: auto;
+        min-width: 260px;
+        max-width: calc(100vw - 40px);
+    }
+}
+
+/* Upozorneni na zaseknuty zdroj v bocnim panelu (viz allstat_sync_health). */
+.sync-card-stale {
+    display: block;
+    margin-top: 6px;
+    font-size: 11px;
+    line-height: 1.45;
+    color: var(--orange);
+    overflow-wrap: anywhere;
+}
+
+/* ===================== Růst kanálů (úvodní pohled, views/growth.php) =====================
+   Barvy kanálů = 8 odstínů referenční palety (dataviz skill). Pořadí typů kanálů (GA4, GSC, Clarity,
+   YouTube, Facebook, LinkedIn, Instagram, reklama) je ověřené validátorem na barvoslepost ve světlém
+   i tmavém režimu (sousední dvojice CVD ΔE ≥ 8, běžné vidění ≥ 15). Barva patří typu kanálu, ne pořadí
+   v žebříčku; další účet stejné sítě má čárkovanou čáru/vzorek. Tmavé odstíny jsou samostatně vybrané
+   kroky, ne automatické převrácení. */
+.growth-root {
+    --ch-ga4: #eb6834;
+    --ch-gsc: #1baf7a;
+    --ch-clarity: #4a3aa7;
+    --ch-youtube: #e34948;
+    --ch-facebook: #2a78d6;
+    --ch-linkedin: #008300;
+    --ch-instagram: #e87ba4;
+    --ch-ads: #eda100;
+    display: grid;
+    gap: 14px;
+}
+
+[data-theme="dark"] .growth-root {
+    --ch-ga4: #d95926;
+    --ch-gsc: #199e70;
+    --ch-clarity: #9085e9;
+    --ch-youtube: #e66767;
+    --ch-facebook: #3987e5;
+    --ch-linkedin: #008300;
+    --ch-instagram: #d55181;
+    --ch-ads: #c98500;
+}
+
+/* Období v hlavičce: jen popisek (měsíční okno se volí chipy 3 / 6 / 12 měsíců). */
+.growth-range-label { color: var(--text); font-weight: 500; white-space: nowrap; }
+.growth-range-label small { color: var(--muted); font-size: 12px; font-weight: 450; }
+
+.growth-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px 20px;
+}
+
+.growth-kicker {
+    margin: 0;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.growth-insight {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 18px;
+    margin: 6px 0 0;
+    font-size: 13px;
+}
+
+.growth-insight small {
+    display: inline-block;
+    max-width: 240px;
+    overflow: hidden;
+    color: var(--muted);
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: bottom;
+}
+
+.growth-insight b { font-weight: 700; }
+.growth-insight-yoy { color: var(--muted); }
+
+/* --- Karty kanálů --- */
+.growth-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 14px;
+}
+
+.growth-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+    padding: 18px 18px 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+    color: var(--text);
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.growth-card:hover,
+.growth-card:focus-visible {
+    border-color: var(--line-strong);
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.08), var(--shadow);
+}
+
+.growth-card-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.growth-ic {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    background: var(--surface-muted);
+}
+
+.growth-ic svg { width: 18px; height: 18px; }
+.growth-ic-sm { width: 30px; height: 30px; }
+.growth-ic-sm svg { width: 16px; height: 16px; }
+
+.growth-card-title {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.3;
+}
+
+.growth-card-title strong { font-size: 14px; font-weight: 650; }
+.growth-card-title small { color: var(--muted); font-size: 12px; }
+
+.growth-acct {
+    overflow: hidden;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 500;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Vzorek barvy kanálu (propojuje kartu s grafem); šrafovaný = další účet stejné sítě. */
+.growth-swatch {
+    flex: none;
+    align-self: flex-start;
+    width: 10px;
+    height: 10px;
+    margin-left: auto;
+    border-radius: 3px;
+    background: var(--c);
+}
+
+.growth-swatch.is-dashed {
+    background: repeating-linear-gradient(135deg, var(--c) 0 2px, transparent 2px 4px);
+    box-shadow: inset 0 0 0 1.5px var(--c);
+}
+
+/* Hodnota + růst ukotvené dolů: při různě vysokých hlavičkách (s účtem / bez) čísla v řadě lícují. */
+.growth-card-main {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: auto;
+}
+
+.growth-card-value { display: block; font-size: 28px; font-weight: 650; line-height: 1.1; }
+.growth-card-label { display: block; margin-top: 3px; color: var(--muted); font-size: 12px; }
+
+.growth-card-growth {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.growth-card-growth > span { font-size: 18px; font-weight: 700; }
+.growth-card-growth small { color: var(--muted); font-size: 12px; }
+.growth-partial { color: var(--muted); cursor: help; }
+
+/* Růst sledujících: vedlejší ukazatel vpravo pod hlavním růstem (sítě, YouTube). Prázdný řádek u karet
+   bez sledujících drží stejnou výšku, aby hodnoty a sloupečky v řadě karet lícovaly. */
+.growth-followers {
+    display: flex;
+    justify-content: flex-end;
+    align-items: baseline;
+    gap: 6px;
+    min-height: 18px;
+    margin-top: -6px;
+    color: var(--muted);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.growth-followers strong { color: var(--text); font-weight: 650; }
+
+/* Meziročně (stejné 3 měsíce loni): stejný vedlejší řádek jako sledující, těsně pod hlavním růstem. */
+.growth-yoy {
+    display: flex;
+    justify-content: flex-end;
+    align-items: baseline;
+    gap: 5px;
+    min-height: 18px;
+    margin-top: -6px;
+    color: var(--muted);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.growth-yoy strong { font-weight: 700; }
+.growth-followers .positive,
+.growth-followers .negative { font-weight: 700; }
+.growth-followers small { font-size: 11px; }
+
+.growth-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 44px;
+}
+
+.growth-bar {
+    flex: 1;
+    min-width: 0;
+    border-radius: 3px 3px 0 0;
+    background: var(--c);
+    opacity: 0.38;
+}
+
+.growth-bar.is-last { opacity: 1; }
+
+/* Neúplný měsíc (data jen za část dní) = šrafa 135°, ať se nečte jako skutečný propad. */
+.growth-bar.is-partial {
+    background: repeating-linear-gradient(135deg, var(--c) 0 3px, transparent 3px 6px);
+    box-shadow: inset 0 0 0 1px var(--c);
+    opacity: 0.7;
+}
+
+.growth-bar.is-empty {
+    height: 2px !important;
+    border-radius: 1px;
+    background: var(--line-strong);
+    opacity: 1;
+}
+
+.growth-card-foot {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.growth-card-foot > span:first-child { white-space: nowrap; }
+
+.growth-card-extra {
+    overflow: hidden;
+    text-align: right;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* --- Srovnání růstu --- */
+.growth-compare-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px 20px;
+    margin-bottom: 8px;
+}
+
+.growth-compare-head h2 { margin: 0 0 6px; font-size: 16px; font-weight: 650; }
+.growth-compare-head .panel-help { max-width: 680px; margin: 0; }
+
+.growth-rank { overflow-x: auto; }
+
+.growth-rank-row {
+    display: grid;
+    grid-template-columns: minmax(180px, 250px) minmax(220px, 1fr) 150px 70px;
+    align-items: center;
+    gap: 18px;
+    min-width: 680px;
+    padding: 11px 0;
+    border-top: 1px solid var(--line);
+}
+
+.growth-rank-headrow {
+    padding: 0 0 8px;
+    border-top: 0;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.growth-rank-name {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.growth-rank-track {
+    position: relative;
+    height: 30px;
+    border-radius: 6px;
+    background: var(--surface-muted);
+}
+
+.growth-rank-zero {
+    position: absolute;
+    top: -4px;
+    bottom: -4px;
+    border-left: 1px dashed var(--muted);
+}
+
+.growth-rank-bar {
+    position: absolute;
+    top: 7px;
+    bottom: 7px;
+    border-radius: 4px;
+    background: var(--c);
+}
+
+/* „Stabilní" (změna do ±10 %): pruh jen tlumeně, aby nepůsobil jako růst nebo pokles. */
+.growth-rank-bar.is-stable { opacity: 0.4; }
+
+.growth-rank-label {
+    position: absolute;
+    top: 50%;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.growth-rank-label.is-right { transform: translate(8px, -50%); }
+.growth-rank-label.is-left { transform: translate(calc(-100% - 8px), -50%); }
+
+.growth-rank-na {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    color: var(--muted);
+    font-size: 12px;
+    transform: translateY(-50%);
+}
+
+.growth-rank-spark { color: var(--c); }
+.growth-rank-headrow .growth-rank-spark { color: var(--muted); }
+.growth-spark { display: block; width: 150px; height: 32px; overflow: visible; }
+.growth-rank-mom { font-size: 13px; font-weight: 700; text-align: right; }
+
+.growth-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 10px 0 14px;
+}
+
+.growth-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 11px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.growth-chip:hover { border-color: var(--line-strong); }
+.growth-chip[aria-pressed="false"] { opacity: 0.45; }
+
+.growth-chip small {
+    max-width: 170px;
+    overflow: hidden;
+    color: var(--muted);
+    font-weight: 500;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.growth-line-swatch {
+    width: 18px;
+    height: 0;
+    border-top: 3px solid var(--c);
+    border-radius: 2px;
+}
+
+.growth-line-swatch.is-dashed { border-top-style: dashed; }
+.growth-chart-frame { height: 340px; }
+
+/* --- Měsíc po měsíci --- */
+.growth-table th,
+.growth-table td { padding: 9px 10px; }
+
+.growth-table th:first-child,
+.growth-table td:first-child { padding-left: 0; }
+
+/* U 12 měsíců je tabulka širší než panel → název kanálu zůstává při vodorovném posunu vidět. */
+.growth-table th:first-child,
+.growth-table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--surface);
+}
+
+.growth-table td { vertical-align: top; }
+
+.growth-row-name {
+    display: grid;
+    grid-template-columns: 8px auto;
+    align-items: center;
+    column-gap: 8px;
+}
+
+.growth-row-name small {
+    grid-column: 2;
+    max-width: 230px;
+    overflow: hidden;
+    color: var(--muted);
+    font-size: 11px;
+    text-overflow: ellipsis;
+}
+
+.growth-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background: var(--c);
+}
+
+.growth-dot.is-dashed {
+    background: repeating-linear-gradient(135deg, var(--c) 0 2px, transparent 2px 4px);
+    box-shadow: inset 0 0 0 1.5px var(--c);
+}
+
+.growth-cell-val { display: block; font-weight: 600; font-variant-numeric: tabular-nums; }
+.growth-cell-mom { display: block; margin-top: 2px; font-size: 11px; font-weight: 600; }
+sup.growth-partial { margin-left: 1px; font-size: 11px; }
+
+/* Rozběhnutý měsíc: oddělený a tlumený, do růstu se nepočítá. */
+.growth-table th.is-current,
+.growth-table td.is-current {
+    border-left: 1px dashed var(--line-strong);
+    color: var(--muted);
+}
+
+.growth-table th.is-current small { font-weight: 500; }
+.growth-cell-total { font-weight: 700; vertical-align: middle; }
+
+/* Souhrnné sloupce (Růst, Meziročně) stojí hned za názvem; od měsíců je odděluje svislá linka. */
+.growth-table th.growth-cell-sep,
+.growth-table td.growth-cell-sep { border-right: 1px solid var(--line-strong); }
+
+/* Poznámka k výpočtu: rámeček jako „Poznámka k datům z API" v detailu FB/IG, ale přes celou šířku. */
+.growth-note {
+    grid-template-columns: minmax(0, 1fr);
+    margin-bottom: 0;
+}
+
+.growth-note .panel-help { margin: 0; }
+
+/* Úzký displej: název + m/m nahoře, pruh růstu přes celou šířku pod nimi (bez vodorovného posunu). */
+@media (max-width: 720px) {
+    .growth-rank-row {
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas: "name mom" "track track";
+        gap: 8px 12px;
+        min-width: 0;
+    }
+    .growth-rank-name { grid-area: name; }
+    .growth-rank-mom { grid-area: mom; }
+    .growth-rank-track { grid-area: track; }
+    .growth-rank-headrow,
+    .growth-rank-row .growth-rank-spark { display: none; }
+    .growth-rank-label { font-size: 12px; }
+    .growth-rank-mom::before { content: "m/m "; color: var(--muted); font-weight: 500; }
+}
+
+@media (max-width: 640px) {
+    .growth-cards { grid-template-columns: 1fr; }
+    .growth-head { align-items: flex-start; }
+    .growth-chart-frame { height: 280px; }
+    .growth-range-label small { display: none; }
+}
+
+/* Výběr webu s vyhledáváním (assets/js/select-search.js, od 8 webů výš). Nativní select zůstává skrytý ve formuláři. */
+.select-search-native {
+    display: none !important;
+}
+
+.select-search {
+    position: relative;
+    min-width: 0;
+}
+
+.select-search-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    min-height: 42px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+}
+
+.select-search.is-inline .select-search-btn {
+    min-height: 36px;
+    max-width: 260px;
+    padding: 0 4px 0 0;
+    border: 0;
+    background: transparent;
+}
+
+.select-search-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.select-search-btn svg {
+    flex: none;
+    color: var(--muted);
+}
+
+.select-search-pop {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 60;
+    width: max(100%, 300px);
+    max-width: calc(100vw - 32px);
+    padding: 6px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+}
+
+.select-search-pop.is-right {
+    left: auto;
+    right: 0;
+}
+
+.select-search .select-search-input {
+    width: 100%;
+    min-height: 36px;
+    margin: 0 0 6px;
+    padding: 7px 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface-muted);
+    color: var(--text);
+    font: inherit;
+    font-size: 13px;
+    outline: 0;
+}
+
+.select-search .select-search-input:focus {
+    border-color: color-mix(in srgb, var(--blue) 55%, var(--line));
+}
+
+.select-search-list {
+    display: grid;
+    gap: 2px;
+    max-height: min(50vh, 360px);
+    overflow-y: auto;
+}
+
+.select-search-item {
+    display: block;
+    width: 100%;
+    padding: 8px 10px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    text-align: left;
+    overflow-wrap: anywhere;
+    cursor: pointer;
+}
+
+.select-search-item[hidden] {
+    display: none;
+}
+
+.select-search-item:hover,
+.select-search-item:focus-visible {
+    background: var(--surface-muted);
+    outline: 0;
+}
+
+.select-search-item.is-selected {
+    background: rgba(37, 99, 235, 0.12);
+    font-weight: 650;
+}
+
+.select-search-empty {
+    margin: 0;
+    padding: 8px 10px;
+    color: var(--muted);
+    font-size: 12px;
+}

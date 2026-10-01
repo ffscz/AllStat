@@ -1,0 +1,59 @@
+AllStat
+=======
+
+Přehledný nástroj, který na jednom místě sbírá statistiky vašeho webu a sociálních sítí
+(Google Analytics 4, Search Console, Microsoft Clarity, Facebook, Instagram, LinkedIn,
+YouTube, Meta Ads) a ukládá je do vaší vlastní databáze. Data zůstávají u vás na hostingu.
+Součástí je i připojení AI: asistenti Claude a ChatGPT si z AllStatu mohou číst data (jen ke čtení,
+zapíná a ruší ho administrátor).
+
+Licence: GNU GPL verze 3 (soubor LICENSE). Zdrojový kód a nové verze: https://github.com/ffscz/AllStat
+
+
+Co potřebujete
+--------------
+ * webhosting s PHP 8.1 nebo novějším (doporučeno 8.3), HTTPS certifikátem a přístupem přes FTP
+ * prázdnou databázi MySQL nebo MariaDB a uživatele, který k ní má plná práva
+ * asi 15 minut času
+
+
+Instalace ve zkratce
+--------------------
+ 1. Nahrajte celou složku "allstat" přes FTP na svůj hosting (například do složky public_html).
+ 2. V administraci hostingu vytvořte prázdnou databázi a uživatele k ní.
+ 3. V prohlížeči otevřete adresu složky, například https://www.vase-domena.cz/allstat/
+    (nebo adresu subdomény, když jste AllStat nahráli do její složky).
+    Zobrazí se instalační průvodce.
+ 4. Vyplňte údaje o databázi, organizaci a administrátorovi, zvolte umístění připojení AI
+    a klikněte na "Nainstalovat".
+ 5. Zálohujte soubory config.php a config-keys.php a nastavte denní cron podle pokynů na
+    poslední stránce průvodce.
+
+Instalaci dokončete hned po nahrání souborů. Dokud není hotová, může průvodce spustit každý,
+kdo zná adresu webu.
+
+
+Podrobný návod
+--------------
+Návod s obrázky, nastavením cronu, napojením služeb, aktualizací a řešením problémů je v souboru
+docs/INSTALACE.html. Otevřete ho dvojklikem ve svém počítači (před nahráním na hosting).
+Složku "docs" a tento soubor můžete po instalaci ze serveru smazat.
+
+
+Změny ve verzi 1.0.2
+--------------------
+ * Přístup k webům podle uživatele: u účtu s rolí Uživatel jde zvolit „Jen vybrané weby“, ostatní
+   weby neuvidí v přehledu, reportech ani sdílených odkazech. Výchozí je „Všechny weby“.
+ * Správa (weby, zdroje, metriky, logy, feed, importy) je jen pro administrátora, i pro čtení.
+ * Dávkový režim cronu pro desítky webů: limit napojení nebo sekund na jedno spuštění (Nastavení).
+ * Výběr webu má od 8 webů pole pro hledání.
+ * Aktualizace z verze 1.0.0 nebo 1.0.1: postup je v docs/INSTALACE.html, kapitola 8.
+
+
+Změny ve verzi 1.0.1
+--------------------
+ * Google Ads: napojení přešlo na aktuální verzi Google Ads API (v25). Developer token už není
+   potřeba, přístup určuje projekt v Google Cloud (viz docs/INSTALACE.html, část Google Ads).
+ * Meta Ads: souhrny za celou dobu kampaně, sestavy a reklamy, skutečná frekvence a cíl kampaně.
+ * Aktualizace z verze 1.0.0: postup je v docs/INSTALACE.html, kapitola 8. config.php
+   a config-keys.php zůstanou beze změny, databáze se upraví sama při prvním otevření.
