@@ -1,0 +1,2 @@
+# Knihovny aplikace se nikdy nevolají přímo z prohlížeče, jen z ostatních souborů AllStatu.
+Require all denied

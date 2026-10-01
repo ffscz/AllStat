@@ -1,0 +1,385 @@
+{
+    "version": "1.0.2",
+    "files": {
+        "LICENSE": {
+            "s": 35823,
+            "h": "230184f60bae2feaf244f10a8bac053c8ff33a183bcc365b4d8b876d2b7f4809"
+        },
+        "_legal.php": {
+            "s": 5678,
+            "h": "1b97f0e01ee06c9d92ea5c36a4a9360bcb2b831ea7aa817ab548c5fbc64aa9e9"
+        },
+        "admin/_bootstrap.php": {
+            "s": 1107,
+            "h": "197d993c9b171119b526eb886ce832b074d029940d7a3b67c1297761e486c99c"
+        },
+        "admin/_layout.php": {
+            "s": 7589,
+            "h": "679b5243d4d57253f12dbeb36285df6ca14e5cc22b3ca81a062700feb7493ed7"
+        },
+        "admin/clarity-import.php": {
+            "s": 12219,
+            "h": "fa862d17bd28d5f27dc0cffc79b04bde14a4645615c07748081bc464b2b8440c"
+        },
+        "admin/connection-sync.php": {
+            "s": 4481,
+            "h": "4a3049dd914398fdf3ca4d574801f1c68f4c737bceeecb8534173c967da28762"
+        },
+        "admin/connection-test.php": {
+            "s": 1197,
+            "h": "1702d313da8af460b9d3d74026e84d0b2192e7b0de21409cd95eb923b3b8899e"
+        },
+        "admin/domains.php": {
+            "s": 6791,
+            "h": "27baf912964da651fc3a99d647cdb6894993b4ddb1a8b25d35cebea71f46f129"
+        },
+        "admin/feeds.php": {
+            "s": 8129,
+            "h": "54254912c5bd6d53293e08d8ffde137fe23a05bb091b5918c9029397f3a442bb"
+        },
+        "admin/index.php": {
+            "s": 166,
+            "h": "17545923e92bff4658ee842b360f43a090a3403e935d41166e3c0940a7d9548a"
+        },
+        "admin/login-2fa.php": {
+            "s": 2372,
+            "h": "d157bbffb3a6391004afab4519640df90e897d12f9bb556454f697ae8c394f2f"
+        },
+        "admin/login.php": {
+            "s": 2905,
+            "h": "e477a087c60a1aaf75c6f81e27b5b38855374a72abfdc200be9476ec97a486df"
+        },
+        "admin/logout.php": {
+            "s": 1129,
+            "h": "f11c1510b4272530cbfe0addfd4556ec66cd313f8a0e6343d56a15469d810bcc"
+        },
+        "admin/logs.php": {
+            "s": 3644,
+            "h": "900a631afc1beda58f2601a1630ca6af052cef6bdda9b13f9c901d14f5881fc5"
+        },
+        "admin/mcp.php": {
+            "s": 79221,
+            "h": "233dbb266782223a24128dbb383f87b9f5887cb71db1aae8eb3b4811b888ebc1"
+        },
+        "admin/meta-connect.php": {
+            "s": 8363,
+            "h": "19e707c78bf761f62f900e78416fc18300979fb791b02ce09a4259869cb47918"
+        },
+        "admin/meta-select.php": {
+            "s": 6925,
+            "h": "20ad7e752fb1cf9da9e57a4e50d82c096fb992b5891738db1709b63ce34fe2d7"
+        },
+        "admin/metrics.php": {
+            "s": 11381,
+            "h": "8cf45759dd27983750a1f566150d2b30c643d99d9f83c0b0cb70d722cadda1a2"
+        },
+        "admin/oauth-callback.php": {
+            "s": 5649,
+            "h": "5ae33878611bbcdd839e11a3e0abcf47edd3ba51cb671f7898a7a0756dc52ee9"
+        },
+        "admin/oauth-start.php": {
+            "s": 2168,
+            "h": "81a9309f29e1be4eee4795c561258323f9ad9c13b470ba3eab67e07e84d594f1"
+        },
+        "admin/reports.php": {
+            "s": 32349,
+            "h": "48a046e5cc4327dab8cea45fe565f46b0c64d95cca2873945c4b3adc8c41a4e6"
+        },
+        "admin/security.php": {
+            "s": 7583,
+            "h": "8cc8732740cf5690ea8e4515f56962aaaf07e160a0456ae7b71fced5daec4850"
+        },
+        "admin/settings.php": {
+            "s": 14742,
+            "h": "acfa2bf04db644c7862f058dcd5b2422c683f5894e50de2c19f52be16d042a2a"
+        },
+        "admin/setup-2fa.php": {
+            "s": 4503,
+            "h": "e2f08959823649b69de2334572155d2d880a7d74e226fa1ac4a9ffcf95338499"
+        },
+        "admin/share-create.php": {
+            "s": 3273,
+            "h": "8d7da61b325b83c3b8f8dd9ccae5e0de7860ae343e39f5d963273a8217a3eebd"
+        },
+        "admin/social-import.php": {
+            "s": 35189,
+            "h": "34b53c52739b99823361ac607e270fe5445aa4541b90516d056ef951e550b886"
+        },
+        "admin/source-edit.php": {
+            "s": 25047,
+            "h": "492adcf7395a2dad61c13023ee02fe0db7ea38287736bc30094f9b205835182e"
+        },
+        "admin/sources.php": {
+            "s": 7765,
+            "h": "fd8f932ff84543c834f546e7b5faf9dd0a41d45818fdc9d47881d0f4f93a9d44"
+        },
+        "admin/users.php": {
+            "s": 11879,
+            "h": "e6287a25357a733b72a033320012b5ec569e5b2293d303e80a4328df9f826415"
+        },
+        "allstat-mcp/app-path.php": {
+            "s": 31,
+            "h": "b368fa15aca14005ece3e7d20bcf2d02ecfcfc9aa975fc91a2c1c80ac0b34ea9"
+        },
+        "allstat-mcp/index.php": {
+            "s": 3616,
+            "h": "5c576e2a99047327221e86f09cfc063477b2c0a8fbbbfcadb77d8ad4b4f98bb8"
+        },
+        "api/dashboard.php": {
+            "s": 1801,
+            "h": "b673fdbf74343dfe34007d088968823d179ccc8772103678eeea559124b01c0a"
+        },
+        "assets/css/admin.css": {
+            "s": 35286,
+            "h": "6f0d01fce162633e40cf40c473693122b1ad17b5332c0cee5b1ed1a76071b275"
+        },
+        "assets/css/app.css": {
+            "s": 67515,
+            "h": "5ca23ac86b4cec75a79c03bef90cd14336b1011ae86a838e3d43befcc7cab2a2"
+        },
+        "assets/img/help/bs-1-obsah-exportovat-data.webp": {
+            "s": 25846,
+            "h": "1ce4afa426e1a273a2daccb5b4e3eadd9594a76ada4a26e18724f7c28a66aa32"
+        },
+        "assets/img/help/bs-2-facebook-nastaveni.webp": {
+            "s": 31142,
+            "h": "12e73b05eac73a0b0154b2d8234e44f3d6a83d3cb4fd384de87eaa895060690f"
+        },
+        "assets/img/help/bs-2b-instagram-nastaveni.webp": {
+            "s": 14320,
+            "h": "dc2de33dedfaef175430415651c87f8b51af80467a7c491b3098cab5027c38f7"
+        },
+        "assets/img/help/bs-3-predvolby-metrik.webp": {
+            "s": 37362,
+            "h": "647d2904df7e428c9e21fbccee89acab7956428e53e6e1608fc7aa5468e2ab8d"
+        },
+        "assets/img/help/bs-4-export-hotovo.webp": {
+            "s": 17786,
+            "h": "58a872f7156fc082feefc93357e3b2f16c4b55893772b735a133ed0c57507045"
+        },
+        "assets/img/help/bs-5-okruh-uzivatelu-export.webp": {
+            "s": 24084,
+            "h": "3c969f337867403d3acf1bf444d07dc6755f78bc7b407cf0563811e4c49fc3b2"
+        },
+        "assets/js/admin.js": {
+            "s": 22753,
+            "h": "982e47dc71165415066349e9728b26b85db478f207e5913bbda5ebd8ee215a27"
+        },
+        "assets/js/app.js": {
+            "s": 41408,
+            "h": "77e82e0309318f02934c070ea889fecd0289cfb821f39eb6d4b10c5c648435c6"
+        },
+        "assets/js/growth.js": {
+            "s": 7988,
+            "h": "d263b2e54e87fa8a6f05794a3f6c0ed15109ee9da2eda70c11062f348d5c167c"
+        },
+        "assets/js/select-search.js": {
+            "s": 6546,
+            "h": "6ea70818684d32791af13b56782a536ea3eb8f62e907abcb20939a2e346f261a"
+        },
+        "assets/js/table-sort.js": {
+            "s": 6642,
+            "h": "9cd1c2f348edb846ab96b0ac4083cb44e4c8aadfc1a28ce03826ef5d93d344d7"
+        },
+        "assets/vendor/chart.umd.min.js": {
+            "s": 205889,
+            "h": "206b6e8bb00fc7bba2c7ee80ca41db3e9e05ba7be0aa35abeba9cfd5357f5d0e"
+        },
+        "assets/vendor/lucide.min.js": {
+            "s": 402312,
+            "h": "5e943127343691a9b640d959bbfbdeb742f4a99e0ebc17a4fa77e94654e5318b"
+        },
+        "assets/vendor/qrcode.min.js": {
+            "s": 56694,
+            "h": "18ae399f81182bc9de916e9c77b195df20cc58d6f2d55a62b085a299f1bf1780"
+        },
+        "cron/sync.php": {
+            "s": 5760,
+            "h": "3c56ef84f242dc08da5bf1e4ff6a8d7dcfacc6c3f726ba8d4e779345f437ca35"
+        },
+        "data-deletion.php": {
+            "s": 4453,
+            "h": "02f109bde5040f30d8e525af2e1617f609e8e31f74e58152ff112daa3a06ba95"
+        },
+        "feed.php": {
+            "s": 2117,
+            "h": "77010f323ada1f123d7ffc3c6fcf6c15991cbc0c1f3cabd3a878017ea09931a7"
+        },
+        "index.php": {
+            "s": 71518,
+            "h": "04811f91849317fed1f8fedb6b5ef8423fa91999060a59d74c3dd9e0af5a2618"
+        },
+        "install.php": {
+            "s": 1363,
+            "h": "58350a5d7d1f476a2209ced5b338693946c24cc047b915f4d2bbefa859669b3c"
+        },
+        "lib/admin-repository.php": {
+            "s": 17588,
+            "h": "3b67845746b4fa42b2cdd295e59a2022b626ba03188efee4db6d29b92bca0e9f"
+        },
+        "lib/ai-sources.php": {
+            "s": 2157,
+            "h": "13d62cf1aa8a431f1f909a9a16885b33a1a293729cda43b184dc8e64447fe29b"
+        },
+        "lib/auth.php": {
+            "s": 14868,
+            "h": "55886ea54907d01b9d08ef348797b2375baca58dafa83203ca68db89879708af"
+        },
+        "lib/crypto.php": {
+            "s": 2473,
+            "h": "e93f31990584ef74ef00ae0fbf04d13db50256dbe40bba38406a3d991c4d2fb5"
+        },
+        "lib/csrf.php": {
+            "s": 698,
+            "h": "c27937c0746fc281980c3289e771dd2462ab49d3c9a13b11891eb711c42b1273"
+        },
+        "lib/database.php": {
+            "s": 1800,
+            "h": "e0c8c2cc519d6dbc33a8250e7dae5e9f921d7cc8ca58b1ff93b1e1a9899a83b1"
+        },
+        "lib/demo-data.php": {
+            "s": 10232,
+            "h": "b77a566efac41ef7590afb157f85204578f9e41ef50ff4d99246420fefe4f161"
+        },
+        "lib/feed.php": {
+            "s": 10622,
+            "h": "3b74bb87bb79fa94c6524699326a5de5f02b40b365e91388aecb0dc98e32f55d"
+        },
+        "lib/growth.php": {
+            "s": 28171,
+            "h": "e65d27099d6df2c1ab1e907cb790d9c474cf8f2305fd1ce7bb8a067c4acc9a0a"
+        },
+        "lib/helpers.php": {
+            "s": 10907,
+            "h": "60fe496baf0ee637d3b25ede95a3f5b8f11d962428cd3534371ffdba3ecd47ee"
+        },
+        "lib/install-wizard.php": {
+            "s": 79802,
+            "h": "a721d38be73383402b9c3c41bfb0677f1f2b837f603365396a0a0524c831dd2f"
+        },
+        "lib/mcp-oauth.php": {
+            "s": 113052,
+            "h": "a6e7c289339e1ff51dd49e93a8a6d1ed6c01759d350f7c1df416624d09ba90e5"
+        },
+        "lib/mcp-server.php": {
+            "s": 36974,
+            "h": "087cb0305362747acbbd993ccc8fec0e8194775fc46a0be1468c1a1a77fcbcbe"
+        },
+        "lib/mcp-tools.php": {
+            "s": 100744,
+            "h": "613884d6c12acca0086616aecac3f253d7516c0d0553d2b31f5f391a05023e0a"
+        },
+        "lib/meta-connect.php": {
+            "s": 12160,
+            "h": "d19415a8878dd61589fe6f465541662bbd8bc0da61a6f837ea8c5b12eabb902b"
+        },
+        "lib/migrations.php": {
+            "s": 49392,
+            "h": "15d1fd2331c6fc2a351107c1a2583ec2f3c0b25a199c2bdf55206297f006220e"
+        },
+        "lib/oauth.php": {
+            "s": 24637,
+            "h": "a7106951e7c7c6ea7b582c9aa0a2622127e46d6f6a1af9997d96b578a281f63b"
+        },
+        "lib/providers.php": {
+            "s": 45714,
+            "h": "4255c5fbbee02e0e1be3370b4ae498488f0641d7972ac3c82afdadd31acfad34"
+        },
+        "lib/repository.php": {
+            "s": 210014,
+            "h": "9d4832429b5bb71cf137389d29b43a75b33f7d472c5f8db7a456451c8729156b"
+        },
+        "lib/seeder.php": {
+            "s": 6447,
+            "h": "0790111a952434e5f879c7fe29b54b891f3ec8af814ac35a55a0a32e62727596"
+        },
+        "lib/share.php": {
+            "s": 95802,
+            "h": "456a954883e4a26f93d0d7cc4ad95bcfbc9556c9eac6b9d4a8ef3ca218249862"
+        },
+        "lib/sync-engines.php": {
+            "s": 130577,
+            "h": "0b4b338eb08db3d25ddb8341e7c8ca36aae9005bd74206a8fdb2cbdf5a772f6c"
+        },
+        "lib/sync.php": {
+            "s": 35144,
+            "h": "355fff69901ae4fb9bbb6a01b9667ef481280b4b37466faf6c219c2edec9c787"
+        },
+        "lib/totp.php": {
+            "s": 2713,
+            "h": "9df275dcfc85e3a826604368e2791352ac357fa357b1cb406b92d914923b1479"
+        },
+        "lib/users.php": {
+            "s": 7820,
+            "h": "72c42bc02eca99f6168fddb8f540a8a3f64938907d31cea14ece029b2ef2b4f1"
+        },
+        "oauth/authorize.php": {
+            "s": 19173,
+            "h": "ff55325141487abc55f15f134c54520924bca67aefc6247ab65be620eb57bacc"
+        },
+        "privacy.php": {
+            "s": 9069,
+            "h": "9ae25186aae1d0e1da05c393cae9c01092f1ecf85191ebe7f07abdfe4b792268"
+        },
+        "schema.sql": {
+            "s": 16071,
+            "h": "1de318aa89be44001d8870d778d14e98f7adfc928074baeb87e02e41298e9c1d"
+        },
+        "share.php": {
+            "s": 2006,
+            "h": "7424e6089a37cd24357e7a4cbfed575e1fb4e29b5c616c2014cc85aba0a754a6"
+        },
+        "terms.php": {
+            "s": 4195,
+            "h": "85037772b20d5d81512b6fcde6a36941cb71583c0cf3d97a70fef0bb40676d61"
+        },
+        "views/growth.php": {
+            "s": 26037,
+            "h": "a051d53fc0399c9def5eb79e31e7de094a5e61dd654bb54f9f8d7d8c439f5842"
+        },
+        "views/no-access.php": {
+            "s": 1338,
+            "h": "7f90a4123d62ff979f349abc94393c0fef70c6ba56d815b892c3dc8b7a6bba2b"
+        },
+        "views/provider/_content_trends.php": {
+            "s": 2905,
+            "h": "550b4762fecadb0d19dd85eeef9e4f7ad9c952044ca1bdb83d35a9a9cceda97c"
+        },
+        "views/provider/_heatmap.php": {
+            "s": 3314,
+            "h": "5628b38596a9a3545adeea50867850d01cb6008cd4d0405208217cc276d33295"
+        },
+        "views/provider/_stories.php": {
+            "s": 3936,
+            "h": "722589b86a103e416be96212dd5b82d7b1cd1c5f93888caf8137f8f614008ac7"
+        },
+        "views/provider/clarity.php": {
+            "s": 1817,
+            "h": "534077d24c875d40acadcbbc60b8514ad357d16f225ad34792fb19eb004daaba"
+        },
+        "views/provider/facebook_pages.php": {
+            "s": 29967,
+            "h": "d983a3c0a2920b0ee2c95b4d41b0b1ed138f4f0d95920816b29096cc00fbe05f"
+        },
+        "views/provider/google_ads.php": {
+            "s": 1175,
+            "h": "86205e0c43f9075b167b6dc4cfd0d2d05353d8afb8a6a4a13af6d6f338cc76b3"
+        },
+        "views/provider/instagram_business.php": {
+            "s": 21956,
+            "h": "9658e55ef4e044feccf744c7f6292180ba51b0fafc5c7d6b37961ef6afed64ae"
+        },
+        "views/provider/linkedin_company.php": {
+            "s": 16712,
+            "h": "d8e08ac4419f26aed232890ad0af907e1c8757ee3d620d9943550be1a6c1f840"
+        },
+        "views/provider/meta_ads.php": {
+            "s": 18511,
+            "h": "351546310f7f4a70c6e0731eb450a432ac26412c7592142c7d929252ec130817"
+        },
+        "views/provider/youtube.php": {
+            "s": 14617,
+            "h": "c0733848e7f0923f95c557a08335850f8fdb1cf5aec9f6f554a165673d1deaf8"
+        }
+    }
+}

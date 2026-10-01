@@ -1,0 +1,1679 @@
+.admin-shell {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+    min-height: 100vh;
+}
+
+.admin-sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    padding: 20px 14px;
+    background: var(--surface);
+    border-right: 1px solid var(--line);
+    overflow-y: auto;
+}
+
+.admin-main {
+    min-width: 0;
+    width: 100%;
+    /* Stejný strop obsahu jako dashboard (1440 px), zarovnáno VLEVO k sidebaru. */
+    max-width: 1440px;
+    margin-inline: 0;
+}
+
+.admin-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 15;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 76px;
+    padding: 14px 24px;
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    border-bottom: 1px solid var(--line);
+    backdrop-filter: blur(12px);
+}
+
+.admin-topbar h1 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 650;
+}
+
+.admin-topbar p {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.admin-content {
+    display: grid;
+    /* minmax(0,1fr) místo implicitního sloupce: jinak min-content ŠIROKÉ TABULKY roztáhne celou stránku
+       (tabulky pak scrollují uvnitř .table-scroll — tohle byl důvod „neresponzivních" admin stránek). */
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    padding: 22px 24px 32px;
+}
+
+.admin-card {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+}
+
+.admin-card-header,
+.admin-card-body {
+    padding: 18px;
+}
+
+.admin-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    border-bottom: 1px solid var(--line);
+}
+
+.admin-card-header h2 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 650;
+}
+
+.admin-card-header p,
+.form-help {
+    margin: 4px 0 0;
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.form-grid-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.form-grid label,
+.form-stack label,
+.install-form label {
+    display: grid;
+    gap: 7px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 550;
+}
+
+.form-grid input,
+.form-grid select,
+.form-grid textarea,
+.form-stack input,
+.form-stack select,
+.form-stack textarea,
+.install-form input {
+    width: 100%;
+    min-height: 42px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    outline: 0;
+}
+
+.form-grid textarea,
+.form-stack textarea {
+    min-height: 108px;
+    resize: vertical;
+}
+
+.form-stack {
+    display: grid;
+    gap: 14px;
+}
+
+.form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-top: 16px;
+}
+
+/* Sjednocení akčních tlačítek ve VŠECH formulářích adminu: .button-primary z app.css (dashboard)
+   má margin-top 12 + výšku 42 px, vedle sekundárních (38 px) pak řádek neseděl na baseline. */
+.form-actions .button-primary,
+.form-actions .button-secondary,
+.form-actions .button-danger {
+    margin-top: 0;
+    min-height: 38px;
+    padding: 0 16px;
+}
+
+.button-secondary,
+.button-danger,
+.button-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 38px;
+    padding: 0 14px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.button-secondary {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--text);
+}
+
+.button-danger {
+    border: 1px solid color-mix(in srgb, var(--rose) 45%, var(--line));
+    background: color-mix(in srgb, var(--rose) 10%, var(--surface));
+    color: var(--rose);
+}
+
+.button-link {
+    border: 0;
+    background: transparent;
+    color: var(--blue);
+}
+
+.admin-table {
+    width: 100%;
+    min-width: 760px;
+}
+
+.admin-table td,
+.admin-table th {
+    padding: 13px 14px;
+}
+
+.admin-table th:first-child,
+.admin-table td:first-child {
+    padding-left: 0;
+}
+
+.admin-table th:last-child,
+.admin-table td:last-child {
+    padding-right: 0;
+}
+
+.admin-table th:not(:first-child),
+.admin-table td:not(:first-child) {
+    text-align: left;
+}
+
+.table-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.table-muted {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.admin-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+}
+
+.stat-tile {
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+}
+
+.stat-tile span {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 550;
+}
+
+.stat-tile strong {
+    display: block;
+    margin-top: 8px;
+    font-size: 28px;
+    line-height: 1;
+}
+
+.auth-shell {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: var(--bg);
+}
+
+.auth-card {
+    width: min(440px, 100%);
+    padding: 28px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+}
+
+.auth-card h1 {
+    margin: 16px 0 8px;
+    font-size: 26px;
+}
+
+.auth-card p {
+    margin: 0 0 18px;
+    color: var(--muted);
+    line-height: 1.55;
+}
+
+.secret-state {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+    font-weight: 600;
+}
+
+.secret-state::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--line-strong);
+}
+
+.secret-state.on::before {
+    background: var(--green);
+}
+
+.secret-state.warn::before {
+    background: var(--orange);
+}
+
+.qr-box {
+    display: grid;
+    place-items: center;
+    min-height: 214px;
+    margin: 16px 0;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface-muted);
+}
+
+.code-box {
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface-muted);
+    overflow-wrap: anywhere;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 12px;
+}
+
+.install-form {
+    display: grid;
+    gap: 14px;
+    margin-top: 18px;
+}
+
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 16px;
+    border-top: 1px solid var(--line);
+}
+
+.pagination-info {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.button-secondary.is-disabled {
+    pointer-events: none;
+    opacity: 0.4;
+}
+
+.card-header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* Short inline hint under a form field. */
+.field-help {
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.45;
+}
+
+.form-grid label small,
+.form-stack label small {
+    font-weight: 500;
+    color: var(--muted);
+}
+
+.field-req {
+    color: var(--orange, #f59e0b);
+    font-weight: 600;
+}
+
+/* Rozbalovací sekce: dashed rám + jemný modrý nádech = stejný vizuální jazyk „tady je toho víc"
+   jako tlačítko „Zobrazit dalších X řádků" (.show-more-btn). Bez plných barevných proužků. */
+.admin-card-collapsible {
+    border: 1px dashed color-mix(in srgb, var(--blue, #2563eb) 55%, var(--line));
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--surface);
+    margin: 14px 0;
+}
+
+/* Collapsibles sitting inside the connection form align with the form's own grid gap. */
+.form-stack > .admin-card-collapsible {
+    margin: 0;
+}
+
+/* Summary = viditelný pruh, aby sekce nezanikaly jako poznámka pod čarou. */
+.admin-card-collapsible > summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 14px 46px 14px 18px;
+    position: relative;
+    background: color-mix(in srgb, var(--blue, #2563eb) 6%, var(--surface));
+    transition: background 0.15s ease;
+}
+
+.admin-card-collapsible > summary:hover {
+    background: color-mix(in srgb, var(--blue, #2563eb) 11%, var(--surface));
+}
+
+.admin-card-collapsible[open] > summary {
+    border-bottom: 1px dashed color-mix(in srgb, var(--blue, #2563eb) 55%, var(--line));
+}
+
+.admin-card-collapsible > summary::after {
+    content: "▾";
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    margin-top: -11px;
+    font-size: 15px;
+    transition: transform 0.15s ease;
+    color: var(--blue, #2563eb);
+}
+
+.admin-card-collapsible[open] > summary::after {
+    transform: rotate(180deg);
+}
+
+.admin-card-collapsible > summary > div h2 {
+    font-size: 15px;
+    color: var(--text);
+    font-weight: 650;
+    margin: 0 0 3px;
+}
+
+.admin-card-collapsible > summary > div p {
+    font-size: 12.5px;
+    color: var(--muted);
+    margin: 0;
+}
+
+.notice-info {
+    padding: 12px 16px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--blue, #2563eb) 10%, var(--surface));
+    border: 1px solid color-mix(in srgb, var(--blue, #2563eb) 40%, var(--surface));
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.backfill-cta { margin-bottom: 12px; }
+
+.notice-critical {
+    padding: 14px 18px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--rose) 18%, var(--surface));
+    border: 2px solid var(--rose);
+    color: #7f1d1d;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 12px;
+}
+
+.notice-critical a {
+    color: #7f1d1d;
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+[data-theme="dark"] .notice-critical,
+[data-theme="dark"] .notice-critical a {
+    color: #fda4af;
+}
+
+.quota-panel {
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface-muted);
+    display: grid;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.quota-panel header h3 {
+    margin: 0 0 4px;
+    font-size: 14px;
+}
+
+.quota-panel header p {
+    margin: 0;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.quota-panel-empty p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.quota-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 12px;
+}
+
+/* Každá kvóta jako samostatná karta: název + procentní badge, pruh, spotřeba pod ním. */
+.quota-item {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px 14px;
+}
+
+.quota-item-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    margin-bottom: 8px;
+}
+
+.quota-item-label { color: var(--text); font-weight: 600; }
+.quota-item-value { font-variant-numeric: tabular-nums; }
+
+.quota-badge {
+    flex-shrink: 0;
+    font-size: 12.5px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    padding: 2px 9px;
+    border-radius: 999px;
+}
+
+.quota-badge-ok { background: color-mix(in srgb, #16a34a 13%, var(--surface)); color: #15803d; }
+.quota-badge-warn { background: color-mix(in srgb, #f59e0b 16%, var(--surface)); color: #b45309; }
+.quota-badge-danger { background: color-mix(in srgb, var(--rose) 14%, var(--surface)); color: var(--rose); }
+
+[data-theme="dark"] .quota-badge-ok { color: #4ade80; }
+[data-theme="dark"] .quota-badge-warn { color: #fbbf24; }
+
+.quota-item-foot {
+    margin-top: 7px;
+    font-size: 12px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.quota-bar {
+    height: 10px;
+    border-radius: 999px;
+    background: var(--surface-muted);
+    border: 1px solid var(--line);
+    overflow: hidden;
+}
+
+.quota-bar-fill {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.quota-bar-ok { background: #16a34a; }
+.quota-bar-warn { background: #f59e0b; }
+.quota-bar-danger { background: var(--rose); }
+
+/* Akční lišta na editaci zdroje: tlačítka seskupená podle účelu (Připojení / Data),
+   vlastní pruh pod hlavičkou karty místo zalamování vedle titulku. */
+.source-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 26px;
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--line);
+    background: var(--surface-muted);
+}
+
+.source-toolbar-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.source-toolbar-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-right: 4px;
+}
+
+/* The inherit-credentials button is wrapped in a <form>; make it lay out like its sibling buttons. */
+.source-toolbar form {
+    display: contents;
+}
+
+/* Unify every action button (primary lives in app.css, secondary here) to one height/padding/baseline. */
+.source-toolbar .button-primary,
+.source-toolbar .button-secondary {
+    margin-top: 0;
+    min-height: 38px;
+    padding: 0 14px;
+}
+
+.connection-result {
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    font-size: 13px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+}
+
+/* Výpis průběhu „Synchronizovat vše" na sources.php (sedí mezi hlavičkou karty a tabulkou). */
+.sync-all-result { margin: 12px 18px 0; }
+
+.connection-result-pending { background: var(--surface-muted); color: var(--muted); }
+.connection-result-ok { background: color-mix(in srgb, #16a34a 12%, var(--surface)); border-color: #16a34a; color: #14532d; }
+.connection-result-error { background: color-mix(in srgb, var(--rose) 12%, var(--surface)); border-color: var(--rose); color: #7f1d1d; }
+
+/* Tmavý režim: světlý text místo tmavě zeleného/červeného (na tmavém podkladu byl nečitelný). */
+[data-theme="dark"] .connection-result-ok { color: #86efac; border-color: #22c55e; }
+[data-theme="dark"] .connection-result-error { color: #fca5a5; }
+
+.provider-guide {
+    padding: 16px 18px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface-muted);
+    display: grid;
+    gap: 12px;
+}
+
+.provider-guide[hidden] {
+    display: none;
+}
+
+.provider-guide header h3 {
+    margin: 0 0 4px;
+    font-size: 15px;
+}
+
+.provider-guide-pricing {
+    margin: 0;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.provider-guide-token {
+    margin: 8px 0 0;
+    padding: 8px 10px;
+    font-size: 12px;
+    line-height: 1.5;
+    background: rgba(245, 158, 11, 0.10);
+    border-left: 3px solid #f59e0b;
+    border-radius: 6px;
+}
+
+.provider-guide-meta {
+    margin: 0;
+    display: grid;
+    gap: 6px;
+    font-size: 13px;
+}
+
+.provider-guide-meta div {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 12px;
+}
+
+.provider-guide-meta dt {
+    color: var(--muted);
+    font-weight: 500;
+}
+
+.provider-guide-meta dd {
+    margin: 0;
+}
+
+.provider-guide-meta code {
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    font-size: 12px;
+}
+
+.provider-guide-steps {
+    margin: 0;
+    padding-left: 20px;
+    display: grid;
+    gap: 6px;
+    font-size: 13px;
+}
+
+.provider-guide-subtitle {
+    margin: 16px 0 6px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+/* "Co vyplnit do formuláře" map — highlight the exact AllStat field names. */
+.provider-guide-fields dt {
+    color: var(--blue);
+    font-weight: 600;
+}
+
+/* Troubleshooting — common errors + fixes (currently LinkedIn). Warning-style box. */
+.provider-guide-trouble-title {
+    margin: 16px 0 6px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.provider-guide-trouble {
+    margin: 0;
+    padding: 8px 12px 8px 26px;
+    display: grid;
+    gap: 6px;
+    font-size: 12px;
+    line-height: 1.5;
+    background: rgba(239, 68, 68, 0.08);
+    border-left: 3px solid #ef4444;
+    border-radius: 6px;
+}
+
+@media (max-width: 720px) {
+    .provider-guide-meta div {
+        grid-template-columns: 1fr;
+        gap: 2px;
+    }
+}
+
+@media (max-width: 980px) {
+    .admin-shell {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .admin-sidebar {
+        position: fixed;
+        inset: 0 auto 0 0;
+        z-index: 30;
+        width: min(320px, 86vw);
+        transform: translateX(-100%);
+        transition: transform 160ms ease;
+        box-shadow: var(--shadow);
+    }
+
+    .admin-shell.sidebar-open .admin-sidebar {
+        transform: translateX(0);
+    }
+
+    /* Ztmavené pozadí za otevřeným drawerem — klik na něj menu zavře (admin.js). */
+    .admin-shell .nav-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 25;
+        background: rgba(15, 23, 42, 0.45);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+    }
+
+    .admin-shell.sidebar-open .nav-backdrop {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .admin-topbar {
+        position: sticky;
+        padding-inline: 16px;
+    }
+
+    .admin-content {
+        padding: 16px;
+    }
+
+    .form-grid,
+    .form-grid-3 {
+        grid-template-columns: 1fr;
+    }
+
+    /* Tabulky na mobilu drží čitelnou šířku sloupců a scrollují VODOROVNĚ uvnitř .table-scroll,
+       místo aby se buňky mačkaly na pár znaků. */
+    .admin-table {
+        min-width: 640px;
+    }
+}
+
+@media (max-width: 640px) {
+    .admin-card-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    /* Stat dlaždice 2×2 místo sloupce čtyř přes celou obrazovku. */
+    .admin-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .table-actions {
+        justify-content: flex-start;
+    }
+
+    .auth-card {
+        padding: 22px;
+    }
+}
+
+/* Metriky: číselné sloupce doprava + mini bary v buňkách (kontrola, že data tečou). */
+.admin-table th.num,
+.admin-table td.num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.coverage-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.coverage-cell .quota-bar {
+    width: 90px;
+    flex: none;
+    height: 6px;
+    background: var(--surface);
+}
+
+.coverage-cell .table-muted {
+    white-space: nowrap;
+}
+
+.visits-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.visits-cell-value {
+    min-width: 44px;
+    text-align: right;
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+}
+
+.visits-cell-bar {
+    width: 110px;
+    flex: none;
+}
+
+.quota-bar-neutral {
+    background: var(--blue);
+}
+
+.metrics-filter {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.metrics-filter label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+
+.metrics-filter select {
+    padding: 7px 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+}
+
+/* Reporty: obsahová navigace + rychlé volby období + zarovnání číselných sloupců. */
+.report-quick-ranges,
+.anchor-nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.anchor-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 12px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 550;
+    text-decoration: none;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.anchor-chip:hover {
+    border-color: var(--line-strong);
+    background: var(--surface-muted);
+}
+
+.anchor-chip.is-active {
+    border-color: var(--blue);
+    color: var(--blue);
+}
+
+.admin-table--num th:not(:first-child),
+.admin-table--num td:not(:first-child),
+.admin-table--num2 th:nth-child(n+3),
+.admin-table--num2 td:nth-child(n+3) {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.pm-source-title {
+    margin: 12px 0 6px;
+    font-size: 14px;
+}
+
+/* Nastavení: stavový řádek cronu s badgem. */
+.cron-status {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 0 0 14px;
+}
+
+/* Nastavení: číslované kroky návodu (cron) — číslice v kroužku, kroky s odstupem. */
+.setup-steps {
+    margin: 14px 0 18px;
+    padding: 0;
+    list-style: none;
+    counter-reset: setup-step;
+    display: grid;
+    gap: 16px;
+}
+
+.setup-steps > li {
+    counter-increment: setup-step;
+    position: relative;
+    padding-left: 40px;
+    font-size: 13.5px;
+    line-height: 1.55;
+}
+
+.setup-steps > li::before {
+    content: counter(setup-step);
+    position: absolute;
+    left: 0;
+    top: -1px;
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in srgb, var(--blue, #2563eb) 10%, var(--surface));
+    color: var(--blue, #2563eb);
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.setup-steps .code-box {
+    margin: 6px 0 4px;
+}
+
+/* Import z CSV: nastavení exportu jako odrážky uvnitř číslovaného kroku + poznámka o častých záměnách. */
+.setup-steps .export-settings {
+    margin: 6px 0 0;
+    padding-left: 18px;
+    display: grid;
+    gap: 3px;
+}
+
+.import-pitfalls {
+    margin: 14px 0 0;
+    color: var(--muted);
+    font-size: 12.5px;
+    line-height: 1.5;
+}
+
+/* Odkaz uprostřed věty kroku (globální `a` dědí barvu, .text-link má margin pro samostatný řádek). */
+.setup-steps a {
+    color: var(--blue);
+    font-weight: 600;
+}
+
+.setup-steps a:hover {
+    text-decoration: underline;
+}
+
+/* Import z CSV: rozbalovací anonymizované obrázky z Business Suite. */
+.help-shots {
+    margin: 16px 0 4px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface-muted);
+}
+
+.help-shots > summary {
+    cursor: pointer;
+    padding: 10px 14px;
+    color: var(--blue);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.help-shots-grid {
+    display: grid;
+    gap: 18px;
+    padding: 4px 14px 16px;
+}
+
+.help-shots figure {
+    margin: 0;
+}
+
+.help-shots img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+}
+
+.help-shots figcaption {
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 12.5px;
+    line-height: 1.45;
+}
+
+/* Blok cron secretu oddělený od návodu linkou. */
+.cron-secret-block {
+    margin-top: 4px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+}
+
+/* Reporty: podílový pruh v tabulkách + zkrácení dlouhých tabulek na top 10. */
+.share-cell {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.share-cell .quota-bar {
+    width: 70px;
+    flex: none;
+    height: 6px;
+    background: var(--surface);
+}
+
+.share-cell span {
+    min-width: 52px;
+    text-align: right;
+    white-space: nowrap;
+}
+
+tr.row-extra {
+    display: none;
+}
+
+.show-more-btn {
+    margin-top: 10px;
+}
+
+/* Reporty: úzké tabulky (3–4 sloupce) ve dvou sloupcích vedle sebe, široké přes celou šířku. */
+.report-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+}
+
+@media (min-width: 1100px) {
+    .report-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .report-grid .report-full {
+        grid-column: 1 / -1;
+    }
+
+    /* Poloviční karta je ~550 px — default min-width 760 by nutil zbytečný vodorovný scroll. */
+    .report-grid .report-half .admin-table {
+        min-width: 460px;
+    }
+}
+
+/* Metriky podle služby: dlaždice per účet/služba místo dlouhého sloupce tabulek. */
+.pm-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 14px;
+}
+
+.pm-tile {
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface-muted);
+}
+
+.pm-tile-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.pm-tile-head strong {
+    display: block;
+    font-size: 13px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.pm-tile-head small {
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.pm-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 12.5px;
+}
+
+.pm-row:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+
+.pm-row span {
+    color: var(--muted);
+    overflow-wrap: anywhere;
+}
+
+.pm-row strong {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+/* Reporty: záložky sekcí (filtrují karty podle data-report-tab). */
+.report-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+}
+
+.report-tab {
+    padding: 7px 14px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 550;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.report-tab:hover {
+    border-color: var(--line-strong);
+    background: var(--surface-muted);
+}
+
+.report-tab.is-active {
+    border-color: var(--blue);
+    background: color-mix(in srgb, var(--blue) 10%, var(--surface));
+    color: var(--blue);
+}
+
+/* Sociální sítě a další služby: nadpisy kategorií nad dlaždicemi. */
+.pm-cat-title {
+    margin: 16px 0 8px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+}
+
+.pm-cat-title:first-of-type {
+    margin-top: 0;
+}
+
+/* „Zobrazit dalších X řádků" — výrazněji: přes celou šířku, modré ladění, šipka. */
+.show-more-btn,
+.show-more-btn.button-secondary {
+    display: block;
+    width: 100%;
+    margin-top: 12px;
+    padding: 11px 14px;
+    border: 1px dashed color-mix(in srgb, var(--blue) 55%, var(--line));
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--blue) 7%, var(--surface));
+    color: var(--blue);
+    font-size: 13px;
+    font-weight: 650;
+    text-align: center;
+    cursor: pointer;
+}
+
+.show-more-btn::after {
+    content: " ▾";
+}
+
+.show-more-btn:hover {
+    background: color-mix(in srgb, var(--blue) 14%, var(--surface));
+    border-style: solid;
+}
+
+/* Dlaždice služeb: ikona v pevném čtvercovém rámečku zarovnaném k hornímu okraji textu —
+   jednotné a symetrické i když se název účtu zalomí na víc řádků. */
+.pm-tile-head {
+    align-items: flex-start;
+}
+
+.pm-tile-head .source-picker-ic {
+    width: 28px;
+    height: 28px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    background: var(--surface);
+}
+
+.pm-tile-head > div {
+    min-width: 0;
+    padding-top: 1px;
+}
+
+/* Zdroje dat: srovnání tlačítek — .button-primary z app.css má margin-top 12 + výšku 42 (dashboard),
+   v hlavičkách karet a tabulkách adminu musí lícovat se selecty (38 px) a sekundárními tlačítky. */
+.card-header-actions .button-primary,
+.admin-table .button-primary {
+    margin-top: 0;
+    min-height: 38px;
+    padding: 0 14px;
+    gap: 8px;
+}
+
+.card-header-actions .toolbar {
+    margin: 0;
+}
+
+/* Buňka služby s ikonou providera (tabulky napojení + katalog služeb). */
+.svc-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.svc-cell .source-picker-ic {
+    display: inline-flex;
+    width: 26px;
+    height: 26px;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--surface);
+}
+
+/* Strukturovaný výpis „Synchronizovat vše" — řádky s ikonou, badgem a hláškou místo prostého textu. */
+.sync-result-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 650;
+}
+
+.sync-result-list {
+    margin-top: 4px;
+}
+
+.sync-result-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    border-top: 1px solid color-mix(in srgb, var(--line) 65%, transparent);
+    font-size: 12.5px;
+}
+
+.sync-result-item .source-picker-ic {
+    display: inline-flex;
+    width: 26px;
+    height: 26px;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--surface);
+    margin-top: 1px;
+}
+
+.sync-result-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.sync-result-text small {
+    color: var(--muted);
+    overflow-wrap: anywhere;
+    line-height: 1.45;
+}
+
+.sync-result-item .status-badge {
+    flex: none;
+    margin-top: 2px;
+}
+
+/* Strukturovaný sync log NENÍ prostý text — pre-wrap z .connection-result by vykresloval
+   odřádkování šablony jako prázdné řádky. */
+.sync-all-result {
+    white-space: normal;
+}
+
+/* AI konektory (MCP) */
+
+/* Formulář nastavení: pole se drží nahoře, i když je vedle nich vyšší textarea. */
+.mcp-settings-form .form-grid label {
+    align-content: start;
+}
+
+/* Potvrzení vypnutí: checkbox v řádku, ne roztažený input z .form-stack. */
+.form-stack .mcp-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 1px solid color-mix(in srgb, var(--rose) 35%, var(--line));
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--rose) 8%, var(--surface));
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.45;
+}
+
+.form-stack .mcp-check[hidden] {
+    display: none;
+}
+
+.form-stack .mcp-check input {
+    flex: none;
+    width: auto;
+    min-height: 0;
+    margin-top: 2px;
+    padding: 0;
+}
+
+.button-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.mcp-connector .share-url-row {
+    margin-bottom: 4px;
+}
+
+/* Návody: samostatné rozbalovací karty pod sebou, bez vnějších okrajů z .admin-card-collapsible. */
+.mcp-guide-list {
+    display: grid;
+    gap: 12px;
+}
+
+.mcp-guide-list > .admin-card-collapsible,
+.mcp-guide-list > .notice {
+    margin: 0;
+}
+
+.mcp-guide code,
+.mcp-tool-list code,
+.mcp-check-target code {
+    overflow-wrap: anywhere;
+}
+
+.mcp-guide code {
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: var(--surface-muted);
+    border: 1px solid var(--line);
+    font-size: 12px;
+}
+
+/* Nástroje: seznam místo tabulky, aby se dlouhé popisy zalamovaly i na telefonu. */
+.mcp-tool-list {
+    display: grid;
+}
+
+.mcp-tool {
+    padding: 12px 0;
+    border-top: 1px solid var(--line);
+}
+
+.mcp-tool:first-child {
+    padding-top: 0;
+    border-top: 0;
+}
+
+.mcp-tool:last-child {
+    padding-bottom: 0;
+}
+
+.mcp-tool-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 10px;
+}
+
+.mcp-tool-head code {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.mcp-tool p {
+    margin: 4px 0 0;
+    color: var(--muted);
+    line-height: 1.55;
+}
+
+/* Poslední aktivita: parametry volání a chyba pod názvem nástroje, oříznuté na jeden řádek. */
+.mcp-args {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mcp-cell {
+    min-width: 0;
+}
+
+/* Kontrola nastavení: rada u neúspěšné položky a čas provedení v souhrnu. */
+.sync-result-text .mcp-hint {
+    color: var(--text);
+}
+
+.mcp-check-meta {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    opacity: 0.85;
+}
+
+/* Připojené aplikace a Poslední aktivita: na telefonu se řádky tabulky změní na karty (popisek vlevo, hodnota vpravo). */
+@media (max-width: 640px) {
+    .admin-table.mcp-stack {
+        min-width: 0;
+    }
+
+    .mcp-stack thead {
+        display: none;
+    }
+
+    .mcp-stack,
+    .mcp-stack tbody,
+    .mcp-stack tr {
+        display: block;
+    }
+
+    .mcp-stack tr {
+        padding: 10px 0;
+        border-bottom: 1px solid var(--line);
+    }
+
+    .mcp-stack tbody tr:last-child {
+        border-bottom: 0;
+    }
+
+    .mcp-stack tr.row-extra {
+        display: none;
+    }
+
+    .mcp-stack td,
+    .mcp-stack td:first-child,
+    .mcp-stack td:last-child,
+    .mcp-stack td:not(:first-child) {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 4px 0;
+        border: 0;
+        text-align: right;
+        white-space: normal;
+    }
+
+    .mcp-stack td::before {
+        content: attr(data-label);
+        flex: none;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 600;
+        text-align: left;
+    }
+
+    .mcp-stack td[colspan] {
+        display: block;
+        text-align: left;
+    }
+
+    .mcp-stack td[colspan]::before,
+    .mcp-stack td.mcp-actions::before {
+        content: none;
+    }
+
+    .mcp-stack td.mcp-actions {
+        justify-content: flex-end;
+        padding-top: 8px;
+    }
+
+    .mcp-stack .mcp-args {
+        max-width: none;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+}
+
+/* Uživatelé: přístup k webům (účet s rolí Uživatel vidí jen vybrané weby). */
+.domain-access {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: 12px;
+    min-width: 0;
+    margin: 0;
+    padding: 14px 16px 16px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface-muted);
+}
+
+.domain-access legend {
+    padding: 0 6px;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.domain-access-mode {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.form-grid .domain-access-option,
+.form-grid .domain-access-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.form-grid .domain-access-option {
+    padding: 12px 14px;
+}
+
+.form-grid .domain-access-item {
+    padding: 8px 10px;
+}
+
+.form-grid .domain-access-option:has(input:checked),
+.form-grid .domain-access-item:has(input:checked) {
+    border-color: color-mix(in srgb, var(--blue) 55%, var(--line));
+    background: color-mix(in srgb, var(--blue) 6%, var(--surface));
+}
+
+.form-grid .domain-access-item[hidden],
+.domain-access-pick[hidden] {
+    display: none;
+}
+
+.domain-access input[type="radio"],
+.domain-access input[type="checkbox"] {
+    flex: none;
+    width: 16px;
+    min-height: 16px;
+    height: 16px;
+    margin: 1px 0 0;
+    padding: 0;
+    accent-color: var(--blue);
+}
+
+.domain-access-option span,
+.domain-access-item span {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+
+.form-grid .domain-access-option small,
+.form-grid .domain-access-item small {
+    color: var(--muted);
+    font-size: 11px;
+    overflow-wrap: anywhere;
+}
+
+.domain-access-pick {
+    display: grid;
+    gap: 10px;
+}
+
+.domain-access-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.form-grid .domain-access-toolbar input[type="search"] {
+    flex: 1 1 220px;
+    width: auto;
+    min-height: 36px;
+    padding: 7px 12px;
+}
+
+.domain-access-count {
+    margin-left: auto;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.domain-access-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 6px;
+    max-height: 320px;
+    overflow-y: auto;
+    padding: 2px;
+}
+
+.domain-access-list .field-help {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 720px) {
+    .domain-access-mode {
+        grid-template-columns: 1fr;
+    }
+}
