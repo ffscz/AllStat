@@ -34,9 +34,15 @@ Podrobný návod s obrázky je v balíčku (`docs/INSTALACE.html`) a jako PDF u 
 
 ## Aktualizace
 
-Novou verzi nahrajte přes stávající instalaci (stejné místo, přepsat soubory). Soubory `config.php`
-a `config-keys.php` balíček neobsahuje, takže zůstanou beze změny. Databáze se při prvním otevření
-doplní sama (migrace jen přidávají tabulky a sloupce, data nemažou). Postup je v kapitole 8 příručky.
+**Od verze 1.2.0 jedním tlačítkem.** AllStat sám zjistí novou verzi (feed [`update.json`](update.json)),
+administrátor ji uvidí v bočním panelu a nainstaluje ze stránky Aktualizace. Balíček je podepsaný
+(ECDSA P-256, veřejný klíč je v `lib/updater.php`), bez platného podpisu se nic nenainstaluje.
+Přepisované soubory se zálohují a předchozí verzi jde vrátit.
+
+**Ručně (verze 1.1.0 a starší, nebo když PHP nesmí zapisovat do složky aplikace):** novou verzi nahrajte
+přes stávající instalaci (stejné místo, přepsat soubory). Soubory `config.php` a `config-keys.php`
+balíček neobsahuje, takže zůstanou beze změny. Databáze se při prvním otevření doplní sama (migrace jen
+přidávají tabulky a sloupce, data nemažou). Postup je v kapitole 8 příručky.
 
 ## Repozitář
 
