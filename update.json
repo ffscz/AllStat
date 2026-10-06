@@ -1,10 +1,10 @@
 {
-    "version": "1.2.0",
-    "published": "2026-10-01T10:08:50Z",
-    "zip_url": "https://github.com/ffscz/AllStat/releases/download/v1.2.0/allstat-1.2.0.zip",
-    "sha256": "588c01302f04991b612334585c14238acdc93fbc6f77004c4b89f676aaff0b93",
-    "signature": "MEYCIQCwpEXhIHDEXHYP01ABP4jwpXO4gIyw1qqzzqHSCQDFyQIhAKAd55F/XwH0+o3Zq7wVUtN1tBH9rtm12AFWyyogNKl6",
+    "version": "1.2.1",
+    "published": "2026-10-06T07:38:03Z",
+    "zip_url": "https://github.com/ffscz/AllStat/releases/download/v1.2.1/allstat-1.2.1.zip",
+    "sha256": "e3010ceedcca53ce3ae3f219631dac8f763d6626a00176b1a773e374b0245ad8",
+    "signature": "MEUCIQDbxQxhC550sPpr9OaBUIUaPPFrIa9jUAa9eQb4y3jMagIgU976wB5mLrxFDwdlfh0yo2zZmYCi0iKyj2IGQzMCoeg=",
     "min_php": "8.1",
-    "html_url": "https://github.com/ffscz/AllStat/releases/tag/v1.2.0",
-    "notes": "* Aktualizace jedním tlačítkem: AllStat sám zjistí novou verzi na GitHubu, administrátor ji uvidí\n   v bočním panelu a nainstaluje ze stránky Aktualizace (Nastavení, Verze a aktualizace). Balíček je\n   podepsaný, přepisované soubory se zálohují a předchozí verzi jde vrátit. Upravený .htaccess zůstane.\n * Z verze 1.1.0 a starší je potřeba na 1.2.0 aktualizovat ještě ručně (docs/INSTALACE.html, kapitola 8),\n   další verze už půjdou tlačítkem."
+    "html_url": "https://github.com/ffscz/AllStat/releases/tag/v1.2.1",
+    "notes": "* Verze AllStatu je vidět v bočním panelu: v přehledu pod stavem synchronizace, v administraci dole."
 }
