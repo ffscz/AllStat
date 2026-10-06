@@ -1258,6 +1258,16 @@ function allstat_mcp_tool_get_report(PDO $pdo, array $config, array $a): array
         'view' => $view,
         'period' => $period,
     ];
+    // Zpoždění zdrojů za období (přehled = GA4 + Search Console, YouTube = YouTube Analytics); u růstu kanálů
+    // se počítají jen uzavřené měsíce, tam se nehlásí.
+    $delays = [];
+    if ($view !== 'growth') {
+        $delayProviders = $sourceId > 0 ? (($src['source']['provider_key'] ?? '') === 'youtube' ? ['youtube'] : []) : ['ga4', 'gsc'];
+        $delays = $delayProviders ? allstat_mcp_tool_data_delays($pdo, $site['id'], $start, $end, $delayProviders, $sourceId > 0 ? (int) ($src['source']['connection_id'] ?? 0) : null) : [];
+    }
+    if ($delays) {
+        $envelope['data_delays'] = $delays;
+    }
     // The analysis instructions are a fixed ~5 000 character block. When the report does not fit into max_chars,
     // they are dropped first so the data tables are not gutted for them.
     $dropNote = 'Pokyny pro analýzu (instructions) byly vynechány, protože se report s nimi nevešel do max_chars. Zvyšte max_chars nebo zvolte užší období.';
@@ -1307,6 +1317,9 @@ function allstat_mcp_tool_get_report(PDO $pdo, array $config, array $a): array
         return allstat_mcp_tool_error('Report se nevešel do limitu ' . $maxChars . ' znaků ani po zkrácení tabulek. Zvyšte max_chars (nejvýše 150000), zúžte období nebo zvolte konkrétní zdroj.');
     }
     [$payload, $text, $log] = $fit;
+    if ($delays) {
+        $text = '> **Zpoždění dat:** ' . implode("\n> ", array_column($delays, 'note')) . "\n\n" . $text;
+    }
     $truncated = $log !== [];
     if ($truncated) {
         $text .= "\n> Pozn.: Report byl zkrácen na limit " . $maxChars . ' znaků (' . implode('; ', $log) . '). Zúžte období, zvolte konkrétní zdroj (source_id) nebo zvyšte max_chars (nejvýše 150000).' . "\n";
@@ -1567,6 +1580,19 @@ function allstat_mcp_tool_get_overview(PDO $pdo, array $config, array $a): array
     if (!$hasData) {
         $data['hint'] = 'Za zvolené období nejsou pro tento web žádná data GA4 ani Search Console. Zkontrolujte období a stav zdrojů (get_sync_status).';
     }
+    // Zpoždění zdrojů (Search Console 2 až 3 dny): chybějící poslední dny období nejsou pokles. KPI z takového zdroje
+    // dostanou partial=true a data_delays jde hned za období, aby si ho AI všimla dřív než čísel.
+    $delays = allstat_mcp_tool_data_delays($pdo, $id, $start, $end, ['ga4', 'gsc']);
+    if ($delays) {
+        $delayed = array_map('strtoupper', array_column($delays, 'provider'));
+        foreach ($data['kpis'] as &$kpi) {
+            if (in_array(strtoupper((string) $kpi['provider']), $delayed, true)) {
+                $kpi['partial'] = true;
+            }
+        }
+        unset($kpi);
+        $data = array_slice($data, 0, 2, true) + ['data_delays' => $delays] + $data;
+    }
 
     return allstat_mcp_tool_success($data);
 }
@@ -1722,6 +1748,10 @@ function allstat_mcp_tool_get_source_metrics(PDO $pdo, array $config, array $a):
                 $data['note'] = 'Snímkové položky (odběratelé celkem, zhlédnutí celkem) jsou stav k poslednímu dni období. Seznam videí vrací get_top_content.';
             }
             break;
+    }
+    // YouTube Analytics dodává zhlédnutí a sledovaný čas se zpožděním 2 až 3 dny.
+    if ($pk === 'youtube' && ($delays = allstat_mcp_tool_data_delays($pdo, $id, $start, $end, ['youtube'], $cid))) {
+        $data = array_slice($data, 0, 3, true) + ['data_delays' => $delays] + $data;
     }
 
     return allstat_mcp_tool_success($data);
@@ -2013,6 +2043,10 @@ function allstat_mcp_tool_get_search_queries(PDO $pdo, array $config, array $a):
             ? 'Za zvolené období nejsou data ze Search Console. Zkuste delší období a ověřte stav synchronizace (get_sync_status).'
             : 'Tento web nemá napojený zdroj Google Search Console, proto nejsou dostupné žádné dotazy ani stránky z Google. Napojení zdrojů ukáže list_websites.';
     }
+    $delays = allstat_mcp_tool_data_delays($pdo, $id, $start, $end, ['gsc']);
+    if ($delays) {
+        $data = array_slice($data, 0, 2, true) + ['data_delays' => $delays] + $data;
+    }
 
     return allstat_mcp_tool_success($data);
 }
@@ -2020,6 +2054,71 @@ function allstat_mcp_tool_get_search_queries(PDO $pdo, array $config, array $a):
 /* ------------------------------------------------------------------------------------------------
  * Tool 8: get_sync_status
  * ---------------------------------------------------------------------------------------------- */
+
+/**
+ * Zdroje, které dodávají data se zpožděním: Search Console a YouTube Analytics typicky 2 až 3 dny, GA4 nejvýš den.
+ * Vrátí ty, kterým v období chybí poslední dny (poslední den s daty je před koncem období). Chybějící dny nejsou
+ * nula ani pokles, jen zatím nedodaná data. Sociální sítě a reklamy se nehlásí: den bez dat tam může být skutečná nula.
+ *
+ * @param list<string> $providers ga4 | gsc | youtube
+ * @return list<array<string, mixed>>
+ */
+function allstat_mcp_tool_data_delays(PDO $pdo, int $domainId, string $start, string $end, array $providers = ['ga4', 'gsc'], ?int $connectionId = null): array
+{
+    $meta = [
+        'ga4' => ['label' => 'Google Analytics 4', 'typical' => 'nejvýš 1 den'],
+        'gsc' => ['label' => 'Google Search Console', 'typical' => '2 až 3 dny'],
+        'youtube' => ['label' => 'YouTube Analytics', 'typical' => '2 až 3 dny'],
+    ];
+    $latest = [];
+    try {
+        $connected = array_column(allstat_fetch_all($pdo, 'SELECT DISTINCT s.provider_key FROM domain_sources ds JOIN data_sources s ON s.id = ds.source_id WHERE ds.domain_id = ? AND ds.is_enabled = 1', [$domainId]), 'provider_key');
+        if (array_intersect(['ga4', 'gsc'], $providers)) {
+            $web = allstat_fetch_one($pdo, 'SELECT MAX(CASE WHEN visits > 0 THEN metric_date END) AS ga4, MAX(CASE WHEN impressions > 0 THEN metric_date END) AS gsc FROM metrics_daily WHERE domain_id = ? AND metric_date <= ?', [$domainId, $end]) ?? [];
+            foreach (['ga4', 'gsc'] as $p) {
+                if (in_array($p, $providers, true) && in_array($p, $connected, true) && !empty($web[$p])) {
+                    $latest[$p] = (string) $web[$p];
+                }
+            }
+        }
+        if (in_array('youtube', $providers, true) && in_array('youtube', $connected, true)) {
+            // Analytika videí (zhlédnutí) chodí se zpožděním; denní snímky odběratelů se ukládají hned, ty se nepočítají.
+            $row = allstat_fetch_one($pdo, "SELECT MAX(pm.metric_date) AS d FROM provider_metrics_daily pm
+                JOIN domain_sources ds ON ds.id = pm.connection_id JOIN data_sources s ON s.id = ds.source_id
+                WHERE pm.domain_id = ? AND s.provider_key = 'youtube' AND pm.metric_key = 'views' AND COALESCE(pm.dimension, '') = ''
+                  AND pm.metric_value > 0 AND pm.metric_date <= ?" . ($connectionId ? ' AND pm.connection_id = ' . (int) $connectionId : ''), [$domainId, $end]) ?? [];
+            if (!empty($row['d'])) {
+                $latest['youtube'] = (string) $row['d'];
+            }
+        }
+    } catch (Throwable) {
+        return [];
+    }
+
+    $out = [];
+    foreach ($latest as $provider => $date) {
+        if ($date >= $end) {
+            continue;
+        }
+        $from = max($start, (new DateTimeImmutable($date))->modify('+1 day')->format('Y-m-d'));
+        $days = (int) (new DateTimeImmutable($from))->diff(new DateTimeImmutable($end))->days + 1;
+        $range = $from === $end ? allstat_mcp_tool_cz_date($end) : allstat_mcp_tool_cz_date($from) . ' až ' . allstat_mcp_tool_cz_date($end);
+        $out[] = [
+            'provider' => $provider,
+            'provider_label' => $meta[$provider]['label'],
+            'latest_data_date' => $date,
+            'missing_from' => $from,
+            'missing_to' => $end,
+            'missing_days' => $days,
+            'typical_delay' => $meta[$provider]['typical'],
+            'note' => $meta[$provider]['label'] . ' má data jen do ' . allstat_mcp_tool_cz_date($date) . '; ' . $range
+                . ($days === 1 ? ' zatím chybí' : ' zatím chybí (' . $days . ' dny)') . ', zdroj je dodává se zpožděním ' . $meta[$provider]['typical']
+                . '. Součty a změny proti předchozímu období jsou proto u tohoto zdroje neúplné, nejde o pokles. Hodnoťte ho za období, které končí ' . allstat_mcp_tool_cz_date($date) . ', nebo ho vynechte.',
+        ];
+    }
+
+    return $out;
+}
 
 function allstat_mcp_tool_get_sync_status(PDO $pdo, array $config, array $a): array
 {
@@ -2093,8 +2192,8 @@ function allstat_mcp_tool_get_sync_status(PDO $pdo, array $config, array $a): ar
     if ($counts['error'] > 0 || $counts['warning'] > 0) {
         $hints[] = 'Některé zdroje hlásí chybu nebo varování (status, note). Data z nich nemusí být kompletní.';
     }
-    if (in_array('gsc', array_column($sources, 'provider'), true)) {
-        $hints[] = 'Search Console dodává data se zpožděním 2 až 3 dny, proto je latest_data_date u něj starší než poslední synchronizace.';
+    if (array_intersect(['gsc', 'youtube'], array_column($sources, 'provider'))) {
+        $hints[] = 'Search Console a YouTube Analytics (zhlédnutí, sledovaný čas) dodávají data se zpožděním 2 až 3 dny, proto je jejich latest_data_date starší než poslední synchronizace. Chybějící poslední dny nejsou pokles; nástroje za období je hlásí v data_delays.';
     }
     if (!$rows) {
         $hints[] = 'Web nemá žádný napojený zdroj dat.';
