@@ -17,6 +17,7 @@ require_once __DIR__ . '/lib/csrf.php';
 require_once __DIR__ . '/lib/repository.php';
 require_once __DIR__ . '/lib/growth.php';
 require_once __DIR__ . '/lib/funnels.php';
+require_once __DIR__ . '/lib/version.php';
 // Updater je jen ve veřejném balíčku; interní instalace (nasazovaná ručně) ho mít nemusí.
 if (is_file(__DIR__ . '/lib/updater.php')) {
     require_once __DIR__ . '/lib/updater.php';
@@ -339,6 +340,7 @@ if ($isGenericView) {
                 <?php if ($staleCount > 0): ?>
                     <span class="sync-card-stale" title="<?= h(implode(', ', $staleAll)) ?>">Přes 48 h bez dat: <?= h($staleNames) ?>. Zkontroluj cron.</span>
                 <?php endif; ?>
+                <span class="sync-card-version">AllStat <?= h(allstat_app_version()) ?></span>
             </div>
         </aside>
 

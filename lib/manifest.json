@@ -1,5 +1,5 @@
 {
-    "version": "1.2.0",
+    "version": "1.2.1",
     "files": {
         "LICENSE": {
             "s": 35823,
@@ -14,8 +14,8 @@
             "h": "197d993c9b171119b526eb886ce832b074d029940d7a3b67c1297761e486c99c"
         },
         "admin/_layout.php": {
-            "s": 8646,
-            "h": "c6d0068762768ae36fa16c3b5c773d52b38c1c9fbd3929fb78c025c57d75ae49"
+            "s": 8802,
+            "h": "d913f7689ae195c61843aa304372e4ad97198608ec7c1b4c20e6cd9efc0d0523"
         },
         "admin/clarity-import.php": {
             "s": 12219,
@@ -138,12 +138,12 @@
             "h": "b673fdbf74343dfe34007d088968823d179ccc8772103678eeea559124b01c0a"
         },
         "assets/css/admin.css": {
-            "s": 41062,
-            "h": "98924e0657b9c713ee960069f847013df3dccc1c9cd81c1831f92fc55dd764cb"
+            "s": 41109,
+            "h": "90e72d3d23c05775b6e96de89e67c31202760f809d2aee6e2cfcbcb62310916d"
         },
         "assets/css/app.css": {
-            "s": 74232,
-            "h": "f41a1f8df0d06899bc4fb2e7a0c97273a8fb57b4d37885b187609ab6cb999504"
+            "s": 74646,
+            "h": "2a2dcc077521fbdbd9dbf5ef96de62cafb4c2f925636be4913cbade8927c48a3"
         },
         "assets/img/help/bs-1-obsah-exportovat-data.webp": {
             "s": 25846,
@@ -218,8 +218,8 @@
             "h": "77010f323ada1f123d7ffc3c6fcf6c15991cbc0c1f3cabd3a878017ea09931a7"
         },
         "index.php": {
-            "s": 77727,
-            "h": "914625d5ca7e89ee7572f52b9e5959842758de9d221a479579b8f779244515e7"
+            "s": 77865,
+            "h": "5437bd38e75e05ccbb7e2be95476e0aed0239f480fe53febb03a3d26be8fc356"
         },
         "install.php": {
             "s": 1363,
@@ -332,6 +332,10 @@
         "lib/users.php": {
             "s": 7820,
             "h": "72c42bc02eca99f6168fddb8f540a8a3f64938907d31cea14ece029b2ef2b4f1"
+        },
+        "lib/version.php": {
+            "s": 542,
+            "h": "8e38a874a6abfa732f53bef506a7d42dc5c6994479e8ccad89a928a0390c0e47"
         },
         "oauth/authorize.php": {
             "s": 19173,

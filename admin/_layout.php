@@ -80,6 +80,8 @@ function allstat_admin_header(string $title, string $active, array $user, array 
                 <span><strong>Nová verze <?= h($updateNotice['version']) ?></strong><small>Máš <?= h($updateNotice['installed']) ?>, klikni pro aktualizaci</small></span>
             </a>
             <?php endif; ?>
+            <?php require_once __DIR__ . '/../lib/version.php'; ?>
+            <span class="sidebar-version">AllStat <?= h(allstat_app_version()) ?></span>
         </aside>
         <div class="nav-backdrop" data-admin-backdrop aria-hidden="true"></div>
         <main class="admin-main">
