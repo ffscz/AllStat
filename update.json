@@ -1,10 +1,10 @@
 {
-    "version": "1.2.1",
-    "published": "2026-10-06T07:38:03Z",
-    "zip_url": "https://github.com/ffscz/AllStat/releases/download/v1.2.1/allstat-1.2.1.zip",
-    "sha256": "e3010ceedcca53ce3ae3f219631dac8f763d6626a00176b1a773e374b0245ad8",
-    "signature": "MEUCIQDbxQxhC550sPpr9OaBUIUaPPFrIa9jUAa9eQb4y3jMagIgU976wB5mLrxFDwdlfh0yo2zZmYCi0iKyj2IGQzMCoeg=",
+    "version": "1.2.2",
+    "published": "2026-10-06T07:43:53Z",
+    "zip_url": "https://github.com/ffscz/AllStat/releases/download/v1.2.2/allstat-1.2.2.zip",
+    "sha256": "0344fe2c6bd53a7f2393c10ea140636971e98f44219ce692b4bde80a665a77da",
+    "signature": "MEQCIC5AtKa25pQF2Bj/3NJ8hX77e/1BaLv6sEOIpX36zMifAiBGuIwmE7VSWxMRYpvp3XuBSt4rZo6jRsfLxVxqgsBzjw==",
     "min_php": "8.1",
-    "html_url": "https://github.com/ffscz/AllStat/releases/tag/v1.2.1",
-    "notes": "* Verze AllStatu je vidět v bočním panelu: v přehledu pod stavem synchronizace, v administraci dole."
+    "html_url": "https://github.com/ffscz/AllStat/releases/tag/v1.2.2",
+    "notes": "* Obnova z GitHubu: na stránce Aktualizace jde přeinstalovat vydání z GitHubu i bez novější verze\n   (třeba po nepovedeném ručním nahrání souborů). Se zálohou a možností vrátit předchozí stav.\n * Popis organizace pro AI analýzy je v Nastavení u právních údajů pro všechny instalace."
 }
