@@ -3092,3 +3092,22 @@ sup.growth-partial { margin-left: 1px; font-size: 11px; }
     min-width: 280px;
     white-space: normal;
 }
+
+/* Verze aplikace v bočním panelu (lib/version.php): v kartě synchronizace a dole v administraci. */
+.sync-card .sync-card-version {
+    margin-top: 4px;
+    padding-top: 6px;
+    border-top: 1px solid var(--line);
+    font-size: 11px;
+}
+
+.sidebar-version {
+    margin-top: auto;
+    padding: 10px 14px 0;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.update-card ~ .sidebar-version {
+    margin-top: 0;
+}

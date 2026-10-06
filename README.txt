@@ -40,6 +40,11 @@ docs/INSTALACE.html. Otevřete ho dvojklikem ve svém počítači (před nahrán
 Složku "docs" a tento soubor můžete po instalaci ze serveru smazat.
 
 
+Změny ve verzi 1.2.1
+--------------------
+ * Verze AllStatu je vidět v bočním panelu: v přehledu pod stavem synchronizace, v administraci dole.
+
+
 Změny ve verzi 1.2.0
 --------------------
  * Aktualizace jedním tlačítkem: AllStat sám zjistí novou verzi na GitHubu, administrátor ji uvidí
