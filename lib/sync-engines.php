@@ -710,8 +710,10 @@ function allstat_engine_meta_graph(PDO $pdo, array $config, array $connection, s
 
     // Collect an edge's posts across the sub-windows with LIGHT fields → keyed by post_id (dedup),
     // each value = ['day' => Y-m-d, 'dt' => Y-m-d H:i:s, 'p' => raw row]. No summary fields here (they drop posts).
+    // Chyby seznamů příspěvků (edge => stručný popis): dřív se tiše skončilo a v poznámce bylo jen „0 příspěvků".
+    $listErrors = [];
     $collect = function (string $edge, string $listFields, callable $timeFn)
-            use ($base, $id, $windows, $startDate, $endDate, $token): array {
+            use ($base, $id, $windows, $startDate, $endDate, $token, &$listErrors): array {
         $rows = [];
         foreach ($windows as [$ws, $we]) {
             // `until` musí být AŽ ZA posledním dnem okna: Facebook bere holé datum jako půlnoc, takže
@@ -727,7 +729,17 @@ function allstat_engine_meta_graph(PDO $pdo, array $config, array $connection, s
             $guard = 0;
             while ($url !== '' && $guard < 20) {
                 $resp = allstat_http_request('GET', $url, ['Accept' => 'application/json'], null, 60);
-                if ($resp['status'] !== 200) { break; }
+                if ($resp['status'] === 0 || $resp['status'] >= 500) {
+                    // Výpadek spojení nebo chyba serveru Mety: jednou zopakovat.
+                    usleep(1500000);
+                    $resp = allstat_http_request('GET', $url, ['Accept' => 'application/json'], null, 60);
+                }
+                if ($resp['status'] !== 200) {
+                    $err = $resp['json']['error'] ?? [];
+                    $listErrors[$edge] = 'HTTP ' . $resp['status'] . (isset($err['code']) ? ' #' . $err['code'] : '')
+                        . (isset($err['message']) ? ' ' . mb_substr((string) $err['message'], 0, 70) : '');
+                    break;
+                }
                 $data = $resp['json']['data'] ?? [];
                 if (!$data) { break; }
                 foreach ($data as $p) {
@@ -977,13 +989,19 @@ function allstat_engine_meta_graph(PDO $pdo, array $config, array $connection, s
                 }
             } catch (Throwable) { /* stories edge unsupported / no active stories */ }
         }
-    } catch (Throwable) {
+    } catch (Throwable $e) {
         // posts/media edge unsupported or permission-limited — keep page metrics.
+        $listErrors['posts'] = mb_substr($e->getMessage(), 0, 80);
     }
 
     $summary = sprintf('%d metrik, %d příspěvků (%s → %s)', $written, $postsWritten, $startDate, $endDate);
     if ($skipped) {
         $summary .= '; přeskočeno (zrušené/neplatné): ' . implode(', ', $skipped);
+    }
+    // Stories se často nedají číst (žádné aktivní, chybí oprávnění), to není chyba synchronizace.
+    unset($listErrors['stories']);
+    if ($listErrors) {
+        $summary .= '; seznam příspěvků se nestáhl (' . implode('; ', array_map(static fn (string $k, string $v): string => $k . ': ' . $v, array_keys($listErrors), $listErrors)) . ')';
     }
     return ['rows' => $written, 'posts' => $postsWritten, 'summary' => $summary];
 }

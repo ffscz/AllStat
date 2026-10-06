@@ -40,6 +40,16 @@ docs/INSTALACE.html. Otevřete ho dvojklikem ve svém počítači (před nahrán
 Složku "docs" a tento soubor můžete po instalaci ze serveru smazat.
 
 
+Změny ve verzi 1.2.5
+--------------------
+ * Připojení AI: nový nástroj query_data. Asistent se může zeptat na cokoli, co AllStat ukládá:
+   konkrétní stránku, kampaň, událost, dotaz, region nebo příspěvek, seznamy až 500 řádků, vývoj
+   po dnech, týdnech nebo měsících a srovnání s předchozím obdobím nebo meziročně. Včetně všech
+   metrik a rozpadů zdrojů (demografie sledujících, zdroje zhlédnutí YouTube, kampaně Mety…).
+ * Synchronizace: když se nepodaří stáhnout seznam příspěvků z Facebooku nebo Instagramu, poznámka
+   to řekne i s odpovědí Mety (dřív jen „0 příspěvků“); výpadek spojení se jednou zopakuje.
+ * Cron umí zpracovat jen jedno napojení (only=ID) a klíč přijme i v hlavičce X-Cron-Secret.
+
 Změny ve verzi 1.2.4
 --------------------
  * Správnější čísla na dashboardu i v MCP:

@@ -3,8 +3,12 @@
 /**
  * AllStat denní sync cron.
  *
- * HTTP:  https://example.com/allstat/cron/sync.php?secret=XXX[&force=1]
- * CLI:   php cron/sync.php XXX [--force]
+ * HTTP:  https://example.com/allstat/cron/sync.php?secret=XXX[&force=1][&only=ID]
+ *        (secret jde poslat i hlavičkou X-Cron-Secret, ať není v adrese a v logu serveru)
+ * CLI:   php cron/sync.php XXX [--force] [--only=ID]
+ *
+ * only=ID zpracuje jen jedno napojení (ruční opakování po výpadku jednoho zdroje); ostatní zdroje se nevolají,
+ * takže se zbytečně nečerpají jejich denní limity (Clarity 10 volání denně).
  *
  * Secret je v Nastavení (sync.cron_secret). Iteruje všechna zapnutá napojení
  * a stáhne posledních 7 dní (incremental). Backfill historie se dělá ručně.
@@ -58,6 +62,16 @@ if ((int) $pdo->query("SELECT GET_LOCK('allstat_cron_sync', 0)")->fetchColumn() 
 }
 
 $force = $isCli ? in_array('--force', $argv, true) : (string) ($_GET['force'] ?? '') === '1';
+$only = 0;
+if ($isCli) {
+    foreach ($argv as $arg) {
+        if (preg_match('/^--only=(\d+)$/', (string) $arg, $m)) {
+            $only = (int) $m[1];
+        }
+    }
+} else {
+    $only = max(0, (int) ($_GET['only'] ?? $_SERVER['HTTP_X_CRON_ONLY'] ?? 0));
+}
 $maxConnections = max(0, (int) allstat_setting($pdo, 'sync.cron_max_connections', '0'));
 $maxSeconds = max(0, (int) allstat_setting($pdo, 'sync.cron_max_seconds', '0'));
 $batchMode = $maxConnections > 0 || $maxSeconds > 0;
@@ -78,12 +92,15 @@ $doneToday = 0;
 $remaining = 0;
 
 foreach ($connections as $row) {
+    if ($only > 0 && (int) $row['id'] !== $only) {
+        continue;
+    }
     if ((int) ($row['is_enabled'] ?? 0) !== 1) {
         $skipCount++;
         continue;
     }
 
-    if ($batchMode && !$force && (string) ($row['last_cron_at'] ?? '') >= $todayStart) {
+    if ($batchMode && !$force && $only === 0 && (string) ($row['last_cron_at'] ?? '') >= $todayStart) {
         $doneToday++;
         continue;
     }
@@ -112,20 +129,28 @@ foreach ($connections as $row) {
     $result['ok'] ? $okCount++ : $errCount++;
 }
 
-allstat_add_sync_log_global($pdo, $okCount, $errCount, $skipCount, $batchMode ? [$remaining, $doneToday + $okCount + $errCount] : null);
+if ($only === 0) {
+    allstat_add_sync_log_global($pdo, $okCount, $errCount, $skipCount, $batchMode ? [$remaining, $doneToday + $okCount + $errCount] : null);
+}
 $pdo->query("SELECT RELEASE_LOCK('allstat_cron_sync')");
 
 // Kontrola nové verze AllStatu (nejvýš jednou za 12 h, jen instalace z veřejného balíčku); chyba sítě cron neshodí.
 try {
-    if (is_file(__DIR__ . '/../lib/updater.php')) {
+    if ($only === 0 && is_file(__DIR__ . '/../lib/updater.php')) {
         require_once __DIR__ . '/../lib/updater.php';
         allstat_update_check($pdo);
     }
 } catch (Throwable) {
 }
 
+if ($only > 0 && $okCount + $errCount === 0) {
+    echo json_encode(['ok' => false, 'message' => 'Napojení ' . $only . ' neexistuje nebo je vypnuté.'], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 echo json_encode([
     'ok' => $errCount === 0,
+    'only' => $only > 0 ? $only : null,
     'range' => $start . ' → ' . $end,
     'synced' => $okCount,
     'errors' => $errCount,
