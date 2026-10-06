@@ -1,5 +1,5 @@
 {
-    "version": "1.2.1",
+    "version": "1.2.2",
     "files": {
         "LICENSE": {
             "s": 35823,
@@ -94,8 +94,8 @@
             "h": "8cc8732740cf5690ea8e4515f56962aaaf07e160a0456ae7b71fced5daec4850"
         },
         "admin/settings.php": {
-            "s": 15895,
-            "h": "881b48bea4dd5d9dd4fe2f9c51e7182700a75403fa208fe6b0d59c0c16dcbeb3"
+            "s": 16009,
+            "h": "b20b0aa8543300d1c7a277f2938d96d8735d82d99aa8119e0c5c67887c9f7cb5"
         },
         "admin/setup-2fa.php": {
             "s": 4503,
@@ -118,8 +118,8 @@
             "h": "fd8f932ff84543c834f546e7b5faf9dd0a41d45818fdc9d47881d0f4f93a9d44"
         },
         "admin/update.php": {
-            "s": 8437,
-            "h": "f4994a18f2ab317820383ea4899d44b2835282a07cd375dfc19d877a8af501d3"
+            "s": 10494,
+            "h": "f16df7c0e6cd5af3eee7729a417025ad27d368c17baa067fa300592f9b64de23"
         },
         "admin/users.php": {
             "s": 11879,
@@ -326,8 +326,8 @@
             "h": "9df275dcfc85e3a826604368e2791352ac357fa357b1cb406b92d914923b1479"
         },
         "lib/updater.php": {
-            "s": 23237,
-            "h": "ccde1090cc841d6b8c3e979ddcd288e225031af9e64b069a5c62f9c6d821f855"
+            "s": 23868,
+            "h": "57c0ac503201d771adb023a17e5f48b007706088a3c69f828466332531c8ade8"
         },
         "lib/users.php": {
             "s": 7820,
@@ -335,7 +335,7 @@
         },
         "lib/version.php": {
             "s": 542,
-            "h": "8e38a874a6abfa732f53bef506a7d42dc5c6994479e8ccad89a928a0390c0e47"
+            "h": "6e427a48ef60a4e20319b9e262c44c3c80f5b74ed1d454249e6a8b91b09e8ddb"
         },
         "oauth/authorize.php": {
             "s": 19173,
