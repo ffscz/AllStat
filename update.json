@@ -1,10 +1,10 @@
 {
-    "version": "1.2.2",
-    "published": "2026-10-06T07:43:53Z",
-    "zip_url": "https://github.com/ffscz/AllStat/releases/download/v1.2.2/allstat-1.2.2.zip",
-    "sha256": "0344fe2c6bd53a7f2393c10ea140636971e98f44219ce692b4bde80a665a77da",
-    "signature": "MEQCIC5AtKa25pQF2Bj/3NJ8hX77e/1BaLv6sEOIpX36zMifAiBGuIwmE7VSWxMRYpvp3XuBSt4rZo6jRsfLxVxqgsBzjw==",
+    "version": "1.2.3",
+    "published": "2026-10-06T08:13:24Z",
+    "zip_url": "https://github.com/ffscz/AllStat/releases/download/v1.2.3/allstat-1.2.3.zip",
+    "sha256": "048cf5c52564f03055a3f01200ed88e06106e3345422c7ec093b12530927cf73",
+    "signature": "MEUCIQCDVBF+32DjJngKZ9nJvlGVrB0yu2FIzTbm3GohhPZcCQIgJVpWx+BAxcC0/8m2qNjUbsi0Si8YxxdkpIne+5cPx5s=",
     "min_php": "8.1",
-    "html_url": "https://github.com/ffscz/AllStat/releases/tag/v1.2.2",
-    "notes": "* Obnova z GitHubu: na stránce Aktualizace jde přeinstalovat vydání z GitHubu i bez novější verze\n   (třeba po nepovedeném ručním nahrání souborů). Se zálohou a možností vrátit předchozí stav.\n * Popis organizace pro AI analýzy je v Nastavení u právních údajů pro všechny instalace."
+    "html_url": "https://github.com/ffscz/AllStat/releases/tag/v1.2.3",
+    "notes": "* MCP hlásí zpoždění dat: Search Console a YouTube Analytics dodávají data o 2 až 3 dny později.\n   Nástroje (přehled, dotazy, YouTube, report) nově vrací data_delays s chybějícími dny a označí\n   neúplné ukazatele, aby AI nevykládala chybějící dny jako pokles.\n * Popis organizace se v instrukcích MCP už nezkracuje.\n\nZměny ve verzi 1.2.2\n--------------------\n * Obnova z GitHubu: na stránce Aktualizace jde přeinstalovat vydání z GitHubu i bez novější verze\n   (třeba po nepovedeném ručním nahrání souborů). Se zálohou a možností vrátit předchozí stav.\n * Popis organizace pro AI analýzy je v Nastavení u právních údajů pro všechny instalace."
 }
