@@ -328,7 +328,7 @@ $pageViewsTotal = (int) array_sum(array_column($pageRows, 'views'));
 
 // Vyhledávací dotazy (GSC)
 $queryRows = allstat_fetch_all($pdo, "
-    SELECT query_text, SUM(clicks) AS clicks, SUM(impressions) AS impressions, AVG(position) AS position
+    SELECT query_text, SUM(clicks) AS clicks, SUM(impressions) AS impressions, CASE WHEN SUM(impressions) > 0 THEN SUM(position * impressions) / SUM(impressions) ELSE AVG(position) END AS position
     FROM search_queries_daily
     WHERE domain_id = ? AND metric_date BETWEEN ? AND ?
     GROUP BY query_text ORDER BY clicks DESC LIMIT $reportLimit

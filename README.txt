@@ -40,6 +40,26 @@ docs/INSTALACE.html. Otevřete ho dvojklikem ve svém počítači (před nahrán
 Složku "docs" a tento soubor můžete po instalaci ze serveru smazat.
 
 
+Změny ve verzi 1.2.4
+--------------------
+ * Správnější čísla na dashboardu i v MCP:
+   - Uživatelé za běžná období (posledních 7, 30, 90 a 365 dní, měsíce, roky) jsou přesný počet
+     různých lidí z GA4. U jiných období je číslo poctivě označené jako součet dní.
+   - Podíly stránek, odkazujících webů, AI zdrojů a rozpadů Clarity se počítají z celku.
+   - Celý měsíc se srovnává s předchozím celým měsícem (září proti srpnu), rozběhnutý měsíc
+     se stejnými dny minulého měsíce.
+   - Průměrná pozice dotazů v Google je vážená zobrazeními, stejně jako v Search Console.
+   - Nenapojený zdroj nebo metrika bez dat se hlásí jako nedostupná, ne jako nula.
+   - Meziroční růst se nepočítá přes změnu definice metriky (dosah Facebooku od 15. 6. 2026).
+ * MCP: report v Markdownu vidí i Claude, rozpad trychtýře neztrácí řádky, řady po týdnech
+   a měsících i u reklam a Clarity, delší tabulky v reportu, pokrytí dní u metrik zdrojů
+   a rozlišení zpoždění dat od výpadku synchronizace.
+ * Instagram: noví sledující se znovu stahují (stahování historie je omylem vypínalo),
+   chybějící dny za poslední měsíc se při synchronizaci doplní samy.
+ * Clarity: nově čas zapojení, hloubka scrollu, rage a dead clicks, rychlé návraty, chyby
+   JavaScriptu a rozpady podle zařízení, systému a země (ze stejné odpovědi API, bez volání navíc).
+ * Google Ads: rozpad podle kampaní na dashboardu i v MCP.
+
 Změny ve verzi 1.2.3
 --------------------
  * MCP hlásí zpoždění dat: Search Console a YouTube Analytics dodávají data o 2 až 3 dny později.

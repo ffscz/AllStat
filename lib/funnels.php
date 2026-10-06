@@ -620,6 +620,12 @@ function allstat_funnel_report(PDO $pdo, int $domainId, array $funnel, string $s
                 'event' => $step['event'],
                 'message' => 'Event „' . $step['event'] . '“ za posledních 28 dní nepřišel, zkontrolujte měření (GTM).',
             ];
+        } elseif ($count === 0) {
+            $warnings[] = [
+                'step' => $i,
+                'event' => $step['event'],
+                'message' => 'Event „' . $step['event'] . '“ ve zvoleném období nepřišel ani jednou (v posledních 28 dnech ano), takže tady trychtýř končí.',
+            ];
         } elseif ($i > 0 && $previous > 0 && $count > $previous) {
             $warnings[] = [
                 'step' => $i,

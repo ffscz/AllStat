@@ -107,11 +107,44 @@ function allstat_limited_range(string $start, string $end, int $maxDays = 730): 
     return [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')];
 }
 
+/**
+ * Srovnávací období. Kalendářní období se srovnávají kalendářně: celé měsíce (září) s předchozími celými
+ * měsíci (celý srpen), rozběhnutý měsíc (1.–5. 10.) se stejnými dny minulého měsíce a rozběhnutý rok se
+ * stejnými dny loni. Ostatní období (posledních 30 dní, vlastní rozsah) s obdobím stejné délky těsně před.
+ */
 function allstat_previous_range(string $start, string $end): array
 {
     [$start, $end] = allstat_range($start, $end);
     $startDate = new DateTimeImmutable($start);
     $endDate = new DateTimeImmutable($end);
+
+    if ($startDate->format('j') === '1') {
+        $endsMonth = $endDate->format('Y-m-d') === $endDate->modify('last day of this month')->format('Y-m-d');
+        $runningYear = $startDate->format('n') === '1' && $startDate->format('Y') === $endDate->format('Y')
+            && $endDate->format('m-d') !== '12-31' && $endDate >= new DateTimeImmutable('yesterday');
+        if ($endsMonth && !$runningYear) {
+            // Celé kalendářní měsíce (i celý rok): stejný počet měsíců těsně před.
+            $months = ((int) $endDate->format('Y') - (int) $startDate->format('Y')) * 12 + (int) $endDate->format('n') - (int) $startDate->format('n') + 1;
+            $previousStart = $startDate->modify('-' . $months . ' months');
+
+            return [$previousStart->format('Y-m-d'), $startDate->modify('-1 day')->format('Y-m-d')];
+        }
+        if ($startDate->format('Y-m') === $endDate->format('Y-m') && !$endsMonth) {
+            // Rozběhnutý měsíc: stejné dny minulého měsíce (31. se u kratšího měsíce zkrátí na jeho konec).
+            $previousStart = $startDate->modify('first day of last month');
+            $previousEnd = $previousStart->setDate((int) $previousStart->format('Y'), (int) $previousStart->format('n'), min((int) $endDate->format('j'), (int) $previousStart->format('t')));
+
+            return [$previousStart->format('Y-m-d'), $previousEnd->format('Y-m-d')];
+        }
+        if ($runningYear) {
+            // Rozběhnutý rok (od 1. 1. do včerejška či dneška): stejné dny loni (29. 2. se zkrátí na 28. 2.).
+            $year = (int) $startDate->format('Y') - 1;
+            $day = min((int) $endDate->format('j'), (int) $endDate->setDate($year, (int) $endDate->format('n'), 1)->format('t'));
+
+            return [$startDate->setDate($year, 1, 1)->format('Y-m-d'), $endDate->setDate($year, (int) $endDate->format('n'), $day)->format('Y-m-d')];
+        }
+    }
+
     $days = $startDate->diff($endDate)->days + 1;
     $previousEnd = $startDate->modify('-1 day');
     $previousStart = $previousEnd->modify('-' . ($days - 1) . ' days');

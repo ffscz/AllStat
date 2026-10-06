@@ -124,6 +124,22 @@ function allstat_growth_defs(): array
     ];
 }
 
+/**
+ * Známé změny definice hlavní metriky kanálu: čísla před datem a po něm měří něco jiného, takže meziroční
+ * srovnání přes datum se nepočítá a růst v okně, které datum přesahuje, dostane poznámku.
+ *
+ * @return array<string, array{date: string, note: string}>
+ */
+function allstat_growth_metric_breaks(): array
+{
+    return [
+        'facebook_pages' => [
+            'date' => '2026-06-15',
+            'note' => 'Meta 15. 6. 2026 nahradila metriku dosahu stránky (page_impressions_unique za page_total_media_view_unique). Čísla před tímto dnem a po něm nejsou srovnatelná, proto se meziroční srovnání nepočítá.',
+        ],
+    ];
+}
+
 function allstat_growth_month_label(string $ym, bool $long = false): string
 {
     static $short = ['Led', 'Úno', 'Bře', 'Dub', 'Kvě', 'Čvn', 'Čvc', 'Srp', 'Zář', 'Říj', 'Lis', 'Pro'];
@@ -400,7 +416,13 @@ function allstat_get_channel_growth(PDO $pdo, int $domainId, int $months, ?DateT
         // data vůbec vracelo (FB/IG, léto 2025), by jinak vyrobily nesmyslné tisíce procent.
         $positive = static fn (array $yms): int => count(array_filter($yms, static fn (string $ym): bool => ($entries[$ym]['rate'] ?? 0) > 0));
         $yoy = null;
-        if ($zeroFill || ($positive($w['yoyBase']) >= 2 && $positive($w['yoyRecent']) >= 2)) {
+        $yoyNote = null;
+        // Změna definice metriky mezi loňskými a letošními měsíci: srovnání by měřilo něco jiného (FB dosah 15. 6. 2026).
+        $break = allstat_growth_metric_breaks()[$pk] ?? null;
+        $breakInWindow = $break !== null && $w['months'][0] . '-01' < $break['date'] && end($w['months']) . '-31' >= $break['date'];
+        if ($break !== null && $w['yoyBase'][0] . '-01' < $break['date'] && end($w['yoyRecent']) . '-31' >= $break['date']) {
+            $yoyNote = $break['note'];
+        } elseif ($zeroFill || ($positive($w['yoyBase']) >= 2 && $positive($w['yoyRecent']) >= 2)) {
             $yoy = allstat_growth_compare($entries, $w['yoyBase'], $w['yoyRecent'], $zeroFill, array_merge($w['yoyBase'], $w['yoyRecent']));
             if (in_array($yoy['state'], ['none', 'new'], true)) {
                 $yoy = null;
@@ -480,6 +502,9 @@ function allstat_get_channel_growth(PDO $pdo, int $domainId, int $months, ?DateT
             'max' => $values ? max($values) : 0.0,
             'index' => array_map(static fn (array $e): ?float => ($e['rate'] !== null && $base !== null && $base > 0) ? round($e['rate'] / $base * 100, 1) : null, $window),
             'spark' => array_column($window, 'rate'),
+            // Proč chybí meziroční srovnání / že okno přesahuje změnu definice metriky (null = bez poznámky).
+            'yoyNote' => $yoyNote,
+            'breakNote' => $breakInWindow ? $break['note'] : null,
             'extra' => $extra,
             'range' => $range,
             'spendText' => $spendText,

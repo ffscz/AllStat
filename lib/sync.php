@@ -733,6 +733,18 @@ function allstat_ga4_sync(PDO $pdo, array $config, array $connection, string $ac
         // demographics need Google Signals enabled; unavailable → skip, keep the rest.
     }
 
+    // 13) Počet různých uživatelů za běžná období → period_users. Denní activeUsers se sčítat nedají (vícedenní
+    //     návštěvník by byl započten vícekrát), proto se GA4 zeptá za každé období zvlášť. Jen u čerstvé
+    //     synchronizace (cron, ruční sync), stahování historie to nepotřebuje. Chyba nesmí shodit zbytek.
+    $periodUsersCount = 0;
+    if ($endDate >= (new DateTimeImmutable('yesterday'))->format('Y-m-d')) {
+        try {
+            $periodUsersCount = allstat_ga4_sync_period_users($pdo, $domainId, $report);
+        } catch (Throwable) {
+            $periodUsersCount = -1;
+        }
+    }
+
     if ($latestQuota) {
         $pdo->prepare('UPDATE domain_sources SET quota_json = ?, quota_updated_at = NOW() WHERE id = ?')
             ->execute([json_encode($latestQuota, JSON_UNESCAPED_UNICODE), (int) $connection['id']]);
@@ -753,7 +765,112 @@ function allstat_ga4_sync(PDO $pdo, array $config, array $connection, string $ac
         'items_rows' => $itemCount,
         'demographics_rows' => $demoCount,
         'funnel_rows' => $funnelCount,
+        'period_users_rows' => $periodUsersCount,
         'quota' => $latestQuota,
-        'summary' => sprintf('%d dní, %d channel, %d landing, %d pages, %d device, %d geo, %d events, %d AI, %d ref, %d utm, %d items, %d demo%s (%s → %s)', $dailyCount, $sourceCount, $landingCount, $pageCount, $deviceCount, $geoCount, $eventCount, $aiCount, $referrerCount, $utmCount, $itemCount, $demoCount, $funnelCount > 0 ? sprintf(', %d trychtýř', $funnelCount) : '', $startDate, $endDate),
+        'summary' => sprintf('%d dní, %d channel, %d landing, %d pages, %d device, %d geo, %d events, %d AI, %d ref, %d utm, %d items, %d demo%s%s (%s → %s)', $dailyCount, $sourceCount, $landingCount, $pageCount, $deviceCount, $geoCount, $eventCount, $aiCount, $referrerCount, $utmCount, $itemCount, $demoCount, $funnelCount > 0 ? sprintf(', %d trychtýř', $funnelCount) : '',
+            $periodUsersCount > 0 ? sprintf(', %d období uživatelů', $periodUsersCount) : ($periodUsersCount < 0 ? ', uživatelé za období: chyba' : ''), $startDate, $endDate),
     ];
+}
+
+/**
+ * Období, pro která se ukládá počet různých uživatelů: relativní období MCP (končí včerejškem), rychlé volby
+ * dashboardu (7/30/90 dní včetně dneška), běžící i minulý měsíc a rok a uzavřené měsíce za poslední rok, vždy
+ * i se srovnávacím obdobím (allstat_previous_range), aby šla spočítat změna. Vrací [klíč => [start, end, closed]].
+ *
+ * @return array<string, array{0: string, 1: string, 2: bool}>
+ */
+function allstat_ga4_period_windows(DateTimeImmutable $today): array
+{
+    $today = $today->setTime(0, 0);
+    $yesterday = $today->modify('-1 day');
+    $windows = [];
+    $add = static function (DateTimeImmutable $s, DateTimeImmutable $e, bool $closed = false) use (&$windows): void {
+        if ($s > $e) {
+            return;
+        }
+        foreach ([[$s->format('Y-m-d'), $e->format('Y-m-d')], allstat_previous_range($s->format('Y-m-d'), $e->format('Y-m-d'))] as $i => [$ws, $we]) {
+            $windows[$ws . '|' . $we] ??= [$ws, $we, $closed || $i === 1 && $closed];
+        }
+    };
+    foreach ([7, 30, 90, 365] as $n) {
+        $add($yesterday->modify('-' . ($n - 1) . ' days'), $yesterday);
+    }
+    foreach ([7, 30, 90] as $n) {
+        $add($today->modify('-' . ($n - 1) . ' days'), $today);
+    }
+    $year = (int) $today->format('Y');
+    $add($today->modify('first day of this month'), $yesterday);
+    $add($today->setDate($year, 1, 1), $yesterday);
+    $add($today->modify('first day of last month'), $today->modify('last day of last month'));
+    $add($today->setDate($year - 1, 1, 1), $today->setDate($year - 1, 12, 31), true);
+    // Uzavřené měsíce za poslední rok (otázky typu „kolik lidí přišlo v červnu"). Měsíc starší než 3 dny po
+    // svém konci se už nemění, ty se stahují jen jednou (viz allstat_ga4_sync_period_users).
+    for ($i = 2; $i <= 13; $i++) {
+        $m = $today->modify('first day of this month')->modify('-' . $i . ' months');
+        $add($m, $m->modify('last day of this month'), true);
+    }
+
+    return $windows;
+}
+
+/**
+ * Stáhne z GA4 activeUsers a newUsers za období z allstat_ga4_period_windows (po 4 obdobích na dotaz) a uloží je
+ * do period_users. Uzavřená období, která už jsou uložená po svém konci + 3 dny, se znovu nestahují.
+ * $report je dotaz na runReport (vyhazuje výjimku při chybě). Vrací počet uložených období.
+ */
+function allstat_ga4_sync_period_users(PDO $pdo, int $domainId, callable $report, ?DateTimeImmutable $today = null): int
+{
+    $windows = allstat_ga4_period_windows($today ?? new DateTimeImmutable('today'));
+    $stored = [];
+    foreach (allstat_fetch_all($pdo, 'SELECT start_date, end_date, updated_at FROM period_users WHERE domain_id = ?', [$domainId]) as $r) {
+        $stored[$r['start_date'] . '|' . $r['end_date']] = (string) $r['updated_at'];
+    }
+    $todo = [];
+    foreach ($windows as $key => [$s, $e, $closed]) {
+        $final = (new DateTimeImmutable($e))->modify('+3 days')->format('Y-m-d 23:59:59');
+        if ($closed && isset($stored[$key]) && $stored[$key] > $final) {
+            continue; // uzavřené období s definitivními čísly už je uložené
+        }
+        $todo[] = [$s, $e];
+    }
+
+    $stmt = $pdo->prepare('INSERT INTO period_users (domain_id, start_date, end_date, active_users, new_users) VALUES (?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE active_users = VALUES(active_users), new_users = VALUES(new_users), updated_at = CURRENT_TIMESTAMP');
+    $saved = 0;
+    foreach (array_chunk($todo, 4) as $chunk) {
+        $ranges = [];
+        foreach ($chunk as $i => [$s, $e]) {
+            $ranges[] = ['startDate' => $s, 'endDate' => $e, 'name' => 'r' . $i];
+        }
+        $resp = $report(['dateRanges' => $ranges, 'metrics' => [['name' => 'activeUsers'], ['name' => 'newUsers']]]);
+        foreach (allstat_ga4_parse_range_totals($resp, count($ranges)) as $i => [$active, $new]) {
+            [$s, $e] = $chunk[$i];
+            $stmt->execute([$domainId, $s, $e, $active, $new]);
+            $saved++;
+        }
+    }
+
+    return $saved;
+}
+
+/**
+ * Součty metrik po obdobích z odpovědi runReport s více dateRanges a bez dalších dimenzí. GA4 přidá řádkům
+ * dimenzi dateRange (hodnota = name z dotazu, tady r0…r3, případně date_range_N). Období bez řádku = 0.
+ *
+ * @return array<int, array{0: int, 1: int}> index období => [activeUsers, newUsers]
+ */
+function allstat_ga4_parse_range_totals(array $resp, int $count): array
+{
+    $headers = array_column($resp['dimensionHeaders'] ?? [], 'name');
+    $rangeIdx = array_search('dateRange', $headers, true);
+    $out = array_fill(0, $count, [0, 0]);
+    foreach ($resp['rows'] ?? [] as $row) {
+        $label = $rangeIdx !== false ? (string) ($row['dimensionValues'][$rangeIdx]['value'] ?? '') : ($count === 1 ? 'r0' : '');
+        if (!preg_match('/^(?:r|date_range_)(\d+)$/', $label, $m) || (int) $m[1] >= $count) {
+            continue;
+        }
+        $out[(int) $m[1]] = [(int) ($row['metricValues'][0]['value'] ?? 0), (int) ($row['metricValues'][1]['value'] ?? 0)];
+    }
+
+    return $out;
 }

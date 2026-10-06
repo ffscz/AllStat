@@ -219,7 +219,7 @@ function allstat_mcp_prompt_get(PDO $pdo, string $name, array $args): array
         . "Postup (data získej nástroji AllStatu, žádná čísla si nevymýšlej):\n"
         . '1. Zavolej get_channel_growth s website_id=' . $websiteId . ', months=' . $months . ".\n"
         . '2. Zavolej get_report s website_id=' . $websiteId . ', view=growth, months=' . $months . ": hotový podklad s metodikou a automatickými doporučeními.\n"
-        . "3. U 2 až 3 nejvíc rostoucích a nejvíc klesajících kanálů zavolej get_source_metrics (source_id z výsledku) a u sociálních sítí a YouTube také get_top_content, ať zjistíš příčiny.\n"
+        . "3. U 2 až 3 nejvíc rostoucích a nejvíc klesajících kanálů zjisti příčiny: u webu (Google Analytics, Search Console) get_overview a get_search_queries, u ostatních zdrojů get_source_metrics (source_id z výsledku), u sociálních sítí a YouTube také get_top_content. Poznámky yoy_note a metric_change_note u kanálu ber vážně.\n"
         . '4. Zavolej get_sync_status s website_id=' . $websiteId . ", abys ověřil(a) aktuálnost dat.\n\n"
         . "V rozboru zvlášť uveď: které kanály rostou a které klesají (číslo růstu i meziroční srovnání), vliv placených kampaní odděleně od organického vývoje a 3 až 5 konkrétních kroků seřazených podle dopadu. Piš česky.\n"
         . allstat_mcp_srv_third_party_warning() . "\n\n"

@@ -480,6 +480,17 @@ function allstat_engine_meta_graph(PDO $pdo, array $config, array $connection, s
     $active = array_values(array_filter($apiKeys, static fn($m) => !isset($muted[$m]) || (string) $muted[$m] < $today));
     if (!$active) { $active = $apiKeys; } // never mute everything, force a re-probe
 
+    // Ztlumit metriku smí jen běžná (čerstvá) synchronizace. Stahování historie se ptá na staré měsíce a Meta
+    // některé metriky dává jen za posledních 30 dní (IG follower_count): odmítnutí starého okna neznamená
+    // zrušenou metriku. Dřív ho tak AllStat bral a vypnul noví sledující i pro denní sync (9. a 29. 9. 2026).
+    $recentWindow = $endDate >= (new DateTimeImmutable('today'))->modify('-3 days')->format('Y-m-d');
+    // IG follower_count: jen posledních 30 dní. Do starého okna se vůbec neposílá (jinak 400 celé dávky), v čerstvém
+    // okně se stáhne zvlášť za posledních 29 dní, takže se díry (výpadek cronu, dřívější ztlumení) samy dorovnají.
+    $windowLimited = $object === 'ig' && in_array('follower_count', $active, true);
+    if ($windowLimited) {
+        $active = array_values(array_diff($active, ['follower_count']));
+    }
+
     $fetch = static function (array $names) use ($base, $id, $startDate, $endDate, $token): array {
         $url = $base . '/' . rawurlencode($id) . '/insights?metric=' . urlencode(implode(',', $names))
             . '&period=day&since=' . urlencode($startDate) . '&until=' . urlencode($endDate)
@@ -504,7 +515,7 @@ function allstat_engine_meta_graph(PDO $pdo, array $config, array $connection, s
         }
     };
 
-    $resp = $fetch($active);
+    $resp = $active ? $fetch($active) : ['status' => 200, 'json' => ['data' => []], 'body' => ''];
     allstat_meta_guard($pdo, $connectionId, $resp);
     if ($resp['status'] === 200) {
         $writeSeries($resp['json']['data'] ?? []);
@@ -515,16 +526,37 @@ function allstat_engine_meta_graph(PDO $pdo, array $config, array $connection, s
                 $writeSeries($one['json']['data'] ?? []);
             } else {
                 $skipped[] = $name;
-                $muted[$name] = date('Y-m-d', strtotime('+30 days')); // mute this dead metric for 30 days
+                if ($recentWindow) {
+                    $muted[$name] = date('Y-m-d', strtotime('+30 days')); // mute this dead metric for 30 days
+                }
             }
         }
-        if ($skipped) { $saveMuted(); }
+        if ($skipped && $recentWindow) { $saveMuted(); }
         if (count($skipped) === count($active)) {
             // Every metric failed — a real error (bad Page ID / permissions), not just one dead metric.
             throw new RuntimeException('Meta Graph API HTTP 400 (žádná metrika neprošla): ' . substr($resp['body'], 0, 150));
         }
     } else {
         throw new RuntimeException('Meta Graph API HTTP ' . $resp['status'] . ': ' . substr($resp['body'], 0, 180));
+    }
+
+    // IG follower_count zvlášť: v čerstvém okně za posledních 29 dní (dorovná díry), ve starém okně vůbec.
+    if ($windowLimited && $recentWindow) {
+        $fcFetch = static fn (string $since, string $until): array => allstat_http_request('GET', $base . '/' . rawurlencode($id) . '/insights?metric=follower_count&period=day&since=' . urlencode($since)
+            . '&until=' . urlencode($until) . '&access_token=' . urlencode($token), ['Accept' => 'application/json'], null, 60);
+        $fc = $fcFetch((new DateTimeImmutable('today'))->modify('-28 days')->format('Y-m-d'), (new DateTimeImmutable('today'))->format('Y-m-d'));
+        if ($fc['status'] === 400) {
+            $fc = $fcFetch($startDate, $endDate); // delší rozsah Meta nevzala → aspoň běžné okno synchronizace
+        }
+        if ($fc['status'] === 200) {
+            $writeSeries($fc['json']['data'] ?? []);
+        } else {
+            $skipped[] = 'follower_count';
+            if ($fc['status'] === 400) {
+                $muted['follower_count'] = date('Y-m-d', strtotime('+30 days'));
+                $saveMuted();
+            }
+        }
     }
 
     // Celkový počet sledujících: insights vrací jen denní PŘÍRŮSTKY (page_daily_follows /
@@ -1597,28 +1629,20 @@ function allstat_engine_clarity(PDO $pdo, array $config, array $connection, stri
     $connectionId = (int) $connection['id'];
     $date = preg_match('/^\d{4}-\d{2}-\d{2}$/', $endDate) ? $endDate : (new DateTimeImmutable('today'))->format('Y-m-d');
 
-    // 1) Headline counts (no dimension) → fixed keys "sessions"/"bot_sessions", continuous with CSV import.
-    $sessions = null;
-    $bots = null;
-    foreach ($fetch(null) as $metric) {
-        if (($metric['metricName'] ?? '') !== 'Traffic') { continue; }
-        foreach ($metric['information'] ?? [] as $info) {
-            if (isset($info['totalSessionCount']) && is_numeric($info['totalSessionCount'])) {
-                $sessions = ($sessions ?? 0) + (float) $info['totalSessionCount'];
-            }
-            if (isset($info['totalBotSessionCount']) && is_numeric($info['totalBotSessionCount'])) {
-                $bots = ($bots ?? 0) + (float) $info['totalBotSessionCount'];
-            }
-        }
-    }
+    // 1) Volání bez dimenze vrací celý přehled: návštěvy, čas zapojení, scroll, frustrační signály (rage/dead
+    //    clicks…) i rozpady (prohlížeč, zařízení, OS, země, nejnavštěvovanější stránky). Dřív se z něj brala
+    //    jen Traffic a zbytek se zahazoval. Klíče navazují na CSV import (active_time, scroll_depth…).
     $written = 0;
-    if ($sessions !== null) { allstat_pm_put($stmt, $domainId, $sourceId, $connectionId, $date, 'sessions', $sessions); $written++; }
-    if ($bots !== null) { allstat_pm_put($stmt, $domainId, $sourceId, $connectionId, $date, 'bot_sessions', $bots); $written++; }
+    $put = static function (string $key, float $value, string $dimension = '') use ($stmt, $domainId, $sourceId, $connectionId, $date, &$written): void {
+        if (allstat_pm_put($stmt, $domainId, $sourceId, $connectionId, $date, $key, $value, $dimension)) { $written++; }
+    };
+    $parsed = allstat_clarity_store_insights($fetch(null), $put);
+    $sessions = $parsed['sessions'];
+    $bots = $parsed['bot_sessions'];
 
-    // 2) Best-effort breakdowns by one dimension each (referrers via Source, pages via URL). Same keys
-    //    + dimensions as the CSV importer so manual and cron data line up. Wrapped per-dimension: an
-    //    unexpected API shape or extra rate-limit hit just skips that breakdown, sync still succeeds.
-    foreach (['Source' => 'referrer', 'URL' => 'page'] as $apiDimension => $localKey) {
+    // 2) Best-effort rozpad podle zdroje (referrer), stejné klíče a dimenze jako CSV import. Stránky už dodá
+    //    PopularPages z prvního volání, takže se šetří denní limit (10 volání na projekt). Chyba jen přeskočí rozpad.
+    foreach (['Source' => 'referrer'] as $apiDimension => $localKey) {
         try {
             foreach ($fetch($apiDimension) as $metric) {
                 if (($metric['metricName'] ?? '') !== 'Traffic') { continue; }
@@ -1635,7 +1659,76 @@ function allstat_engine_clarity(PDO $pdo, array $config, array $connection, stri
         }
     }
 
-    return ['rows' => $written, 'summary' => sprintf('Clarity %s: %s sessions, %s bot_sessions + rozpady (posledních 24 h, denně se akumuluje)', $date, $sessions ?? '0', $bots ?? '0')];
+    return ['rows' => $written, 'summary' => sprintf('Clarity %s: %s sessions, %s bot_sessions, %d metrik%s + rozpady (posledních 24 h, denně se akumuluje)', $date, $sessions ?? '0', $bots ?? '0', count($parsed['keys']),
+        $parsed['unknown'] ? '; neznámé: ' . implode(', ', array_slice($parsed['unknown'], 0, 6)) : '')];
+}
+
+/**
+ * Rozbor odpovědi Clarity project-live-insights (volání bez dimenze) → skalární metriky a rozpady přes $put(key, value, dimension).
+ * Tvar podle dokumentace a reálné odpovědi: [{metricName, information: [{…}]}], čísla často jako řetězce.
+ * Vrací sessions/bot_sessions, seznam uložených klíčů a neznámé metricName (pro poznámku v logu synchronizace).
+ *
+ * @return array{sessions: ?float, bot_sessions: ?float, keys: list<string>, unknown: list<string>}
+ */
+function allstat_clarity_store_insights(array $response, callable $put): array
+{
+    $num = static fn ($v): ?float => is_numeric($v) ? (float) $v : null;
+    $keys = [];
+    $unknown = [];
+    $sessions = null;
+    $bots = null;
+    $scalar = static function (string $key, ?float $value) use ($put, &$keys): void {
+        if ($value !== null) { $put($key, $value); $keys[$key] = true; }
+    };
+    // Frustrační signály: podíl relací se signálem (%) a celkový počet (subTotal).
+    $frustration = [
+        'DeadClickCount' => 'dead_clicks', 'RageClickCount' => 'rage_clicks', 'QuickbackClick' => 'quickbacks',
+        'ExcessiveScroll' => 'excessive_scroll', 'ScriptErrorCount' => 'script_errors', 'ErrorClickCount' => 'error_clicks',
+    ];
+    // Rozpady: název metriky → [lokální klíč, pole s názvem, pole s počtem].
+    $breakdowns = [
+        'Browser' => ['browser', 'name', 'sessionsCount'], 'Device' => ['device', 'name', 'sessionsCount'],
+        'OS' => ['os', 'name', 'sessionsCount'], 'Country' => ['country', 'name', 'sessionsCount'],
+        'PopularPages' => ['page', 'url', 'visitsCount'],
+    ];
+
+    foreach ($response as $metric) {
+        if (!is_array($metric)) { continue; }
+        $name = (string) ($metric['metricName'] ?? '');
+        $info = is_array($metric['information'] ?? null) ? $metric['information'] : [];
+        $first = is_array($info[0] ?? null) ? $info[0] : [];
+        if ($name === 'Traffic') {
+            foreach ($info as $row) {
+                if (($v = $num($row['totalSessionCount'] ?? null)) !== null) { $sessions = ($sessions ?? 0) + $v; }
+                if (($v = $num($row['totalBotSessionCount'] ?? null)) !== null) { $bots = ($bots ?? 0) + $v; }
+            }
+            $scalar('sessions', $sessions);
+            $scalar('bot_sessions', $bots);
+            $scalar('distinct_users', $num($first['distinctUserCount'] ?? $first['distantUserCount'] ?? null));
+            $scalar('pages_per_session', $num($first['pagesPerSessionPercentage'] ?? $first['PagesPerSessionPercentage'] ?? null));
+        } elseif ($name === 'EngagementTime') {
+            $scalar('active_time', $num($first['activeTime'] ?? null));
+            $scalar('total_time', $num($first['totalTime'] ?? null));
+        } elseif ($name === 'ScrollDepth') {
+            $scalar('scroll_depth', $num($first['averageScrollDepth'] ?? null));
+        } elseif (isset($frustration[$name])) {
+            $scalar($frustration[$name] . '_pct', $num($first['sessionsWithMetricPercentage'] ?? null));
+            $scalar($frustration[$name], $num($first['subTotal'] ?? null));
+        } elseif (isset($breakdowns[$name])) {
+            [$key, $nameField, $countField] = $breakdowns[$name];
+            foreach ($info as $row) {
+                $dim = trim((string) ($row[$nameField] ?? ''));
+                if ($dim !== '' && ($v = $num($row[$countField] ?? null)) !== null) {
+                    $put($key, $v, mb_substr($dim, 0, 250));
+                    $keys[$key] = true;
+                }
+            }
+        } elseif ($name !== '' && !in_array($name, ['PageTitle', 'ReferrerUrl'], true)) {
+            $unknown[] = $name;
+        }
+    }
+
+    return ['sessions' => $sessions, 'bot_sessions' => $bots, 'keys' => array_keys($keys), 'unknown' => $unknown];
 }
 
 /**
@@ -1686,7 +1779,73 @@ function allstat_engine_google_ads(PDO $pdo, array $config, array $connection, s
             }
         }
     }
-    return ['rows' => $written, 'summary' => sprintf('%d metrik (%s → %s)', $written, $startDate, $endDate)];
+
+    // Kampaně po dnech (klíče campaign_*, název kampaně v dimension). Jen dny se zobrazením, ať je řádků málo.
+    // Best-effort: chyba rozpadu nesmí shodit souhrn účtu, který už je uložený.
+    $campaignRows = 0;
+    $campaignNote = '';
+    try {
+        $cq = "SELECT campaign.name, segments.date, metrics.impressions, metrics.clicks, metrics.cost_micros, metrics.conversions, metrics.conversions_value "
+            . "FROM campaign WHERE segments.date BETWEEN '" . $startDate . "' AND '" . $endDate . "' AND metrics.impressions > 0";
+        $cresp = allstat_http_request(
+            'POST',
+            allstat_google_ads_url($connection, 'customers/' . $customerId . '/googleAds:searchStream'),
+            allstat_google_ads_headers($connection, $token),
+            json_encode(['query' => $cq]),
+            60
+        );
+        if ($cresp['status'] === 200) {
+            $campaignRows = allstat_google_ads_store_campaigns(is_array($cresp['json']) ? $cresp['json'] : [], static function (string $date, string $key, float $value, string $name) use ($stmt, $domainId, $sourceId, $connectionId): bool {
+                return allstat_pm_put($stmt, $domainId, $sourceId, $connectionId, $date, $key, $value, $name);
+            });
+            $written += $campaignRows;
+        } else {
+            $campaignNote = '; kampaně HTTP ' . $cresp['status'];
+        }
+    } catch (Throwable $e) {
+        $campaignNote = '; kampaně: ' . mb_substr($e->getMessage(), 0, 60);
+    }
+
+    return ['rows' => $written, 'summary' => sprintf('%d metrik, %d řádků kampaní%s (%s → %s)', $written - $campaignRows, $campaignRows, $campaignNote, $startDate, $endDate)];
+}
+
+/**
+ * Řádky kampaní z odpovědi searchStream (pole dávek s results[]) → $put(datum, klíč, hodnota, název kampaně).
+ * Vrací počet uložených hodnot. Oddělené od HTTP, ať jde ověřit na vzorové odpovědi bez volání API.
+ */
+function allstat_google_ads_store_campaigns(array $batches, callable $put): int
+{
+    if (isset($batches['results'])) { $batches = [$batches]; }
+    // Sečíst po (den, název): dvě kampaně se stejným názvem by se jinak v jednom řádku přepsaly.
+    $agg = [];
+    foreach ($batches as $batch) {
+        foreach (($batch['results'] ?? []) as $row) {
+            $date = (string) ($row['segments']['date'] ?? '');
+            $name = mb_substr(trim((string) ($row['campaign']['name'] ?? '')), 0, 120);
+            if ($name === '' || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) { continue; }
+            $m = $row['metrics'] ?? [];
+            $values = [
+                'campaign_impressions' => (float) ($m['impressions'] ?? 0),
+                'campaign_clicks' => (float) ($m['clicks'] ?? 0),
+                'campaign_cost' => isset($m['costMicros']) ? ((float) $m['costMicros']) / 1_000_000 : 0.0,
+                'campaign_conversions' => (float) ($m['conversions'] ?? 0),
+                'campaign_value' => (float) ($m['conversionsValue'] ?? 0),
+            ];
+            foreach ($values as $key => $value) {
+                $agg[$date][$name][$key] = ($agg[$date][$name][$key] ?? 0.0) + $value;
+            }
+        }
+    }
+    $written = 0;
+    foreach ($agg as $date => $byName) {
+        foreach ($byName as $name => $values) {
+            foreach ($values as $key => $value) {
+                if ($put((string) $date, $key, $value, (string) $name)) { $written++; }
+            }
+        }
+    }
+
+    return $written;
 }
 
 /**

@@ -5,6 +5,11 @@ require_once __DIR__ . '/providers.php';
 
 function allstat_http_request(string $method, string $url, array $headers = [], ?string $body = null, int $timeout = 20): array
 {
+    // Testovací háček: testy synchronizace podstrčí odpovědi API bez sítě (v provozu proměnná nikdy neexistuje).
+    if (PHP_SAPI === 'cli' && isset($GLOBALS['allstat_http_mock']) && is_callable($GLOBALS['allstat_http_mock'])) {
+        return ($GLOBALS['allstat_http_mock'])($method, $url, $headers, $body);
+    }
+
     $headerLines = [];
     foreach ($headers as $key => $value) {
         $headerLines[] = $key . ': ' . $value;

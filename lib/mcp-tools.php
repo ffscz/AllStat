@@ -1262,7 +1262,13 @@ function allstat_mcp_tool_get_report(PDO $pdo, array $config, array $a): array
     // se počítají jen uzavřené měsíce, tam se nehlásí.
     $delays = [];
     if ($view !== 'growth') {
-        $delayProviders = $sourceId > 0 ? (($src['source']['provider_key'] ?? '') === 'youtube' ? ['youtube'] : []) : ['ga4', 'gsc'];
+        // source_id napojení GA4 nebo Search Console vykreslí také přehled webu, takže hlásí i jeho zpoždění.
+        $srcKey = $sourceId > 0 ? (string) ($src['source']['provider_key'] ?? '') : '';
+        $delayProviders = match (true) {
+            $sourceId === 0, in_array($srcKey, ['ga4', 'gsc'], true) => ['ga4', 'gsc'],
+            $srcKey === 'youtube' => ['youtube'],
+            default => [],
+        };
         $delays = $delayProviders ? allstat_mcp_tool_data_delays($pdo, $site['id'], $start, $end, $delayProviders, $sourceId > 0 ? (int) ($src['source']['connection_id'] ?? 0) : null) : [];
     }
     if ($delays) {
@@ -1312,22 +1318,24 @@ function allstat_mcp_tool_get_report(PDO $pdo, array $config, array $a): array
         $envelope['notes'] = $notes;
     }
 
-    $fit = allstat_mcp_tool_fit($payload, $maxChars, static fn (array $p): string => $renderMd($p, $includeInstructions));
+    // Upozornění na zpoždění a poznámka o zkrácení se přidávají až za ořez, proto se pro ně nechá místo.
+    $prefix = $delays ? '> **Neúplná data:** ' . implode("\n> ", array_column($delays, 'note')) . "\n\n" : '';
+    $fit = allstat_mcp_tool_fit($payload, max(2000, $maxChars - mb_strlen($prefix) - 500), static fn (array $p): string => $renderMd($p, $includeInstructions));
     if ($fit === null) {
         return allstat_mcp_tool_error('Report se nevešel do limitu ' . $maxChars . ' znaků ani po zkrácení tabulek. Zvyšte max_chars (nejvýše 150000), zúžte období nebo zvolte konkrétní zdroj.');
     }
     [$payload, $text, $log] = $fit;
-    if ($delays) {
-        $text = '> **Zpoždění dat:** ' . implode("\n> ", array_column($delays, 'note')) . "\n\n" . $text;
-    }
+    $text = $prefix . $text;
     $truncated = $log !== [];
     if ($truncated) {
         $text .= "\n> Pozn.: Report byl zkrácen na limit " . $maxChars . ' znaků (' . implode('; ', $log) . '). Zúžte období, zvolte konkrétní zdroj (source_id) nebo zvyšte max_chars (nejvýše 150000).' . "\n";
     }
 
+    // Report patří i do structuredContent: klienti Claude dávají modelu jen structuredContent, když existuje,
+    // takže s pouhými metadaty AI report vůbec neviděla (30. 9. 2026 proto volala každý report podruhé jako json).
     return [
         'content' => [['type' => 'text', 'text' => $text]],
-        'structuredContent' => ['format' => 'markdown', 'title' => (string) ($payload['title'] ?? ''), 'chars' => mb_strlen($text), 'truncated' => $truncated] + $envelope,
+        'structuredContent' => ['format' => 'markdown', 'title' => (string) ($payload['title'] ?? ''), 'chars' => mb_strlen($text), 'truncated' => $truncated] + $envelope + ['markdown' => $text],
         'isError' => false,
     ];
 }
@@ -1418,6 +1426,13 @@ function allstat_mcp_tool_get_channel_growth(PDO $pdo, array $config, array $a):
             'followers' => $followers,
             'spend_note' => $c['spendText'],
         ];
+        $last = array_key_last($channels);
+        if (!empty($c['yoyNote'])) {
+            $channels[$last]['yoy_note'] = $c['yoyNote'];
+        }
+        if (!empty($c['breakNote'])) {
+            $channels[$last]['metric_change_note'] = $c['breakNote'];
+        }
     }
 
     return allstat_mcp_tool_success([
@@ -1468,6 +1483,10 @@ function allstat_mcp_tool_get_overview(PDO $pdo, array $config, array $a): array
     $topPages = allstat_query_all_pages($pdo, $id, $start, $end, 20);
     $landing = allstat_query_landing_pages($pdo, $id, $start, $end, $prevStart, $prevEnd, 20);
     $queries = allstat_query_search_queries($pdo, $id, $start, $end, 20);
+    $events = allstat_query_events($pdo, $id, $start, $end, 15);
+    // Které zdroje přehledu web vůbec má: bez napojení se jejich KPI hlásí jako nedostupné, ne jako nula.
+    $connected = array_column(allstat_dashboard_provider_options($pdo, $id), 'provider_key');
+    $missing = array_values(array_diff(['ga4', 'gsc'], $connected));
 
     $summary = $d['summary'] ?? [];
     $hasData = ((int) ($summary['visits'] ?? 0)) > 0 || ((int) ($summary['clicks'] ?? 0)) > 0
@@ -1497,7 +1516,7 @@ function allstat_mcp_tool_get_overview(PDO $pdo, array $config, array $a): array
         'granularity' => $granularity,
         'has_data' => $hasData,
         'summary' => array_map(static fn ($v) => is_float($v) ? round($v, 2) : $v, $summary),
-        'units' => 'Míry (ctr, engagement_rate, bounce_rate, conversion_rate, ai_share) jsou v procentech, časy v sekundách, revenue v měně GA4 property. Změny (change_pct) jsou proti předchozímu období stejné délky.',
+        'units' => 'Míry (ctr, engagement_rate, bounce_rate, conversion_rate, ai_share) jsou v procentech, časy v sekundách, revenue v měně GA4 property. Změny (change_pct) jsou proti previous_period: celé kalendářní měsíce proti předchozím celým měsícům, rozběhnutý měsíc proti stejným dnům minulého měsíce, rozběhnutý rok proti stejným dnům loni, jinak proti stejně dlouhému období těsně před. U měr (procent) je change_pct relativní změna, ne rozdíl v procentních bodech.',
         'kpis' => array_map(static fn (array $k): array => [
             'key' => $k['key'],
             'label' => $k['label'],
@@ -1507,6 +1526,7 @@ function allstat_mcp_tool_get_overview(PDO $pdo, array $config, array $a): array
             'change_pct' => allstat_mcp_tool_round($k['change'], 1),
             'trend' => $k['trend'],
         ], $d['kpis'] ?? []),
+        'series_note' => 'series.users je v každé periodě součet denních uživatelů (vícedenní návštěvník vícekrát); různé lidi za celé období ukazuje summary.users podle users_basis.',
         'series' => [
             'labels' => $series['labels'] ?? [],
             'visits' => $series['visits'] ?? [],
@@ -1542,8 +1562,8 @@ function allstat_mcp_tool_get_overview(PDO $pdo, array $config, array $a): array
             'region' => $t($r['region']), 'country' => $t($r['country']), 'sessions' => (int) $r['sessions'], 'users' => (int) $r['users'], 'conversions' => (int) $r['conversions'], 'share_pct' => $share($r),
         ], $tables['geo'] ?? []),
         'events' => array_map(static fn (array $r): array => [
-            'event' => $t($r['event']), 'count' => (int) $r['count'], 'key_events' => (int) $r['keyEvents'], 'is_key_event' => (bool) $r['isKey'],
-        ], $tables['events'] ?? []),
+            'event' => $t($r['event']), 'event_name' => $t($r['name'] ?? ''), 'count' => (int) $r['count'], 'key_events' => (int) $r['keyEvents'], 'is_key_event' => (bool) $r['isKey'],
+        ], $events),
         'utm' => $utm,
         'meta' => [
             'last_sync' => (string) ($d['meta']['lastSync'] ?? ''),
@@ -1577,6 +1597,30 @@ function allstat_mcp_tool_get_overview(PDO $pdo, array $config, array $a): array
             'gender' => array_map(static fn (array $r): array => ['label' => (string) $r['label'], 'users' => (int) $r['users'], 'share_pct' => allstat_mcp_tool_round($r['share'], 1)], $demographics['gender'] ?? []),
         ];
     }
+    // Uživatelé: přesný počet různých lidí jen pro období, která GA4 sync ukládá; jinak součet denních uživatelů.
+    if (($summary['users_basis'] ?? 'daily_sum') !== 'unique') {
+        $data['users_note'] = 'users je součet denních uživatelů GA4: kdo přišel ve více dnech, je započten vícekrát, takže různých lidí bylo méně. Stejně returning_users a avg_engagement_time (čas na denního uživatele). Přesný počet různých lidí AllStat zná pro relativní období (last_7_days, last_30_days, last_90_days, last_365_days, this_month, last_month, this_year, last_year) a celé kalendářní měsíce.';
+    }
+    // Zdroj, který web nemá napojený, nemá nulové hodnoty, ale žádné: KPI null + důvod, jeho tabulky pryč.
+    if ($missing) {
+        $labels = ['ga4' => 'Google Analytics 4', 'gsc' => 'Google Search Console'];
+        $missingUpper = array_map('strtoupper', $missing);
+        foreach ($data['kpis'] as &$kpi) {
+            if (in_array(strtoupper((string) $kpi['provider']), $missingUpper, true)) {
+                $kpi['value'] = null;
+                $kpi['display'] = '—';
+                $kpi['change_pct'] = null;
+                $kpi['trend'] = 'none';
+                $kpi['unavailable'] = 'Web nemá napojený zdroj ' . $labels[strtolower((string) $kpi['provider'])] . '.';
+            }
+        }
+        unset($kpi);
+        if (in_array('gsc', $missing, true)) {
+            foreach (['clicks', 'impressions', 'ctr'] as $k) { $data['summary'][$k] = null; }
+            unset($data['series']['clicks'], $data['series']['impressions'], $data['search_queries']);
+        }
+        $data['not_connected'] = array_map(static fn (string $p): string => $labels[$p], $missing);
+    }
     if (!$hasData) {
         $data['hint'] = 'Za zvolené období nejsou pro tento web žádná data GA4 ani Search Console. Zkontrolujte období a stav zdrojů (get_sync_status).';
     }
@@ -1604,24 +1648,85 @@ function allstat_mcp_tool_get_overview(PDO $pdo, array $config, array $a): array
 /**
  * Metric tiles from provider view (total / totalLabel) or KPI readers (value / displayValue) to one shape.
  */
-function allstat_mcp_tool_metrics(array $metrics): array
+function allstat_mcp_tool_metrics(array $metrics, array $ctx = []): array
 {
+    // $ctx: expected_days = kolik dní by metrika měla mít data, gaps_are_zero = den bez řádku je nula (reklamy),
+    // muted = [lokální klíč => důvod], když zdroj metriku dočasně neposílá.
+    $expected = (int) ($ctx['expected_days'] ?? 0);
+    $gapsAreZero = (bool) ($ctx['gaps_are_zero'] ?? false);
+    $snapshot = ['followers_total', 'fans_total', 'views_total', 'videos_total'];
     $out = [];
     foreach ($metrics as $m) {
+        $key = (string) ($m['key'] ?? '');
+        $raw = $m['total'] ?? $m['value'] ?? null;
         $item = [
-            'key' => (string) ($m['key'] ?? ''),
+            'key' => $key,
             'label' => (string) ($m['label'] ?? ''),
-            'value' => allstat_mcp_tool_round($m['total'] ?? $m['value'] ?? null, 2),
+            'value' => allstat_mcp_tool_round($raw, 2),
             'display' => $m['totalLabel'] ?? $m['displayValue'] ?? null,
         ];
+        if ($raw === null) {
+            $item['unavailable'] = $ctx['muted'][$key] ?? 'Za období nejsou data, zdroj tuto metriku nedodal. Není to nula.';
+        }
+        if (isset($m['count'])) {
+            $item['count'] = (int) $m['count'];
+        }
         $tooltip = trim((string) ($m['tooltip'] ?? ''));
         if ($tooltip !== '') {
             $item['definition'] = mb_strimwidth($tooltip, 0, 320, '...');
         }
-        if (!empty($m['series']) && is_array($m['series'])) {
-            $item['series'] = array_map(static fn ($v) => allstat_mcp_tool_round($v, 2), $m['series']);
+        // Řada ve stejné jednotce jako value (YouTube sledovaný čas má graf v hodinách, value v minutách).
+        $series = $m['seriesMinutes'] ?? $m['series'] ?? null;
+        if (!empty($series) && is_array($series)) {
+            $item['series'] = array_map(static fn ($v) => allstat_mcp_tool_round($v, 2), $series);
+        }
+        // Pokrytí: denní metrika, která nemá data za všechny dny období, má neúplný součet (mezera není nula).
+        if (isset($m['days']) && $expected > 0 && !$gapsAreZero && $raw !== null && !in_array($key, $snapshot, true) && (int) $m['days'] < $expected) {
+            $days = (int) $m['days'];
+            $item['days_with_data'] = $days;
+            $item['coverage_note'] = 'Data jen za ' . $days . ' z ' . $expected . ' dní období'
+                . (!empty($m['firstDay']) ? ' (první ' . allstat_mcp_tool_cz_date((string) $m['firstDay']) . ', poslední ' . allstat_mcp_tool_cz_date((string) $m['lastDay']) . ')' : '')
+                . '; součet je neúplný a chybějící dny nejsou nula.' . (isset($ctx['muted'][$key]) ? ' ' . $ctx['muted'][$key] : '');
         }
         $out[] = $item;
+    }
+
+    return $out;
+}
+
+/**
+ * Metriky Mety, které sync dočasně neposílá (Meta je odmítla, AllStat je 30 dní nezkouší): [lokální klíč => důvod].
+ */
+function allstat_mcp_tool_muted_metrics(PDO $pdo, int $connectionId, string $providerKey): array
+{
+    if (!in_array($providerKey, ['facebook_pages', 'instagram_business'], true)) {
+        return [];
+    }
+    try {
+        require_once __DIR__ . '/sync-engines.php'; // jen definice funkcí (recept: API metrika → lokální klíč)
+        $raw = allstat_fetch_one($pdo, 'SELECT setting_value FROM allstat_settings WHERE setting_key = ?', ['meta.dead.' . $connectionId]);
+    } catch (Throwable) {
+        return [];
+    }
+    $muted = json_decode((string) ($raw['setting_value'] ?? ''), true) ?: [];
+    $map = allstat_sync_recipe($providerKey)['metrics'] ?? [];
+    $today = date('Y-m-d');
+    $active = [];
+    foreach ($map as $api => $local) {
+        $until = (string) ($muted[$api] ?? '');
+        if ($until !== '' && $until >= $today) {
+            $active[$local][] = [$api, $until];
+        } else {
+            $active[$local]['ok'] = true; // aspoň jedna API metrika pro tento klíč se stahuje
+        }
+    }
+    $out = [];
+    foreach ($active as $local => $entries) {
+        if (!empty($entries['ok'])) {
+            continue;
+        }
+        $first = $entries[0];
+        $out[$local] = 'Meta metriku ' . $first[0] . ' při synchronizaci odmítla, AllStat ji zkusí znovu ' . allstat_mcp_tool_cz_date($first[1]) . '.';
     }
 
     return $out;
@@ -1664,13 +1769,14 @@ function allstat_mcp_tool_get_source_metrics(PDO $pdo, array $config, array $a):
         'granularity' => $granularity,
     ];
 
+    $periodDays = (int) $per['days'];
     switch ($pk) {
         case 'clarity':
-            $data['granularity'] = 'day'; // these readers are always daily
-            $kpis = allstat_get_clarity_kpis($pdo, $id, $cid, $start, $end);
+            $kpis = allstat_get_clarity_kpis($pdo, $id, $cid, $start, $end, $granularity);
             $data['has_data'] = (bool) $kpis['hasData'];
             $data['labels'] = $kpis['labels'] ?? [];
-            $data['metrics'] = allstat_mcp_tool_metrics($kpis['metrics'] ?? []);
+            $data['metrics'] = allstat_mcp_tool_metrics($kpis['metrics'] ?? [], ['expected_days' => $periodDays]);
+            $data['note'] = 'Clarity dává přes API jen posledních 24 hodin, AllStat je ukládá každý den. Den bez synchronizace proto chybí natrvalo (viz days_with_data). Frustrační signály (rage clicks, dead clicks…) jsou podíl relací, ve kterých nastaly; count je jejich počet.';
             $breakdowns = [];
             foreach (allstat_get_clarity_breakdowns($pdo, $id, $cid, $start, $end, 10) as $key => $sec) {
                 $breakdowns[$key] = [
@@ -1686,11 +1792,10 @@ function allstat_mcp_tool_get_source_metrics(PDO $pdo, array $config, array $a):
             break;
 
         case 'meta_ads':
-            $data['granularity'] = 'day'; // these readers are always daily
-            $kpis = allstat_get_meta_ads_kpis($pdo, $id, $cid, $start, $end);
+            $kpis = allstat_get_meta_ads_kpis($pdo, $id, $cid, $start, $end, $granularity);
             $data['has_data'] = (bool) $kpis['hasData'];
             $data['labels'] = $kpis['labels'] ?? [];
-            $data['metrics'] = allstat_mcp_tool_metrics($kpis['metrics'] ?? []);
+            $data['metrics'] = allstat_mcp_tool_metrics($kpis['metrics'] ?? [], ['gaps_are_zero' => true]);
             $data['no_conversions_tracked'] = (bool) ($kpis['noConversions'] ?? false);
             // Původní klíče (spend…cpc) zůstávají kvůli zpětné kompatibilitě; ctr a cpc jsou ze VŠECH kliknutí.
             // Nové klíče nesou proklik na web, cenu za 1 000 zobrazení, cíl kampaně a frekvenci za celou dobu.
@@ -1719,12 +1824,23 @@ function allstat_mcp_tool_get_source_metrics(PDO $pdo, array $config, array $a):
             break;
 
         case 'google_ads':
-            $data['granularity'] = 'day'; // these readers are always daily
-            $kpis = allstat_get_google_ads_kpis($pdo, $id, $cid, $start, $end);
+            $kpis = allstat_get_google_ads_kpis($pdo, $id, $cid, $start, $end, $granularity);
             $data['has_data'] = (bool) $kpis['hasData'];
             $data['labels'] = $kpis['labels'] ?? [];
-            $data['metrics'] = allstat_mcp_tool_metrics($kpis['metrics'] ?? []);
+            $data['metrics'] = allstat_mcp_tool_metrics($kpis['metrics'] ?? [], ['gaps_are_zero' => true]);
             $data['no_conversions_tracked'] = (bool) ($kpis['noConversions'] ?? false);
+            $campaigns = allstat_get_google_ads_campaigns($pdo, $id, $cid, $start, $end, 15);
+            if ($campaigns) {
+                $data['campaigns'] = array_map(static fn (array $c): array => [
+                    'name' => allstat_mcp_tool_sanitize($c['name']), 'cost' => round($c['cost'], 2), 'clicks' => (int) $c['clicks'],
+                    'impressions' => (int) $c['impressions'], 'ctr_pct' => allstat_mcp_tool_round($c['ctr'], 2), 'cpc' => allstat_mcp_tool_round($c['cpc'], 2),
+                    'conversions' => round($c['conversions'], 2), 'conversion_value' => round($c['value'], 2), 'cpa' => allstat_mcp_tool_round($c['cpa'], 2),
+                    'roas' => allstat_mcp_tool_round($c['roas'], 2), 'active_from' => $c['from'], 'active_to' => $c['to'], 'active_days' => (int) $c['days'],
+                ], $campaigns);
+                $data['note'] = 'campaigns: kampaně za období seřazené podle útraty (součty dní s útratou). Částky v měně účtu Google Ads.';
+            } else {
+                $data['note'] = 'Rozpad podle kampaní zatím není (plní se od verze 1.2.4 při další synchronizaci).';
+            }
             break;
 
         case 'seznam_wmt':
@@ -1737,21 +1853,52 @@ function allstat_mcp_tool_get_source_metrics(PDO $pdo, array $config, array $a):
             break;
 
         default:
+            // YouTube Analytics dodává zhlédnutí a sledovaný čas se zpožděním 2 až 3 dny: pokrytí se pak měří jen do posledního dne s daty.
+            $delays = $pk === 'youtube' ? allstat_mcp_tool_data_delays($pdo, $id, $start, $end, ['youtube'], $cid) : [];
+            $expected = $periodDays - (int) ($delays[0]['missing_days'] ?? 0);
+            $muted = allstat_mcp_tool_muted_metrics($pdo, $cid, $pk);
             $pv = allstat_get_provider_view($pdo, $id, $cid, $start, $end, $granularity, $pk);
             $data['has_data'] = (bool) $pv['hasData'];
             $data['labels'] = $pv['labels'] ?? [];
-            $data['metrics'] = allstat_mcp_tool_metrics($pv['metrics'] ?? []);
+            $data['metrics'] = allstat_mcp_tool_metrics($pv['metrics'] ?? [], ['expected_days' => $expected, 'muted' => $muted]);
+            // Změna počtu sledujících za období: z denních přírůstků, když pokrývají období, jinak z denních snímků celkového počtu.
+            if (in_array($pk, ['facebook_pages', 'instagram_business', 'linkedin_company'], true)) {
+                $fol = allstat_social_followers($pdo, $cid, $start, $end);
+                if ($fol['source'] !== 'none') {
+                    $data['metrics'][] = [
+                        'key' => 'followers_change',
+                        'label' => 'Změna počtu sledujících',
+                        'value' => (int) $fol['net'],
+                        'display' => ($fol['net'] > 0 ? '+' : '') . allstat_number((int) $fol['net']),
+                        'definition' => $fol['source'] === 'events'
+                            ? ($pk === 'instagram_business'
+                                ? 'Noví sledující za období (denní přírůstky z Instagramu). Odhlášení Instagram neposílá, takže jde o hrubý přírůstek a čistá změna může být menší.'
+                                : 'Noví sledující − odhlášení za období (denní přírůstky ze sítě).')
+                            : 'Rozdíl celkového počtu sledujících podle denních snímků: ' . allstat_mcp_tool_cz_date((string) $fol['from']) . ' → ' . allstat_mcp_tool_cz_date((string) $fol['to']) . '. Denní přírůstky za období chybí nebo jsou neúplné, tohle je spolehlivější číslo.',
+                    ];
+                }
+            }
+            // Metriky, které zdroj za období vůbec nedodal (dlaždice by chyběla a AI by nevěděla proč).
+            $present = array_column($data['metrics'], 'key');
+            $unavailable = [];
+            foreach (allstat_provider_metric_meta($pk) as $key => $meta) {
+                if (!in_array($key, $present, true)) {
+                    $unavailable[] = ['key' => $key, 'label' => (string) $meta['label'], 'reason' => $muted[$key] ?? 'Za období nejsou data, zdroj tuto metriku nedodal. Není to nula.'];
+                }
+            }
+            if ($unavailable) {
+                $data['unavailable_metrics'] = $unavailable;
+            }
             if (in_array($pk, ['facebook_pages', 'instagram_business', 'linkedin_company'], true)) {
                 $data['posts_summary'] = allstat_mcp_tool_posts_summary(allstat_get_social_posts($pdo, $cid, $start, $end, 1));
-                $data['note'] = 'metrics jsou údaje celé stránky za období; posts_summary jsou součty přes příspěvky stažené za období (jiný rozsah, nekombinovat). Seznam příspěvků vrací get_top_content.';
+                $data['note'] = 'metrics jsou údaje celé stránky za období; posts_summary jsou součty přes příspěvky publikované v období (čísla příspěvků jsou celoživotní, jiný rozsah, nekombinovat). Seznam příspěvků vrací get_top_content.';
             } elseif ($pk === 'youtube') {
-                $data['note'] = 'Snímkové položky (odběratelé celkem, zhlédnutí celkem) jsou stav k poslednímu dni období. Seznam videí vrací get_top_content.';
+                $data['note'] = 'Snímkové položky (odběratelé celkem, zhlédnutí celkem) jsou stav k poslednímu dni období. Sledovaný čas je v minutách (value i series). Seznam videí vrací get_top_content.';
+            }
+            if ($delays) {
+                $data = array_slice($data, 0, 3, true) + ['data_delays' => $delays] + $data;
             }
             break;
-    }
-    // YouTube Analytics dodává zhlédnutí a sledovaný čas se zpožděním 2 až 3 dny.
-    if ($pk === 'youtube' && ($delays = allstat_mcp_tool_data_delays($pdo, $id, $start, $end, ['youtube'], $cid))) {
-        $data = array_slice($data, 0, 3, true) + ['data_delays' => $delays] + $data;
     }
 
     return allstat_mcp_tool_success($data);
@@ -1773,7 +1920,7 @@ function allstat_mcp_tool_posts_summary(array $sp): array
         'days' => (int) ($followers['days'] ?? 0),
     ];
     if ($fol['source'] === 'snapshot') {
-        $fol['note'] = 'Přírůstek je dopočtený ze snímků "Sledující celkem" za ' . $fol['from'] . " \u{2013} " . $fol['to'] . ' (' . $fol['days'] . ' dní), ne za celé období.';
+        $fol['note'] = 'Čistý přírůstek je dopočtený ze snímků "Sledující celkem": ' . allstat_mcp_tool_cz_date((string) $fol['from']) . ' → ' . allstat_mcp_tool_cz_date((string) $fol['to']) . ' (' . $fol['days'] . ' dní). Když snímky nepokrývají celé období, platí jen pro tyto dny.';
     } elseif ($fol['source'] === 'none') {
         $fol['note'] = 'Přírůstek sledujících není v tomto období naměřený.';
     }
@@ -2065,11 +2212,14 @@ function allstat_mcp_tool_get_search_queries(PDO $pdo, array $config, array $a):
  */
 function allstat_mcp_tool_data_delays(PDO $pdo, int $domainId, string $start, string $end, array $providers = ['ga4', 'gsc'], ?int $connectionId = null): array
 {
+    // max_lag = nejvýš kolik dní před dneškem může být poslední den s daty, aby šlo o běžné zpoždění. Starší konec
+    // dat (nebo mezera na konci dávno uzavřeného období) je výpadek synchronizace, ne zpoždění.
     $meta = [
-        'ga4' => ['label' => 'Google Analytics 4', 'typical' => 'nejvýš 1 den'],
-        'gsc' => ['label' => 'Google Search Console', 'typical' => '2 až 3 dny'],
-        'youtube' => ['label' => 'YouTube Analytics', 'typical' => '2 až 3 dny'],
+        'ga4' => ['label' => 'Google Analytics 4', 'typical' => 'nejvýš 1 den', 'max_lag' => 2],
+        'gsc' => ['label' => 'Google Search Console', 'typical' => '2 až 3 dny', 'max_lag' => 4],
+        'youtube' => ['label' => 'YouTube Analytics', 'typical' => '2 až 3 dny', 'max_lag' => 4],
     ];
+    $today = new DateTimeImmutable('today');
     $latest = [];
     try {
         $connected = array_column(allstat_fetch_all($pdo, 'SELECT DISTINCT s.provider_key FROM domain_sources ds JOIN data_sources s ON s.id = ds.source_id WHERE ds.domain_id = ? AND ds.is_enabled = 1', [$domainId]), 'provider_key');
@@ -2103,17 +2253,23 @@ function allstat_mcp_tool_data_delays(PDO $pdo, int $domainId, string $start, st
         $from = max($start, (new DateTimeImmutable($date))->modify('+1 day')->format('Y-m-d'));
         $days = (int) (new DateTimeImmutable($from))->diff(new DateTimeImmutable($end))->days + 1;
         $range = $from === $end ? allstat_mcp_tool_cz_date($end) : allstat_mcp_tool_cz_date($from) . ' až ' . allstat_mcp_tool_cz_date($end);
+        $lag = (int) (new DateTimeImmutable($date))->diff($today)->days;
+        $outage = $lag > $meta[$provider]['max_lag'];
         $out[] = [
             'provider' => $provider,
             'provider_label' => $meta[$provider]['label'],
+            'kind' => $outage ? 'outage' : 'delay',
             'latest_data_date' => $date,
             'missing_from' => $from,
             'missing_to' => $end,
             'missing_days' => $days,
             'typical_delay' => $meta[$provider]['typical'],
-            'note' => $meta[$provider]['label'] . ' má data jen do ' . allstat_mcp_tool_cz_date($date) . '; ' . $range
-                . ($days === 1 ? ' zatím chybí' : ' zatím chybí (' . $days . ' dny)') . ', zdroj je dodává se zpožděním ' . $meta[$provider]['typical']
-                . '. Součty a změny proti předchozímu období jsou proto u tohoto zdroje neúplné, nejde o pokles. Hodnoťte ho za období, které končí ' . allstat_mcp_tool_cz_date($date) . ', nebo ho vynechte.',
+            'note' => $outage
+                ? $meta[$provider]['label'] . ' má data jen do ' . allstat_mcp_tool_cz_date($date) . '; ' . $range . ' chybí (' . $days . ($days === 1 ? ' den' : ' dny') . ').'
+                    . ' Na běžné zpoždění zdroje (' . $meta[$provider]['typical'] . ') je to moc dlouho, nejspíš výpadek synchronizace (ověřte get_sync_status). Chybějící dny nejsou pokles; hodnoťte zdroj jen za dny s daty, nebo ho vynechte.'
+                : $meta[$provider]['label'] . ' má data jen do ' . allstat_mcp_tool_cz_date($date) . '; ' . $range
+                    . ($days === 1 ? ' zatím chybí' : ' zatím chybí (' . $days . ' dny)') . ', zdroj je dodává se zpožděním ' . $meta[$provider]['typical']
+                    . '. Součty a změny proti předchozímu období jsou proto u tohoto zdroje neúplné, nejde o pokles. Hodnoťte ho za období, které končí ' . allstat_mcp_tool_cz_date($date) . ', nebo ho vynechte.',
         ];
     }
 
@@ -2132,7 +2288,12 @@ function allstat_mcp_tool_get_sync_status(PDO $pdo, array $config, array $a): ar
     // Latest day with data per connection (a sync can be "ok" and still deliver nothing new).
     $latest = [];
     try {
-        foreach (allstat_fetch_all($pdo, 'SELECT connection_id, MAX(metric_date) AS d FROM provider_metrics_daily WHERE domain_id = ? GROUP BY connection_id', [$id]) as $r) {
+        // Jen denní metriky: denní snímky (počet sledujících, demografie) se ukládají hned a tvářily by se čerstvě,
+        // i když analytika zdroje (např. zhlédnutí YouTube) má zpoždění.
+        foreach (allstat_fetch_all($pdo, "SELECT connection_id, MAX(metric_date) AS d FROM provider_metrics_daily
+            WHERE domain_id = ? AND metric_key NOT IN ('followers_total', 'fans_total', 'views_total', 'videos_total', 'geo_country', 'viewer_age', 'viewer_gender')
+              AND metric_key NOT LIKE 'dem\\_%' AND metric_key NOT LIKE 'foll\\_%' AND metric_key NOT LIKE 'pv\\_%'
+            GROUP BY connection_id", [$id]) as $r) {
             $latest[(int) $r['connection_id']] = (string) $r['d'];
         }
         $web = allstat_fetch_one($pdo, 'SELECT MAX(CASE WHEN visits > 0 THEN metric_date END) AS ga4, MAX(CASE WHEN impressions > 0 THEN metric_date END) AS gsc FROM metrics_daily WHERE domain_id = ?', [$id]) ?? [];
@@ -2193,7 +2354,7 @@ function allstat_mcp_tool_get_sync_status(PDO $pdo, array $config, array $a): ar
         $hints[] = 'Některé zdroje hlásí chybu nebo varování (status, note). Data z nich nemusí být kompletní.';
     }
     if (array_intersect(['gsc', 'youtube'], array_column($sources, 'provider'))) {
-        $hints[] = 'Search Console a YouTube Analytics (zhlédnutí, sledovaný čas) dodávají data se zpožděním 2 až 3 dny, proto je jejich latest_data_date starší než poslední synchronizace. Chybějící poslední dny nejsou pokles; nástroje za období je hlásí v data_delays.';
+        $hints[] = 'Search Console a YouTube Analytics (zhlédnutí, sledovaný čas) dodávají data se zpožděním 2 až 3 dny, proto je jejich latest_data_date starší než poslední synchronizace. latest_data_date se počítá z denních metrik, ne z denních snímků (počet sledujících). Chybějící poslední dny nejsou pokles; nástroje za období je hlásí v data_delays.';
     }
     if (!$rows) {
         $hints[] = 'Web nemá žádný napojený zdroj dat.';
@@ -2313,13 +2474,24 @@ function allstat_mcp_tool_get_funnel(PDO $pdo, array $config, array $a): array
     }
     $warnings = array_map(static fn (array $w): string => allstat_mcp_tool_sanitize($w['message'], 240), $report['warnings']);
 
-    // Rozpad: nejvýše 10 řádků + případný řádek „Ostatní“ (lib/funnels.php už řadí a zbytek sloučí).
+    // Rozpad: nejvýše 10 řádků + „Ostatní“. lib/funnels.php vrací 12 řádků a zbytek od 13. sloučený, takže
+    // 11. a 12. řádek se musí přičíst do „Ostatní“ (dřív se tiše ztrácely).
     $rows = $bd['rows'];
     $rest = null;
     if ($rows && end($rows)['label'] === 'Ostatní') {
         $rest = array_pop($rows);
     }
+    $overflow = array_slice($rows, 10);
     $rows = array_slice($rows, 0, 10);
+    if ($overflow) {
+        $sum = $rest['counts'] ?? array_fill(0, count($overflow[0]['counts']), 0);
+        foreach ($overflow as $extra) {
+            foreach ($extra['counts'] as $i => $c) {
+                $sum[$i] = (int) ($sum[$i] ?? 0) + (int) $c;
+            }
+        }
+        $rest = ['label' => 'Ostatní', 'counts' => $sum, 'overall' => (int) ($sum[0] ?? 0) > 0 ? (int) end($sum) / (int) $sum[0] : null];
+    }
     if ($rest !== null) {
         $rows[] = $rest;
     }

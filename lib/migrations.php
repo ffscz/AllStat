@@ -11,7 +11,7 @@ require_once __DIR__ . '/providers.php';
  * v allstat_default_providers, nové výchozí settings) ZVEDNI tuhle konstantu — jinak se změna na
  * produkci neprovede. Formát: YYYY-MM-DD.N.
  */
-const ALLSTAT_SCHEMA_VERSION = '2026-10-01.3';
+const ALLSTAT_SCHEMA_VERSION = '2026-10-06.1';
 
 function allstat_schema_is_current(PDO $pdo): bool
 {
@@ -683,6 +683,32 @@ function allstat_migrate(PDO $pdo): void
         CONSTRAINT domain_source_deletions_source_fk FOREIGN KEY (source_id) REFERENCES data_sources (id) ON DELETE SET NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_czech_ci");
 
+    // Počet různých uživatelů za období (2026-10-06): GA4 activeUsers za celé období se z denních hodnot sečíst
+    // nedá, proto ho GA4 sync ukládá pro běžná období (posledních 7/30/90/365 dní, měsíce, roky) zvlášť.
+    $pdo->exec("CREATE TABLE IF NOT EXISTS period_users (
+        domain_id INT UNSIGNED NOT NULL,
+        start_date DATE NOT NULL,
+        end_date DATE NOT NULL,
+        active_users INT UNSIGNED NOT NULL DEFAULT 0,
+        new_users INT UNSIGNED NOT NULL DEFAULT 0,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (domain_id, start_date, end_date),
+        KEY period_users_updated (updated_at)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_czech_ci");
+
+    // One-time (idempotentní): stahování historie dřív ztlumilo IG follower_count na 30 dní (Meta ho dává jen za
+    // posledních 30 dní a odmítnutí starého okna se bralo jako zrušená metrika). Zrušit tato ztlumení, ať denní
+    // sync noví sledující hned zase stahuje a díru za posledních 29 dní sám dorovná.
+    try {
+        foreach ($pdo->query("SELECT setting_key, setting_value FROM allstat_settings WHERE setting_key LIKE 'meta.dead.%'")->fetchAll(PDO::FETCH_ASSOC) as $deadRow) {
+            $deadList = json_decode((string) $deadRow['setting_value'], true);
+            if (is_array($deadList) && array_key_exists('follower_count', $deadList)) {
+                unset($deadList['follower_count']);
+                allstat_migration_set_setting($pdo, (string) $deadRow['setting_key'], json_encode($deadList));
+            }
+        }
+    } catch (Throwable) { /* nastavení nejsou kritická */ }
+
     allstat_migrate_mcp($pdo); // izolované: selhání DDL MCP nesmí zastavit zbytek migrace ani aplikaci
 
     allstat_seed_provider_catalog($pdo);
@@ -790,7 +816,11 @@ function allstat_run_light_maintenance(PDO $pdo): void
     $syncCutoff = (new DateTimeImmutable('today'))->modify('-180 days')->format('Y-m-d H:i:s');
     $auditCutoff = (new DateTimeImmutable('today'))->modify('-365 days')->format('Y-m-d H:i:s');
 
-    foreach (['search_queries_daily', 'landing_pages_daily', 'pages_daily', 'device_daily', 'traffic_sources_daily', 'ai_sources_daily', 'referrers_daily', 'metrics_daily', 'geo_daily', 'events_daily', 'events_source_daily', 'gsc_pages_daily', 'provider_metrics_daily', 'items_daily', 'demographics_daily', 'social_posts'] as $table) {
+    if (allstat_table_exists($pdo, 'period_users')) {
+        allstat_batched_delete($pdo, 'DELETE FROM period_users WHERE end_date < ?', [$metricCutoff]);
+    }
+
+    foreach (['search_queries_daily', 'landing_pages_daily', 'pages_daily', 'device_daily', 'traffic_sources_daily', 'ai_sources_daily', 'referrers_daily', 'metrics_daily', 'geo_daily', 'events_daily', 'events_source_daily', 'gsc_pages_daily', 'provider_metrics_daily', 'items_daily', 'demographics_daily', 'utm_daily', 'social_posts'] as $table) {
         if (allstat_table_exists($pdo, $table)) {
             allstat_batched_delete($pdo, "DELETE FROM $table WHERE metric_date < ?", [$metricCutoff]);
 

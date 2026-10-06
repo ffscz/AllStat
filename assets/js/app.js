@@ -276,7 +276,7 @@ const AllStat = (() => {
                 head.innerHTML = '<th>Stránka</th><th>Návštěvy</th><th>Změna</th>';
             }
             if (help) {
-                help.innerHTML = 'Top vstupní stránky, kde návštěva začala. GA4 dimenze <code>landingPage</code>. „Změna" = rozdíl proti předchozímu stejně dlouhému období.';
+                help.innerHTML = 'Top vstupní stránky, kde návštěva začala. GA4 dimenze <code>landingPage</code>. „Změna" = rozdíl proti předchozímu období (u celého měsíce proti předchozímu měsíci, jinak proti stejně dlouhému období těsně před).';
             }
             body.innerHTML = landing.length ? landing.map((p) => `
                 <tr>
