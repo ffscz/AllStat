@@ -1,5 +1,5 @@
 {
-    "version": "1.2.3",
+    "version": "1.2.4",
     "files": {
         "LICENSE": {
             "s": 35823,
@@ -86,8 +86,8 @@
             "h": "81a9309f29e1be4eee4795c561258323f9ad9c13b470ba3eab67e07e84d594f1"
         },
         "admin/reports.php": {
-            "s": 32349,
-            "h": "48a046e5cc4327dab8cea45fe565f46b0c64d95cca2873945c4b3adc8c41a4e6"
+            "s": 32441,
+            "h": "662c7261cc3b600f598edbbd8a4e214bc3191b633fa978ecc550c6d70db676ca"
         },
         "admin/security.php": {
             "s": 7583,
@@ -174,8 +174,8 @@
             "h": "e5941dd405a3040056749d3533c19b24936d6a32b9a9ee83f8f85716c629499a"
         },
         "assets/js/app.js": {
-            "s": 41936,
-            "h": "440cef0af15abd395f86e69d9cdb93537195075e5157eb742f9e4bb0dca43f5d"
+            "s": 42021,
+            "h": "89cd966869d4888f8a068a0fb9e25628f06d38dc3c1e72448a2be0e8657caade"
         },
         "assets/js/funnel.js": {
             "s": 3842,
@@ -218,8 +218,8 @@
             "h": "77010f323ada1f123d7ffc3c6fcf6c15991cbc0c1f3cabd3a878017ea09931a7"
         },
         "index.php": {
-            "s": 77865,
-            "h": "5437bd38e75e05ccbb7e2be95476e0aed0239f480fe53febb03a3d26be8fc356"
+            "s": 78228,
+            "h": "479c45253366cd0e3259a1cfbcde03afa5bafe801de80d616d7c1533a31b9801"
         },
         "install.php": {
             "s": 1363,
@@ -258,16 +258,16 @@
             "h": "3b74bb87bb79fa94c6524699326a5de5f02b40b365e91388aecb0dc98e32f55d"
         },
         "lib/funnels.php": {
-            "s": 31810,
-            "h": "990e970aa56bf8c3ecb0d96c7df045e5cb3dab6bff444aab8a3cc5b870ea7832"
+            "s": 32132,
+            "h": "6748a9297e4014127eb9e452388ad84f74d925a79b0251ecc7279451eef603d5"
         },
         "lib/growth.php": {
-            "s": 28171,
-            "h": "e65d27099d6df2c1ab1e907cb790d9c474cf8f2305fd1ce7bb8a067c4acc9a0a"
+            "s": 29604,
+            "h": "80b57767fc283db9af272a63c1a1a649cefc5a6aabbea77ce46d864febe23d9e"
         },
         "lib/helpers.php": {
-            "s": 10907,
-            "h": "60fe496baf0ee637d3b25ede95a3f5b8f11d962428cd3534371ffdba3ecd47ee"
+            "s": 13205,
+            "h": "b8604e7732e6ab8e884d338b99ce018652be3e40912b303dcbecf0ba1906ebfb"
         },
         "lib/install-wizard.php": {
             "s": 79802,
@@ -278,48 +278,48 @@
             "h": "a6e7c289339e1ff51dd49e93a8a6d1ed6c01759d350f7c1df416624d09ba90e5"
         },
         "lib/mcp-server.php": {
-            "s": 37059,
-            "h": "b4308c6521df3a6d7c83a22b9e557472a688aab5056d3fd71de83a31724b35c2"
+            "s": 37205,
+            "h": "ccc7eac95822538f3dc300b2b2548104bb6ee0527b740253fd0c12d6fa4d3303"
         },
         "lib/mcp-tools.php": {
-            "s": 119018,
-            "h": "ffb298fc452bacd896fae1cab06467d3879e8e645423894ef69e8f2ce9bdbe8e"
+            "s": 132019,
+            "h": "2a04a551843c662303c38ad483087207d30c58273af9e929c793f20c9262ce26"
         },
         "lib/meta-connect.php": {
             "s": 12160,
             "h": "d19415a8878dd61589fe6f465541662bbd8bc0da61a6f837ea8c5b12eabb902b"
         },
         "lib/migrations.php": {
-            "s": 51561,
-            "h": "46cfb7c506eed16022d92419ac6958841d77b2b35bd87b6d2ac692903f63fb04"
+            "s": 53453,
+            "h": "544c9532b57b62ca937a1bded69178ece9b145a2cce5cffd5d04f1d039651475"
         },
         "lib/oauth.php": {
-            "s": 24637,
-            "h": "a7106951e7c7c6ea7b582c9aa0a2622127e46d6f6a1af9997d96b578a281f63b"
+            "s": 24964,
+            "h": "97a2633d528606ac75f5551b0f7365571e346b2a97c67d679d75adb9dc389c20"
         },
         "lib/providers.php": {
             "s": 45714,
             "h": "4255c5fbbee02e0e1be3370b4ae498488f0641d7972ac3c82afdadd31acfad34"
         },
         "lib/repository.php": {
-            "s": 210014,
-            "h": "9d4832429b5bb71cf137389d29b43a75b33f7d472c5f8db7a456451c8729156b"
+            "s": 225806,
+            "h": "9d539feed45f91403036ed73272bc67d61bd6a85e21f4a19b2a55354cec40f55"
         },
         "lib/seeder.php": {
             "s": 6447,
             "h": "0790111a952434e5f879c7fe29b54b891f3ec8af814ac35a55a0a32e62727596"
         },
         "lib/share.php": {
-            "s": 95802,
-            "h": "456a954883e4a26f93d0d7cc4ad95bcfbc9556c9eac6b9d4a8ef3ca218249862"
+            "s": 96734,
+            "h": "278b100ebf859329c8f8e8902038ec77f076b93195e6f4b69160f5140c93088e"
         },
         "lib/sync-engines.php": {
-            "s": 130577,
-            "h": "0b4b338eb08db3d25ddb8341e7c8ca36aae9005bd74206a8fdb2cbdf5a772f6c"
+            "s": 139799,
+            "h": "603e8cf2458e03e3daba0b3235441c8956bc774e0ffc34a5335a1da51f66d825"
         },
         "lib/sync.php": {
-            "s": 37295,
-            "h": "7767d939a1caea5433a478b426850f19d9552187b86be1c4b18b612f953b7e1a"
+            "s": 43262,
+            "h": "7d22d17ce3bf12fbeb0c63611ac6e7f5245d4daf7c7534b18031d16e18b8d9db"
         },
         "lib/totp.php": {
             "s": 2713,
@@ -335,7 +335,7 @@
         },
         "lib/version.php": {
             "s": 542,
-            "h": "c0a3820b8f4c7d15ee5bcaad16422075265b9ca9e1e6b401be2956781b4b8c13"
+            "h": "18355dea45840fde6c31e858df8b278e28e8f6f769c72224376c2b8631ac4f3e"
         },
         "oauth/authorize.php": {
             "s": 19173,
@@ -390,8 +390,8 @@
             "h": "d983a3c0a2920b0ee2c95b4d41b0b1ed138f4f0d95920816b29096cc00fbe05f"
         },
         "views/provider/google_ads.php": {
-            "s": 1175,
-            "h": "86205e0c43f9075b167b6dc4cfd0d2d05353d8afb8a6a4a13af6d6f338cc76b3"
+            "s": 3388,
+            "h": "1f5457a019509e1a9a38d099fbef38d173805f87e2ce231fc16452b66f7fb903"
         },
         "views/provider/instagram_business.php": {
             "s": 21956,

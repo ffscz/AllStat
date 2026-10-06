@@ -259,7 +259,31 @@ function allstat_query_summary(PDO $pdo, int $domainId, string $start, string $e
     $row['ai_sessions'] = (int) ($ai['ai_sessions'] ?? 0);
     $row['ai_conversions'] = (int) ($ai['ai_conversions'] ?? 0);
 
+    // Uživatelé: denní activeUsers se nedají sčítat (kdo přišel ve více dnech, je v součtu vícekrát). Počet různých
+    // lidí za období ukládá GA4 sync pro běžná období (period_users); jinde zůstane součet dní a users_basis to řekne.
+    $row['users_basis'] = $start === $end ? 'unique' : 'daily_sum';
+    if ($start !== $end && ($unique = allstat_period_users_lookup($pdo, $domainId, $start, $end)) !== null) {
+        $row['users'] = $unique['active_users'];
+        $row['users_basis'] = 'unique';
+    }
+
     return allstat_summary_from_values($row);
+}
+
+/**
+ * Počet různých uživatelů (GA4 activeUsers) za přesně toto období, pokud ho GA4 sync uložil; jinak null.
+ *
+ * @return array{active_users: int, new_users: int, updated_at: string}|null
+ */
+function allstat_period_users_lookup(PDO $pdo, int $domainId, string $start, string $end): ?array
+{
+    try {
+        $row = allstat_fetch_one($pdo, 'SELECT active_users, new_users, updated_at FROM period_users WHERE domain_id = ? AND start_date = ? AND end_date = ? LIMIT 1', [$domainId, $start, $end]);
+    } catch (Throwable) {
+        return null; // tabulka ještě neexistuje (před migrací)
+    }
+
+    return $row ? ['active_users' => (int) $row['active_users'], 'new_users' => (int) $row['new_users'], 'updated_at' => (string) $row['updated_at']] : null;
 }
 
 function allstat_query_series(PDO $pdo, int $domainId, string $start, string $end, string $granularity = 'day'): array
@@ -330,20 +354,22 @@ function allstat_query_ai_sources(PDO $pdo, int $domainId, string $start, string
         ORDER BY sessions DESC
         LIMIT " . (int) $limit . "
     ", [$domainId, $start, $end]);
+    $total = (int) (allstat_fetch_one($pdo, 'SELECT COALESCE(SUM(sessions), 0) AS sessions FROM ai_sources_daily WHERE domain_id = ? AND metric_date BETWEEN ? AND ?', [$domainId, $start, $end])['sessions'] ?? 0);
 
     return allstat_decorate_ai_sources(array_map(static fn (array $row): array => [
         'source' => $row['source'],
         'sessions' => (int) $row['sessions'],
         'conversions' => (int) $row['conversions'],
-    ], $rows));
+    ], $rows), $total);
 }
 
 /**
  * Add share (of total AI sessions) and formatted labels to an AI-source breakdown.
+ * $total = všechny AI návštěvy za období; bez něj se podíl počítá z předaného seznamu.
  */
-function allstat_decorate_ai_sources(array $sources): array
+function allstat_decorate_ai_sources(array $sources, ?int $total = null): array
 {
-    $total = array_sum(array_column($sources, 'sessions'));
+    $total = max($total ?? 0, array_sum(array_column($sources, 'sessions')));
 
     return array_map(static function (array $source) use ($total): array {
         $share = $total > 0 ? ((int) $source['sessions'] / $total) * 100 : 0;
@@ -443,20 +469,22 @@ function allstat_query_referrers(PDO $pdo, int $domainId, string $start, string 
         ORDER BY sessions DESC
         LIMIT " . (int) $limit . "
     ", [$domainId, $start, $end]);
+    $total = (int) (allstat_fetch_one($pdo, 'SELECT COALESCE(SUM(sessions), 0) AS sessions FROM referrers_daily WHERE domain_id = ? AND metric_date BETWEEN ? AND ?', [$domainId, $start, $end])['sessions'] ?? 0);
 
     return allstat_decorate_referrers(array_map(static fn (array $row): array => [
         'source' => $row['source'],
         'sessions' => (int) $row['sessions'],
         'conversions' => (int) $row['conversions'],
-    ], $rows));
+    ], $rows), $total);
 }
 
 /**
  * Add share, formatted labels and an AI-tool tag (if the host maps to a known AI assistant) to a referrer list.
+ * $total = návštěvy ze všech odkazujících webů za období; bez něj se podíl počítá z předaného seznamu.
  */
-function allstat_decorate_referrers(array $referrers): array
+function allstat_decorate_referrers(array $referrers, ?int $total = null): array
 {
-    $total = array_sum(array_column($referrers, 'sessions'));
+    $total = max($total ?? 0, array_sum(array_column($referrers, 'sessions')));
 
     return array_map(static function (array $referrer) use ($total): array {
         $share = $total > 0 ? ((int) $referrer['sessions'] / $total) * 100 : 0;
@@ -483,6 +511,7 @@ function allstat_query_events(PDO $pdo, int $domainId, string $start, string $en
 
     return array_map(static fn (array $row): array => [
         'event' => allstat_ga4_event_label((string) $row['event_name']),
+        'name' => (string) $row['event_name'], // surový název z GA4 (generate_lead…), kroky trychtýřů ho používají
         'count' => (int) $row['event_count'],
         'countLabel' => allstat_number((int) $row['event_count']),
         'keyEvents' => (int) $row['key_events'],
@@ -794,10 +823,12 @@ function allstat_query_all_pages(PDO $pdo, int $domainId, string $start, string 
         LIMIT " . max(1, $limit) . "
     ", [$domainId, $start, $end]);
 
-    $total = 0;
-    foreach ($rows as $row) {
-        $total += (int) $row['views'];
-    }
+    // Podíl ze VŠECH zobrazení stránek za období, ne jen z vrácené top-N (jinak by se nafukoval).
+    $total = (int) (allstat_fetch_one($pdo, "
+        SELECT COALESCE(SUM(views), 0) AS views
+        FROM pages_daily
+        WHERE domain_id = ? AND metric_date BETWEEN ? AND ? AND path <> '' AND path <> '(not set)'
+    ", [$domainId, $start, $end])['views'] ?? 0);
 
     return array_map(static function (array $row) use ($total): array {
         $views = (int) $row['views'];
@@ -936,30 +967,51 @@ function allstat_social_followers(PDO $pdo, int $connectionId, string $start, st
         WHERE connection_id = ? AND dimension = '' AND metric_date BETWEEN ? AND ?
     ", [$connectionId, $start, $end]) ?? [];
 
-    if ((int) ($row['days'] ?? 0) > 0) {
-        $adds = (int) round((float) ($row['adds'] ?? 0));
-        $lost = (int) round((float) ($row['lost'] ?? 0));
-
-        return ['new' => $adds, 'lost' => $lost, 'net' => $adds - $lost,
-            'source' => 'events', 'from' => $start, 'to' => $end, 'days' => (int) $row['days']];
+    $eventDays = (int) ($row['days'] ?? 0);
+    $periodDays = (int) (new DateTimeImmutable($start))->diff(new DateTimeImmutable($end))->days + 1;
+    $events = static fn (): array => ['new' => (int) round((float) ($row['adds'] ?? 0)), 'lost' => (int) round((float) ($row['lost'] ?? 0)),
+        'net' => (int) round((float) ($row['adds'] ?? 0)) - (int) round((float) ($row['lost'] ?? 0)),
+        'source' => 'events', 'from' => $start, 'to' => $end, 'days' => $eventDays];
+    // Instagram posílá jen nové sledující, odhlášení ne: čistá změna z denních přírůstků by byla nadsazená.
+    // U něj má přednost rozdíl denních snímků, pokud pokrývá skoro celé období.
+    $grossOnly = false;
+    try {
+        $grossOnly = (string) (allstat_fetch_one($pdo, 'SELECT s.provider_key FROM domain_sources ds JOIN data_sources s ON s.id = ds.source_id WHERE ds.id = ?', [$connectionId])['provider_key'] ?? '') === 'instagram_business';
+    } catch (Throwable) { /* bez katalogu zdrojů platí běžné pravidlo */ }
+    // Denní přírůstky pokrývají skoro celé období → platí ony (nula je tu skutečná nula).
+    if (!$grossOnly && $eventDays > 0 && $eventDays >= max(1, (int) floor($periodDays * 0.8))) {
+        return $events();
     }
 
-    // Fallback na snapshoty: potřebuje aspoň dva dny s daty, jinak není co od čeho odečíst.
+    // Jinak (přírůstky chybí nebo jich je jen pár dní, např. když je síť dočasně neposílá) z denních snímků
+    // „Sledující celkem": poslední stav v období minus stav den před začátkem (nebo první den s daty).
     $snap = allstat_fetch_all($pdo, "
         SELECT metric_date, metric_value
         FROM provider_metrics_daily
         WHERE connection_id = ? AND dimension = '' AND metric_key = 'followers_total' AND metric_date BETWEEN ? AND ?
         ORDER BY metric_date ASC
-    ", [$connectionId, $start, $end]);
-    if (count($snap) < 2) {
-        return ['new' => 0, 'lost' => 0, 'net' => 0, 'source' => 'none', 'from' => null, 'to' => null, 'days' => 0];
-    }
-    $first = $snap[0];
-    $last = $snap[count($snap) - 1];
-    $net = (int) round((float) $last['metric_value'] - (float) $first['metric_value']);
+    ", [$connectionId, (new DateTimeImmutable($start))->modify('-3 days')->format('Y-m-d'), $end]);
+    if (count($snap) >= 2) {
+        $base = $snap[0];
+        foreach ($snap as $s) {
+            if ((string) $s['metric_date'] < $start) {
+                $base = $s; // poslední snímek před začátkem období
+            }
+        }
+        $last = $snap[count($snap) - 1];
+        $snapDays = (int) (new DateTimeImmutable((string) $base['metric_date']))->diff(new DateTimeImmutable((string) $last['metric_date']))->days;
+        if ((string) $last['metric_date'] >= $start && ($snapDays > $eventDays || ($grossOnly && $snapDays >= (int) floor($periodDays * 0.8)))) {
+            $net = (int) round((float) $last['metric_value'] - (float) $base['metric_value']);
 
-    return ['new' => max(0, $net), 'lost' => max(0, -$net), 'net' => $net, 'source' => 'snapshot',
-        'from' => (string) $first['metric_date'], 'to' => (string) $last['metric_date'], 'days' => count($snap)];
+            return ['new' => max(0, $net), 'lost' => max(0, -$net), 'net' => $net, 'source' => 'snapshot',
+                'from' => (string) $base['metric_date'], 'to' => (string) $last['metric_date'], 'days' => $snapDays];
+        }
+    }
+    if ($eventDays > 0) {
+        return $events();
+    }
+
+    return ['new' => 0, 'lost' => 0, 'net' => 0, 'source' => 'none', 'from' => null, 'to' => null, 'days' => 0];
 }
 
 /**
@@ -1593,7 +1645,8 @@ function allstat_query_search_queries(PDO $pdo, int $domainId, string $start, st
             query_text,
             SUM(clicks) AS clicks,
             SUM(impressions) AS impressions,
-            AVG(position) AS position
+            -- Pozice vážená zobrazeními (jako Search Console a stránky v allstat_query_gsc_pages), ne prostý průměr dní.
+            CASE WHEN SUM(impressions) > 0 THEN SUM(position * impressions) / SUM(impressions) ELSE AVG(position) END AS position
         FROM search_queries_daily
         WHERE domain_id = ? AND metric_date BETWEEN ? AND ?
         GROUP BY query_text
@@ -2065,7 +2118,7 @@ function allstat_get_provider_view(PDO $pdo, int $domainId, int $connectionId, s
 
     try {
         $totals = allstat_fetch_all($pdo, "
-            SELECT metric_key, SUM(metric_value) AS total
+            SELECT metric_key, SUM(metric_value) AS total, COUNT(DISTINCT metric_date) AS days, MIN(metric_date) AS first_day, MAX(metric_date) AS last_day
             FROM provider_metrics_daily
             WHERE domain_id = ? AND connection_id = ? AND metric_date BETWEEN ? AND ? AND dimension = ''
             GROUP BY metric_key
@@ -2162,6 +2215,10 @@ function allstat_get_provider_view(PDO $pdo, int $domainId, int $connectionId, s
             'total' => $total,
             'totalLabel' => allstat_number($total, $decimals),
             'series' => $series,
+            // Pokrytí: kolik dní období má metrika řádek (a od kdy do kdy). Chybějící dny nejsou nula.
+            'days' => (int) ($row['days'] ?? 0),
+            'firstDay' => (string) ($row['first_day'] ?? ''),
+            'lastDay' => (string) ($row['last_day'] ?? ''),
         ];
     }, $totals);
 
@@ -2194,6 +2251,7 @@ function allstat_get_provider_view(PDO $pdo, int $domainId, int $connectionId, s
             foreach ($metrics as &$m) {
                 if ($m['key'] === 'watch_time_min') {
                     $m['totalLabel'] = allstat_watch_time_label((int) round($watchMin * 60));
+                    $m['seriesMinutes'] = $m['series']; // pro MCP: stejná jednotka jako total (minuty)
                     $m['series'] = array_map(static fn (float $v): float => round($v / 60, 1), $m['series']); // graf v hodinách
                 }
             }
@@ -2309,10 +2367,14 @@ function allstat_get_clarity_breakdowns(PDO $pdo, int $domainId, int $connection
     [$start, $end] = allstat_limited_range($start, $end);
     $sections = [
         'referrer' => ['title' => 'Top referrery', 'help' => 'Odkud návštěvníci přišli (Clarity referrer). Součet relací za zvolené období.'],
-        'page' => ['title' => 'Top stránky', 'help' => 'Nejnavštěvovanější stránky podle počtu relací (Clarity).'],
+        'page' => ['title' => 'Top stránky', 'help' => 'Nejnavštěvovanější stránky podle počtu návštěv (Clarity).'],
+        'device' => ['title' => 'Zařízení', 'help' => 'Rozdělení relací podle typu zařízení (Clarity).'],
         'browser' => ['title' => 'Prohlížeče', 'help' => 'Rozdělení relací podle prohlížeče (Clarity).'],
+        'os' => ['title' => 'Operační systémy', 'help' => 'Rozdělení relací podle operačního systému (Clarity).'],
+        'country' => ['title' => 'Země', 'help' => 'Rozdělení relací podle země návštěvníka (Clarity).'],
         'smart_event' => ['title' => 'Smart events', 'help' => 'Akce sledované Clarity (prokliky, kontakt…). Počet relací, ve kterých akce nastala.'],
     ];
+    $deviceLabels = ['PC' => 'Počítač', 'Mobile' => 'Mobil', 'Tablet' => 'Tablet', 'Other' => 'Ostatní'];
     $out = [];
 
     foreach ($sections as $key => $meta) {
@@ -2325,11 +2387,22 @@ function allstat_get_clarity_breakdowns(PDO $pdo, int $domainId, int $connection
                 ORDER BY sessions DESC
                 LIMIT " . (int) $limit . "
             ", [$domainId, $connectionId, $key, $start, $end]);
+            // Podíl z celku za období (všechny hodnoty), ne jen z vrácené top-N.
+            $total = (float) (allstat_fetch_one($pdo, "
+                SELECT COALESCE(SUM(metric_value), 0) AS total
+                FROM provider_metrics_daily
+                WHERE domain_id = ? AND connection_id = ? AND metric_key = ? AND dimension <> '' AND metric_date BETWEEN ? AND ?
+            ", [$domainId, $connectionId, $key, $start, $end])['total'] ?? 0);
         } catch (Throwable) {
             $rows = [];
+            $total = 0.0;
         }
-
-        $total = array_sum(array_map(static fn (array $r): float => (float) $r['sessions'], $rows));
+        if ($key === 'device') {
+            foreach ($rows as &$deviceRow) {
+                $deviceRow['name'] = $deviceLabels[(string) $deviceRow['name']] ?? $deviceRow['name'];
+            }
+            unset($deviceRow);
+        }
         $out[$key] = [
             'title' => $meta['title'],
             'help' => $meta['help'],
@@ -2362,19 +2435,28 @@ function allstat_get_clarity_breakdowns(PDO $pdo, int $domainId, int $connection
  * averages (active time, scroll depth, pages/session) are session-weighted across the days that
  * have them. Each tile carries icon/color/tooltip + a daily series for its sparkline.
  */
-function allstat_get_clarity_kpis(PDO $pdo, int $domainId, int $connectionId, string $start, string $end): array
+function allstat_get_clarity_kpis(PDO $pdo, int $domainId, int $connectionId, string $start, string $end, string $granularity = 'day'): array
 {
     [$start, $end] = allstat_limited_range($start, $end);
     $definitions = [
         ['key' => 'sessions', 'label' => 'Návštěvy', 'icon' => 'users-round', 'color' => 'teal', 'agg' => 'sum', 'format' => 'number', 'tooltip' => 'Počet relací (sessions) v Microsoft Clarity za zvolené období. Součet přes dny.'],
         ['key' => 'bot_sessions', 'label' => 'Boti', 'icon' => 'bug', 'color' => 'rose', 'agg' => 'sum', 'format' => 'number', 'tooltip' => 'Relace vyhodnocené Clarity jako automatický provoz (boti). Součet za období.'],
-        ['key' => 'new_user_sessions', 'label' => 'Noví uživatelé', 'icon' => 'user-plus', 'color' => 'cyan', 'agg' => 'sum', 'format' => 'number', 'tooltip' => 'Relace nových návštěvníků (poprvé na webu) dle Clarity. Součet za období.'],
+        ['key' => 'distinct_users', 'label' => 'Uživatelé (součet dní)', 'icon' => 'user', 'color' => 'cyan', 'agg' => 'sum', 'format' => 'number', 'tooltip' => 'Různí uživatelé podle Clarity za každý den, sečtení přes dny (kdo přišel ve více dnech, je tu vícekrát).'],
+        ['key' => 'new_user_sessions', 'label' => 'Noví uživatelé', 'icon' => 'user-plus', 'color' => 'cyan', 'agg' => 'sum', 'format' => 'number', 'tooltip' => 'Relace nových návštěvníků (poprvé na webu) dle Clarity. Jen z ručního CSV importu, API je nedává. Součet za období.'],
         ['key' => 'active_time', 'label' => 'Aktivní čas', 'icon' => 'clock', 'color' => 'orange', 'agg' => 'wavg', 'format' => 'duration', 'tooltip' => 'Průměrný aktivní čas na relaci (čas reálné interakce uživatele). Vážený průměr přes dny.'],
+        ['key' => 'total_time', 'label' => 'Celkový čas', 'icon' => 'timer', 'color' => 'orange', 'agg' => 'wavg', 'format' => 'duration', 'tooltip' => 'Průměrná celková doba relace včetně nečinnosti (Clarity totalTime). Vážený průměr přes dny.'],
         ['key' => 'scroll_depth', 'label' => 'Scroll depth', 'icon' => 'mouse-pointer-2', 'color' => 'violet', 'agg' => 'wavg', 'format' => 'percent', 'tooltip' => 'Průměrná hloubka scrollu stránky (%). Vážený průměr přes dny.'],
         ['key' => 'pages_per_session', 'label' => 'Stránky/relace', 'icon' => 'files', 'color' => 'blue', 'agg' => 'wavg', 'format' => 'number2', 'tooltip' => 'Průměrný počet zobrazených stránek na jednu relaci. Vážený průměr přes dny.'],
+        // Frustrační signály: podíl relací, ve kterých signál nastal (vážený průměr přes dny), počet v count.
+        ['key' => 'rage_clicks_pct', 'count' => 'rage_clicks', 'label' => 'Rage clicks', 'icon' => 'zap', 'color' => 'rose', 'agg' => 'wavg', 'format' => 'percent', 'tooltip' => 'Podíl relací s „naštvaným" opakovaným klikáním na stejné místo (Clarity Rage clicks). Ukazuje, co nefunguje, jak lidé čekají.'],
+        ['key' => 'dead_clicks_pct', 'count' => 'dead_clicks', 'label' => 'Dead clicks', 'icon' => 'mouse-pointer-click', 'color' => 'rose', 'agg' => 'wavg', 'format' => 'percent', 'tooltip' => 'Podíl relací s kliknutím, po kterém se nic nestalo (Clarity Dead clicks). Typicky prvek, který vypadá jako odkaz.'],
+        ['key' => 'quickbacks_pct', 'count' => 'quickbacks', 'label' => 'Rychlé návraty', 'icon' => 'undo-2', 'color' => 'orange', 'agg' => 'wavg', 'format' => 'percent', 'tooltip' => 'Podíl relací, kde se člověk hned vrátil z otevřené stránky zpět (Clarity Quick backs). Stránka nesplnila očekávání.'],
+        ['key' => 'excessive_scroll_pct', 'count' => 'excessive_scroll', 'label' => 'Nadměrný scroll', 'icon' => 'arrow-down-up', 'color' => 'orange', 'agg' => 'wavg', 'format' => 'percent', 'tooltip' => 'Podíl relací s přehnaným scrollováním tam a zpět (Clarity Excessive scrolling). Člověk nemůže najít, co hledá.'],
+        ['key' => 'script_errors_pct', 'count' => 'script_errors', 'label' => 'Chyby JavaScriptu', 'icon' => 'bug', 'color' => 'rose', 'agg' => 'wavg', 'format' => 'percent', 'tooltip' => 'Podíl relací s chybou JavaScriptu na stránce (Clarity Script errors).'],
+        ['key' => 'error_clicks_pct', 'count' => 'error_clicks', 'label' => 'Kliknutí s chybou', 'icon' => 'alert-triangle', 'color' => 'rose', 'agg' => 'wavg', 'format' => 'percent', 'tooltip' => 'Podíl relací, kde kliknutí vyvolalo chybu JavaScriptu (Clarity Error clicks).'],
     ];
 
-    $keys = array_column($definitions, 'key');
+    $keys = array_merge(array_column($definitions, 'key'), array_values(array_filter(array_column($definitions, 'count'))));
     $placeholders = implode(',', array_fill(0, count($keys), '?'));
     try {
         $rows = allstat_fetch_all($pdo, "
@@ -2393,7 +2475,13 @@ function allstat_get_clarity_kpis(PDO $pdo, int $domainId, int $connectionId, st
     }
     ksort($byDate);
     $dates = array_keys($byDate);
-    $labels = array_map(static fn (string $d): string => (new DateTimeImmutable($d))->format('j. n.'), $dates);
+    // Periody řady (den / týden / měsíc): průměry se váží relacemi uvnitř periody, součty se sčítají.
+    $buckets = [];
+    foreach ($dates as $d) {
+        $pk = allstat_period_key($d, $granularity);
+        $buckets[$pk]['dates'][] = $d;
+    }
+    $labels = array_map(static fn (array $b): string => allstat_series_label(['period_start' => $b['dates'][0], 'period_end' => end($b['dates'])], $granularity), array_values($buckets));
 
     $hasAny = false;
     $metrics = [];
@@ -2401,29 +2489,46 @@ function allstat_get_clarity_kpis(PDO $pdo, int $domainId, int $connectionId, st
         $key = $def['key'];
         $series = [];
         $sum = 0.0;
+        $count = 0.0;
         $weightedNum = 0.0;
         $weightDen = 0.0;
-        foreach ($dates as $d) {
-            $val = $byDate[$d][$key] ?? null;
-            $series[] = $val !== null ? round($val, 2) : 0;
-            if ($val === null) { continue; }
-            $hasAny = true;
-            if ($def['agg'] === 'sum') {
-                $sum += $val;
-            } else {
-                $sessionsThatDay = (float) ($byDate[$d]['sessions'] ?? 0);
-                $weightedNum += $val * $sessionsThatDay;
-                $weightDen += $sessionsThatDay;
+        $days = 0;
+        foreach ($buckets as $bucket) {
+            $bSum = 0.0;
+            $bNum = 0.0;
+            $bDen = 0.0;
+            $bHas = false;
+            foreach ($bucket['dates'] as $d) {
+                $val = $byDate[$d][$key] ?? null;
+                if ($val === null) { continue; }
+                $bHas = true;
+                $days++;
+                $count += (float) ($byDate[$d][$def['count'] ?? ''] ?? 0);
+                if ($def['agg'] === 'sum') {
+                    $bSum += $val;
+                } else {
+                    $sessionsThatDay = (float) ($byDate[$d]['sessions'] ?? 0);
+                    $bNum += $val * $sessionsThatDay;
+                    $bDen += $sessionsThatDay;
+                }
             }
+            $sum += $bSum;
+            $weightedNum += $bNum;
+            $weightDen += $bDen;
+            $series[] = $bHas ? round($def['agg'] === 'sum' ? $bSum : ($bDen > 0 ? $bNum / $bDen : 0), 2) : null;
         }
-        $value = $def['agg'] === 'sum' ? $sum : ($weightDen > 0 ? $weightedNum / $weightDen : 0);
-        $displayValue = match ($def['format']) {
+        if ($days > 0) {
+            $hasAny = true;
+        }
+        // Bez jediného dne s daty je hodnota nedostupná (null), ne nula: API ji třeba vůbec nedává.
+        $value = $days === 0 ? null : ($def['agg'] === 'sum' ? $sum : ($weightDen > 0 ? $weightedNum / $weightDen : 0));
+        $displayValue = $value === null ? '—' : match ($def['format']) {
             'percent' => allstat_percent($value, 1),
             'duration' => allstat_duration_label($value),
             'number2' => allstat_number($value, 2),
             default => allstat_number($value, 0),
         };
-        $metrics[] = [
+        $metric = [
             'key' => $key,
             'label' => $def['label'],
             'icon' => $def['icon'],
@@ -2431,11 +2536,20 @@ function allstat_get_clarity_kpis(PDO $pdo, int $domainId, int $connectionId, st
             'value' => $value,
             'displayValue' => $displayValue,
             'tooltip' => $def['tooltip'],
-            'series' => $series,
+            'series' => array_map(static fn ($v) => $v ?? 0, $series),
+            'days' => $days,
         ];
+        if (isset($def['count']) && $value !== null) {
+            $metric['count'] = (int) round($count);
+            $metric['displayValue'] .= ' relací (' . allstat_number($count, 0) . '×)';
+        }
+        $metrics[] = $metric;
     }
 
-    return ['labels' => $labels, 'metrics' => $metrics, 'hasData' => $hasAny];
+    // Dlaždice bez dat se na dashboardu neukazují (dřív svítily nuly u metrik, které API nedává).
+    $metrics = array_values(array_filter($metrics, static fn (array $m): bool => $m['value'] !== null || in_array($m['key'], ['sessions', 'bot_sessions'], true)));
+
+    return ['labels' => $labels, 'metrics' => $metrics, 'hasData' => $hasAny, 'dates' => count($dates)];
 }
 
 /**
@@ -2444,7 +2558,7 @@ function allstat_get_clarity_kpis(PDO $pdo, int $domainId, int $connectionId, st
  * DERIVED from those sums — never summed — exactly like a real ads report. Each tile carries a daily
  * series (counts = that day's value, ratios = that day's derived value) for its sparkline.
  */
-function allstat_get_meta_ads_kpis(PDO $pdo, int $domainId, int $connectionId, string $start, string $end): array
+function allstat_get_meta_ads_kpis(PDO $pdo, int $domainId, int $connectionId, string $start, string $end, string $granularity = 'day'): array
 {
     [$start, $end] = allstat_limited_range($start, $end);
     $baseKeys = ['spend', 'impressions', 'clicks', 'reach', 'conversions', 'conversion_value', 'link_clicks', 'lp_views', 'video_views'];
@@ -2464,9 +2578,9 @@ function allstat_get_meta_ads_kpis(PDO $pdo, int $domainId, int $connectionId, s
     foreach ($rows as $r) {
         $byDate[(string) $r['metric_date']][(string) $r['metric_key']] = (float) $r['metric_value'];
     }
-    ksort($byDate);
-    $dates = array_keys($byDate);
-    $labels = array_map(static fn (string $d): string => (new DateTimeImmutable($d))->format('j. n.'), $dates);
+    // Řada po dnech, týdnech nebo měsících; poměry se počítají ze součtů periody.
+    [$byDate, $labels] = allstat_rebucket_daily($byDate, $granularity);
+    $dates = array_map('strval', array_keys($byDate));
 
     $sum = array_fill_keys($baseKeys, 0.0);
     foreach ($byDate as $day) {
@@ -2547,7 +2661,7 @@ function allstat_get_meta_ads_kpis(PDO $pdo, int $domainId, int $connectionId, s
  * reach/frequency). Like Meta Ads, when the account reports no conversions AND no conversion value the
  * ROAS/PNO/CPA/Konverze/Hodnota tiles are hidden (they'd be all zeros — not a bug).
  */
-function allstat_get_google_ads_kpis(PDO $pdo, int $domainId, int $connectionId, string $start, string $end): array
+function allstat_get_google_ads_kpis(PDO $pdo, int $domainId, int $connectionId, string $start, string $end, string $granularity = 'day'): array
 {
     [$start, $end] = allstat_limited_range($start, $end);
     $baseKeys = ['cost', 'impressions', 'clicks', 'conversions', 'conversion_value'];
@@ -2567,9 +2681,8 @@ function allstat_get_google_ads_kpis(PDO $pdo, int $domainId, int $connectionId,
     foreach ($rows as $r) {
         $byDate[(string) $r['metric_date']][(string) $r['metric_key']] = (float) $r['metric_value'];
     }
-    ksort($byDate);
-    $dates = array_keys($byDate);
-    $labels = array_map(static fn (string $d): string => (new DateTimeImmutable($d))->format('j. n.'), $dates);
+    [$byDate, $labels] = allstat_rebucket_daily($byDate, $granularity);
+    $dates = array_map('strval', array_keys($byDate));
 
     $sum = array_fill_keys($baseKeys, 0.0);
     foreach ($byDate as $day) {
@@ -2625,6 +2738,53 @@ function allstat_get_google_ads_kpis(PDO $pdo, int $domainId, int $connectionId,
         'noConversions' => $noConversions,
         'spend' => $sum['cost'],
     ];
+}
+
+/**
+ * Kampaně Google Ads za období (klíče campaign_* s názvem kampaně v dimension, plní je google_ads engine od 1.2.4).
+ * Seřazené podle útraty; poměry (CTR, CPC, CPA, ROAS) ze součtů za období, null když nejdou spočítat.
+ *
+ * @return list<array<string, mixed>>
+ */
+function allstat_get_google_ads_campaigns(PDO $pdo, int $domainId, int $connectionId, string $start, string $end, int $limit = 15): array
+{
+    [$start, $end] = allstat_limited_range($start, $end);
+    try {
+        $rows = allstat_fetch_all($pdo, "
+            SELECT dimension AS name, metric_key, SUM(metric_value) AS total, MIN(metric_date) AS first_day, MAX(metric_date) AS last_day, COUNT(DISTINCT metric_date) AS days
+            FROM provider_metrics_daily
+            WHERE domain_id = ? AND connection_id = ? AND dimension <> '' AND metric_date BETWEEN ? AND ?
+              AND metric_key IN ('campaign_cost', 'campaign_clicks', 'campaign_impressions', 'campaign_conversions', 'campaign_value')
+            GROUP BY dimension, metric_key
+        ", [$domainId, $connectionId, $start, $end]);
+    } catch (Throwable) {
+        return [];
+    }
+
+    $campaigns = [];
+    foreach ($rows as $r) {
+        $name = (string) $r['name'];
+        $campaigns[$name] ??= ['name' => $name, 'cost' => 0.0, 'clicks' => 0.0, 'impressions' => 0.0, 'conversions' => 0.0, 'value' => 0.0, 'from' => null, 'to' => null, 'days' => 0];
+        $field = substr((string) $r['metric_key'], strlen('campaign_'));
+        $campaigns[$name][$field] = (float) $r['total'];
+        if ($field === 'cost' || $campaigns[$name]['from'] === null) {
+            $campaigns[$name]['from'] = (string) $r['first_day'];
+            $campaigns[$name]['to'] = (string) $r['last_day'];
+            $campaigns[$name]['days'] = (int) $r['days'];
+        }
+    }
+    $campaigns = array_values(array_filter($campaigns, static fn (array $c): bool => $c['cost'] > 0 || $c['impressions'] > 0));
+    usort($campaigns, static fn (array $a, array $b): int => [$b['cost'], $b['impressions']] <=> [$a['cost'], $a['impressions']]);
+
+    return array_map(static function (array $c): array {
+        $c['ctr'] = $c['impressions'] > 0 ? $c['clicks'] / $c['impressions'] * 100 : null;
+        $c['cpc'] = $c['clicks'] > 0 ? $c['cost'] / $c['clicks'] : null;
+        $c['cpa'] = $c['conversions'] > 0 ? $c['cost'] / $c['conversions'] : null;
+        $c['roas'] = $c['cost'] > 0 && $c['value'] > 0 ? $c['value'] / $c['cost'] : null;
+        $c['runLabel'] = allstat_meta_ads_run_label(['from' => (string) $c['from'], 'to' => (string) $c['to'], 'days' => $c['days']]);
+
+        return $c;
+    }, array_slice($campaigns, 0, max(1, $limit)));
 }
 
 /**
@@ -3543,11 +3703,28 @@ function allstat_build_kpis(array $summary, array $previous, array $series, arra
         'ai_share' => 'Podíl AI asistentů na celkových návštěvách = AI návštěvy / návštěvy (GA4). Ukazuje, jak roste význam AI vyhledávání.',
     ];
 
-    return array_map(static function (array $definition) use ($summary, $previous, $series, $tooltips): array {
+    // Uživatelé za období: přesný počet různých lidí (GA4), nebo jen součet denních uživatelů. Podle toho popisek,
+    // a když se základ obou období liší, změna se nepočítá (srovnávala by se jablka s hruškami).
+    $usersUnique = ($summary['users_basis'] ?? 'daily_sum') === 'unique';
+    $basisMismatch = ($summary['users_basis'] ?? 'daily_sum') !== ($previous['users_basis'] ?? 'daily_sum');
+    if ($usersUnique) {
+        $tooltips['users'] = 'Active Users z GA4 za celé období: každý člověk jednou, i když přišel ve více dnech.';
+    } else {
+        $tooltips['users'] = 'Součet denních uživatelů z GA4 (Active Users po dnech): kdo přišel ve více dnech, je započten vícekrát, takže různých lidí bylo méně. Přesný počet AllStat ukládá pro běžná období (posledních 7, 30, 90 a 365 dní, celé měsíce a roky).';
+        $tooltips['avg_engagement_time'] .= ' Tady na denního uživatele (součet dní), proto vychází nižší než v GA4.';
+        foreach ($definitions as &$definition) {
+            if ($definition['key'] === 'users') {
+                $definition['label'] = 'Uživatelé (součet dní)';
+            }
+        }
+        unset($definition);
+    }
+
+    return array_map(static function (array $definition) use ($summary, $previous, $series, $tooltips, $basisMismatch): array {
         $key = $definition['key'];
         $value = (float) ($summary[$key] ?? 0);
         $previousValue = (float) ($previous[$key] ?? 0);
-        $change = allstat_change($value, $previousValue);
+        $change = $basisMismatch && in_array($key, ['users', 'avg_engagement_time'], true) ? null : allstat_change($value, $previousValue);
 
         $displayValue = match ($definition['format']) {
             'percent' => allstat_percent($value, $definition['decimals']),
@@ -3592,6 +3769,8 @@ function allstat_summary_from_values(array $values): array
         'engaged_sessions' => $engagedSessions,
         'engagement_time_sec' => $engagementTime,
         'users' => $users,
+        // unique = různí lidé za období (GA4), daily_sum = součet denních uživatelů (vícedenní návštěvník vícekrát).
+        'users_basis' => (string) ($values['users_basis'] ?? 'daily_sum'),
         'new_users' => $newUsers,
         'returning_users' => max(0, $users - $newUsers),
         'clicks' => $clicks,
@@ -3665,6 +3844,36 @@ function allstat_series_from_rows(array $rows, string $granularity = 'day'): arr
     }
 
     return $series;
+}
+
+/**
+ * Denní hodnoty [datum => [klíč => hodnota]] sečte do period (den / týden / měsíc). Vrací [periody, popisky].
+ * Poměry (CTR, CPC…) se pak počítají z těchto součtů, takže za týden i měsíc vyjdou správně vážené.
+ */
+function allstat_rebucket_daily(array $byDate, string $granularity): array
+{
+    $granularity = allstat_normalize_granularity($granularity);
+    ksort($byDate);
+    if ($granularity === 'day') {
+        return [$byDate, array_map(static fn (string $d): string => (new DateTimeImmutable($d))->format('j. n.'), array_map('strval', array_keys($byDate)))];
+    }
+    $buckets = [];
+    $bounds = [];
+    foreach ($byDate as $d => $values) {
+        $d = (string) $d;
+        $pk = allstat_period_key($d, $granularity);
+        foreach ($values as $k => $v) {
+            $buckets[$pk][$k] = ($buckets[$pk][$k] ?? 0.0) + (float) $v;
+        }
+        $bounds[$pk] = [min($bounds[$pk][0] ?? $d, $d), max($bounds[$pk][1] ?? $d, $d)];
+    }
+    ksort($buckets);
+    $labels = [];
+    foreach (array_keys($buckets) as $pk) {
+        $labels[] = allstat_series_label(['period_start' => $bounds[$pk][0], 'period_end' => $bounds[$pk][1]], $granularity);
+    }
+
+    return [$buckets, $labels];
 }
 
 function allstat_series_label(array $row, string $granularity): string

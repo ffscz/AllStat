@@ -184,6 +184,7 @@ if ($isGenericView) {
         // cost/clicks/impressions/conversions/conversion_value (account-level).
         $adsKpis = allstat_get_google_ads_kpis($pdo, (int) $domainId, $viewSourceId, $start, $end);
         $googleAdsNoConversions = !empty($adsKpis['noConversions']);
+        $googleAdsCampaigns = allstat_get_google_ads_campaigns($pdo, (int) $domainId, $viewSourceId, $start, $end, 15);
         $providerPayload = [
             'labels' => $adsKpis['labels'],
             'metrics' => $adsKpis['metrics'],
@@ -640,7 +641,7 @@ if ($isGenericView) {
                                 <span>(předchozí období nemá data)</span>
                             <?php else: ?>
                                 <span class="trend <?= $kpi['trend'] === 'up' ? 'trend-up' : 'trend-down' ?>" data-kpi-change><?= $kpi['trend'] === 'up' ? '&uarr;' : '&darr;' ?> <?= h($kpi['changeLabel']) ?></span>
-                                <span data-prev-range title="Změna oproti stejně dlouhému období těsně před zvoleným rozsahem (např. u „7 dní" = předchozích 7 dní, ne loňský rok).">vs. předchozí období<?= $previousRangeLabel !== '' ? ' (' . h($previousRangeLabel) . ')' : '' ?></span>
+                                <span data-prev-range title="Změna oproti předchozímu období: celé kalendářní měsíce proti předchozím celým měsícům (září proti srpnu), rozběhnutý měsíc proti stejným dnům minulého měsíce, jinak proti stejně dlouhému období těsně před (u „7 dní" předchozích 7 dní, ne loňský rok).">vs. předchozí období<?= $previousRangeLabel !== '' ? ' (' . h($previousRangeLabel) . ')' : '' ?></span>
                             <?php endif; ?>
                         </div>
                         <div class="sparkline-wrap"><canvas data-sparkline="<?= h($kpi['key']) ?>"></canvas></div>
@@ -738,7 +739,7 @@ if ($isGenericView) {
             <section class="tables-grid" aria-label="Tabulky">
                 <article class="panel table-panel">
                     <div class="panel-header"><h2>Top stránky</h2><div class="seg-toggle" role="group" aria-label="Typ stránek"><button type="button" class="seg-btn is-active" data-pages-toggle="vstupni">Vstupní</button><button type="button" class="seg-btn" data-pages-toggle="vsechny">Všechny</button></div></div>
-                    <p class="panel-help" data-pages-help>Top vstupní stránky, kde návštěva začala. GA4 dimenze <code>landingPage</code>. „Změna" = rozdíl proti předchozímu stejně dlouhému období. Přepni na „Všechny" pro nejnavštěvovanější stránky podle zobrazení.</p>
+                    <p class="panel-help" data-pages-help>Top vstupní stránky, kde návštěva začala. GA4 dimenze <code>landingPage</code>. „Změna" = rozdíl proti předchozímu období (u celého měsíce proti předchozímu měsíci, jinak proti stejně dlouhému období těsně před). Přepni na „Všechny" pro nejnavštěvovanější stránky podle zobrazení.</p>
                     <div class="table-scroll">
                         <table>
                             <thead>

@@ -199,7 +199,7 @@ function allstat_share_org_context(PDO $pdo): string
  */
 function allstat_share_methodology(): string
 {
-    return "JAK ČÍST REPORT: Vyhodnocuj výhradně období z řádku „Obdobi\" v Kontextu; sekce „Srovnání s předchozím obdobím\" porovnává se stejně dlouhým obdobím těsně před ním. "
+    return "JAK ČÍST REPORT: Vyhodnocuj výhradně období z řádku „Obdobi\" v Kontextu; sekce „Srovnání s předchozím obdobím\" porovnává celé kalendářní měsíce s předchozími celými měsíci, rozběhnutý měsíc se stejnými dny minulého měsíce a jiná období se stejně dlouhým obdobím těsně před ním. "
         . "Sloupec „Co přesně měří\" u metrik uvádí zdroj, definici a jmenovatel — řiď se jím: metriky „úroveň celé stránky\" a „součty přes příspěvky\" mají různý rozsah a nesmí se kombinovat v jednom výpočtu ani zaměňovat. "
         . "Pomlčka „—\" znamená nedostupné/neměřené, ne nulu. Než prohlásíš metriku za chybějící, projdi celý report — může být v jiné sekci. Kde data reálně chybí, napiš přesně, co a jak doměřit.";
 }
@@ -516,21 +516,23 @@ function allstat_share_section_overview(PDO $pdo, int $domainId, string $start, 
     }
     $payload['sections'][] = ['title' => 'Klíčové metriky (vs. ' . $prevLabel . ')', 'cols' => ['Metrika', 'Hodnota', 'Trend'], 'rows' => $kpiRows];
 
-    // Týdenní vývoj návštěvnosti — trajektorie hlavních metrik (dotaženo zvlášť na týdny, ať to není 30 denních řádků).
-    $wkSeries = allstat_query_series($pdo, $domainId, $start, $end, 'week');
+    // Vývoj návštěvnosti za celé období: po týdnech, u období delšího než půl roku po měsících (ne jen posledních 16 týdnů).
+    $trendGran = ((new DateTimeImmutable($start))->diff(new DateTimeImmutable($end))->days + 1) > 183 ? 'month' : 'week';
+    $wkSeries = allstat_query_series($pdo, $domainId, $start, $end, $trendGran);
     $wkLabels = $wkSeries['labels'] ?? [];
     if (count($wkLabels) >= 2) {
         $trendRows = [];
         foreach ($wkLabels as $i => $lab) {
             $trendRows[] = [$lab, allstat_number((int) ($wkSeries['visits'][$i] ?? 0)), allstat_number((int) ($wkSeries['users'][$i] ?? 0)), allstat_number((int) ($wkSeries['conversions'][$i] ?? 0))];
         }
-        $payload['sections'][] = ['title' => 'Týdenní vývoj návštěvnosti', 'cols' => ['Týden', 'Návštěvy', 'Uživatelé', 'Konverze'], 'rows' => array_slice($trendRows, -16)];
+        $payload['sections'][] = ['title' => ($trendGran === 'month' ? 'Měsíční' : 'Týdenní') . ' vývoj návštěvnosti', 'cols' => [$trendGran === 'month' ? 'Měsíc' : 'Týden', 'Návštěvy', 'Uživatelé (součet dní)', 'Konverze'], 'rows' => $trendRows];
     }
 
     // Noví vs vracející se — rozpad KPI „Uživatelé" (instrukce pro AI se na tento poměr výslovně ptá).
     $nr = $data['charts']['newReturning'] ?? [];
+    $usersDailySum = ($data['summary']['users_basis'] ?? 'daily_sum') !== 'unique';
     if (!empty($nr['segments']) && ($nr['total'] ?? 0) > 0) {
-        $payload['sections'][] = ['title' => 'Noví vs. vracející se uživatelé', 'cols' => ['Typ', 'Uživatelé', 'Podíl'],
+        $payload['sections'][] = ['title' => 'Noví vs. vracející se uživatelé' . ($usersDailySum ? ' (součet dní, vícedenní návštěvník vícekrát)' : ''), 'cols' => ['Typ', 'Uživatelé', 'Podíl'],
             'rows' => array_map(static fn (array $s): array => [$s['label'] ?? '', $s['valueLabel'] ?? '', $s['shareLabel'] ?? ''], $nr['segments'])];
     }
 
@@ -551,9 +553,10 @@ function allstat_share_section_overview(PDO $pdo, int $domainId, string $start, 
             'rows' => array_map(static fn (array $r): array => [$r['source'] ?? '', allstat_number((int) ($r['sessions'] ?? 0)), allstat_number((int) ($r['conversions'] ?? 0))], array_slice($ai, 0, 10))];
     }
 
-    $q = $data['tables']['queries'] ?? [];
+    // Delší seznamy než na dashboardu (ten drží 5–8 řádků): report je podklad pro analýzu.
+    $q = allstat_query_search_queries($pdo, $domainId, $start, $end, 20);
     $payload['sections'][] = ['title' => 'Top dotazy v Google (GSC)', 'cols' => ['Dotaz', 'Kliknutí', 'Imprese', 'CTR', 'Pozice'],
-        'rows' => array_map(static fn (array $r): array => [$r['query'] ?? '', allstat_number((int) ($r['clicks'] ?? 0)), allstat_number((int) ($r['impressions'] ?? 0)), $r['ctrLabel'] ?? '', allstat_number((float) ($r['position'] ?? 0), 1)], array_slice($q, 0, 15))];
+        'rows' => array_map(static fn (array $r): array => [$r['query'] ?? '', allstat_number((int) ($r['clicks'] ?? 0)), allstat_number((int) ($r['impressions'] ?? 0)), $r['ctrLabel'] ?? '', allstat_number((float) ($r['position'] ?? 0), 1)], $q)];
 
     // Stránky ve vyhledávání (GSC) — párová sekce k dotazům: dotazy = CO se hledá, stránky = KTERÁ URL
     // se zobrazuje. Vysoké imprese + nízké CTR = kandidát na lepší titulek/snippet.
@@ -563,22 +566,23 @@ function allstat_share_section_overview(PDO $pdo, int $domainId, string $start, 
             'rows' => array_map(static fn (array $r): array => [$r['page'], $r['clicksLabel'], $r['impressionsLabel'], $r['ctrLabel'], $r['positionLabel']], $gscPages)];
     }
 
-    $pages = $data['tables']['allPages'] ?? [];
-    $payload['sections'][] = ['title' => 'Nejnavštěvovanější stránky', 'cols' => ['Stránka', 'Zobrazení', 'Podíl'],
-        'rows' => array_map(static fn (array $r): array => [$r['path'] ?? '', $r['viewsLabel'] ?? allstat_number((int) ($r['views'] ?? 0)), $r['shareLabel'] ?? ''], array_slice($pages, 0, 12))];
+    $pages = allstat_query_all_pages($pdo, $domainId, $start, $end, 20);
+    $payload['sections'][] = ['title' => 'Nejnavštěvovanější stránky', 'cols' => ['Stránka', 'Zobrazení', 'Podíl ze všech zobrazení'],
+        'rows' => array_map(static fn (array $r): array => [$r['path'] ?? '', $r['viewsLabel'] ?? allstat_number((int) ($r['views'] ?? 0)), $r['shareLabel'] ?? ''], $pages)];
 
     // Vstupní stránky — kudy návštěvníci na web VSTUPUJÍ (jiné než nejnavštěvovanější; landing_pages_daily).
-    $landing = $data['tables']['landingPages'] ?? [];
+    [$prevStart, $prevEnd] = allstat_previous_range($start, $end);
+    $landing = allstat_query_landing_pages($pdo, $domainId, $start, $end, $prevStart, $prevEnd, 15);
     if ($landing) {
         $payload['sections'][] = ['title' => 'Vstupní stránky (kudy lidé přicházejí)', 'cols' => ['Stránka', 'Vstupy', 'Konverze', 'Trend vs. min.'],
-            'rows' => array_map(static fn (array $r): array => [$r['path'] ?? '', allstat_number((int) ($r['sessions'] ?? 0)), allstat_number((int) ($r['conversions'] ?? 0)), ($r['changeLabel'] ?? '') ?: '—'], array_slice($landing, 0, 8))];
+            'rows' => array_map(static fn (array $r): array => [$r['path'] ?? '', allstat_number((int) ($r['sessions'] ?? 0)), allstat_number((int) ($r['conversions'] ?? 0)), ($r['changeLabel'] ?? '') ?: '—'], $landing)];
     }
 
-    // GA4 události — klíčové (konverzní) i běžné interakce.
-    $ev = $data['tables']['events'] ?? [];
+    // GA4 události — klíčové (konverzní) i běžné interakce. V závorce surový název z GA4 (kroky trychtýřů ho používají).
+    $ev = allstat_query_events($pdo, $domainId, $start, $end, 15);
     if ($ev) {
         $payload['sections'][] = ['title' => 'GA4 události', 'cols' => ['Událost', 'Počet', 'Klíčové (konverze)'],
-            'rows' => array_map(static fn (array $r): array => [$r['event'] ?? '', $r['countLabel'] ?? allstat_number((int) ($r['count'] ?? 0)), ($r['keyEvents'] ?? 0) > 0 ? ($r['keyEventsLabel'] ?? '') : '—'], array_slice($ev, 0, 10))];
+            'rows' => array_map(static fn (array $r): array => [($r['event'] ?? '') . (($r['name'] ?? '') !== '' && ($r['name'] ?? '') !== ($r['event'] ?? '') ? ' (' . $r['name'] . ')' : ''), $r['countLabel'] ?? allstat_number((int) ($r['count'] ?? 0)), ($r['keyEvents'] ?? 0) > 0 ? ($r['keyEventsLabel'] ?? '') : '—'], $ev)];
     }
 
     // E-commerce (jen když web reálně měří): nákupní trychtýř + top produkty. U webů bez e-shopu se přeskočí.
