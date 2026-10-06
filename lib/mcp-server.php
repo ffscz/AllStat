@@ -74,8 +74,8 @@ function allstat_mcp_server_instructions(PDO $pdo): string
     // Prose only: en dash instead of the long dash, single line breaks collapsed.
     $org = trim((string) preg_replace('/\s+/u', ' ', str_replace("\u{2014}", "\u{2013}", $org)));
 
-    $guide = "AllStat je jen pro čtení: vrací agregované analytické údaje webů a sociálních sítí, žádné osobní údaje.\n"
-        . "Postup: 1) list_websites (website_id, source_id, stav dat). 2) get_report je hotový report v Markdownu; konkrétní čísla: get_channel_growth, get_overview, get_source_metrics, get_top_content, get_search_queries, get_sync_status; trychtýře (kroky, úbytek podle zdroje): get_funnel.\n"
+    $guide = "AllStat je jen pro čtení: agregovaná analytika webů a sociálních sítí, žádné osobní údaje.\n"
+        . "Postup: 1) list_websites (website_id, source_id, stav dat). 2) get_report je hotový report v Markdownu; konkrétní čísla: get_channel_growth, get_overview, get_source_metrics, get_top_content, get_search_queries, get_sync_status, trychtýře get_funnel; cokoli dalšího (stránka, kampaň, řada, srovnání): query_data.\n"
         . "Pravidla: relativní období končí včerejškem; růst kanálů jen z uzavřených měsíců; čísla česky (1 234,5; 12,3 %); pásmo Europe/Prague. Search Console a YouTube mají zpoždění 2 až 3 dny: data_delays ve výstupu = chybějící poslední dny, ne pokles. Před závěry ověř aktuálnost (get_sync_status). Odpovídej česky, pokud uživatel nepíše jinak.\n"
         . allstat_mcp_srv_third_party_warning();
 

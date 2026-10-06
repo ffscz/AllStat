@@ -1,5 +1,5 @@
 {
-    "version": "1.2.4",
+    "version": "1.2.5",
     "files": {
         "LICENSE": {
             "s": 35823,
@@ -206,8 +206,8 @@
             "h": "18ae399f81182bc9de916e9c77b195df20cc58d6f2d55a62b085a299f1bf1780"
         },
         "cron/sync.php": {
-            "s": 6066,
-            "h": "661637eeb10ee27844555023dfd2f2fef372d22d00bb5b47dc37dd320a8f5cd1"
+            "s": 7014,
+            "h": "f30fbc8d29e26de3f855587ece83dac78e5e00073a2878427e793350c3e395f2"
         },
         "data-deletion.php": {
             "s": 4453,
@@ -277,13 +277,17 @@
             "s": 113052,
             "h": "a6e7c289339e1ff51dd49e93a8a6d1ed6c01759d350f7c1df416624d09ba90e5"
         },
+        "lib/mcp-query.php": {
+            "s": 50095,
+            "h": "1396c2347754c395bce2f3897f8d9fd4f64b0bccf8fe5ec423e4725e925df80a"
+        },
         "lib/mcp-server.php": {
-            "s": 37205,
-            "h": "ccc7eac95822538f3dc300b2b2548104bb6ee0527b740253fd0c12d6fa4d3303"
+            "s": 37227,
+            "h": "c62814c8c2a592f0b4faf652de4a81ed9dc54b6279c3583f8572c355eebbf469"
         },
         "lib/mcp-tools.php": {
-            "s": 132019,
-            "h": "2a04a551843c662303c38ad483087207d30c58273af9e929c793f20c9262ce26"
+            "s": 139119,
+            "h": "89c2f409a1ea9cfebdf011a059ef6a0516add79f7fee7d081c4ca886aa4dcb82"
         },
         "lib/meta-connect.php": {
             "s": 12160,
@@ -314,8 +318,8 @@
             "h": "278b100ebf859329c8f8e8902038ec77f076b93195e6f4b69160f5140c93088e"
         },
         "lib/sync-engines.php": {
-            "s": 139799,
-            "h": "603e8cf2458e03e3daba0b3235441c8956bc774e0ffc34a5335a1da51f66d825"
+            "s": 141041,
+            "h": "8ee89e48563c26e26b4d3c939108874d85eb16c5d257f657c08aa51b758dfa31"
         },
         "lib/sync.php": {
             "s": 43262,
@@ -335,7 +339,7 @@
         },
         "lib/version.php": {
             "s": 542,
-            "h": "18355dea45840fde6c31e858df8b278e28e8f6f769c72224376c2b8631ac4f3e"
+            "h": "690e831914aa0e62d7f4f816da83d32912d4c929ae646f4b57e06dd52eec2666"
         },
         "oauth/authorize.php": {
             "s": 19173,

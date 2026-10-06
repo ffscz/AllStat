@@ -16,6 +16,8 @@
 
 // Konverzní trychtýře (tool get_funnel): jen čtecí funkce, soubor nic nedělá při načtení.
 require_once __DIR__ . '/funnels.php';
+// Obecný dotaz nad uloženými daty (tool query_data).
+require_once __DIR__ . '/mcp-query.php';
 
 const ALLSTAT_MCP_TOOL_MAX_CHARS = 60000;
 const ALLSTAT_MCP_TOOL_STALE_HOURS = 48;
@@ -82,7 +84,7 @@ function allstat_mcp_tool_annotations(string $title): array
 }
 
 /**
- * The 9 tools in a fixed order (deterministic tools/list).
+ * The 10 tools in a fixed order (deterministic tools/list).
  */
 function allstat_mcp_tool_definitions(): array
 {
@@ -206,6 +208,32 @@ function allstat_mcp_tool_definitions(): array
                     'breakdown' => ['type' => 'string', 'enum' => array_keys(allstat_funnel_breakdowns()), 'description' => 'Rozpad kroků: channel = kanál, source_medium = zdroj a médium, campaign = kampaň. Bez parametru se použije výchozí rozpad trychtýře.'],
                 ],
                 ['website_id']
+            )
+        ),
+        $tool(
+            'query_data',
+            'Dotaz na libovolná data',
+            'Obecný dotaz nad všemi daty, která AllStat ukládá. Použijte, když hotové nástroje nestačí: konkrétní stránka, kampaň, událost, dotaz, region nebo příspěvek mimo žebříčky, delší seznamy (až 500 řádků), vývoj v čase (series) a srovnání s předchozím obdobím nebo meziročně (compare). '
+            . 'dataset: pages, landing_pages, channels, devices, geo, events, referrers, ai_sources, utm, items, demographics, funnel_events, web_daily (Google Analytics); search_queries, search_pages (Search Console); source_metrics (všechny metriky zdroje), source_breakdown (rozpady zdroje, bez metric_key jejich seznam), posts (příspěvky a videa) se source_id. '
+            . 'filter hledá text v hlavní dimenzi (cesta, dotaz, kampaň, text příspěvku), filters v konkrétních dimenzích, group_by mění seskupení (utm, geo, funnel_events, demographics). Výsledek nese totals za celé období, rows_total a next_offset pro další stránku. ' . ALLSTAT_MCP_THIRD_PARTY_WARNING,
+            $object(
+                allstat_mcp_tool_props_website() + [
+                    'dataset' => ['type' => 'string', 'enum' => array_keys(allstat_mcp_query_datasets()), 'description' => 'Datová sada, viz popis nástroje.'],
+                    'source_id' => ['type' => 'integer', 'minimum' => 1, 'description' => 'Jen pro source_metrics, source_breakdown a posts: napojený zdroj z list_websites.'],
+                    'metric_key' => ['type' => 'string', 'maxLength' => 80, 'description' => 'Jen pro source_breakdown: klíč rozpadu (např. traffic_source, dem_age, foll_industry, campaign_spend, page). Bez něj se vrátí seznam dostupných.'],
+                ] + allstat_mcp_tool_props_period() + [
+                    'filter' => ['type' => 'string', 'maxLength' => 200, 'description' => 'Text, který musí hlavní dimenze obsahovat (velikost písmen nevadí), např. "/kariera", "vouchery", "newsletter".'],
+                    'filters' => ['type' => 'object', 'additionalProperties' => ['type' => 'string'], 'description' => 'Filtr podle konkrétních dimenzí (obsahuje text), např. {"source": "newsletter"} u utm, {"country": "Czechia"} u geo, {"post_type": "reel"} u posts.'],
+                    'group_by' => ['type' => 'array', 'items' => ['type' => 'string'], 'maxItems' => 5, 'description' => 'Dimenze pro seskupení u vícerozměrných sad, např. ["campaign"] nebo ["source", "medium"] u utm, ["country"] u geo.'],
+                    'metrics' => ['type' => 'array', 'items' => ['type' => 'string'], 'maxItems' => 12, 'description' => 'Které metriky vrátit (výchozí všechny dané sady), např. ["clicks", "position"].'],
+                    'sort' => ['type' => 'string', 'maxLength' => 40, 'description' => 'Metrika nebo dimenze pro řazení (výchozí hlavní metrika sady; u source_metrics value nebo metric_key; u posts published_at nebo metrika).'],
+                    'order' => ['type' => 'string', 'enum' => ['desc', 'asc'], 'default' => 'desc', 'description' => 'Směr řazení.'],
+                    'limit' => ['type' => 'integer', 'minimum' => 1, 'maximum' => ALLSTAT_MCP_QUERY_MAX_ROWS, 'default' => 50, 'description' => 'Počet řádků (nejvýš 500).'],
+                    'offset' => ['type' => 'integer', 'minimum' => 0, 'maximum' => 100000, 'default' => 0, 'description' => 'Kolik řádků přeskočit (stránkování, viz next_offset).'],
+                    'series' => ['type' => 'string', 'enum' => ['none', 'day', 'week', 'month'], 'default' => 'none', 'description' => 'Přidat vývoj v čase pro prvních 20 vrácených řádků (u posts souhrn po obdobích).'],
+                    'compare' => ['type' => 'string', 'enum' => ['none', 'previous', 'year'], 'default' => 'none', 'description' => 'Srovnání s předchozím obdobím (previous) nebo se stejnými dny loni (year): hodnoty previous a change_pct.'],
+                ],
+                ['website_id', 'dataset']
             )
         ),
     ];
@@ -738,6 +766,58 @@ function allstat_mcp_tool_normalize_args(array $schema, array $args): array
                 return [[], 'Parametr ' . $name . ' musí být ' . ($min !== null ? 'nejméně ' . $min : 'nejvýše ' . $max) . '.'];
             }
             $out[$name] = $int;
+        } elseif ($type === 'array') {
+            // Seznam textů; přijme i text oddělený čárkami (někteří klienti posílají pole jako řetězec).
+            if (is_string($value)) {
+                $value = array_values(array_filter(array_map('trim', explode(',', $value)), static fn (string $v): bool => $v !== ''));
+            }
+            if (!is_array($value) || !array_is_list($value)) {
+                return [[], 'Parametr ' . $name . ' musí být seznam hodnot, například ["views", "sessions"].'];
+            }
+            if (count($value) > (int) ($def['maxItems'] ?? 50)) {
+                return [[], 'Parametr ' . $name . ' smí mít nejvýš ' . (int) ($def['maxItems'] ?? 50) . ' položek.'];
+            }
+            $items = [];
+            foreach ($value as $item) {
+                if (!is_string($item) && !is_int($item)) {
+                    return [[], 'Položky parametru ' . $name . ' musí být texty.'];
+                }
+                $item = trim((string) $item);
+                if ($item === '') {
+                    continue;
+                }
+                if (isset($def['items']['enum'])) {
+                    $canonical = null;
+                    foreach ($def['items']['enum'] as $option) {
+                        if (strtolower((string) $option) === strtolower($item)) {
+                            $canonical = $option;
+                            break;
+                        }
+                    }
+                    if ($canonical === null) {
+                        return [[], 'Položky parametru ' . $name . ' musí být z hodnot: ' . implode(', ', $def['items']['enum']) . '.'];
+                    }
+                    $item = $canonical;
+                }
+                $items[] = mb_substr($item, 0, 120);
+            }
+            $out[$name] = array_values(array_unique($items));
+        } elseif ($type === 'object') {
+            // Objekt {název: text}; prázdné hodnoty se vynechají.
+            if (!is_array($value) || ($value !== [] && array_is_list($value))) {
+                return [[], 'Parametr ' . $name . ' musí být objekt, například {"source": "newsletter"}.'];
+            }
+            $obj = [];
+            foreach ($value as $key => $item) {
+                if (!is_scalar($item)) {
+                    return [[], 'Hodnoty parametru ' . $name . ' musí být texty.'];
+                }
+                $item = trim((string) $item);
+                if ($item !== '') {
+                    $obj[mb_substr((string) $key, 0, 60)] = mb_substr($item, 0, 200);
+                }
+            }
+            $out[$name] = $obj;
         } elseif ($type === 'boolean') {
             if (is_bool($value)) {
                 $out[$name] = $value;
@@ -770,6 +850,9 @@ function allstat_mcp_tool_normalize_args(array $schema, array $args): array
                     return [[], 'Parametr ' . $name . ' musí být jedna z hodnot: ' . implode(', ', $def['enum']) . '.'];
                 }
                 $value = $canonical;
+            }
+            if (isset($def['maxLength']) && mb_strlen($value) > (int) $def['maxLength']) {
+                return [[], 'Parametr ' . $name . ' smí mít nejvýš ' . (int) $def['maxLength'] . ' znaků.'];
             }
             if (($def['format'] ?? '') === 'date' && allstat_mcp_tool_parse_date($value) === null) {
                 return [[], 'Parametr ' . $name . ' musí být platné datum ve formátu YYYY-MM-DD (např. 2026-08-01).'];
@@ -988,6 +1071,7 @@ function allstat_mcp_tool_call(PDO $pdo, array $config, string $name, array $arg
         'get_search_queries' => allstat_mcp_tool_get_search_queries($pdo, $config, $a),
         'get_sync_status' => allstat_mcp_tool_get_sync_status($pdo, $config, $a),
         'get_funnel' => allstat_mcp_tool_get_funnel($pdo, $config, $a),
+        'query_data' => allstat_mcp_tool_query_data($pdo, $config, $a),
         default => null,
     };
 }

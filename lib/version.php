@@ -3,7 +3,7 @@
  * Verze AllStatu, která se ukazuje v bočním panelu. Při vydání nové verze ji zvedni spolu s
  * allstat-balicek/overlay/VERSION (build.php ověří, že se shodují).
  */
-const ALLSTAT_VERSION = '1.2.4';
+const ALLSTAT_VERSION = '1.2.5';
 
 /** Verze běžící instalace: z kořenového souboru VERSION (veřejný balíček), jinak z konstanty výše. */
 function allstat_app_version(): string
