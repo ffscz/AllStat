@@ -1,5 +1,5 @@
 {
-    "version": "1.2.2",
+    "version": "1.2.3",
     "files": {
         "LICENSE": {
             "s": 35823,
@@ -278,12 +278,12 @@
             "h": "a6e7c289339e1ff51dd49e93a8a6d1ed6c01759d350f7c1df416624d09ba90e5"
         },
         "lib/mcp-server.php": {
-            "s": 37040,
-            "h": "dd1b063a6b29d84a00ef2499c9fe5569c38833f69a17c6cd8e244f48796b4caa"
+            "s": 37059,
+            "h": "b4308c6521df3a6d7c83a22b9e557472a688aab5056d3fd71de83a31724b35c2"
         },
         "lib/mcp-tools.php": {
-            "s": 112898,
-            "h": "d099a1843fff44674b42a0b8c471ebc335a8df61d841e1eb095cf56cd19cd212"
+            "s": 119018,
+            "h": "ffb298fc452bacd896fae1cab06467d3879e8e645423894ef69e8f2ce9bdbe8e"
         },
         "lib/meta-connect.php": {
             "s": 12160,
@@ -335,7 +335,7 @@
         },
         "lib/version.php": {
             "s": 542,
-            "h": "6e427a48ef60a4e20319b9e262c44c3c80f5b74ed1d454249e6a8b91b09e8ddb"
+            "h": "c0a3820b8f4c7d15ee5bcaad16422075265b9ca9e1e6b401be2956781b4b8c13"
         },
         "oauth/authorize.php": {
             "s": 19173,

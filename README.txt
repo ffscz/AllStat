@@ -40,6 +40,13 @@ docs/INSTALACE.html. Otevřete ho dvojklikem ve svém počítači (před nahrán
 Složku "docs" a tento soubor můžete po instalaci ze serveru smazat.
 
 
+Změny ve verzi 1.2.3
+--------------------
+ * MCP hlásí zpoždění dat: Search Console a YouTube Analytics dodávají data o 2 až 3 dny později.
+   Nástroje (přehled, dotazy, YouTube, report) nově vrací data_delays s chybějícími dny a označí
+   neúplné ukazatele, aby AI nevykládala chybějící dny jako pokles.
+ * Popis organizace se v instrukcích MCP už nezkracuje.
+
 Změny ve verzi 1.2.2
 --------------------
  * Obnova z GitHubu: na stránce Aktualizace jde přeinstalovat vydání z GitHubu i bez novější verze
