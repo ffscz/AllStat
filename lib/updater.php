@@ -284,8 +284,10 @@ function allstat_update_history(PDO $pdo): array
 /**
  * Nainstaluje nejnovější vydání. Vrací ['ok' => bool, 'message' => string, 'warnings' => list<string>].
  * Do výměny souborů se nic nemění; když výměna selže uprostřed, vrátí už přepsané soubory ze zálohy.
+ * $reinstall = obnova z GitHubu i bez novější verze (po nepovedeném ručním nasazení): nainstaluje nejnovější vydání,
+ * i když je stejné nebo starší než nainstalovaná verze. Databáze zůstává, migrace jen přidávají, takže starší kód s ní funguje.
  */
-function allstat_update_install(PDO $pdo, int $actorId): array
+function allstat_update_install(PDO $pdo, int $actorId, bool $reinstall = false): array
 {
     $installed = allstat_installed_version();
     if ($installed === null) {
@@ -304,8 +306,8 @@ function allstat_update_install(PDO $pdo, int $actorId): array
     try {
         $status = allstat_update_check($pdo, true);
         $latest = $status['latest'];
-        if (!$status['available'] || $latest === null) {
-            throw new RuntimeException('Není k dispozici novější verze.');
+        if ($latest === null || (!$reinstall && !$status['available'])) {
+            throw new RuntimeException($latest === null ? 'Nepodařilo se zjistit vydání na GitHubu.' : 'Není k dispozici novější verze.');
         }
         $preflight = allstat_update_preflight($latest);
         if (!$preflight['ok']) {
@@ -429,12 +431,13 @@ function allstat_update_install(PDO $pdo, int $actorId): array
             'backed_up' => $backedUp,
             'added' => $added,
             'warnings' => $warnings,
+            'reinstall' => $reinstall,
         ];
         file_put_contents($backupDir . '/update.json', json_encode($record, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
         $history = allstat_update_history($pdo);
         array_unshift($history, array_diff_key($record, ['backed_up' => 1, 'added' => 1]));
         allstat_set_setting($pdo, 'update.history', json_encode(array_slice($history, 0, 20), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
-        allstat_audit($pdo, $actorId, null, 'app_updated', $installed . ' → ' . $latest['version']);
+        allstat_audit($pdo, $actorId, null, $reinstall ? 'app_reinstalled' : 'app_updated', $installed . ' → ' . $latest['version']);
         allstat_update_rrmdir($stage);
         @unlink($zipPath);
         $backups = glob($work . '/backup-*', GLOB_ONLYDIR) ?: [];
@@ -443,7 +446,11 @@ function allstat_update_install(PDO $pdo, int $actorId): array
             allstat_update_rrmdir($old);
         }
 
-        return ['ok' => true, 'message' => 'AllStat je aktualizovaný na verzi ' . $latest['version'] . '.', 'warnings' => $warnings];
+        $message = $reinstall
+            ? 'AllStat je obnovený z vydání ' . $latest['version'] . ' na GitHubu (předtím ' . $installed . ').'
+            : 'AllStat je aktualizovaný na verzi ' . $latest['version'] . '.';
+
+        return ['ok' => true, 'message' => $message, 'warnings' => $warnings];
     } catch (Throwable $exception) {
         allstat_update_rrmdir($stage);
 

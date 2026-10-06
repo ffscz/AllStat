@@ -16,11 +16,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'check') {
         $status = allstat_update_check($pdo, true);
         allstat_flash($status['error'] ? 'error' : 'ok', $status['error'] ?? ($status['available'] ? 'Je k dispozici verze ' . $status['latest']['version'] . '.' : 'Máš nejnovější verzi.'));
-    } elseif ($action === 'install') {
+    } elseif ($action === 'install' || $action === 'reinstall') {
         if (empty($_POST['backup_ok'])) {
             allstat_flash('error', 'Potvrď, že máš zálohu databáze.');
         } else {
-            $result = allstat_update_install($pdo, (int) $user['id']);
+            $result = allstat_update_install($pdo, (int) $user['id'], $action === 'reinstall');
             allstat_flash($result['ok'] ? 'ok' : 'error', $result['message']);
             foreach ($result['warnings'] as $warning) {
                 allstat_flash('error', $warning);
@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $status = allstat_update_check($pdo, false, 10);
 $installed = $status['installed'];
 $latest = $status['latest'];
-$preflight = $status['available'] && $latest ? allstat_update_preflight($latest) : null;
+$preflight = $latest ? allstat_update_preflight($latest) : null;
 $history = allstat_update_history($pdo);
 $lastBackup = glob(allstat_update_root() . '/_update/backup-*', GLOB_ONLYDIR) ?: [];
 $canRollback = $installed !== null && $lastBackup && ($history[0]['to'] ?? null) === $installed && empty($history[0]['rollback']);
@@ -120,6 +120,30 @@ allstat_admin_header('Aktualizace', 'update', $user, $config);
 </div>
 <?php endif; ?>
 
+<?php if ($installed !== null && !$status['available'] && $latest && $preflight): ?>
+<div class="admin-card">
+    <div class="admin-card-header">
+        <div>
+            <h2>Obnovit z GitHubu</h2>
+            <p>Přeinstaluje soubory aplikace z vydání <?= h($latest['version']) ?> na GitHubu, třeba když se nepovede ruční nasazení nebo se poškodí soubory.</p>
+        </div>
+    </div>
+    <div class="admin-card-body">
+        <p class="field-help">Postup je stejný jako u aktualizace: ověření podpisu, záloha přepisovaných souborů, výměna, předchozí stav jde vrátit tlačítkem v historii. Data, <code>config.php</code>, <code>config-keys.php</code> a upravený <code>.htaccess</code> zůstanou.<?php if (version_compare($latest['version'], $installed, '<')): ?> Nainstalovaná verze <?= h($installed) ?> je novější než vydání na GitHubu, kód se tedy vrátí na <?= h($latest['version']) ?> (databáze zůstane, starší verze s ní funguje).<?php endif; ?></p>
+        <?php if ($preflight['ok']): ?>
+            <form method="post" class="form-stack update-install" data-confirm="Přeinstalovat AllStat z vydání <?= h($latest['version']) ?> na GitHubu?">
+                <?= allstat_csrf_field() ?>
+                <input type="hidden" name="action" value="reinstall">
+                <label class="update-confirm"><input type="checkbox" name="backup_ok" value="1" required> Mám zálohu databáze (administrace hostingu, phpMyAdmin, Exportovat).</label>
+                <div class="form-actions"><button class="button-secondary" type="submit">Přeinstalovat <?= h($latest['version']) ?> z GitHubu</button></div>
+            </form>
+        <?php else: ?>
+            <p class="notice notice-error">Server zatím přeinstalaci nesplňuje: <?= h(implode(', ', array_column(array_filter($preflight['checks'], static fn (array $c): bool => !$c['ok']), 'label'))) ?>.</p>
+        <?php endif; ?>
+    </div>
+</div>
+<?php endif; ?>
+
 <?php if ($history): ?>
 <div class="admin-card">
     <div class="admin-card-header">
@@ -144,7 +168,7 @@ allstat_admin_header('Aktualizace', 'update', $user, $config);
                     <td><?= h($fmtDate($item['at'] ?? null)) ?></td>
                     <td><?= h($item['from'] ?? '') ?></td>
                     <td><?= h($item['to'] ?? '') ?></td>
-                    <td><?= !empty($item['rollback']) ? 'návrat na předchozí verzi' : h(implode(' ', $item['warnings'] ?? [])) ?></td>
+                    <td><?= !empty($item['rollback']) ? 'návrat na předchozí verzi' : h(trim((!empty($item['reinstall']) ? 'obnova z GitHubu. ' : '') . implode(' ', $item['warnings'] ?? []))) ?></td>
                 </tr>
             <?php endforeach; ?>
             </tbody>

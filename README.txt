@@ -40,6 +40,13 @@ docs/INSTALACE.html. Otevřete ho dvojklikem ve svém počítači (před nahrán
 Složku "docs" a tento soubor můžete po instalaci ze serveru smazat.
 
 
+Změny ve verzi 1.2.2
+--------------------
+ * Obnova z GitHubu: na stránce Aktualizace jde přeinstalovat vydání z GitHubu i bez novější verze
+   (třeba po nepovedeném ručním nahrání souborů). Se zálohou a možností vrátit předchozí stav.
+ * Popis organizace pro AI analýzy je v Nastavení u právních údajů pro všechny instalace.
+
+
 Změny ve verzi 1.2.1
 --------------------
  * Verze AllStatu je vidět v bočním panelu: v přehledu pod stavem synchronizace, v administraci dole.

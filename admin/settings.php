@@ -16,6 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         foreach (['app', 'org', 'web', 'email', 'address', 'ico', 'effective'] as $lk) {
             allstat_set_setting($pdo, 'legal.' . $lk, trim((string) ($_POST['legal_' . $lk] ?? '')));
         }
+        // Popis organizace pro AI analýzy (share.org_context): bez něj platí obecný kontext v lib/share.php.
         if (array_key_exists('org_context', $_POST)) {
             allstat_set_setting($pdo, 'share.org_context', trim((string) $_POST['org_context']));
         }
