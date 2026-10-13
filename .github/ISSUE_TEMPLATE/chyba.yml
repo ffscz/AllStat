@@ -1,0 +1,44 @@
+name: Chyba
+description: Něco v AllStatu nefunguje, jak má.
+title: "[Chyba] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Díky za nahlášení. **Bezpečnostní chybu sem prosím nepište**, použijte [soukromé hlášení zranitelnosti](https://github.com/ffscz/AllStat/security/advisories/new).
+        Řadu potíží s instalací a napojením služeb řeší [návod, kapitola Když se něco nepovede](https://ffscz.github.io/AllStat/#problemy).
+  - type: input
+    id: verze
+    attributes:
+      label: Verze AllStatu
+      description: Je dole v bočním panelu.
+      placeholder: "1.2.8"
+    validations:
+      required: true
+  - type: input
+    id: prostredi
+    attributes:
+      label: Verze PHP a hosting
+      description: Verzi PHP ukáže kontrola serveru na stránce Aktualizace.
+      placeholder: "PHP 8.3, sdílený hosting s cPanelem"
+  - type: textarea
+    id: popis
+    attributes:
+      label: Co se stalo
+      description: Co jste dělali, co jste čekali a co se stalo místo toho. Když se ukázala chybová hláška, vložte ji celou.
+    validations:
+      required: true
+  - type: textarea
+    id: kroky
+    attributes:
+      label: Jak chybu zopakovat
+      placeholder: |
+        1. Otevřu …
+        2. Kliknu na …
+  - type: textarea
+    id: log
+    attributes:
+      label: Chybový log (nepovinné)
+      description: Posledních 20 řádků souboru error_log. Předtím z něj odstraňte hesla, tokeny a adresy, které nechcete zveřejnit.
+      render: text
