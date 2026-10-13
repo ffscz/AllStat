@@ -3059,6 +3059,18 @@ sup.growth-partial { margin-left: 1px; font-size: 11px; }
     line-height: 1.55;
 }
 
+.update-code {
+    margin: 0 0 8px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface-muted);
+    font-size: 12px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
 .update-checks {
     display: grid;
     gap: 4px;

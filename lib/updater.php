@@ -245,6 +245,71 @@ function allstat_update_modified_files(): array
     return $modified;
 }
 
+/**
+ * Upravené chráněné soubory (.htaccess), vedle kterých aktualizace nechala novou verzi (.new). Vrací bloky nové verze,
+ * jejichž pravidla v upraveném souboru chybí (blok = řádky mezi prázdnými řádky, komentář nad pravidly ho popisuje).
+ * Když nic nechybí, je .new zbytečný a smaže se, karta na stránce Aktualizace se pak neukáže.
+ *
+ * @return list<array{file: string, blocks: list<array{title: string, code: string}>}>
+ */
+function allstat_update_protected_pending(): array
+{
+    $root = allstat_update_root();
+    $manifest = allstat_update_read_manifest($root . '/lib/manifest.json');
+    $normalize = static fn (string $line): string => (string) preg_replace('/\s+/', ' ', trim($line));
+    $pending = [];
+    foreach (array_keys($manifest['protected']) as $rel) {
+        $newPath = $root . '/' . $rel . '.new';
+        if (!is_file($newPath) || !is_file($root . '/' . $rel)) {
+            continue;
+        }
+        $have = [];
+        foreach (preg_split('/\R/', (string) file_get_contents($root . '/' . $rel)) ?: [] as $line) {
+            $line = $normalize($line);
+            if ($line !== '' && !str_starts_with($line, '#')) {
+                $have[$line] = true;
+            }
+        }
+        $blocks = [];
+        foreach (preg_split('/\R[ \t]*\R/', trim((string) file_get_contents($newPath))) ?: [] as $chunk) {
+            $title = [];
+            $hasRules = false;
+            $missing = false;
+            foreach (preg_split('/\R/', $chunk) ?: [] as $line) {
+                $line = $normalize($line);
+                if ($line === '') {
+                    continue;
+                }
+                if (str_starts_with($line, '#')) {
+                    $title[] = ltrim(substr($line, 1));
+                    continue;
+                }
+                $hasRules = true;
+                $missing = $missing || !isset($have[$line]);
+            }
+            if ($hasRules && $missing) {
+                $blocks[] = ['title' => implode(' ', $title), 'code' => trim($chunk)];
+            }
+        }
+        if ($blocks === []) {
+            @unlink($newPath); // pravidla nové verze už v souboru jsou, .new nic nepřináší
+            continue;
+        }
+        $pending[] = ['file' => $rel, 'blocks' => $blocks];
+    }
+
+    return $pending;
+}
+
+/** Smaže novou verzi chráněného souboru (.new), když si správce nechává svůj soubor. Jen pro soubory z manifestu. */
+function allstat_update_protected_dismiss(string $rel): bool
+{
+    $root = allstat_update_root();
+    $manifest = allstat_update_read_manifest($root . '/lib/manifest.json');
+
+    return isset($manifest['protected'][$rel]) && is_file($root . '/' . $rel . '.new') && @unlink($root . '/' . $rel . '.new');
+}
+
 /** Kontrola před aktualizací: verze PHP, rozšíření, zápis do složek, místo, ručně upravené soubory. */
 function allstat_update_preflight(array $latest): array
 {
@@ -344,6 +409,7 @@ function allstat_update_install(PDO $pdo, int $actorId, bool $reinstall = false)
 
         // 3) Plán: co se zapíše, co zůstane (upravené .htaccess), co se smaže (soubory, které nová verze nemá).
         $write = [];
+        $keptProtected = [];
         foreach ($packageFiles as $rel) {
             if (in_array($rel, ALLSTAT_UPDATE_NEVER_TOUCH, true) || str_starts_with($rel, '_update/')) {
                 continue;
@@ -351,10 +417,15 @@ function allstat_update_install(PDO $pdo, int $actorId, bool $reinstall = false)
             $target = $root . '/' . $rel;
             if (isset($newManifest['protected'][$rel]) && is_file($target)) {
                 $current = hash_file('sha256', $target);
-                $known = [$oldManifest['protected'][$rel]['h'] ?? null, $newManifest['protected'][$rel]['h'] ?? null];
-                if (!in_array($current, $known, true)) {
-                    $write[$rel . '.new'] = $rel; // upravený soubor necháme, novou verzi vedle
-                    $warnings[] = 'Soubor ' . $rel . ' má vaše úpravy, nepřepsal se. Nová verze je vedle jako ' . $rel . '.new, porovnejte je.';
+                $oldHash = $oldManifest['protected'][$rel]['h'] ?? null;
+                $newHash = $newManifest['protected'][$rel]['h'] ?? null;
+                if (!in_array($current, [$oldHash, $newHash], true)) {
+                    // Upravený soubor (správce, hosting, volba verze PHP v cPanelu…) zůstává. Když ho nová verze oproti
+                    // předchozí nemění, není co doplňovat: žádný .new ani upozornění.
+                    if ($oldHash === null || $oldHash !== $newHash) {
+                        $write[$rel . '.new'] = $rel;
+                        $keptProtected[] = $rel;
+                    }
                     continue;
                 }
             }
@@ -419,6 +490,14 @@ function allstat_update_install(PDO $pdo, int $actorId, bool $reinstall = false)
                 in_array($rel, $backedUp, true) ? @copy($backupDir . '/files/' . $rel, $root . '/' . $rel) : @unlink($root . '/' . $rel);
             }
             throw new RuntimeException($swapError->getMessage() . ' Změněné soubory byly vráceny ze zálohy.');
+        }
+
+        // Upozornit jen na upravené soubory, kterým z nové verze opravdu něco chybí (zbytečný .new se tím rovnou smaže).
+        if ($keptProtected) {
+            foreach (array_intersect($keptProtected, array_column(allstat_update_protected_pending(), 'file')) as $rel) {
+                $warnings[] = 'Soubor ' . $rel . ' má na hostingu vlastní úpravy, proto ho aktualizace nepřepsala. AllStat funguje, '
+                    . 'jen nová verze v tomto souboru mění pravidla: co doplnit, ukazuje karta „Soubor ' . $rel . '“ na stránce Aktualizace.';
+            }
         }
 
         // 6) Záznam pro návrat a historii, úklid.

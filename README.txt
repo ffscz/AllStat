@@ -41,6 +41,17 @@ Je vždy pro nejnovější verzi a jde vytisknout nebo uložit jako PDF. Tento s
 po instalaci ze serveru smazat.
 
 
+Změny ve verzi 1.2.7
+--------------------
+ * Aktualizace a soubor .htaccess: upravený .htaccess (vlastní pravidla, blokování robotů, nastavení PHP
+   od hostingu) zůstává. Když ho nová verze nemění, aktualizace už nic nehlásí a nevytváří .htaccess.new.
+   Když ho mění, stránka Aktualizace ukáže, která pravidla ve vašem souboru chybí a k čemu slouží
+   (návod na webu, kapitola 8, Hláška o souboru .htaccess).
+ * Upozornění po aktualizaci jsou žlutá, ne červená jako chyba.
+ * Při aktualizaci z 1.2.6 se u upraveného .htaccess ukáže ještě naposledy stará hláška „porovnejte je“.
+   Stránka Aktualizace pak sama ukáže, jestli je co doplnit, a zbytečný .htaccess.new smaže.
+
+
 Změny ve verzi 1.2.6
 --------------------
  * Nápověda: otazník v záhlaví každé stránky otevře kapitolu návodu, která k ní patří. Formulář

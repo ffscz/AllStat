@@ -1,5 +1,5 @@
 {
-    "version": "1.2.6",
+    "version": "1.2.7",
     "files": {
         "LICENSE": {
             "s": 35823,
@@ -14,8 +14,8 @@
             "h": "197d993c9b171119b526eb886ce832b074d029940d7a3b67c1297761e486c99c"
         },
         "admin/_layout.php": {
-            "s": 9312,
-            "h": "53abf51a3e8d453c447a6bdcefbc070fc6126544badbe4327c5d3c9c3d664a99"
+            "s": 9336,
+            "h": "f25de53ab9b710b25f19d47f8cd81ddda835f6e3cb6a544a274936715f6d8173"
         },
         "admin/clarity-import.php": {
             "s": 12230,
@@ -118,8 +118,8 @@
             "h": "fd8f932ff84543c834f546e7b5faf9dd0a41d45818fdc9d47881d0f4f93a9d44"
         },
         "admin/update.php": {
-            "s": 10494,
-            "h": "f16df7c0e6cd5af3eee7729a417025ad27d368c17baa067fa300592f9b64de23"
+            "s": 12944,
+            "h": "136b94a058f26b38c7bfac9195a7346896ad788a257348cf932de6eb197c5864"
         },
         "admin/users.php": {
             "s": 11879,
@@ -142,8 +142,8 @@
             "h": "90e72d3d23c05775b6e96de89e67c31202760f809d2aee6e2cfcbcb62310916d"
         },
         "assets/css/app.css": {
-            "s": 74851,
-            "h": "e0142ce7b5c710a477656f47fb869ba39df27aff6e39942035583c11bea24c47"
+            "s": 75110,
+            "h": "cc32a1ce44460c8796a906dba4a6a420cf60821a1aa4a37bd7421d21c0fc2eac"
         },
         "assets/img/help/bs-1-obsah-exportovat-data.webp": {
             "s": 25846,
@@ -330,8 +330,8 @@
             "h": "9df275dcfc85e3a826604368e2791352ac357fa357b1cb406b92d914923b1479"
         },
         "lib/updater.php": {
-            "s": 23868,
-            "h": "57c0ac503201d771adb023a17e5f48b007706088a3c69f828466332531c8ade8"
+            "s": 27452,
+            "h": "0ff37bcbe61a3db9ee3ce566db20be305d0ddb804c70b0701e071eee6e8ea721"
         },
         "lib/users.php": {
             "s": 7820,
@@ -339,7 +339,7 @@
         },
         "lib/version.php": {
             "s": 542,
-            "h": "cc10b3c33b053a63c2da22192ea5286d5b1ee0f98b5eb0e56b509050ec28f141"
+            "h": "fed81b565d1a879fb91576c6f88c9a139af3242085e53ce3e36a3114620242b4"
         },
         "oauth/authorize.php": {
             "s": 19173,
