@@ -1,5 +1,5 @@
 {
-    "version": "1.2.5",
+    "version": "1.2.6",
     "files": {
         "LICENSE": {
             "s": 35823,
@@ -14,12 +14,12 @@
             "h": "197d993c9b171119b526eb886ce832b074d029940d7a3b67c1297761e486c99c"
         },
         "admin/_layout.php": {
-            "s": 8802,
-            "h": "d913f7689ae195c61843aa304372e4ad97198608ec7c1b4c20e6cd9efc0d0523"
+            "s": 9312,
+            "h": "53abf51a3e8d453c447a6bdcefbc070fc6126544badbe4327c5d3c9c3d664a99"
         },
         "admin/clarity-import.php": {
-            "s": 12219,
-            "h": "fa862d17bd28d5f27dc0cffc79b04bde14a4645615c07748081bc464b2b8440c"
+            "s": 12230,
+            "h": "c8df9a8fbb0651be065378d8dbceebed543dee45e33e6ac14748f866ba11a2bb"
         },
         "admin/connection-sync.php": {
             "s": 4481,
@@ -58,20 +58,20 @@
             "h": "f11c1510b4272530cbfe0addfd4556ec66cd313f8a0e6343d56a15469d810bcc"
         },
         "admin/logs.php": {
-            "s": 3644,
-            "h": "900a631afc1beda58f2601a1630ca6af052cef6bdda9b13f9c901d14f5881fc5"
+            "s": 3656,
+            "h": "ef6a954a11d929b170b1ed3bc3cf74f5ec7822e4e82be44ef64b27d06e795947"
         },
         "admin/mcp.php": {
             "s": 79221,
             "h": "233dbb266782223a24128dbb383f87b9f5887cb71db1aae8eb3b4811b888ebc1"
         },
         "admin/meta-connect.php": {
-            "s": 8363,
-            "h": "19e707c78bf761f62f900e78416fc18300979fb791b02ce09a4259869cb47918"
+            "s": 8371,
+            "h": "e5ab0f53650e5f79484933c1214ccf1d47cad7c47f967ecafa3b09c81ee815d8"
         },
         "admin/meta-select.php": {
-            "s": 6925,
-            "h": "20ad7e752fb1cf9da9e57a4e50d82c096fb992b5891738db1709b63ce34fe2d7"
+            "s": 6933,
+            "h": "1f3df19d2ebc14bb0950ab7db4d2218232e3fdc7da9fb50c429c0f6a41fd72ac"
         },
         "admin/metrics.php": {
             "s": 11381,
@@ -90,12 +90,12 @@
             "h": "662c7261cc3b600f598edbbd8a4e214bc3191b633fa978ecc550c6d70db676ca"
         },
         "admin/security.php": {
-            "s": 7583,
-            "h": "8cc8732740cf5690ea8e4515f56962aaaf07e160a0456ae7b71fced5daec4850"
+            "s": 7597,
+            "h": "b1cd99f76b60b31399b9ed31f28ae9ade90cfe946be1f8f764fbe290e575d1ad"
         },
         "admin/settings.php": {
-            "s": 16009,
-            "h": "b20b0aa8543300d1c7a277f2938d96d8735d82d99aa8119e0c5c67887c9f7cb5"
+            "s": 16075,
+            "h": "151dab99099cd9e63d780dccf48f57959a5dca3531635c5d34278db544c416df"
         },
         "admin/setup-2fa.php": {
             "s": 4503,
@@ -110,8 +110,8 @@
             "h": "34b53c52739b99823361ac607e270fe5445aa4541b90516d056ef951e550b886"
         },
         "admin/source-edit.php": {
-            "s": 25047,
-            "h": "492adcf7395a2dad61c13023ee02fe0db7ea38287736bc30094f9b205835182e"
+            "s": 25302,
+            "h": "21b5314d7b57720b557dcbe41ff273b85d9a5201460043fc791b39f428ba4d5e"
         },
         "admin/sources.php": {
             "s": 7765,
@@ -142,8 +142,8 @@
             "h": "90e72d3d23c05775b6e96de89e67c31202760f809d2aee6e2cfcbcb62310916d"
         },
         "assets/css/app.css": {
-            "s": 74646,
-            "h": "2a2dcc077521fbdbd9dbf5ef96de62cafb4c2f925636be4913cbade8927c48a3"
+            "s": 74851,
+            "h": "e0142ce7b5c710a477656f47fb869ba39df27aff6e39942035583c11bea24c47"
         },
         "assets/img/help/bs-1-obsah-exportovat-data.webp": {
             "s": 25846,
@@ -218,8 +218,8 @@
             "h": "77010f323ada1f123d7ffc3c6fcf6c15991cbc0c1f3cabd3a878017ea09931a7"
         },
         "index.php": {
-            "s": 78228,
-            "h": "479c45253366cd0e3259a1cfbcde03afa5bafe801de80d616d7c1533a31b9801"
+            "s": 78313,
+            "h": "7d2e8c5035167d887777177c58fa7bff918141c2b96bf7a0b8b918cef229e3a8"
         },
         "install.php": {
             "s": 1363,
@@ -266,12 +266,12 @@
             "h": "80b57767fc283db9af272a63c1a1a649cefc5a6aabbea77ce46d864febe23d9e"
         },
         "lib/helpers.php": {
-            "s": 13205,
-            "h": "b8604e7732e6ab8e884d338b99ce018652be3e40912b303dcbecf0ba1906ebfb"
+            "s": 14931,
+            "h": "7ef393aeeca1ba7ba6edd232783cbc1d8a7aa1a30aa243786178467d1f677e73"
         },
         "lib/install-wizard.php": {
-            "s": 79802,
-            "h": "a721d38be73383402b9c3c41bfb0677f1f2b837f603365396a0a0524c831dd2f"
+            "s": 81010,
+            "h": "e61fa7c5ea0a43e6900ec0a00be1fad737b651f54469c18c6bdbb1d9fd7ca1e9"
         },
         "lib/mcp-oauth.php": {
             "s": 113052,
@@ -339,7 +339,7 @@
         },
         "lib/version.php": {
             "s": 542,
-            "h": "690e831914aa0e62d7f4f816da83d32912d4c929ae646f4b57e06dd52eec2666"
+            "h": "cc10b3c33b053a63c2da22192ea5286d5b1ee0f98b5eb0e56b509050ec28f141"
         },
         "oauth/authorize.php": {
             "s": 19173,
@@ -422,10 +422,6 @@
         "allstat-mcp/.htaccess": {
             "s": 427,
             "h": "f48d2378a536d7c043cc37df143868edd171a911d11e3f8fa881244e62b2ecef"
-        },
-        "docs/.htaccess": {
-            "s": 103,
-            "h": "8721431113cefa6d4f12245da02a1bbb1c563f5f858aff009322288d4b6d1339"
         },
         "lib/.htaccess": {
             "s": 119,

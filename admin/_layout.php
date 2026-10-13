@@ -13,8 +13,19 @@ function allstat_take_flashes(): array
     return is_array($flashes) ? $flashes : [];
 }
 
-function allstat_admin_header(string $title, string $active, array $user, array $config): void
+function allstat_admin_header(string $title, string $active, array $user, array $config, ?string $help = null): void
 {
+    // Nápověda v záhlaví: kapitola návodu podle sekce, stránka může předat přesnější kotvu ('' = začátek návodu).
+    $help ??= [
+        'domains' => 'weby',
+        'sources' => 'sluzby',
+        'funnels' => 'trychtyre',
+        'settings' => 'po-instalaci',
+        'mcp' => 'ai',
+        'users' => 'uzivatele',
+        '2fa' => 'dvoufazove-overeni',
+        'update' => 'aktualizace',
+    ][$active] ?? '';
     $mainItems = [
         ['key' => 'dashboard', 'label' => 'Přehled', 'icon' => 'home', 'href' => allstat_url($config, '')],
         ['key' => 'domains', 'label' => 'Weby', 'icon' => 'globe-2', 'href' => allstat_url($config, 'admin/domains.php')],
@@ -93,6 +104,7 @@ function allstat_admin_header(string $title, string $active, array $user, array 
                         <p><?= h($user['name'] ?? $user['email'] ?? '') ?> · <?= h($user['role'] ?? '') ?></p>
                     </div>
                     <span class="title-actions">
+                        <?= allstat_help_button($help) ?>
                         <button class="avatar-button" id="themeToggle" type="button" title="Motiv" aria-label="Motiv"><i data-lucide="moon"></i></button>
                     </span>
                 </div>

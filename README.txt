@@ -35,9 +35,19 @@ kdo zná adresu webu.
 
 Podrobný návod
 --------------
-Návod s obrázky, nastavením cronu, napojením služeb, aktualizací a řešením problémů je v souboru
-docs/INSTALACE.html. Otevřete ho dvojklikem ve svém počítači (před nahráním na hosting).
-Složku "docs" a tento soubor můžete po instalaci ze serveru smazat.
+Návod s obrázky, nastavením cronu, napojením služeb, aktualizací a řešením problémů je na webu:
+https://ffscz.github.io/AllStat/
+Je vždy pro nejnovější verzi a jde vytisknout nebo uložit jako PDF. Tento soubor můžete
+po instalaci ze serveru smazat.
+
+
+Změny ve verzi 1.2.6
+--------------------
+ * Nápověda: otazník v záhlaví každé stránky otevře kapitolu návodu, která k ní patří. Formulář
+   napojení služby a nastavení cronu odkazují přímo na postup, odkazy na návod má i instalátor.
+ * Návod je nově na webu https://ffscz.github.io/AllStat/ (vždy pro nejnovější verzi, jde vytisknout
+   nebo uložit jako PDF). Balíček už neobsahuje složku docs ani PDF příručku, starou složku docs
+   můžete ze serveru smazat.
 
 
 Změny ve verzi 1.2.5
@@ -94,7 +104,7 @@ Změny ve verzi 1.2.0
  * Aktualizace jedním tlačítkem: AllStat sám zjistí novou verzi na GitHubu, administrátor ji uvidí
    v bočním panelu a nainstaluje ze stránky Aktualizace (Nastavení, Verze a aktualizace). Balíček je
    podepsaný, přepisované soubory se zálohují a předchozí verzi jde vrátit. Upravený .htaccess zůstane.
- * Z verze 1.1.0 a starší je potřeba na 1.2.0 aktualizovat ještě ručně (docs/INSTALACE.html, kapitola 8),
+ * Z verze 1.1.0 a starší je potřeba na 1.2.0 aktualizovat ještě ručně (návod na webu, kapitola 8),
    další verze už půjdou tlačítkem.
 
 
@@ -105,7 +115,7 @@ Změny ve verzi 1.1.0
    zobrazení v přehledu s úbytkem mezi kroky, vývojem v čase a rozpadem podle kanálu, zdroje nebo kampaně.
  * Připojení AI: nový nástroj get_funnel, asistent umí trychtýře číst a hledat, kde se lidé ztrácejí.
  * Příručka: kapitola o trychtýřích a o přípravě měření v Google Tag Manageru a GA4.
- * Aktualizace z verze 1.0.x: postup je v docs/INSTALACE.html, kapitola 8. Databáze se doplní sama.
+ * Aktualizace z verze 1.0.x: postup je v návodu na webu, kapitola 8. Databáze se doplní sama.
 
 
 Změny ve verzi 1.0.2
@@ -115,13 +125,13 @@ Změny ve verzi 1.0.2
  * Správa (weby, zdroje, metriky, logy, feed, importy) je jen pro administrátora, i pro čtení.
  * Dávkový režim cronu pro desítky webů: limit napojení nebo sekund na jedno spuštění (Nastavení).
  * Výběr webu má od 8 webů pole pro hledání.
- * Aktualizace z verze 1.0.0 nebo 1.0.1: postup je v docs/INSTALACE.html, kapitola 8.
+ * Aktualizace z verze 1.0.0 nebo 1.0.1: postup je v návodu na webu, kapitola 8.
 
 
 Změny ve verzi 1.0.1
 --------------------
  * Google Ads: napojení přešlo na aktuální verzi Google Ads API (v25). Developer token už není
-   potřeba, přístup určuje projekt v Google Cloud (viz docs/INSTALACE.html, část Google Ads).
+   potřeba, přístup určuje projekt v Google Cloud (viz návod na webu, část Google Ads).
  * Meta Ads: souhrny za celou dobu kampaně, sestavy a reklamy, skutečná frekvence a cíl kampaně.
- * Aktualizace z verze 1.0.0: postup je v docs/INSTALACE.html, kapitola 8. config.php
+ * Aktualizace z verze 1.0.0: postup je v návodu na webu, kapitola 8. config.php
    a config-keys.php zůstanou beze změny, databáze se upraví sama při prvním otevření.
