@@ -118,7 +118,7 @@ function allstat_admin_header(string $title, string $active, array $user, array 
                     </div>
                 <?php endif; ?>
                 <?php foreach (allstat_take_flashes() as $flash): ?>
-                    <div class="notice <?= ($flash['type'] ?? '') === 'error' ? 'notice-error' : 'notice-ok' ?>"><?= h($flash['message'] ?? '') ?></div>
+                    <div class="notice <?= ['error' => 'notice-error', 'warn' => 'notice-warn'][$flash['type'] ?? ''] ?? 'notice-ok' ?>"><?= h($flash['message'] ?? '') ?></div>
                 <?php endforeach; ?>
     <?php
 }

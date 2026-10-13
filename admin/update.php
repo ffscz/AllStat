@@ -23,9 +23,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $result = allstat_update_install($pdo, (int) $user['id'], $action === 'reinstall');
             allstat_flash($result['ok'] ? 'ok' : 'error', $result['message']);
             foreach ($result['warnings'] as $warning) {
-                allstat_flash('error', $warning);
+                allstat_flash('warn', $warning);
             }
         }
+    } elseif ($action === 'dismiss_new') {
+        $file = (string) ($_POST['file'] ?? '');
+        $dismissed = allstat_update_protected_dismiss($file);
+        allstat_flash($dismissed ? 'ok' : 'error', $dismissed ? 'Soubor ' . $file . '.new je smazaný, tvůj ' . $file . ' zůstává beze změny.' : 'Soubor se nepodařilo smazat, zkus to přes FTP.');
     } elseif ($action === 'rollback') {
         $result = allstat_update_rollback($pdo, (int) $user['id']);
         allstat_flash($result['ok'] ? 'ok' : 'error', $result['message']);
@@ -42,6 +46,7 @@ $history = allstat_update_history($pdo);
 $lastBackup = glob(allstat_update_root() . '/_update/backup-*', GLOB_ONLYDIR) ?: [];
 $canRollback = $installed !== null && $lastBackup && ($history[0]['to'] ?? null) === $installed && empty($history[0]['rollback']);
 $schemaOk = allstat_schema_is_current($pdo);
+$protectedPending = $installed !== null ? allstat_update_protected_pending() : [];
 $fmtDate = static fn (?string $value): string => $value ? date('j. n. Y H:i', strtotime($value)) : 'zatím ne';
 
 allstat_admin_header('Aktualizace', 'update', $user, $config);
@@ -76,6 +81,31 @@ allstat_admin_header('Aktualizace', 'update', $user, $config);
     </div>
 </div>
 
+<?php foreach ($protectedPending as $item): ?>
+<div class="admin-card">
+    <div class="admin-card-header">
+        <div>
+            <h2>Soubor <?= h($item['file']) ?>: pravidla k doplnění</h2>
+            <p>AllStat funguje, tohle není chyba. Soubor <code><?= h($item['file']) ?></code> (pravidla webového serveru) má na hostingu vlastní úpravy, třeba od hostingu nebo blokování robotů, proto ho aktualizace nepřepsala. Nová verze je vedle jako <code><?= h($item['file']) ?>.new</code> a v tvém souboru z ní chybí bloky níže. <?= allstat_help_link('htaccess', 'Co s tím') ?></p>
+        </div>
+        <span class="status-badge status-warning">Ke kontrole</span>
+    </div>
+    <div class="admin-card-body">
+        <?php foreach ($item['blocks'] as $block): ?>
+            <?php if ($block['title'] !== ''): ?><h3 class="update-subhead"><?= h($block['title']) ?></h3><?php endif; ?>
+            <pre class="update-code"><code><?= h($block['code']) ?></code></pre>
+        <?php endforeach; ?>
+        <p class="field-help">Jak na to: přes FTP nebo správce souborů na hostingu otevři <code><?= h($item['file']) ?></code> a bloky vlož na konec, vlastní úpravy nech. Když žádné vlastní úpravy nepotřebuješ, smaž <code><?= h($item['file']) ?></code> a <code><?= h($item['file']) ?>.new</code> přejmenuj na <code><?= h($item['file']) ?></code>. Jakmile pravidla v souboru budou, karta zmizí sama.</p>
+        <form method="post" class="form-actions" data-confirm="Nechat svůj <?= h($item['file']) ?> a smazat <?= h($item['file']) ?>.new?">
+            <?= allstat_csrf_field() ?>
+            <input type="hidden" name="action" value="dismiss_new">
+            <input type="hidden" name="file" value="<?= h($item['file']) ?>">
+            <button class="button-secondary" type="submit">Nechat svůj soubor a smazat <?= h($item['file']) ?>.new</button>
+        </form>
+    </div>
+</div>
+<?php endforeach; ?>
+
 <?php if ($status['available'] && $latest && $preflight): ?>
 <div class="admin-card">
     <div class="admin-card-header">
@@ -104,7 +134,7 @@ allstat_admin_header('Aktualizace', 'update', $user, $config);
         <?php endif; ?>
 
         <h3 class="update-subhead">Co se stane</h3>
-        <p class="field-help">Balíček se stáhne a ověří jeho podpis (bez platného podpisu se nic nenainstaluje). Soubory, které se přepíšou, se zálohují, pak se vymění a databáze se při dalším načtení sama doplní (nové tabulky a sloupce, data se nemažou). Soubory <code>config.php</code> a <code>config-keys.php</code> zůstanou beze změny, upravený <code>.htaccess</code> se nepřepíše. Trvá to pár sekund a předchozí verzi jde vrátit.</p>
+        <p class="field-help">Balíček se stáhne a ověří jeho podpis (bez platného podpisu se nic nenainstaluje). Soubory, které se přepíšou, se zálohují, pak se vymění a databáze se při dalším načtení sama doplní (nové tabulky a sloupce, data se nemažou). Soubory <code>config.php</code> a <code>config-keys.php</code> zůstanou beze změny, upravený <code>.htaccess</code> se nepřepíše (když nová verze mění jeho pravidla, ukáže se tu, co doplnit). Trvá to pár sekund a předchozí verzi jde vrátit.</p>
 
         <?php if ($preflight['ok']): ?>
             <form method="post" class="form-stack update-install" data-confirm="Nainstalovat AllStat <?= h($latest['version']) ?>?">
