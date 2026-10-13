@@ -41,6 +41,16 @@ Je vždy pro nejnovější verzi a jde vytisknout nebo uložit jako PDF. Tento s
 po instalaci ze serveru smazat.
 
 
+Změny ve verzi 1.2.8
+--------------------
+ * Soubor .htaccess: pravidla AllStatu jsou v bloku mezi řádky # BEGIN AllStat a # END AllStat.
+   Aktualizace přepisuje jen tento blok a když v souboru chybí, doplní ho. Vlastní pravidla hostingu
+   nebo správce mimo blok zůstanou. Po změně AllStat ověří, že web odpovídá, a když ne, změnu sám
+   vrátí. Ruční doplňování pravidel do .htaccess už není potřeba.
+ * Při aktualizaci z 1.2.7 a starší s upraveným .htaccess doplní pravidla stránka Aktualizace hned
+   po aktualizaci (se stejnou kontrolou).
+
+
 Změny ve verzi 1.2.7
 --------------------
  * Aktualizace a soubor .htaccess: upravený .htaccess (vlastní pravidla, blokování robotů, nastavení PHP

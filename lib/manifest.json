@@ -1,5 +1,5 @@
 {
-    "version": "1.2.7",
+    "version": "1.2.8",
     "files": {
         "LICENSE": {
             "s": 35823,
@@ -118,8 +118,8 @@
             "h": "fd8f932ff84543c834f546e7b5faf9dd0a41d45818fdc9d47881d0f4f93a9d44"
         },
         "admin/update.php": {
-            "s": 12944,
-            "h": "136b94a058f26b38c7bfac9195a7346896ad788a257348cf932de6eb197c5864"
+            "s": 14374,
+            "h": "4fab39db4b1754be1d55e58fd4547b7e4219e61f0395a3444455f9ce1745a9b1"
         },
         "admin/users.php": {
             "s": 11879,
@@ -330,8 +330,8 @@
             "h": "9df275dcfc85e3a826604368e2791352ac357fa357b1cb406b92d914923b1479"
         },
         "lib/updater.php": {
-            "s": 27452,
-            "h": "0ff37bcbe61a3db9ee3ce566db20be305d0ddb804c70b0701e071eee6e8ea721"
+            "s": 35885,
+            "h": "577afd2ba28a54f3beea0cca0e09d9ca7e5a07af830c5023ece949fcf55f7723"
         },
         "lib/users.php": {
             "s": 7820,
@@ -339,7 +339,7 @@
         },
         "lib/version.php": {
             "s": 542,
-            "h": "fed81b565d1a879fb91576c6f88c9a139af3242085e53ce3e36a3114620242b4"
+            "h": "4f9c9d2cddb0441396a82e1e49dbe6789216af6cf2dcf8f3cd66fbe035bb9561"
         },
         "oauth/authorize.php": {
             "s": 19173,
@@ -416,8 +416,8 @@
     },
     "protected": {
         ".htaccess": {
-            "s": 2316,
-            "h": "e0cbc125105f61e9a0cfb050b44a1f7b97b312e142d00fc3404e111b49bd2717"
+            "s": 2569,
+            "h": "e252e7fffd6793636e144e9c5a36260788776e89d53b49444ceca63702dec863"
         },
         "allstat-mcp/.htaccess": {
             "s": 427,

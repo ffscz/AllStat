@@ -275,6 +275,7 @@ function allstat_update_protected_pending(): array
             $title = [];
             $hasRules = false;
             $missing = false;
+            $chunk = implode("\n", array_filter(preg_split('/\R/', $chunk) ?: [], static fn (string $l): bool => !preg_match('/^\s*# (BEGIN|END) AllStat\b/', $l)));
             foreach (preg_split('/\R/', $chunk) ?: [] as $line) {
                 $line = $normalize($line);
                 if ($line === '') {
@@ -308,6 +309,144 @@ function allstat_update_protected_dismiss(string $rel): bool
     $manifest = allstat_update_read_manifest($root . '/lib/manifest.json');
 
     return isset($manifest['protected'][$rel]) && is_file($root . '/' . $rel . '.new') && @unlink($root . '/' . $rel . '.new');
+}
+
+/** Značky bloku pravidel AllStatu v .htaccess: aktualizace přepisuje jen obsah mezi nimi, zbytek souboru nechává. */
+const ALLSTAT_HTACCESS_BEGIN = '# BEGIN AllStat';
+const ALLSTAT_HTACCESS_END = '# END AllStat';
+
+/**
+ * Standardní .htaccess balíčků 1.0.0 až 1.2.7 (bez značek BEGIN/END AllStat). Když ho upravený soubor obsahuje
+ * celý, nahradí ho aktualizace novou verzí se značkami a úpravy okolo nechá.
+ */
+const ALLSTAT_HTACCESS_LEGACY = [<<<'HTACCESS'
+# AllStat: bezpečnostní pravidla (Apache 2.4 nebo LiteSpeed). PHP soubory se normálně vykonávají,
+# blokujeme jen přímé stažení citlivých souborů a přidáváme bezpečnostní hlavičky.
+#
+# Kdyby po nahrání na hosting web hlásil "Internal Server Error" (chyba 500), soubor .htaccess
+# přejmenujte na .htaccess.off a stránku obnovte. Pak požádejte poskytovatele hostingu, aby
+# ve složce povolil direktivy Options a Require (AllowOverride), a přejmenujte ho zpět.
+
+# Zákaz výpisu adresářů
+Options -Indexes
+
+# Bezpečnostní hlavičky
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# Zákaz stažení citlivých souborů: SQL schéma, zálohy, dokumentace, logy a dočasné soubory.
+<FilesMatch "(?i)\.(sql|md|docx?|log|bak|old|orig|save|inc|ini|ya?ml|lock|dist|sh|tmp)$|~$">
+    Require all denied
+</FilesMatch>
+
+# Konfigurace a šifrovací klíč: i kdyby PHP na serveru přestalo fungovat, zdrojový kód se nesmí zobrazit.
+<FilesMatch "^(config|config-keys)\.php$">
+    Require all denied
+</FilesMatch>
+
+# Číslo verze a příručka nemají být z internetu vidět
+<FilesMatch "^(VERSION|README\.txt)$">
+    Require all denied
+</FilesMatch>
+
+# Chybové logy hostingu (soubory "error_log" bez přípony)
+<FilesMatch "^error_log$">
+    Require all denied
+</FilesMatch>
+
+# Skryté soubory (.git, .env, ...), kromě adres .well-known, které potřebuje připojení AI (MCP)
+<FilesMatch "^\.(?!well-known)">
+    Require all denied
+</FilesMatch>
+
+# Připojení AI (MCP): adresy MCP serveru a přihlašování (OAuth) obsluhuje front controller ve složce
+# allstat-mcp. Pravidla jsou trvale zapnutá, ale dokud není připojení AI zapnuté v menu "AI konektory",
+# odpovídá server na tyto adresy chybou 404. Hlavička Authorization se musí dostat až do PHP.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+    RewriteRule ^(?:mcp|token|register|revoke|authorize|jwks\.json)/?$ allstat-mcp/index.php [L]
+    RewriteRule ^\.well-known/(?:oauth-authorization-server|openid-configuration|oauth-protected-resource)(?:/.*)?$ allstat-mcp/index.php [L]
+</IfModule>
+HTACCESS];
+
+/**
+ * Sloučí pravidla AllStatu z nové verze .htaccess do upraveného souboru. Přepíše jen blok mezi značkami BEGIN/END AllStat,
+ * standardní obsah starších verzí (bez značek) nahradí celou novou verzí, jinak blok připojí na konec. Vlastní úpravy mimo
+ * blok zůstanou, konce řádků podle upraveného souboru. Null = nová verze blok nemá, sloučit nejde.
+ */
+function allstat_update_htaccess_merge(string $current, string $new): ?string
+{
+    $eol = str_contains($current, "\r\n") ? "\r\n" : "\n";
+    $current = str_replace("\r\n", "\n", $current);
+    $new = str_replace("\r\n", "\n", $new);
+    $pattern = '/^' . preg_quote(ALLSTAT_HTACCESS_BEGIN, '/') . '\b.*?^' . preg_quote(ALLSTAT_HTACCESS_END, '/') . '\b[^\n]*/ms';
+    if (preg_match($pattern, $new, $match) !== 1) {
+        return null;
+    }
+    $block = $match[0];
+    if (preg_match($pattern, $current) === 1) {
+        $merged = (string) preg_replace_callback($pattern, static fn (): string => $block, $current, 1);
+    } else {
+        $merged = null;
+        foreach (ALLSTAT_HTACCESS_LEGACY as $legacy) {
+            $legacy = trim(str_replace("\r\n", "\n", $legacy));
+            if ($legacy !== '' && str_contains($current, $legacy)) {
+                $merged = str_replace($legacy, trim($new), $current);
+                break;
+            }
+        }
+        $merged ??= rtrim($current) . "\n\n" . $block . "\n";
+    }
+
+    return str_replace("\n", $eol, $merged);
+}
+
+/** Odpovídá AllStat po změně .htaccess? true = ano (2xx/3xx), false = ne (chyba serveru, zákaz), null = nejde ověřit. */
+function allstat_update_selftest(string $url): ?bool
+{
+    if ($url === '') {
+        return null;
+    }
+    $status = allstat_update_fetch($url, 8)['status'];
+
+    return $status === 0 ? null : ($status >= 200 && $status < 400);
+}
+
+/**
+ * Doplní pravidla z čekající nové verze (.htaccess.new, nechala ji tam starší verze updateru) do upraveného .htaccess
+ * stejně jako aktualizace: sloučit, ověřit, že AllStat odpovídá, jinak vrátit původní soubor. Stejnou dvojici souborů
+ * zkouší jen jednou. Vrací 'merged', 'failed', nebo null, když nebylo co dělat.
+ */
+function allstat_update_htaccess_autofix(PDO $pdo, string $selfTestUrl): ?string
+{
+    $path = allstat_update_root() . '/.htaccess';
+    if (!is_file($path) || !is_file($path . '.new')) {
+        return null;
+    }
+    $current = (string) file_get_contents($path);
+    $new = (string) file_get_contents($path . '.new');
+    $attempt = hash('sha256', $current . "\0" . $new);
+    $merged = allstat_update_htaccess_merge($current, $new);
+    if ($merged === null || allstat_setting($pdo, 'update.htaccess_autofix', '') === $attempt) {
+        return null;
+    }
+    @copy($path, allstat_update_dir() . '/htaccess-' . date('Ymd-His') . '.bak');
+    if (file_put_contents($path, $merged) === false) {
+        return null;
+    }
+    if (allstat_update_selftest($selfTestUrl) === true) {
+        @unlink($path . '.new');
+
+        return 'merged';
+    }
+    file_put_contents($path, $current);
+    allstat_set_setting($pdo, 'update.htaccess_autofix', $attempt);
+
+    return 'failed';
 }
 
 /** Kontrola před aktualizací: verze PHP, rozšíření, zápis do složek, místo, ručně upravené soubory. */
@@ -351,8 +490,10 @@ function allstat_update_history(PDO $pdo): array
  * Do výměny souborů se nic nemění; když výměna selže uprostřed, vrátí už přepsané soubory ze zálohy.
  * $reinstall = obnova z GitHubu i bez novější verze (po nepovedeném ručním nasazení): nainstaluje nejnovější vydání,
  * i když je stejné nebo starší než nainstalovaná verze. Databáze zůstává, migrace jen přidávají, takže starší kód s ní funguje.
+ * $selfTestUrl = adresa přihlášení AllStatu: s ní se pravidla doplní i do upraveného .htaccess (jen blok BEGIN/END AllStat)
+ * a po výměně se ověří, že AllStat odpovídá; bez ní nebo když ověření nevyjde, zůstane nová verze vedle jako .new.
  */
-function allstat_update_install(PDO $pdo, int $actorId, bool $reinstall = false): array
+function allstat_update_install(PDO $pdo, int $actorId, bool $reinstall = false, ?string $selfTestUrl = null): array
 {
     $installed = allstat_installed_version();
     if ($installed === null) {
@@ -410,6 +551,7 @@ function allstat_update_install(PDO $pdo, int $actorId, bool $reinstall = false)
         // 3) Plán: co se zapíše, co zůstane (upravené .htaccess), co se smaže (soubory, které nová verze nemá).
         $write = [];
         $keptProtected = [];
+        $mergedProtected = [];
         foreach ($packageFiles as $rel) {
             if (in_array($rel, ALLSTAT_UPDATE_NEVER_TOUCH, true) || str_starts_with($rel, '_update/')) {
                 continue;
@@ -423,8 +565,20 @@ function allstat_update_install(PDO $pdo, int $actorId, bool $reinstall = false)
                     // Upravený soubor (správce, hosting, volba verze PHP v cPanelu…) zůstává. Když ho nová verze oproti
                     // předchozí nemění, není co doplňovat: žádný .new ani upozornění.
                     if ($oldHash === null || $oldHash !== $newHash) {
-                        $write[$rel . '.new'] = $rel;
-                        $keptProtected[] = $rel;
+                        // Pravidla AllStatu se do upraveného .htaccess doplní sama (přepíše se jen blok BEGIN/END AllStat)
+                        // a po výměně se ověří, že AllStat odpovídá. Jinak zůstane nová verze vedle jako .new a karta.
+                        $newContent = (string) file_get_contents($stage . '/' . $rel);
+                        $merged = $rel === '.htaccess' && $selfTestUrl !== null
+                            ? allstat_update_htaccess_merge((string) file_get_contents($target), $newContent)
+                            : null;
+                        if ($merged !== null) {
+                            file_put_contents($stage . '/' . $rel, $merged);
+                            $mergedProtected[$rel] = $newContent;
+                            $write[$rel] = $rel;
+                        } else {
+                            $write[$rel . '.new'] = $rel;
+                            $keptProtected[] = $rel;
+                        }
                     }
                     continue;
                 }
@@ -492,10 +646,27 @@ function allstat_update_install(PDO $pdo, int $actorId, bool $reinstall = false)
             throw new RuntimeException($swapError->getMessage() . ' Změněné soubory byly vráceny ze zálohy.');
         }
 
+        // Sloučený .htaccess: když AllStat po výměně neodpovídá (nebo to nejde ověřit), vrátit původní soubor ze zálohy
+        // a novou verzi nechat vedle jako .new (karta na stránce Aktualizace).
+        $mergedOk = [];
+        $mergeFailed = [];
+        foreach ($mergedProtected as $rel => $newContent) {
+            if (allstat_update_selftest((string) $selfTestUrl) === true) {
+                $mergedOk[] = $rel;
+                continue;
+            }
+            @copy($backupDir . '/files/' . $rel, $root . '/' . $rel);
+            file_put_contents($root . '/' . $rel . '.new', $newContent);
+            $keptProtected[] = $rel;
+            $mergeFailed[] = $rel;
+        }
+
         // Upozornit jen na upravené soubory, kterým z nové verze opravdu něco chybí (zbytečný .new se tím rovnou smaže).
         if ($keptProtected) {
             foreach (array_intersect($keptProtected, array_column(allstat_update_protected_pending(), 'file')) as $rel) {
-                $warnings[] = 'Soubor ' . $rel . ' má na hostingu vlastní úpravy, proto ho aktualizace nepřepsala. AllStat funguje, '
+                $warnings[] = (in_array($rel, $mergeFailed, true)
+                    ? 'Pravidla do souboru ' . $rel . ' nešlo doplnit automaticky (AllStat pak neodpovídal nebo to nešlo ověřit), soubor zůstal beze změny. AllStat funguje, '
+                    : 'Soubor ' . $rel . ' má na hostingu vlastní úpravy, proto ho aktualizace nepřepsala. AllStat funguje, ')
                     . 'jen nová verze v tomto souboru mění pravidla: co doplnit, ukazuje karta „Soubor ' . $rel . '“ na stránce Aktualizace.';
             }
         }
@@ -528,6 +699,9 @@ function allstat_update_install(PDO $pdo, int $actorId, bool $reinstall = false)
         $message = $reinstall
             ? 'AllStat je obnovený z vydání ' . $latest['version'] . ' na GitHubu (předtím ' . $installed . ').'
             : 'AllStat je aktualizovaný na verzi ' . $latest['version'] . '.';
+        if ($mergedOk) {
+            $message .= ' Pravidla AllStatu v souboru .htaccess jsou doplněná, vlastní úpravy zůstaly beze změny.';
+        }
 
         return ['ok' => true, 'message' => $message, 'warnings' => $warnings];
     } catch (Throwable $exception) {

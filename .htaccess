@@ -4,7 +4,11 @@
 # Kdyby po nahrání na hosting web hlásil "Internal Server Error" (chyba 500), soubor .htaccess
 # přejmenujte na .htaccess.off a stránku obnovte. Pak požádejte poskytovatele hostingu, aby
 # ve složce povolil direktivy Options a Require (AllowOverride), a přejmenujte ho zpět.
+#
+# Pravidla AllStatu jsou mezi řádky „# BEGIN AllStat“ a „# END AllStat“. Ten blok při aktualizaci
+# přepisuje AllStat. Vlastní pravidla (hosting, blokování robotů) pište mimo něj, zůstanou beze změny.
 
+# BEGIN AllStat
 # Zákaz výpisu adresářů
 Options -Indexes
 
@@ -49,3 +53,4 @@ Options -Indexes
     RewriteRule ^(?:mcp|token|register|revoke|authorize|jwks\.json)/?$ allstat-mcp/index.php [L]
     RewriteRule ^\.well-known/(?:oauth-authorization-server|openid-configuration|oauth-protected-resource)(?:/.*)?$ allstat-mcp/index.php [L]
 </IfModule>
+# END AllStat
