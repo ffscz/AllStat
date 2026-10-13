@@ -27,6 +27,7 @@ h1{font-size:38px;line-height:1.15;margin:26px 0 10px;letter-spacing:-.01em}
 h2{font-size:26px;line-height:1.25;margin:60px 0 14px;padding-top:26px;border-top:1px solid var(--line);scroll-margin-top:16px}
 h2 .n{display:inline-grid;place-items:center;min-width:34px;height:34px;padding:0 6px;border-radius:17px;background:var(--blue);color:#fff;font-size:16px;font-weight:700;margin-right:10px;vertical-align:3px}
 h3{font-size:19px;line-height:1.3;margin:32px 0 8px}
+h3[id],h4[id]{scroll-margin-top:16px}
 h4{font-size:16px;margin:22px 0 4px}
 p{margin:.6em 0}
 ul,ol{padding-left:1.35em;margin:.6em 0}li{margin:.3em 0}
@@ -101,7 +102,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
   <div class="brand"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span> AllStat</div>
   <h1>Instalační příručka</h1>
   <p class="lead">AllStat sbírá na jednom místě statistiky vašeho webu a sociálních sítí a ukládá je do vaší vlastní databáze. Tahle příručka vás provede instalací na běžný webhosting, krok za krokem. Počítejte s 30 minutami.</p>
-  <p class="meta">Návod k verzi 1.2.5 · <a href="https://github.com/ffscz/AllStat/releases/latest">Stáhnout AllStat</a> · <a href="https://github.com/ffscz/AllStat">Zdrojový kód na GitHubu</a><span class="no-print"> · <button type="button" class="print-btn" data-print>Vytisknout nebo uložit jako PDF</button></span></p>
+  <p class="meta">Návod k verzi 1.2.6 · <a href="https://github.com/ffscz/AllStat/releases/latest">Stáhnout AllStat</a> · <a href="https://github.com/ffscz/AllStat">Zdrojový kód na GitHubu</a><span class="no-print"> · <button type="button" class="print-btn" data-print>Vytisknout nebo uložit jako PDF</button></span></p>
 </header>
 
 <nav class="toc" aria-label="Obsah">
@@ -228,7 +229,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
 
 <ol class="steps">
   <li><h4>Rozbalte balíček v počítači</h4>
-    <p>Balíček <code>allstat-1.2.5.zip</code> rozbalte (ve Windows: pravé tlačítko, „Extrahovat vše“). Vznikne složka <code>allstat</code>.</p></li>
+    <p>Balíček <code>allstat-1.2.6.zip</code> rozbalte (ve Windows: pravé tlačítko, „Extrahovat vše“). Vznikne složka <code>allstat</code>.</p></li>
   <li><h4>Připojte se k hostingu</h4>
     <p>V programu FileZilla (nebo jiném FTP klientu) zadejte server, uživatele, heslo a port, které jste dostali od poskytovatele hostingu. Když hosting nabízí šifrované spojení (FTPS nebo SFTP), zvolte ho.</p></li>
   <li><h4>Otevřete složku webu</h4>
@@ -323,7 +324,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
 <p>Přihlaste se e-mailem a heslem z kroku 3. Po přihlášení uvidíte prázdný přehled, protože zatím nejsou napojené žádné služby. Než se do nich pustíte, dokončete čtyři věci, na kterých závisí, že AllStat bude spolehlivě fungovat.</p>
 <figure><a class="zoom" href="img/07-prehled-po-instalaci.webp" title="Otevřít v plné velikosti"><img src="img/07-prehled-po-instalaci.webp" alt="Prázdný přehled po první instalaci" width="1100" height="900" loading="lazy" decoding="async"></a><figcaption>Přehled hned po instalaci. Odkaz „Zdroje dat“ vede k napojování služeb.</figcaption></figure>
 
-<h3>1. Zálohujte soubory config.php a config-keys.php</h3>
+<h3 id="zaloha-konfigurace">1. Zálohujte soubory config.php a config-keys.php</h3>
 <p>Stáhněte si oba soubory z hostingu a uložte je na bezpečné místo mimo web, nejlépe do správce hesel nebo zabezpečeného úložiště.</p>
 <ul>
   <li><code>config.php</code> obsahuje přístup k databázi.</li>
@@ -331,7 +332,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
 </ul>
 <p>Soubory nikomu neposílejte e-mailem a nikdy je nevkládejte do veřejných úložišť kódu.</p>
 
-<h3>2. Nastavte automatické stahování dat (cron)</h3>
+<h3 id="cron">2. Nastavte automatické stahování dat (cron)</h3>
 <p>Bez tohoto kroku AllStat stahuje data jen ručně. Cron jednou denně stáhne nová data za posledních sedm dní pro všechna napojení. Historii za 16 měsíců stáhnete ručně tlačítkem u každého zdroje.</p>
 <figure><a class="zoom" href="img/10a-nastaveni-cron.webp" title="Otevřít v plné velikosti"><img src="img/10a-nastaveni-cron.webp" alt="Nastavení, blok Automatický denní sync" width="780" height="799" loading="lazy" decoding="async"></a><figcaption>Stránka Nastavení ukazuje hotový příkaz s vaším tajným klíčem a stav posledního běhu.</figcaption></figure>
 
@@ -354,11 +355,11 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
 <div class="tip callout"><span class="label">Jak poznáte, že cron běží</span>
 <p>Druhý den otevřete Nastavení. Vedle nadpisu „Automatický denní sync“ musí svítit stav „Běží“ a musí se zobrazit čas posledního běhu. Když AllStat cron 26 hodin neuvidí, změní stav na „Neběžel přes 26 h“. Adresu s tajným klíčem můžete vyzkoušet i v prohlížeči, odpoví stručným textem začínajícím <code>{"ok":true</code>.</p></div>
 
-<h3>3. Zapněte dvoufázové ověření (2FA)</h3>
+<h3 id="dvoufazove-overeni">3. Zapněte dvoufázové ověření (2FA)</h3>
 <p>Dvoufázové ověření znamená, že kromě hesla zadáváte šestimístný kód z telefonu. V menu otevřete „2FA“, naskenujte QR kód aplikací (Microsoft Authenticator, Google Authenticator, 1Password nebo Bitwarden) a potvrďte kód. V Nastavení pak můžete zapnout povinné 2FA pro všechny uživatele. Doporučujeme to, jakmile bude mít AllStat víc než jednoho uživatele.</p>
 <figure class="narrow"><a class="zoom" href="img/13-2fa.webp" title="Otevřít v plné velikosti"><img src="img/13-2fa.webp" alt="Nastavení dvoufázového ověření" width="1100" height="900" loading="lazy" decoding="async"></a><figcaption>Stránka 2FA v menu.</figcaption></figure>
 
-<h3>4. Zkontrolujte právní stránky</h3>
+<h3 id="pravni-stranky">4. Zkontrolujte právní stránky</h3>
 <p>AllStat má tři veřejné stránky, které vyžaduje Meta a LinkedIn při vytváření aplikace: <code>privacy.php</code> (zásady ochrany osobních údajů), <code>terms.php</code> (podmínky) a <code>data-deletion.php</code> (smazání dat). Zobrazují údaje, které jste zadali v průvodci. Změníte je v Nastavení, v bloku „Právní stránky“.</p>
 <figure><a class="zoom" href="img/10b-nastaveni-pravni.webp" title="Otevřít v plné velikosti"><img src="img/10b-nastaveni-pravni.webp" alt="Nastavení, blok Právní stránky" width="780" height="756" loading="lazy" decoding="async"></a><figcaption>Údaje správce a popis organizace pro AI analýzy.</figcaption></figure>
 <div class="warn callout"><span class="label">Pozor</span>
@@ -367,23 +368,23 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
 
 <h2 id="napojeni"><span class="n">6</span>Weby, uživatelé a napojení služeb</h2>
 
-<h3>Další weby</h3>
+<h3 id="weby">Další weby</h3>
 <p>V menu otevřete „Weby“ a přidejte název a doménu. Každý web má vlastní napojení, přehledy a historii. Mezi weby přepínáte v horní liště přehledu. Od osmi webů má výběr pole pro hledání, stačí napsat část názvu nebo domény.</p>
 <figure><a class="zoom" href="img/15-weby.webp" title="Otevřít v plné velikosti"><img src="img/15-weby.webp" alt="Seznam sledovaných webů" width="1100" height="900" loading="lazy" decoding="async"></a><figcaption>Správa webů.</figcaption></figure>
 
-<h3>Uživatelé</h3>
+<h3 id="uzivatele">Uživatelé</h3>
 <p>V menu „Uživatelé“ založíte další účty. Role <strong>Administrátor</strong> smí všechno: spravovat weby, napojení, nastavení a uživatele. Role <strong>Uživatel</strong> smí prohlížet přehledy a reporty a nastavit si vlastní dvoufázové ověření. Každý člen týmu by měl mít svůj účet, hesla nesdílejte.</p>
 <p>U každého účtu nastavíte <strong>Přístup k webům</strong>. Volba „Všechny weby“ platí i pro weby přidané později. Při volbě „Jen vybrané weby“ zaškrtnete, které weby uživatel uvidí v přehledu, v reportech i ve sdílených odkazech. Ostatní weby se mu nezobrazí ani ve výběru a nedostane se k nim ani úpravou adresy. Hodí se to, když AllStat sdílíte s klienty nebo partnery a každý má vidět jen svůj web. Administrátor vidí vždy všechny weby.</p>
 <figure><a class="zoom" href="img/14-uzivatele.webp" title="Otevřít v plné velikosti"><img src="img/14-uzivatele.webp" alt="Správa uživatelů" width="1100" height="903" loading="lazy" decoding="async"></a><figcaption>Správa uživatelů a rolí.</figcaption></figure>
 
-<h3>Napojení služeb</h3>
+<h3 id="sluzby">Napojení služeb</h3>
 <p>Otevřete „Zdroje dat“, u vybrané služby klikněte na „Přidat“ a vyplňte formulář. Každý formulář obsahuje rozbalovací část <strong>Podrobný návod krok za krokem</strong> s aktuálním postupem pro danou službu, včetně řešení běžných chyb. Návody v AllStatu se aktualizují s novými verzemi, proto je tady neopisujeme celé.</p>
 <figure><a class="zoom" href="img/11-napojeni-ga4-cele.webp" title="Otevřít v plné velikosti"><img src="img/11-napojeni-ga4-cele.webp" alt="Formulář napojení Google Analytics 4" width="1100" height="918" loading="lazy" decoding="async"></a><figcaption>Formulář napojení. Rámeček „OAuth callback URL“ obsahuje adresu, kterou vložíte do aplikace u poskytovatele.</figcaption></figure>
 
 <p>U všech služeb s přihlášením (Google, Meta, LinkedIn) platí jedno pravidlo: adresu z rámečku <strong>OAuth callback URL</strong> vložte do nastavení své aplikace u poskytovatele <strong>přesně tak, jak je napsaná</strong>, včetně <code>https://</code>. Vypadá takhle:</p>
 <pre><code>https://www.vase-firma.cz/allstat/admin/oauth-callback.php</code></pre>
 
-<h4>Google Analytics 4, Search Console a YouTube</h4>
+<h4 id="google">Google Analytics 4, Search Console a YouTube</h4>
 <ul>
   <li>Vytvoříte projekt v Google Cloud Console, zapnete příslušná API a založíte „OAuth klienta“ typu Webová aplikace s adresou z rámečku. Stejného klienta použijete pro všechny tři služby, AllStat ho u dalších napojení nabídne tlačítkem „Převzít údaje“.</li>
   <li><strong>Aplikaci v Google Auth Platform publikujte</strong> (Publikum, „Publish app“). Bez toho běží v testovacím režimu a přihlášení vyprší po sedmi dnech, takže by se napojení každý týden rozpadlo.</li>
@@ -391,7 +392,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
   <li>Účet, kterým se přihlašujete, musí mít u dané služby aspoň roli prohlížeče (u GA4 „Zobrazovatel“).</li>
 </ul>
 
-<h4>Facebook, Instagram a Meta Ads</h4>
+<h4 id="meta">Facebook, Instagram a Meta Ads</h4>
 <ul>
   <li>Na developers.facebook.com vytvoříte aplikaci typu Business, přidáte produkt „Facebook Login for Business“ a adresu z rámečku vložíte do „Valid OAuth Redirect URIs“.</li>
   <li>App ID a App Secret zadáte v AllStatu na stránce „Připojit Meta“ jen jednou. Pak se jedním přihlášením připojí Facebook stránky, Instagram účty i reklamní účty.</li>
@@ -400,28 +401,28 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
 </ul>
 <figure><a class="zoom" href="img/12-meta-pripojeni-cele.webp" title="Otevřít v plné velikosti"><img src="img/12-meta-pripojeni-cele.webp" alt="Stránka Připojit Meta" width="1100" height="1142" loading="lazy" decoding="async"></a><figcaption>Připojení přes Meta: nejdřív uložíte údaje aplikace, pak se přihlásíte a vyberete účty.</figcaption></figure>
 
-<h4>LinkedIn</h4>
+<h4 id="linkedin">LinkedIn</h4>
 <ul>
   <li>Na linkedin.com/developers vytvoříte aplikaci, přiřadíte ji ke své firemní stránce a požádáte o produkt „Community Management API“. Bez jeho schválení LinkedIn statistiky nevydá (chyba 403), schválení trvá řádově dny.</li>
   <li>Přihlášení k LinkedInu platí 60 dní. Po schválení produktu se obnovuje samo, dřív ho musíte obnovit ručně.</li>
 </ul>
 
-<h4>Google Ads</h4>
+<h4 id="google-ads">Google Ads</h4>
 <ul>
   <li>Použijete stejného OAuth klienta jako u Google Analytics, jen v Google Cloud Console navíc zapnete „Google Ads API“.</li>
   <li>Developer token už není potřeba, Google ho v září 2026 zrušil. Přístup teď určuje projekt v Google Cloud a nový projekt smí jen na testovací účty. Na stránce Google Ads API, Overview klikněte na „Upgrade access level“ a požádejte o úroveň Explorer. Schválení trvá obvykle do 10 pracovních dnů.</li>
   <li>Spravujete-li účet přes manažerský (MCC) účet, vyplňte v AllStatu i „MCC / Login customer ID“.</li>
 </ul>
 
-<h4>Microsoft Clarity</h4>
+<h4 id="clarity">Microsoft Clarity</h4>
 <ul>
   <li>V Clarity vygenerujete přístupový klíč (Settings, Data Export) a vložíte ho do AllStatu spolu s ID projektu. Clarity povoluje jen 10 dotazů denně na projekt.</li>
 </ul>
 
-<h3>Historie</h3>
+<h3 id="historie">Historie</h3>
 <p>Po napojení klikněte u zdroje na „Stáhnout historii“. AllStat dotáhne až 16 měsíců zpět. Denní cron pak doplňuje nové dny.</p>
 
-<h3>Trychtýře: cesta od návštěvy k poptávce</h3>
+<h3 id="trychtyre">Trychtýře: cesta od návštěvy k poptávce</h3>
 <p>Trychtýř ukazuje, kolik návštěvníků projde jednotlivými kroky na webu (například návštěva, spuštění kalkulačky, dokončení, klik na tlačítko, odeslání poptávky) a kde nejvíc odpadají. Kroky jsou události (eventy) z Google Analytics 4. Rozpad podle kanálu, zdroje nebo kampaně ukáže, odkud přicházejí lidé, kteří dojdou až na konec.</p>
 <ul>
   <li>V menu „Trychtýře“ (jen administrátor) zvolte web a šablonu: Poptávkový formulář, Quick Check, E-shop, nebo začněte s prázdným trychtýřem.</li>
@@ -677,7 +678,7 @@ location ~ ^/allstat/(lib|views|docs)/ { deny all; }</code></pre>
 <table>
   <thead><tr><th>Údaj</th><th>Hodnota</th></tr></thead>
   <tbody>
-    <tr><td>Verze balíčku</td><td>1.2.5</td></tr>
+    <tr><td>Verze balíčku</td><td>1.2.6</td></tr>
     <tr><td>Licence</td><td>GNU GPL verze 3 (soubor <code>LICENSE</code>), zdrojový kód a aktualizace na github.com/ffscz/AllStat</td></tr>
     <tr><td>Jazyk aplikace</td><td>čeština</td></tr>
     <tr><td>Požadavky na server</td><td>PHP 8.1 a novější (doporučeno 8.3), MySQL 5.7.8 a novější nebo MariaDB 10.3 a novější, Apache nebo LiteSpeed (nginx s vlastními pravidly, viz kapitola 10)</td></tr>
@@ -711,7 +712,7 @@ location ~ ^/allstat/(lib|views|docs)/ { deny all; }</code></pre>
 </main>
 
 <footer>
-  AllStat, verze 1.2.5 · Instalační příručka. Obrázky ukazují ukázková data.
+  AllStat, verze 1.2.6 · Instalační příručka. Obrázky ukazují ukázková data.
 </footer>
 
 </div>
