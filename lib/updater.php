@@ -140,10 +140,21 @@ function allstat_update_normalize_feed(array $feed): ?array
 }
 
 /** Upozornění do bočního panelu: jen administrátor, jen veřejná instalace, bez síťového volání (jen cache). */
-function allstat_update_notice(PDO $pdo, array $user): ?array
+function allstat_update_notice(PDO $pdo, array $user, ?array $config = null): ?array
 {
     if (($user['role'] ?? '') !== 'admin' || allstat_installed_version() === null) {
         return null;
+    }
+    // Čekající .htaccess.new (nechala ho tam starší verze updateru): doplnit pravidla na kterékoli stránce administrátora,
+    // ne jen na stránce Aktualizace, kam se po aktualizaci nikdo vracet nemusí.
+    if ($config !== null && is_file(allstat_update_root() . '/.htaccess.new')) {
+        try {
+            if (allstat_update_htaccess_autofix($pdo, allstat_update_selftest_url($config)) === 'merged' && function_exists('allstat_flash')) {
+                allstat_flash('ok', 'Pravidla AllStatu v souboru .htaccess jsou doplněná automaticky, vlastní úpravy zůstaly beze změny.');
+            }
+        } catch (Throwable) {
+            // nevyšlo, karta na stránce Aktualizace zůstane
+        }
     }
     try {
         $cache = json_decode((string) allstat_setting($pdo, 'update.cache', ''), true);
@@ -429,7 +440,7 @@ function allstat_update_htaccess_autofix(PDO $pdo, string $selfTestUrl): ?string
     }
     $current = (string) file_get_contents($path);
     $new = (string) file_get_contents($path . '.new');
-    $attempt = hash('sha256', $current . "\0" . $new);
+    $attempt = hash('sha256', $current . "\0" . $new . "\0" . (allstat_installed_version() ?? '')); // nová verze zkusí znovu
     $merged = allstat_update_htaccess_merge($current, $new);
     if ($merged === null || allstat_setting($pdo, 'update.htaccess_autofix', '') === $attempt) {
         return null;
@@ -447,6 +458,30 @@ function allstat_update_htaccess_autofix(PDO $pdo, string $selfTestUrl): ?string
     allstat_set_setting($pdo, 'update.htaccess_autofix', $attempt);
 
     return 'failed';
+}
+
+/**
+ * Po výměně souborů vyhodit PHP soubory z OPcache. Hosting kontroluje změny jen jednou za pár sekund
+ * (opcache.revalidate_freq), takže by stránka hned po aktualizaci ještě běžela ve staré verzi.
+ */
+function allstat_update_opcache_invalidate(string $root, array $files): void
+{
+    if (!function_exists('opcache_invalidate')) {
+        return;
+    }
+    foreach ($files as $rel) {
+        if (str_ends_with((string) $rel, '.php')) {
+            @opcache_invalidate($root . '/' . $rel, true);
+        }
+    }
+}
+
+/** Adresa, na které updater po změně .htaccess ověří, že AllStat odpovídá (stránka přihlášení této instalace). */
+function allstat_update_selftest_url(array $config): string
+{
+    $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
+
+    return ($https ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . allstat_url($config, 'admin/login.php');
 }
 
 /** Kontrola před aktualizací: verze PHP, rozšíření, zápis do složek, místo, ručně upravené soubory. */
@@ -646,6 +681,8 @@ function allstat_update_install(PDO $pdo, int $actorId, bool $reinstall = false,
             throw new RuntimeException($swapError->getMessage() . ' Změněné soubory byly vráceny ze zálohy.');
         }
 
+        allstat_update_opcache_invalidate($root, array_keys($write));
+
         // Sloučený .htaccess: když AllStat po výměně neodpovídá (nebo to nejde ověřit), vrátit původní soubor ze zálohy
         // a novou verzi nechat vedle jako .new (karta na stránce Aktualizace).
         $mergedOk = [];
@@ -732,6 +769,7 @@ function allstat_update_rollback(PDO $pdo, int $actorId): array
             return ['ok' => false, 'message' => 'Soubor ' . $rel . ' se nepodařilo vrátit. Záloha je ve složce _update/' . basename($backups[0]) . '.'];
         }
     }
+    allstat_update_opcache_invalidate($root, array_merge($record['added'] ?? [], $record['backed_up'] ?? []));
     allstat_update_rrmdir($backups[0]);
     $history = allstat_update_history($pdo);
     array_unshift($history, ['from' => $record['to'], 'to' => $record['from'], 'at' => date('Y-m-d H:i:s'), 'by' => $actorId, 'rollback' => true]);

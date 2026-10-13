@@ -41,6 +41,14 @@ Je vždy pro nejnovější verzi a jde vytisknout nebo uložit jako PDF. Tento s
 po instalaci ze serveru smazat.
 
 
+Změny ve verzi 1.2.9
+--------------------
+ * Aktualizace: nový kód se použije hned po výměně souborů, i když hosting drží PHP v mezipaměti
+   (OPcache). Dřív mohla stránka hned po aktualizaci ještě pár sekund běžet ve staré verzi.
+ * Doplnění pravidel do upraveného .htaccess po aktualizaci ze starší verze se spustí na kterékoli
+   stránce administrátora (přehled, administrace), ne jen na stránce Aktualizace.
+
+
 Změny ve verzi 1.2.8
 --------------------
  * Soubor .htaccess: pravidla AllStatu jsou v bloku mezi řádky # BEGIN AllStat a # END AllStat.

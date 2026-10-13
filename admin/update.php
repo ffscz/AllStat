@@ -10,7 +10,7 @@ $user = allstat_require_user($pdo, $config);
 allstat_require_admin($user);
 
 // Adresa přihlášení: na ní updater po změně .htaccess ověří, že AllStat odpovídá (jinak změnu vrátí).
-$selfTestUrl = ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . allstat_url($config, 'admin/login.php');
+$selfTestUrl = allstat_update_selftest_url($config);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     allstat_csrf_check();
