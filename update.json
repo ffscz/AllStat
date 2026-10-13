@@ -1,10 +1,10 @@
 {
-    "version": "1.2.7",
-    "published": "2026-10-13T08:30:06Z",
-    "zip_url": "https://github.com/ffscz/AllStat/releases/download/v1.2.7/allstat-1.2.7.zip",
-    "sha256": "154f3b40ecc84ffcc8b633213e9916a68e4e9ec842817433b82b82f9a0244b5e",
-    "signature": "MEUCIQDTsksJgPeAiFWxtzraJWjPJtW05J2qrAZrzzhuzqqd6AIgOBNwjFDHm4nfubU1Xhyn9ElM7fU4e6GV+B2aIkMNoEc=",
+    "version": "1.2.8",
+    "published": "2026-10-13T09:56:55Z",
+    "zip_url": "https://github.com/ffscz/AllStat/releases/download/v1.2.8/allstat-1.2.8.zip",
+    "sha256": "80bfa4c4f8b98fde00575c6cb6bdb5edef10a5560cdda8119c8ed8972bcf0c54",
+    "signature": "MEUCIAxu/VhfVT+Td1IS+pkJiFbaUgpnM3kIKc9yssoQA2cNAiEAmphyN8zwVk7vvivKeja2Xwg/BPlPYZ364KXLpkC5CgI=",
     "min_php": "8.1",
-    "html_url": "https://github.com/ffscz/AllStat/releases/tag/v1.2.7",
-    "notes": "* Aktualizace a soubor .htaccess: upravený .htaccess (vlastní pravidla, blokování robotů, nastavení PHP\n   od hostingu) zůstává. Když ho nová verze nemění, aktualizace už nic nehlásí a nevytváří .htaccess.new.\n   Když ho mění, stránka Aktualizace ukáže, která pravidla ve vašem souboru chybí a k čemu slouží\n   (návod na webu, kapitola 8, Hláška o souboru .htaccess).\n * Upozornění po aktualizaci jsou žlutá, ne červená jako chyba.\n * Při aktualizaci z 1.2.6 se u upraveného .htaccess ukáže ještě naposledy stará hláška „porovnejte je“.\n   Stránka Aktualizace pak sama ukáže, jestli je co doplnit, a zbytečný .htaccess.new smaže."
+    "html_url": "https://github.com/ffscz/AllStat/releases/tag/v1.2.8",
+    "notes": "* Soubor .htaccess: pravidla AllStatu jsou v bloku mezi řádky # BEGIN AllStat a # END AllStat.\n   Aktualizace přepisuje jen tento blok a když v souboru chybí, doplní ho. Vlastní pravidla hostingu\n   nebo správce mimo blok zůstanou. Po změně AllStat ověří, že web odpovídá, a když ne, změnu sám\n   vrátí. Ruční doplňování pravidel do .htaccess už není potřeba.\n * Při aktualizaci z 1.2.7 a starší s upraveným .htaccess doplní pravidla stránka Aktualizace hned\n   po aktualizaci (se stejnou kontrolou)."
 }
