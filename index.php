@@ -321,7 +321,7 @@ if ($isGenericView) {
             $staleTitle = $staleCount === 1
                 ? '1 zdroj se dlouho neozval'
                 : ($staleCount >= 2 && $staleCount <= 4 ? $staleCount . ' zdroje se dlouho neozvaly' : $staleCount . ' zdrojů se dlouho neozvalo');
-            $updateNotice = function_exists('allstat_update_notice') ? allstat_update_notice($pdo, $user) : null;
+            $updateNotice = function_exists('allstat_update_notice') ? allstat_update_notice($pdo, $user, $config) : null;
             ?>
             <?php if ($updateNotice): ?>
             <a class="update-card" href="admin/update.php">

@@ -82,7 +82,7 @@ function allstat_admin_header(string $title, string $active, array $user, array 
             $updateNotice = null;
             if (($user['role'] ?? '') === 'admin' && ($GLOBALS['pdo'] ?? null) instanceof PDO && is_file(__DIR__ . '/../lib/updater.php')) {
                 require_once __DIR__ . '/../lib/updater.php';
-                $updateNotice = allstat_update_notice($GLOBALS['pdo'], $user);
+                $updateNotice = allstat_update_notice($GLOBALS['pdo'], $user, $config);
             }
             ?>
             <?php if ($updateNotice && $active !== 'update'): ?>
