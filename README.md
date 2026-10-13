@@ -1,5 +1,11 @@
 # AllStat
 
+[![Poslední verze](https://img.shields.io/github/v/release/ffscz/AllStat?label=verze)](https://github.com/ffscz/AllStat/releases/latest)
+[![Licence GPLv3](https://img.shields.io/github/license/ffscz/AllStat?label=licence)](LICENSE)
+[![Návod](https://img.shields.io/badge/n%C3%A1vod-online-2563eb)](https://ffscz.github.io/AllStat/)
+
+![AllStat: statistiky webu a sociálních sítí na jednom místě, ve vaší vlastní databázi](.github/social-preview.png)
+
 Unifikovaný analytický dashboard: na jednom místě sbírá statistiky webu a sociálních sítí
 a ukládá je do **vaší vlastní databáze**. Běží na běžném webhostingu s PHP a MySQL.
 
@@ -55,8 +61,9 @@ Každá verze je tag `vX.Y.Z` a vydání s instalačním ZIPem a kontrolním sou
 příručkou). Návod je ve větvi `gh-pages` a běží na GitHub Pages.
 Konce řádků se v gitu nemění (`.gitattributes`), aby seděly kontrolní součty v `lib/manifest.json`.
 
-Bezpečnostní chybu prosím nehlaste veřejným issue, použijte
-[soukromé hlášení zranitelnosti](https://github.com/ffscz/AllStat/security/advisories/new).
+Chyby a nápady hlaste přes [Issues](https://github.com/ffscz/AllStat/issues/new/choose), formulář se zeptá
+na verzi a hosting. Bezpečnostní chybu prosím nehlaste veřejně, ale přes
+[soukromé hlášení zranitelnosti](https://github.com/ffscz/AllStat/security/advisories/new), viz [SECURITY.md](.github/SECURITY.md).
 
 ## Licence
 

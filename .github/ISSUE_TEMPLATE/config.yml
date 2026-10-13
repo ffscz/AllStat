@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Návod k instalaci a aktualizaci
+    url: https://ffscz.github.io/AllStat/
+    about: Postup krok za krokem a řešení častých potíží.
+  - name: Bezpečnostní chyba
+    url: https://github.com/ffscz/AllStat/security/advisories/new
+    about: Zranitelnost hlaste soukromě, ne veřejným issue.

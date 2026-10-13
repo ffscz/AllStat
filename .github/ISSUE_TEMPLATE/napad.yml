@@ -1,0 +1,17 @@
+name: Nápad nebo vylepšení
+description: Co by AllStatu pomohlo.
+title: "[Nápad] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Co potřebujete vyřešit
+      description: Popište situaci a proč vám v ní AllStat dnes nestačí.
+    validations:
+      required: true
+  - type: textarea
+    id: navrh
+    attributes:
+      label: Jak by to mohlo fungovat
+      description: Klidně stručně, stačí představa.
