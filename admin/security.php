@@ -89,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-allstat_admin_header('Bezpečnost', 'settings', $user, $config);
+allstat_admin_header('Bezpečnost', 'settings', $user, $config, 'bezpecnost');
 $usesDefault = allstat_crypto_uses_default_key($config);
 $keystoreExists = is_file($keyFilePath);
 $suggestedKey = bin2hex(random_bytes(32));

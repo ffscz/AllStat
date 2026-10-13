@@ -140,7 +140,7 @@ if (is_file(__DIR__ . '/../lib/updater.php')) {
     <div class="admin-card-header">
         <div>
             <h2>Automatický denní sync (cron)</h2>
-            <p>Spouští stažení posledních <?= ALLSTAT_INCREMENTAL_DAYS ?> dní pro všechna zapnutá napojení. Historie (16 měsíců) se dělá ručně tlačítkem u zdroje.</p>
+            <p>Spouští stažení posledních <?= ALLSTAT_INCREMENTAL_DAYS ?> dní pro všechna zapnutá napojení. Historie (16 měsíců) se dělá ručně tlačítkem u zdroje. <?= allstat_help_link('cron', 'Jak cron nastavit na hostingu') ?></p>
         </div>
         <?php
         // Stav běhu s badge: OK do ~26 h od posledního běhu (denní cron + rezerva), jinak upozornění.

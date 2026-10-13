@@ -52,7 +52,7 @@ if (($_GET['action'] ?? '') === 'start') {
     exit;
 }
 
-allstat_admin_header('Připojit Meta', 'sources', $user, $config);
+allstat_admin_header('Připojit Meta', 'sources', $user, $config, 'meta');
 ?>
 <div class="admin-card">
     <div class="admin-card-header">

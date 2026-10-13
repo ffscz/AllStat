@@ -362,6 +362,7 @@ if ($isGenericView) {
                             data-gran="<?= h($granularity) ?>" data-csrf="<?= h(allstat_csrf_token()) ?>"
                             <?php if ($isGrowthView): ?>data-view="growth" data-months="<?= (int) $growth['window']['n'] ?>"<?php endif; ?>><i data-lucide="sparkles"></i></button>
                         <?php endif; ?>
+                        <?= allstat_help_button($isFunnelView ? 'trychtyre' : '') ?>
                         <button class="avatar-button" id="themeToggle" type="button" title="Motiv" aria-label="Motiv"><i data-lucide="moon"></i></button>
                     </span>
                 </div>

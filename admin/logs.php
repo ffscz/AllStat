@@ -20,7 +20,7 @@ $domains = allstat_admin_domains($pdo, false);
 $currentDomainId = allstat_current_domain_id($pdo, $domains);
 $sources = allstat_data_sources($pdo);
 $logs = allstat_sync_logs($pdo, 150);
-allstat_admin_header('Sync log', 'sources', $user, $config);
+allstat_admin_header('Sync log', 'sources', $user, $config, 'problemy');
 ?>
 <div class="admin-card">
     <div class="admin-card-header">

@@ -213,6 +213,7 @@ function allstat_icon(string $name, string $class = ''): string
         'menu' => '<path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/>',
         'moon' => '<path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/>',
         'sun' => '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
+        'circle-help' => '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>',
     ];
 
     if (!isset($icons[$name])) {
@@ -222,6 +223,43 @@ function allstat_icon(string $name, string $class = ''): string
     $cls = trim('lucide ' . $class);
 
     return '<svg class="' . htmlspecialchars($cls, ENT_QUOTES, 'UTF-8') . '" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . $icons[$name] . '</svg>';
+}
+
+/**
+ * Návod k AllStatu: web na GitHub Pages, stejný pro všechny instalace (zdroj allstat-balicek/manual/INSTALACE.src.html).
+ * Kotvy jsou id kapitol a podkapitol návodu; při přejmenování nadpisu tam id zůstává.
+ */
+const ALLSTAT_DOCS_URL = 'https://ffscz.github.io/AllStat/';
+
+function allstat_docs_url(string $anchor = ''): string
+{
+    return ALLSTAT_DOCS_URL . ($anchor !== '' ? '#' . rawurlencode($anchor) : '');
+}
+
+/** Textový odkaz na kapitolu návodu (nová karta). */
+function allstat_help_link(string $anchor, string $label): string
+{
+    return '<a class="help-link" href="' . h(allstat_docs_url($anchor)) . '" target="_blank" rel="noopener">' . h($label) . '</a>';
+}
+
+/** Otazník v záhlaví stránky: otevře kapitolu návodu, která ke stránce patří ('' = začátek návodu). */
+function allstat_help_button(string $anchor = ''): string
+{
+    return '<a class="icon-button" href="' . h(allstat_docs_url($anchor)) . '" target="_blank" rel="noopener" title="Nápověda: návod na webu"'
+        . ' aria-label="Nápověda, návod se otevře v nové kartě">' . allstat_icon('circle-help') . '</a>';
+}
+
+/** Podkapitola návodu o napojení dané služby (klíč z data_sources.provider_key). */
+function allstat_help_anchor_for_provider(string $providerKey): string
+{
+    return match ($providerKey) {
+        'ga4', 'gsc', 'youtube' => 'google',
+        'facebook_pages', 'instagram_business', 'meta_ads' => 'meta',
+        'linkedin_company' => 'linkedin',
+        'google_ads' => 'google-ads',
+        'clarity' => 'clarity',
+        default => 'sluzby',
+    };
 }
 
 /**

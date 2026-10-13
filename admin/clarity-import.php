@@ -166,7 +166,7 @@ $recent = $claritySourceId ? allstat_fetch_all($pdo, "
     LIMIT 40
 ", [$claritySourceId]) : [];
 
-allstat_admin_header('Import Clarity CSV', 'sources', $user, $config);
+allstat_admin_header('Import Clarity CSV', 'sources', $user, $config, 'clarity');
 ?>
 <div class="admin-card">
     <div class="admin-card-header">

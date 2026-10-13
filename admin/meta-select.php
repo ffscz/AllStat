@@ -36,7 +36,7 @@ $dbg = $disc['debug'] ?? [];
 $igCount = 0;
 foreach ($pages as $p) { if (!empty($p['instagram_business_account']['id'])) { $igCount++; } }
 
-allstat_admin_header('Vyber účty Meta', 'sources', $user, $config);
+allstat_admin_header('Vyber účty Meta', 'sources', $user, $config, 'meta');
 ?>
 <?php if (!empty($dbg)): ?>
 <div class="admin-card">

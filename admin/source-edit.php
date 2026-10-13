@@ -144,7 +144,7 @@ $advInput = static function (string $name, string $label, string $type = 'text',
 // Dárci OAuth údajů: jeden za každý odlišný Client ID (= Google projekt). Víc tlačítek jen když jsou projekty dva.
 $oauthDonors = ($id && $connect === 'oauth') ? allstat_oauth_donors($pdo, (int) $id, $providerKey) : [];
 $title = $id ? (string) $connection['source_name'] : 'Nové napojení – ' . ($selectedSource['name'] ?? 'služba');
-allstat_admin_header($id ? 'Upravit zdroj' : 'Nové napojení', 'sources', $user, $config);
+allstat_admin_header($id ? 'Upravit zdroj' : 'Nové napojení', 'sources', $user, $config, allstat_help_anchor_for_provider($providerKey));
 ?>
 <div class="admin-card">
     <div class="admin-card-header">
@@ -359,6 +359,7 @@ allstat_admin_header($id ? 'Upravit zdroj' : 'Nové napojení', 'sources', $user
                 </summary>
                 <div class="admin-card-body">
                     <section class="provider-guide">
+                        <p>Postup s obrázky a řešení častých chyb najdeš i v návodu: <?= allstat_help_link(allstat_help_anchor_for_provider($providerKey), 'napojení služby krok za krokem') ?>.</p>
                         <?php if (!empty($guide['pricing_note'])): ?><p class="provider-guide-pricing"><?= h($guide['pricing_note']) ?></p><?php endif; ?>
                         <?php if (!empty($guide['token_note'])): ?><p class="provider-guide-token"><?= h($guide['token_note']) ?></p><?php endif; ?>
                         <dl class="provider-guide-meta">

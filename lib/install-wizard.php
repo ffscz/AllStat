@@ -1195,6 +1195,7 @@ function installer_render_environment(array $checks, bool $blocked): void
         if ($blocked) {
             echo '<div class="notice notice-error">Než budete pokračovat, opravte položky označené křížkem. Po úpravě tuto stránku obnovte.</div>';
         }
+        echo '<p class="help">Jak jednotlivé položky opravit, popisuje návod v kapitole ' . installer_doc_link('problemy', 'Když se něco nepovede') . '.</p>';
     }
     echo '<details><summary>' . ($problems === [] ? 'Zobrazit všechny kontroly' : 'Zobrazit i položky v pořádku (' . $okCount . ')') . '</summary><div class="inner">';
     installer_render_checks($problems === [] ? $checks : array_values(array_filter($checks, static fn(array $c): bool => $c['status'] === 'ok')));
@@ -1260,7 +1261,16 @@ ol.todo>li::before{content:counter(s);position:absolute;left:0;top:12px;width:28
 .choice .help{display:block}
 .choice input[type=text]{margin-top:10px}
 footer{color:var(--muted);font-size:13px;text-align:center;margin-top:24px}
+.doc-link{color:var(--blue);font-weight:600;text-decoration:none}.doc-link:hover{text-decoration:underline}
 CSS;
+}
+
+/** Odkaz na kapitolu webového návodu (nová karta); adresa stejná jako odkazy Nápověda v aplikaci. */
+function installer_doc_link(string $anchor, string $label): string
+{
+    $base = defined('ALLSTAT_DOCS_URL') ? ALLSTAT_DOCS_URL : 'https://ffscz.github.io/AllStat/';
+
+    return '<a class="doc-link" href="' . h($base . ($anchor !== '' ? '#' . $anchor : '')) . '" target="_blank" rel="noopener">' . h($label) . '</a>';
 }
 
 function installer_page_start(string $title, string $version): void
@@ -1271,7 +1281,7 @@ function installer_page_start(string $title, string $version): void
         . '<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 28 28\'%3E%3Crect x=\'3\' y=\'15\' width=\'6\' height=\'13\' rx=\'2\' fill=\'%2360a5fa\'/%3E%3Crect x=\'11\' y=\'6\' width=\'6\' height=\'22\' rx=\'2\' fill=\'%232563eb\'/%3E%3Crect x=\'19\' y=\'0\' width=\'6\' height=\'28\' rx=\'2\' fill=\'%231d4ed8\'/%3E%3C/svg%3E">'
         . '<title>' . h($title) . '</title><style>' . installer_css() . '</style></head><body><div class="wrap">'
         . '<div class="top"><span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>'
-        . '<strong>AllStat</strong><span class="ver">Instalace' . ($version !== '' ? ' · verze ' . h($version) : '') . '</span></div>';
+        . '<strong>AllStat</strong><span class="ver">Instalace' . ($version !== '' ? ' · verze ' . h($version) : '') . ' · ' . installer_doc_link('pruvodce', 'Návod') . '</span></div>';
 }
 
 function installer_page_end(): void
@@ -1297,7 +1307,9 @@ function installer_render_form(array $ctx): void
 
     echo '<div class="card"><h1>Vítejte v instalaci</h1>'
         . '<p class="lead">Průvodce nastaví AllStat na vašem hostingu. Potřebujete prázdnou databázi MySQL (vytvoříte ji v administraci hostingu), '
-        . 'adresu vašeho webu a asi pět minut času. Na jiné weby ani databáze na hostingu nijak nesáhne.</p></div>';
+        . 'adresu vašeho webu a asi pět minut času. Na jiné weby ani databáze na hostingu nijak nesáhne.</p>'
+        . '<p class="help">Postup s obrázky je v ' . installer_doc_link('pruvodce', 'návodu') . ', celou instalaci na jedné stránce shrnuje '
+        . installer_doc_link('karta', 'kontrolní karta') . '.</p></div>';
 
     if ($ctx['state']['mode'] === 'resume') {
         echo '<div class="notice notice-warn">Nalezen funkční config.php s připojením k databázi, ale instalace ještě není dokončená. Zbývá založit tabulky, organizaci a administrátora.</div>';
@@ -1451,7 +1463,8 @@ function installer_render_success(array $r, string $version): void
     }
     echo '</div>';
 
-    echo '<div class="card"><h2>Co udělat hned</h2><ol class="todo">'
+    echo '<div class="card"><h2>Co udělat hned</h2>'
+        . '<p class="help">Podrobně a s obrázky v návodu: ' . installer_doc_link('po-instalaci', 'Po instalaci: čtyři kroky') . '.</p><ol class="todo">'
         . '<li><strong>Zálohujte dva soubory.</strong> Stáhněte si z hostingu <code>config.php</code> a <code>config-keys.php</code> a uložte je na bezpečné místo mimo web (správce hesel, zabezpečené úložiště). '
         . 'V <code>config-keys.php</code> je klíč, kterým jsou zašifrované přístupy k vašim službám. Bez něj by se napojení musela vytvořit znovu.</li>'
         . '<li><strong>Nastavte automatické stahování dat.</strong> V administraci hostingu otevřete „Cron“ (plánovač úloh na serveru) a přidejte úlohu spouštěnou jednou denně (například v 6:00) s tímto příkazem:'
@@ -1486,7 +1499,8 @@ function installer_render_success(array $r, string $version): void
             } else {
                 echo '<p>AllStat běží v kořeni adresy, žádné další pravidlo není potřeba.</p>';
             }
-            echo '<p class="help">Potom otevřete v menu „AI konektory“, spusťte kontrolu, zapněte připojení a postupujte podle návodu pro Claude nebo ChatGPT.</p>';
+            echo '<p class="help">Potom otevřete v menu „AI konektory“, spusťte kontrolu, zapněte připojení a postupujte podle návodu pro Claude nebo ChatGPT. '
+                . 'Celý postup je v návodu: ' . installer_doc_link('ai', 'Připojení AI') . '.</p>';
         }
         echo '</div>';
     }
