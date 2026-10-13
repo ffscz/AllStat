@@ -6,6 +6,8 @@ a ukládá je do **vaší vlastní databáze**. Běží na běžném webhostingu
 *A self-hosted analytics dashboard (PHP + MySQL) that unifies website and social media statistics
 in your own database, with a read-only AI connector (MCP) for Claude and ChatGPT. UI in Czech.*
 
+**Návod k instalaci, napojení služeb, připojení AI a aktualizaci: https://ffscz.github.io/AllStat/**
+
 ## Co umí
 
 - **Zdroje dat:** Google Analytics 4, Google Search Console, Microsoft Clarity, Facebook, Instagram,
@@ -25,12 +27,14 @@ in your own database, with a read-only AI connector (MCP) for Claude and ChatGPT
 
 ## Instalace
 
-1. Stáhněte poslední verzi z [Releases](https://github.com/ffscz/AllStat/releases): soubor `allstat-X.Y.Z.zip`
-   (a ověřte ho podle `.sha256`).
+1. Stáhněte poslední verzi z [Releases](https://github.com/ffscz/AllStat/releases): v části Assets soubor
+   `allstat-X.Y.Z.zip`, ne „Source code“ (a ověřte ho podle `.sha256`).
 2. Rozbalte ho a složku `allstat` nahrajte přes FTP na hosting.
 3. Otevřete adresu složky v prohlížeči, spustí se instalační průvodce.
 
-Podrobný návod s obrázky je v balíčku (`docs/INSTALACE.html`) a jako PDF u každého vydání.
+Podrobný návod s obrázky je na [ffscz.github.io/AllStat](https://ffscz.github.io/AllStat/), vždy pro nejnovější
+verzi. Celou instalaci na jedné stránce shrnuje [kontrolní karta](https://ffscz.github.io/AllStat/#karta),
+návod jde vytisknout nebo uložit jako PDF.
 
 ## Aktualizace
 
@@ -42,12 +46,13 @@ Přepisované soubory se zálohují a předchozí verzi jde vrátit.
 **Ručně (verze 1.1.0 a starší, nebo když PHP nesmí zapisovat do složky aplikace):** novou verzi nahrajte
 přes stávající instalaci (stejné místo, přepsat soubory). Soubory `config.php` a `config-keys.php`
 balíček neobsahuje, takže zůstanou beze změny. Databáze se při prvním otevření doplní sama (migrace jen
-přidávají tabulky a sloupce, data nemažou). Postup je v kapitole 8 příručky.
+přidávají tabulky a sloupce, data nemažou). Postup je v [kapitole 8 návodu](https://ffscz.github.io/AllStat/#aktualizace).
 
 ## Repozitář
 
 Repozitář obsahuje přesně to, co instalační balíček: žádné přístupové údaje ani klíče.
-Každá verze je tag `vX.Y.Z` a vydání s instalačním ZIPem, kontrolním součtem a příručkou.
+Každá verze je tag `vX.Y.Z` a vydání s instalačním ZIPem a kontrolním součtem (do verze 1.2.5 i s PDF
+příručkou). Návod je ve větvi `gh-pages` a běží na GitHub Pages.
 Konce řádků se v gitu nemění (`.gitattributes`), aby seděly kontrolní součty v `lib/manifest.json`.
 
 Bezpečnostní chybu prosím nehlaste veřejným issue, použijte
