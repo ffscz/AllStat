@@ -3133,3 +3133,38 @@ sup.growth-partial { margin-left: 1px; font-size: 11px; }
 .update-card ~ .sidebar-version {
     margin-top: 0;
 }
+
+/* Přepínač jazyka (allstat_locale_switcher, lib/i18n.php) */
+.locale-switch {
+    display: inline-flex;
+    margin: 0;
+}
+
+.locale-switch select {
+    min-height: 36px;
+    padding: 0 8px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    font-size: 13px;
+}
+
+.auth-card .locale-switch {
+    justify-content: center;
+    margin-top: 16px;
+}
+
+/* Dlouhé ukázky v textu (UTM adresa v prázdném stavu tabulky) nesmí roztáhnout stránku. */
+.table-muted code {
+    overflow-wrap: anywhere;
+}
+
+/* Na úzkém displeji se ikonky vedle nadpisu (včetně přepínače jazyka) smí zalomit, jinak přetečou. */
+@media (max-width: 520px) {
+    .title-actions {
+        flex-wrap: wrap;
+        row-gap: 8px;
+    }
+}

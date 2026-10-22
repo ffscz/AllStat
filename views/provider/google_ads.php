@@ -6,13 +6,13 @@
  */
 ?>
 <?php if (!empty($googleAdsCampaigns)): ?>
-<section class="tables-grid" aria-label="Google Ads kampaně">
+<section class="tables-grid" aria-label="<?= h(t('Google Ads kampaně')) ?>">
     <article class="panel table-panel table-panel-wide">
-        <div class="panel-header"><h2>Kampaně <span>(Google Ads)</span></h2></div>
-        <p class="panel-help">Kampaně za zvolené období seřazené podle útraty, součet dní s útratou. Částky v měně účtu Google Ads.<?= empty($googleAdsNoConversions) ? ' ROAS a CPA dávají smysl jen u kampaní s měřením konverzí.' : '' ?></p>
+        <div class="panel-header"><h2><?= h(t('Kampaně')) ?> <span>(Google Ads)</span></h2></div>
+        <p class="panel-help"><?= h(t('Kampaně za zvolené období seřazené podle útraty, součet dní s útratou. Částky v měně účtu Google Ads.')) ?><?= empty($googleAdsNoConversions) ? ' ' . h(t('ROAS a CPA dávají smysl jen u kampaní s měřením konverzí.')) : '' ?></p>
         <div class="table-scroll">
             <table>
-                <thead><tr><th>Kampaň</th><th>Útrata</th><th>Zobrazení</th><th>Kliknutí</th><th>CTR</th><th>CPC</th><?php if (empty($googleAdsNoConversions)): ?><th>Konverze</th><th>CPA</th><th>ROAS</th><?php endif; ?></tr></thead>
+                <thead><tr><th><?= h(t('Kampaň')) ?></th><th><?= h(t('Útrata')) ?></th><th><?= h(t('Zobrazení')) ?></th><th><?= h(t('Kliknutí')) ?></th><th>CTR</th><th>CPC</th><?php if (empty($googleAdsNoConversions)): ?><th><?= h(t('Konverze')) ?></th><th>CPA</th><th>ROAS</th><?php endif; ?></tr></thead>
                 <tbody>
                     <?php foreach ($googleAdsCampaigns as $campaign): ?>
                         <tr>
@@ -36,11 +36,11 @@
 </section>
 <?php endif; ?>
 <?php if (!empty($googleAdsNoConversions)): ?>
-<section class="analytics-grid" aria-label="Poznámka ke konverzím">
+<section class="analytics-grid" aria-label="<?= h(t('Poznámka ke konverzím')) ?>">
     <article class="panel panel-wide">
-        <div class="panel-header"><h2>Pozn.: tenhle účet nehlásí hodnotu konverzí</h2></div>
+        <div class="panel-header"><h2><?= h(t('Pozn.: tenhle účet nehlásí hodnotu konverzí')) ?></h2></div>
         <p class="panel-help">
-            Google Ads účet za toto období <strong>nehlásí konverze ani jejich hodnotu</strong> (chybí konverzní sledování / hodnota konverzí, nebo účet jede jen na provoz). Proto jsme dlaždice <strong>ROAS, PNO, Konverze, CPA a Hodnotu konverzí skryli</strong>, nemělo by smysl ukazovat samé nuly, <strong>není to chyba</strong>. Sleduj místo toho <strong>CTR, CPC, CPM</strong> a Kliknutí. Jakmile v Google Ads nastavíš sledování hodnoty konverzí, dopočítají se i ROAS / PNO / CPA.
+            <?= t('Google Ads účet za toto období <strong>nehlásí konverze ani jejich hodnotu</strong> (chybí konverzní sledování / hodnota konverzí, nebo účet jede jen na provoz). Proto jsme dlaždice <strong>ROAS, PNO, Konverze, CPA a Hodnotu konverzí skryli</strong>, nemělo by smysl ukazovat samé nuly, <strong>není to chyba</strong>. Sleduj místo toho <strong>CTR, CPC, CPM</strong> a Kliknutí. Jakmile v Google Ads nastavíš sledování hodnoty konverzí, dopočítají se i ROAS / PNO / CPA.') ?>
         </p>
     </article>
 </section>

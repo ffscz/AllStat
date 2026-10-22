@@ -1186,7 +1186,7 @@ function allstat_mcp_oauth_resolve_client(PDO $pdo, string $clientId): array
     $clientId = trim($clientId);
 
     if ($clientId === '' || strlen($clientId) > 512 || preg_match('~[^\x21-\x7E]~', $clientId)) {
-        return ['ok' => false, 'message' => 'Identifikátor aplikace (client_id) je neplatný.'];
+        return ['ok' => false, 'message' => t('Identifikátor aplikace (client_id) je neplatný.')];
     }
 
     if (!str_starts_with(strtolower($clientId), 'https://')) {
@@ -1194,11 +1194,11 @@ function allstat_mcp_oauth_resolve_client(PDO $pdo, string $clientId): array
 
         return $client && $client['type'] === 'dcr'
             ? ['ok' => true, 'client' => $client]
-            : ['ok' => false, 'message' => 'Tahle aplikace není v AllStatu registrovaná. Zkuste ji v aplikaci připojit znovu.'];
+            : ['ok' => false, 'message' => t('Tahle aplikace není v AllStatu registrovaná. Zkuste ji v aplikaci připojit znovu.')];
     }
 
     if (allstat_mcp_oauth_cimd_url_parts($clientId) === null) {
-        return ['ok' => false, 'message' => 'Adresa aplikace (client_id) není povolená. AllStat přijímá popis klienta jen od Claude a ChatGPT.'];
+        return ['ok' => false, 'message' => t('Adresa aplikace (client_id) není povolená. AllStat přijímá popis klienta jen od Claude a ChatGPT.')];
     }
 
     $cached = allstat_mcp_oauth_client_load($pdo, $clientId);
@@ -1222,7 +1222,7 @@ function allstat_mcp_oauth_resolve_client(PDO $pdo, string $clientId): array
         return ['ok' => true, 'client' => $cached];
     }
 
-    return ['ok' => false, 'message' => 'Popis aplikace se nepodařilo načíst nebo není platný. Zkuste připojení za chvíli zopakovat.'];
+    return ['ok' => false, 'message' => t('Popis aplikace se nepodařilo načíst nebo není platný. Zkuste připojení za chvíli zopakovat.')];
 }
 
 /** Klíč záznamu o nedávném selhání stažení dokumentu klienta (v tabulce limiteru; window_start = okamžik selhání). */
@@ -1431,7 +1431,7 @@ function allstat_mcp_oauth_authorize_validate(PDO $pdo, array $query): array
 
     $clientId = allstat_mcp_oauth_str($query, 'client_id', 512);
     if ($clientId === '') {
-        return $page('V žádosti chybí identifikátor aplikace (client_id).');
+        return $page(t('V žádosti chybí identifikátor aplikace (client_id).'));
     }
 
     $resolved = allstat_mcp_oauth_resolve_client($pdo, $clientId);
@@ -1443,11 +1443,11 @@ function allstat_mcp_oauth_authorize_validate(PDO $pdo, array $query): array
 
     $redirectUri = allstat_mcp_oauth_str($query, 'redirect_uri', 1024);
     if ($redirectUri === '') {
-        return $page('V žádosti chybí návratová adresa (redirect_uri).');
+        return $page(t('V žádosti chybí návratová adresa (redirect_uri).'));
     }
 
     if (!allstat_mcp_oauth_redirect_uri_allowed($pdo, $redirectUri) || !allstat_mcp_oauth_redirect_registered($client['redirect_uris'], $redirectUri)) {
-        return $page('Návratová adresa aplikace není povolená ani zaregistrovaná, proto se na ni nelze vrátit. Zkuste aplikaci připojit znovu.');
+        return $page(t('Návratová adresa aplikace není povolená ani zaregistrovaná, proto se na ni nelze vrátit. Zkuste aplikaci připojit znovu.'));
     }
 
     $state = allstat_mcp_oauth_str($query, 'state', 2048);
@@ -1604,18 +1604,18 @@ function allstat_mcp_oauth_consent_confirm_password(PDO $pdo, array $user, mixed
     $userId = (int) ($user['id'] ?? 0);
 
     if (!is_string($password) || $password === '') {
-        return ['Pro potvrzení zadejte své heslo k AllStatu.', 200];
+        return [t('Pro potvrzení zadejte své heslo k AllStatu.'), 200];
     }
 
     $ipBucket = 'consent_pw:' . $userId . ':' . allstat_mcp_client_ip();
     $userBucket = 'consent_pw_user:' . $userId;
 
     if (!allstat_mcp_rate_hit($pdo, $ipBucket, 5, 900)) {
-        return ['Příliš mnoho nesprávných pokusů o zadání hesla. Zkuste to znovu za 15 minut.', 429];
+        return [t('Příliš mnoho nesprávných pokusů o zadání hesla. Zkuste to znovu za 15 minut.'), 429];
     }
 
     if (!allstat_mcp_rate_hit($pdo, $userBucket, 10, 3600)) {
-        return ['Příliš mnoho nesprávných pokusů o zadání hesla k tomuto účtu. Zkuste to znovu za hodinu.', 429];
+        return [t('Příliš mnoho nesprávných pokusů o zadání hesla k tomuto účtu. Zkuste to znovu za hodinu.'), 429];
     }
 
     if (!password_verify($password, (string) ($user['password_hash'] ?? ''))) {
@@ -1625,7 +1625,7 @@ function allstat_mcp_oauth_consent_confirm_password(PDO $pdo, array $user, mixed
             // audit nesmí změnit výsledek (heslo stejně nesedí)
         }
 
-        return ['Heslo nesedí. Zkuste to prosím znovu.', 200];
+        return [t('Heslo nesedí. Zkuste to prosím znovu.'), 200];
     }
 
     allstat_mcp_oauth_rate_refund($pdo, $ipBucket, 900);
@@ -2652,7 +2652,7 @@ function allstat_mcp_oauth_handle_authorize_alias(PDO $pdo): never
 function allstat_mcp_oauth_handle_root(PDO $pdo): never
 {
     $method = allstat_mcp_oauth_require_method(['GET', 'HEAD']);
-    $text = 'AllStat MCP server (jen pro čtení). Adresa konektoru pro Claude nebo ChatGPT: ' . allstat_mcp_resource_url($pdo) . "\n";
+    $text = t('AllStat MCP server (jen pro čtení). Adresa konektoru pro Claude nebo ChatGPT: {url}', ['url' => allstat_mcp_resource_url($pdo)]) . "\n";
 
     http_response_code(200);
     header('Content-Type: text/plain; charset=utf-8');

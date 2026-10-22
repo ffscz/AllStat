@@ -37,7 +37,7 @@ $ttl = (int) ($_POST['ttl'] ?? 15);
 
 if ($domainId <= 0) {
     http_response_code(400);
-    echo json_encode(['ok' => false, 'message' => 'Chybí web.'], JSON_UNESCAPED_UNICODE);
+    echo json_encode(['ok' => false, 'message' => t('Chybí web.')], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
@@ -49,7 +49,7 @@ $sourceOk = $viewSourceId === 0
     || allstat_fetch_one($pdo, 'SELECT id FROM domain_sources WHERE id = ? AND domain_id = ?', [$viewSourceId, $domainId]) !== null;
 if (!$domainOk || !$sourceOk) {
     http_response_code(403);
-    echo json_encode(['ok' => false, 'message' => 'K tomuto webu nebo zdroji nemáte přístup.'], JSON_UNESCAPED_UNICODE);
+    echo json_encode(['ok' => false, 'message' => t('K tomuto webu nebo zdroji nemáte přístup.')], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
@@ -57,7 +57,7 @@ try {
     $res = allstat_share_create($pdo, $domainId, $viewSourceId, $start, $end, $format, $granularity, $ttl);
 } catch (Throwable $e) {
     http_response_code(500);
-    echo json_encode(['ok' => false, 'message' => 'Odkaz se nepodařilo vytvořit.'], JSON_UNESCAPED_UNICODE);
+    echo json_encode(['ok' => false, 'message' => t('Odkaz se nepodařilo vytvořit.')], JSON_UNESCAPED_UNICODE);
     exit;
 }
 

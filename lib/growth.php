@@ -112,15 +112,15 @@ function allstat_growth_compare(array $entries, array $baseYms, array $recentYms
 function allstat_growth_defs(): array
 {
     return [
-        'ga4' => ['name' => 'Google Analytics', 'metric' => 'Návštěvy webu', 'short' => 'návštěvy', 'color' => 'ga4', 'web' => 'visits'],
-        'gsc' => ['name' => 'Search Console', 'metric' => 'Kliknutí z Google hledání', 'short' => 'kliknutí', 'color' => 'gsc', 'web' => 'clicks'],
-        'clarity' => ['name' => 'MS Clarity', 'metric' => 'Relace na webu', 'short' => 'relace', 'color' => 'clarity', 'key' => 'sessions'],
-        'youtube' => ['name' => 'YouTube', 'metric' => 'Zhlédnutí videí', 'short' => 'zhlédnutí', 'color' => 'youtube', 'key' => 'views', 'followers' => 'Odběratelé'],
-        'facebook_pages' => ['name' => 'Facebook', 'metric' => 'Dosah stránky', 'short' => 'dosah', 'color' => 'facebook', 'key' => 'reach', 'followers' => 'Sledující'],
-        'linkedin_company' => ['name' => 'LinkedIn', 'metric' => 'Zobrazení příspěvků', 'short' => 'zobrazení', 'color' => 'linkedin', 'key' => 'impressions', 'followers' => 'Sledující'],
-        'instagram_business' => ['name' => 'Instagram', 'metric' => 'Dosah účtu', 'short' => 'dosah', 'color' => 'instagram', 'key' => 'reach', 'followers' => 'Sledující'],
-        'meta_ads' => ['name' => 'Meta Ads', 'metric' => 'Kliknutí na reklamy', 'short' => 'kliknutí', 'color' => 'ads', 'key' => 'clicks', 'spend' => 'spend', 'zeroFill' => true],
-        'google_ads' => ['name' => 'Google Ads', 'metric' => 'Kliknutí na reklamy', 'short' => 'kliknutí', 'color' => 'ads', 'key' => 'clicks', 'spend' => 'cost', 'zeroFill' => true],
+        'ga4' => ['name' => 'Google Analytics', 'metric' => t('Návštěvy webu'), 'short' => t('návštěvy'), 'color' => 'ga4', 'web' => 'visits'],
+        'gsc' => ['name' => 'Search Console', 'metric' => t('Kliknutí z Google hledání'), 'short' => t('kliknutí'), 'color' => 'gsc', 'web' => 'clicks'],
+        'clarity' => ['name' => 'MS Clarity', 'metric' => t('Relace na webu'), 'short' => t('relace'), 'color' => 'clarity', 'key' => 'sessions'],
+        'youtube' => ['name' => 'YouTube', 'metric' => t('Zhlédnutí videí'), 'short' => t('zhlédnutí'), 'color' => 'youtube', 'key' => 'views', 'followers' => t('Odběratelé')],
+        'facebook_pages' => ['name' => 'Facebook', 'metric' => t('Dosah stránky'), 'short' => t('dosah'), 'color' => 'facebook', 'key' => 'reach', 'followers' => t('Sledující')],
+        'linkedin_company' => ['name' => 'LinkedIn', 'metric' => t('Zobrazení příspěvků'), 'short' => t('zobrazení'), 'color' => 'linkedin', 'key' => 'impressions', 'followers' => t('Sledující')],
+        'instagram_business' => ['name' => 'Instagram', 'metric' => t('Dosah účtu'), 'short' => t('dosah'), 'color' => 'instagram', 'key' => 'reach', 'followers' => t('Sledující')],
+        'meta_ads' => ['name' => 'Meta Ads', 'metric' => t('Kliknutí na reklamy'), 'short' => t('kliknutí'), 'color' => 'ads', 'key' => 'clicks', 'spend' => 'spend', 'zeroFill' => true],
+        'google_ads' => ['name' => 'Google Ads', 'metric' => t('Kliknutí na reklamy'), 'short' => t('kliknutí'), 'color' => 'ads', 'key' => 'clicks', 'spend' => 'cost', 'zeroFill' => true],
     ];
 }
 
@@ -135,7 +135,7 @@ function allstat_growth_metric_breaks(): array
     return [
         'facebook_pages' => [
             'date' => '2026-06-15',
-            'note' => 'Meta 15. 6. 2026 nahradila metriku dosahu stránky (page_impressions_unique za page_total_media_view_unique). Čísla před tímto dnem a po něm nejsou srovnatelná, proto se meziroční srovnání nepočítá.',
+            'note' => t('Meta 15. 6. 2026 nahradila metriku dosahu stránky (page_impressions_unique za page_total_media_view_unique). Čísla před tímto dnem a po něm nejsou srovnatelná, proto se meziroční srovnání nepočítá.'),
         ],
     ];
 }
@@ -143,11 +143,13 @@ function allstat_growth_metric_breaks(): array
 function allstat_growth_month_label(string $ym, bool $long = false): string
 {
     static $short = ['Led', 'Úno', 'Bře', 'Dub', 'Kvě', 'Čvn', 'Čvc', 'Srp', 'Zář', 'Říj', 'Lis', 'Pro'];
-    static $full = ['leden', 'únor', 'březen', 'duben', 'květen', 'červen', 'červenec', 'srpen', 'září', 'říjen', 'listopad', 'prosinec'];
     [$y, $m] = array_map('intval', explode('-', $ym));
     $m = max(1, min(12, $m));
+    $full = allstat_month_names();
+    // Zkratka: česká tabulka, v jiných jazycích první tři písmena názvu měsíce.
+    $abbr = allstat_locale() === 'cs' ? $short[$m - 1] : mb_convert_case(mb_substr($full[$m - 1], 0, 3), MB_CASE_TITLE, 'UTF-8');
 
-    return $long ? $full[$m - 1] . ' ' . $y : $short[$m - 1] . ' ' . substr((string) $y, 2);
+    return $long ? $full[$m - 1] . ' ' . $y : $abbr . ' ' . substr((string) $y, 2);
 }
 
 /**
@@ -191,7 +193,7 @@ function allstat_growth_window(int $months, ?DateTimeImmutable $today = null): a
         'yoyRecent' => $yoyRecent,
         'yoyBase' => $yoyBase,
         // „červenec – září" + roky zvlášť: „červenec – září 2026 proti 2025" (přes přelom roku jen orientačně)
-        'yoyLabel' => $yoyLabel . ' ' . substr($yoyRecent[2], 0, 4) . ' proti ' . substr($yoyBase[2], 0, 4),
+        'yoyLabel' => t('{period} {year} proti {base}', ['period' => $yoyLabel, 'year' => substr($yoyRecent[2], 0, 4), 'base' => substr($yoyBase[2], 0, 4)]),
         'queryStart' => min($first, $yoyBase[0]) . '-01',
         'current' => $current->format('Y-m'),
         'start' => $first . '-01',
@@ -433,7 +435,7 @@ function allstat_get_channel_growth(PDO $pdo, int $domainId, int $months, ?DateT
         $last = $entries[$w['months'][$w['n'] - 1]];
         $values = array_values(array_filter(array_column($window, 'value'), static fn ($v): bool => $v !== null));
 
-        $range = $values ? 'min. ' . allstat_number(min($values)) . ' · max. ' . allstat_number(max($values)) : '';
+        $range = $values ? t('min. {min} · max. {max}', ['min' => allstat_number(min($values)), 'max' => allstat_number(max($values))]) : '';
         $followersInfo = null;
         $spendText = null;
         if (!empty($def['followers']) && isset($followers[$cid])) {
@@ -442,8 +444,8 @@ function allstat_get_channel_growth(PDO $pdo, int $domainId, int $months, ?DateT
             $diff = $lVal - $fVal;
             // Snímky sledujících existují od 8. 7. 2026 (u YouTube od 15. 9.) → u delšího období změna „od" data.
             $since = $fDate > (new DateTimeImmutable($w['start']))->modify('+3 days')->format('Y-m-d')
-                ? 'od ' . (new DateTimeImmutable($fDate))->format('j. n.')
-                : 'za období';
+                ? t('od {date}', ['date' => (new DateTimeImmutable($fDate))->format(allstat_locale() === 'en' ? 'j M' : 'j. n.')])
+                : t('za období');
             $followersInfo = [
                 'label' => $def['followers'],
                 'current' => $lVal,
@@ -458,7 +460,7 @@ function allstat_get_channel_growth(PDO $pdo, int $domainId, int $months, ?DateT
                 . ($fVal > 0 ? ', ' . allstat_growth_pct($diff / $fVal) : '') . ' ' . $since . ')';
         } elseif (!empty($def['spend'])) {
             [$spend] = $byConn[$cid][$def['spend']][$last['ym']] ?? [0.0, 0];
-            $spendText = 'Útrata za ' . preg_replace('/ \d{4}$/', '', $last['longLabel']) . ' ' . allstat_number($spend) . ' Kč';
+            $spendText = t('Útrata za {month} {amount} Kč', ['month' => preg_replace('/ \d{4}$/', '', $last['longLabel']), 'amount' => allstat_number($spend)]);
             $extra = $spendText;
         } else {
             $extra = $range;

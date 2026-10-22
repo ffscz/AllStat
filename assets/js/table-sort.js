@@ -3,6 +3,7 @@
  * Bez konfigurace: každá <table> s <thead> a <tbody> je řaditelná, klik na sloupec = vzestupně,
  * druhý klik = sestupně. Hodnoty se rozpoznávají z textu buňky v českém formátu: čísla „4 970",
  * „2,71 %", „+3"; doby „10 h 53 min", „2 min 32 s"; data „10.09. 12:30", „1. 9. 2026", ISO.
+ * Anglicky čísla „4,970", „2.71 %" a data „10 Sep 12:30", „1 Sep 2026".
  * Přesnou hodnotu lze vnutit atributem data-sort na <td> (např. ISO datum s rokem). Vypnutí:
  * data-no-sort na <table> nebo na <th>. Řádky s colspan (hlášky „bez dat") zůstávají na místě.
  * Delegováno na document, takže funguje i pro tabulky překreslené AJAXem (přehled GA4).
@@ -11,10 +12,14 @@
     'use strict';
 
     var SPACES = /[\s\u00a0\u202f]/g;
-    var collator = new Intl.Collator('cs', { numeric: true, sensitivity: 'base' });
+    var EN = window.allstatLocale.slice(0, 2) === 'en';
+    var MONTHS = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
+    var collator = new Intl.Collator(window.allstatLocale.slice(0, 2), { numeric: true, sensitivity: 'base' });
 
     function parseNumber(text) {
         var t = text.replace(SPACES, '').replace(/\u2212/g, '-').replace(/[%\u00d7x]$/i, '');
+        // Anglicky se tis\u00edce odd\u011bluj\u00ed \u010d\u00e1rkou (\u201e4,970\u201c), desetinn\u00e1 je te\u010dka.
+        if (EN && /^[+-]?\d{1,3}(?:,\d{3})+(?:\.\d+)?$/.test(t)) { t = t.replace(/,/g, ''); }
         if (!/^[+-]?\d+(?:[.,]\d+)?$/.test(t)) { return null; }
         return parseFloat(t.replace(',', '.'));
     }
@@ -30,6 +35,10 @@
         if (m) { return Date.UTC(+m[1], +m[2] - 1, +m[3], +(m[4] || 0), +(m[5] || 0)); }
         m = text.match(/^(\d{1,2})\.\s?(\d{1,2})\.(?:\s?(\d{4}))?(?:\s+(\d{1,2}):(\d{2}))?$/);
         if (m) { return Date.UTC(m[3] ? +m[3] : 2000, +m[2] - 1, +m[1], +(m[4] || 0), +(m[5] || 0)); }
+        m = text.match(/^(\d{1,2})\s([A-Za-z]{3})(?:\s(\d{4}))?(?:\s+(\d{1,2}):(\d{2}))?$/);
+        if (m && MONTHS[m[2].toLowerCase()] !== undefined) {
+            return Date.UTC(m[3] ? +m[3] : 2000, MONTHS[m[2].toLowerCase()], +m[1], +(m[4] || 0), +(m[5] || 0));
+        }
         return null;
     }
 
@@ -99,7 +108,7 @@
             if (isSortableHeader(th)) {
                 th.classList.add('is-sortable');
                 th.tabIndex = 0;
-                th.title = th.title || 'Kliknutím seřadíš (vzestupně / sestupně)';
+                th.title = th.title || window.allstatT('Kliknutím seřadíš (vzestupně / sestupně)');
             }
         });
     }

@@ -44,6 +44,23 @@ Je vždy pro nejnovější verzi a jde vytisknout nebo uložit jako PDF. Tento s
 po instalaci ze serveru smazat.
 
 
+Změny ve verzi 1.3.0
+--------------------
+ * Google účty: jeden nebo víc Google účtů pro celou instalaci (menu Google účty). Z účtu se načte
+   seznam GA4 property a webů ze Search Console a vybrané weby se připojí najednou, bez opisování
+   Property ID a Client ID. Stávající napojení fungují dál a jde je na účet přepnout.
+ * Všechny weby: nová stránka se souhrnem návštěv, klíčových událostí, tržeb a kliknutí z Googlu
+   u všech webů za zvolené období, se srovnáním s předchozím obdobím, filtrem podle Google účtu
+   a hledáním.
+ * Jazyk rozhraní: čeština, slovenština a angličtina. Každý uživatel si jazyk vybere v horní liště,
+   výchozí jazyk instalace je v Nastavení a volí se i v instalačním průvodci. Data pro AI,
+   datový feed a exporty zůstávají česky.
+ * Připojení AI (MCP): nový nástroj get_websites_summary (souhrn všech webů jedním dotazem) a filtr
+   podle Google účtu v list_websites, například „weby v účtu CITADELA“.
+ * Rotace šifrovacího klíče nově přešifruje i Meta App Secret a tokeny Google účtů. Dřív Meta App
+   Secret po rotaci nešel přečíst.
+
+
 Změny ve verzi 1.2.10
 ---------------------
  * Bezpečnost: opravena chyba, kvůli které šlo dvoufázové ověření (2FA) za určitých podmínek obejít,

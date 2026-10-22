@@ -10,7 +10,7 @@ Unifikovaný analytický dashboard: na jednom místě sbírá statistiky webu a 
 a ukládá je do **vaší vlastní databáze**. Běží na běžném webhostingu s PHP a MySQL.
 
 *A self-hosted analytics dashboard (PHP + MySQL) that unifies website and social media statistics
-in your own database, with a read-only AI connector (MCP) for Claude and ChatGPT. UI in Czech.*
+in your own database, with a read-only AI connector (MCP) for Claude and ChatGPT. UI in Czech, Slovak and English.*
 
 **Návod k instalaci, napojení služeb, připojení AI a aktualizaci: https://ffscz.github.io/AllStat/**
 
@@ -19,7 +19,12 @@ in your own database, with a read-only AI connector (MCP) for Claude and ChatGPT
 - **Zdroje dat:** Google Analytics 4, Google Search Console, Microsoft Clarity, Facebook, Instagram,
   Meta Ads, LinkedIn, YouTube, Google Ads, Seznam Webmaster, import CSV z Meta Business Suite.
 - **Více webů** pod jednou instalací, u každého uživatele lze omezit, které weby vidí.
+- **Google účty:** jeden nebo víc Google účtů (agentura, klienti) a výběr webů z jejich GA4 a Search Console,
+  bez opisování Property ID a Client ID.
+- **Všechny weby** na jedné stránce: návštěvy, klíčové události, tržby a kliknutí z Googlu se srovnáním
+  s předchozím obdobím.
 - **Růst kanálů**, reporty, sdílené odkazy pro AI analýzu, datové feedy.
+- **Jazyk rozhraní:** čeština, slovenština a angličtina, každý uživatel si vybere sám.
 - **Připojení AI (MCP)** pro Claude a ChatGPT: jen ke čtení, souhrnná data bez osobních údajů,
   zapíná a ruší administrátor.
 - **Bezpečnost:** šifrované přístupové tokeny (AES-256-GCM), dvoufázové ověření, audit log.

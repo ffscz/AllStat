@@ -7,14 +7,14 @@
  */
 ?>
 <?php if (!empty($clarityBreakdowns)): ?>
-<section class="tables-grid clarity-breakdowns" aria-label="Clarity rozpady">
+<section class="tables-grid clarity-breakdowns" aria-label="<?= h(t('Clarity rozpady')) ?>">
     <?php foreach ($clarityBreakdowns as $breakdown): ?>
         <article class="panel table-panel">
             <div class="panel-header"><h2><?= h($breakdown['title']) ?> <span>(Clarity)</span></h2></div>
             <p class="panel-help"><?= h($breakdown['help']) ?></p>
             <div class="table-scroll">
                 <table>
-                    <thead><tr><th><?= h($breakdown['title']) ?></th><th>Návštěvy</th><th>Podíl</th></tr></thead>
+                    <thead><tr><th><?= h($breakdown['title']) ?></th><th><?= h(t('Návštěvy')) ?></th><th><?= h(t('Podíl')) ?></th></tr></thead>
                     <tbody>
                         <?php foreach ($breakdown['items'] as $item): ?>
                             <tr>
@@ -24,7 +24,7 @@
                             </tr>
                         <?php endforeach; ?>
                         <?php if (!$breakdown['items']): ?>
-                            <tr><td colspan="3" class="table-muted">Bez dat za toto období, naimportuj denní Clarity CSV nebo počkej na sync.</td></tr>
+                            <tr><td colspan="3" class="table-muted"><?= h(t('Bez dat za toto období, naimportuj denní Clarity CSV nebo počkej na sync.')) ?></td></tr>
                         <?php endif; ?>
                     </tbody>
                 </table>

@@ -31,10 +31,10 @@ if (count($trendLabels) > 1 && $trendMetrics):
         $trendFrom = (string) ($trendLabels[0] ?? '');
         $trendTo = (string) (end($trendLabels) ?: '');
 ?>
-<section class="analytics-grid" aria-label="Trendy v čase">
+<section class="analytics-grid" aria-label="<?= h(t('Trendy v čase')) ?>">
     <article class="panel panel-wide">
-        <div class="panel-header"><h2>Trendy v čase</h2><?php if ($trendFrom !== '' && $trendTo !== ''): ?><span class="panel-total"><?= h($trendFrom) ?> – <?= h($trendTo) ?></span><?php endif; ?></div>
-        <p class="panel-help">Vývoj klíčových metrik za zvolené období, každá zvlášť pro lepší čitelnost. Křivka vychází z aktuálně synchronizovaných dat; propady k nule jsou období bez stažených dat. Čím víc stáhneš přes „Stáhnout historii", tím úplnější trend.</p>
+        <div class="panel-header"><h2><?= h(t('Trendy v čase')) ?></h2><?php if ($trendFrom !== '' && $trendTo !== ''): ?><span class="panel-total"><?= h($trendFrom) ?> – <?= h($trendTo) ?></span><?php endif; ?></div>
+        <p class="panel-help"><?= h(t('Vývoj klíčových metrik za zvolené období, každá zvlášť pro lepší čitelnost. Křivka vychází z aktuálně synchronizovaných dat; propady k nule jsou období bez stažených dat. Čím víc stáhneš přes „Stáhnout historii", tím úplnější trend.')) ?></p>
         <div class="trend-grid">
             <?php foreach ($trendCards as $m): $col = $trendColors[$m['color'] ?? 'blue'] ?? '#2563eb'; ?>
                 <div class="trend-card">

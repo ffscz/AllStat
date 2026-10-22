@@ -86,10 +86,10 @@ function allstat_parse_fb_content_csv(string $raw): array
     $text = allstat_csv_to_utf8($raw);
     $kind = allstat_csv_export_kind($text);
     if ($kind === 'audience') {
-        return ['ok' => false, 'message' => 'Tohle je export „Okruh uživatelů" (demografie). Nahraj ho do části 2. Publikum a demografie.'];
+        return ['ok' => false, 'message' => t('Tohle je export „Okruh uživatelů" (demografie). Nahraj ho do části 2. Publikum a demografie.')];
     }
     if ($kind === 'chart') {
-        return ['ok' => false, 'message' => 'Tohle je export jednoho grafu z přehledu (třeba „Top formáty obsahu" nebo „Zobrazení"), ne export po příspěvcích. V Business Suite otevři Přehledy → Obsah a klikni vpravo nahoře na Exportovat data.'];
+        return ['ok' => false, 'message' => t('Tohle je export jednoho grafu z přehledu (třeba „Top formáty obsahu" nebo „Zobrazení"), ne export po příspěvcích. V Business Suite otevři Přehledy → Obsah a klikni vpravo nahoře na Exportovat data.')];
     }
 
     $fh = fopen('php://temp', 'r+');
@@ -98,7 +98,7 @@ function allstat_parse_fb_content_csv(string $raw): array
     $header = fgetcsv($fh, null, ',', '"', '');
     if (!$header || count($header) < 2) {
         fclose($fh);
-        return ['ok' => false, 'message' => 'Soubor je prázdný nebo to není CSV z Meta Business Suite.'];
+        return ['ok' => false, 'message' => t('Soubor je prázdný nebo to není CSV z Meta Business Suite.')];
     }
     // Export za delší období slepí dvě sady sloupců: starší příspěvky mají popisné sloupce anglicky
     // (Post ID, Page name, Post type…), novější česky na konci řádku (ověřeno 29. 9. 2026 na exportu
@@ -125,7 +125,7 @@ function allstat_parse_fb_content_csv(string $raw): array
     $cPostId = $col(['ID příspěvku', 'Post ID']);
     if (!$cPostId) {
         fclose($fh);
-        return ['ok' => false, 'message' => 'V CSV chybí sloupec „ID příspěvku". V okně Exportovat metrická data zvol Úroveň obsahu: Příspěvek (ne Video ani Stránka).'];
+        return ['ok' => false, 'message' => t('V CSV chybí sloupec „ID příspěvku". V okně Exportovat metrická data zvol Úroveň obsahu: Příspěvek (ne Video ani Stránka).')];
     }
     $cols = [
         'views'       => $col(['Zhlédnutí', 'Zobrazení', 'Views']),
@@ -178,10 +178,10 @@ function allstat_parse_fb_content_csv(string $raw): array
     fclose($fh);
 
     if ($daily) {
-        return ['ok' => false, 'message' => 'Export je rozdělený po dnech (Zobrazení dat: Denně), u příspěvku by se tak uložil jen jeden den. Vygeneruj ho znovu s volbou Zobrazení dat: Dlouhodobě.'];
+        return ['ok' => false, 'message' => t('Export je rozdělený po dnech (Zobrazení dat: Denně), u příspěvku by se tak uložil jen jeden den. Vygeneruj ho znovu s volbou Zobrazení dat: Dlouhodobě.')];
     }
     if (!$rows) {
-        return ['ok' => false, 'message' => 'V CSV nebyl žádný příspěvek. Zkontroluj v exportu období a vybranou stránku nebo účet.'];
+        return ['ok' => false, 'message' => t('V CSV nebyl žádný příspěvek. Zkontroluj v exportu období a vybranou stránku nebo účet.')];
     }
     return [
         'ok' => true,
@@ -202,7 +202,7 @@ function allstat_parse_fb_audience_csv(string $raw): array
     $text = allstat_csv_to_utf8($raw);
     $kind = allstat_csv_export_kind($text);
     if ($kind === 'content') {
-        return ['ok' => false, 'message' => 'Tohle je export obsahu po příspěvcích. Nahraj ho do části 1. Obsah příspěvků.'];
+        return ['ok' => false, 'message' => t('Tohle je export obsahu po příspěvcích. Nahraj ho do části 1. Obsah příspěvků.')];
     }
     $lines = preg_split('/\r\n|\r|\n/', $text) ?: [];
     $cells = static fn (string $l): array => str_getcsv($l, ',', '"', '');
@@ -249,8 +249,8 @@ function allstat_parse_fb_audience_csv(string $raw): array
     }
     if (!($out['age'] || $out['gender'] || $out['city'] || $out['country'])) {
         return ['ok' => false, 'message' => $kind === 'chart'
-            ? 'Tohle je export jiného grafu (třeba „Top formáty obsahu"), ne demografie. V Business Suite otevři Přehledy → Okruh uživatelů a klikni na Exportovat → Exportovat jako CSV.'
-            : 'V CSV jsem nenašel sekce „Věk a pohlaví", „Nejčastější města" ani „Nejčastější země". V Business Suite otevři Přehledy → Okruh uživatelů a klikni na Exportovat → Exportovat jako CSV.'];
+            ? t('Tohle je export jiného grafu (třeba „Top formáty obsahu"), ne demografie. V Business Suite otevři Přehledy → Okruh uživatelů a klikni na Exportovat → Exportovat jako CSV.')
+            : t('V CSV jsem nenašel sekce „Věk a pohlaví", „Nejčastější města" ani „Nejčastější země". V Business Suite otevři Přehledy → Okruh uživatelů a klikni na Exportovat → Exportovat jako CSV.')];
     }
     // Součty věku (ženy + muži) jinak nesou float šum typu 8.600000000000001.
     foreach (['age', 'gender', 'city', 'country'] as $slot) {
@@ -284,29 +284,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ((int) $c['id'] === $connectionId) { $conn = $c; break; }
     }
     if (!$conn) {
-        allstat_flash('error', 'Vyber prosím platné napojení (Facebook stránku nebo Instagram účet).');
+        allstat_flash('error', t('Vyber prosím platné napojení (Facebook stránku nebo Instagram účet).'));
         allstat_redirect($config, $backTo);
     }
 
     $file = $_FILES['csv'] ?? null;
     if (!$file || ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK || ($file['size'] ?? 0) <= 0) {
-        allstat_flash('error', 'Nahraj prosím CSV soubor exportovaný z Meta Business Suite.');
+        allstat_flash('error', t('Nahraj prosím CSV soubor exportovaný z Meta Business Suite.'));
         allstat_redirect($config, $backTo);
     }
     if (($file['size'] ?? 0) > 8 * 1024 * 1024) {
-        allstat_flash('error', 'Soubor je příliš velký (max 8 MB).');
+        allstat_flash('error', t('Soubor je příliš velký (max 8 MB).'));
         allstat_redirect($config, $backTo);
     }
 
     // Publikum / demografie export (FB) — jiný parser + úložiště než obsahový CSV.
     if ((string) ($_POST['import_type'] ?? 'content') === 'audience') {
         if (($conn['provider_key'] ?? '') !== 'facebook_pages') {
-            allstat_flash('error', 'Export „Okruh uživatelů" je jen pro Facebook stránku (Instagram demografii bere z API automaticky).');
+            allstat_flash('error', t('Export „Okruh uživatelů" je jen pro Facebook stránku (Instagram demografii bere z API automaticky).'));
             allstat_redirect($config, $backTo);
         }
         $aud = allstat_parse_fb_audience_csv((string) file_get_contents($file['tmp_name']));
         if (!($aud['ok'] ?? false)) {
-            allstat_flash('error', $aud['message'] ?? 'CSV se nepodařilo zpracovat.');
+            allstat_flash('error', $aud['message'] ?? t('CSV se nepodařilo zpracovat.'));
             allstat_redirect($config, $backTo);
         }
         $today = date('Y-m-d');
@@ -323,7 +323,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         allstat_audit($pdo, (int) $user['id'], null, 'fb_audience_csv_imported', 'conn=' . $connectionId . ' rows=' . $stored);
-        allstat_flash('ok', sprintf('Demografie z „Okruh uživatelů" importována: %d hodnot (věk, pohlaví, města, země). Najdeš ji na dashboardu Facebook stránky v sekci „Demografické údaje".', $stored));
+        allstat_flash('ok', t('Demografie z „Okruh uživatelů" importována: {count} hodnot (věk, pohlaví, města, země). Najdeš ji na dashboardu Facebook stránky v sekci „Demografické údaje".', ['count' => $stored]));
         allstat_redirect($config, $backTo);
     }
 
@@ -338,23 +338,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $csvLabel = implode(', ', $parsed['names']);
     // Export z jiné sítě, než je vybrané napojení: nic by se nenapárovalo, tak rovnou řekni proč.
     if ($parsed['network'] !== '' && $parsed['network'] !== ($isFb ? 'facebook' : 'instagram')) {
-        allstat_flash('error', sprintf(
-            'Tenhle export je z %s%s, ale vybrané napojení je %s „%s". Vyber správné napojení, nebo v Business Suite exportuj záložku %s.',
-            $parsed['network'] === 'instagram' ? 'Instagramu' : 'Facebooku',
-            $csvLabel !== '' ? ' (' . $csvLabel . ')' : '',
-            $isFb ? 'Facebook stránka' : 'Instagram účet',
-            $connLabel,
-            $isFb ? 'Facebook' : 'Instagram'
-        ));
+        allstat_flash('error', t('Tenhle export je z {network}{names}, ale vybrané napojení je {type} „{label}". Vyber správné napojení, nebo v Business Suite exportuj záložku {tab}.', [
+            'network' => $parsed['network'] === 'instagram' ? t('Instagramu') : t('Facebooku'),
+            'names' => $csvLabel !== '' ? ' (' . $csvLabel . ')' : '',
+            'type' => $isFb ? t('Facebook stránka') : t('Instagram účet'),
+            'label' => $connLabel,
+            'tab' => $isFb ? 'Facebook' : 'Instagram',
+        ]));
         allstat_redirect($config, $backTo);
     }
 
     // Pojistka na budoucí přejmenování sloupců v Business Suite: bez žádné základní metriky je soubor
     // k ničemu (odmítnout), u chybějících jednotlivých metrik to aspoň říct, ať se to netratí potichu.
-    $coreLabels = ['views' => 'zobrazení', 'reach' => 'dosah', 'reactions' => 'reakce', 'comments' => 'komentáře', 'shares' => 'sdílení'];
+    $coreLabels = ['views' => t('zobrazení'), 'reach' => t('dosah'), 'reactions' => t('reakce'), 'comments' => t('komentáře'), 'shares' => t('sdílení')];
     $missingCore = array_values(array_intersect_key($coreLabels, array_filter($parsed['has'], static fn (bool $h): bool => !$h)));
     if (count($missingCore) === count($coreLabels)) {
-        allstat_flash('error', 'V exportu jsem nenašel žádnou známou metriku (zobrazení, dosah, reakce, komentáře, sdílení). Meta nejspíš změnila názvy sloupců, import je potřeba upravit. Soubor pošli správci AllStatu.');
+        allstat_flash('error', t('V exportu jsem nenašel žádnou známou metriku (zobrazení, dosah, reakce, komentáře, sdílení). Meta nejspíš změnila názvy sloupců, import je potřeba upravit. Soubor pošli správci AllStatu.'));
         allstat_redirect($config, $backTo);
     }
 
@@ -421,25 +420,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     allstat_audit($pdo, (int) $user['id'], null, 'social_csv_imported', $conn['provider_key'] . ' conn=' . $connectionId . ' matched=' . $matched . '/' . $total . ' changed=' . $changed);
     if ($matched === 0) {
-        allstat_flash('error', sprintf(
-            'Žádný z %d příspěvků v exportu%s se nenapároval s napojením „%s". Zkontroluj, že exportuješ stejnou stránku nebo účet a že má napojení stažené příspěvky (u napojení „Stáhnout historii").',
-            $total, $csvLabel !== '' ? ' (' . $csvLabel . ')' : '', $connLabel
-        ));
+        allstat_flash('error', t('Žádný z {total} příspěvků v exportu{names} se nenapároval s napojením „{label}". Zkontroluj, že exportuješ stejnou stránku nebo účet a že má napojení stažené příspěvky (u napojení „Stáhnout historii").', [
+            'total' => $total, 'names' => $csvLabel !== '' ? ' (' . $csvLabel . ')' : '', 'label' => $connLabel,
+        ]));
         allstat_redirect($config, $backTo);
     }
-    $posts = static fn (int $n): string => $n . ($n === 1 ? ' příspěvek' : ($n >= 2 && $n <= 4 ? ' příspěvky' : ' příspěvků'));
-    $msg = sprintf('Import hotov: napárováno %d z %d příspěvků, ', $matched, $total)
-        . ($changed > 0 ? sprintf('u %d se čísla doplnila nebo zvýšila.', $changed) : 'čísla v AllStatu už byla stejná nebo vyšší.');
+    $posts = static fn (int $n): string => tn($n, '{count} příspěvek', '{count} příspěvky', '{count} příspěvků');
+    $msg = $changed > 0
+        ? t('Import hotov: napárováno {matched} z {total} příspěvků, u {changed} se čísla doplnila nebo zvýšila.', ['matched' => $matched, 'total' => $total, 'changed' => $changed])
+        : t('Import hotov: napárováno {matched} z {total} příspěvků, čísla v AllStatu už byla stejná nebo vyšší.', ['matched' => $matched, 'total' => $total]);
     if ($matched < $total) {
         $msg .= count($parsed['names']) > 1
-            ? ' Export obsahoval víc stránek nebo účtů (' . $csvLabel . '), napárovaly se jen příspěvky vybraného napojení.'
-            : ' V AllStatu zatím chybí ' . $posts($total - $matched) . ' z exportu (u napojení spusť „Stáhnout historii" a import zopakuj).';
+            ? ' ' . t('Export obsahoval víc stránek nebo účtů ({names}), napárovaly se jen příspěvky vybraného napojení.', ['names' => $csvLabel])
+            : ' ' . t('V AllStatu zatím chybí {posts} z exportu (u napojení spusť „Stáhnout historii" a import zopakuj).', ['posts' => $posts($total - $matched)]);
     }
     if ($missingCore) {
-        $msg .= ' V exportu chyběly sloupce: ' . implode(', ', $missingCore) . ' (Meta je možná přejmenovala), ty se nedoplnily.';
+        $msg .= ' ' . t('V exportu chyběly sloupce: {columns} (Meta je možná přejmenovala), ty se nedoplnily.', ['columns' => implode(', ', $missingCore)]);
     }
     if ($isFb && !$parsed['has']['views_paid'] && !$parsed['has']['reach_paid']) {
-        $msg .= ' Export neobsahoval rozpad organické a placené: příště zaškrtni v Předvolbách metrik všech 5 možností.';
+        $msg .= ' ' . t('Export neobsahoval rozpad organické a placené: příště zaškrtni v Předvolbách metrik všech 5 možností.');
     }
     allstat_flash('ok', $msg);
     allstat_redirect($config, $backTo);
@@ -455,13 +454,13 @@ $shot = static fn (string $file, int $w, int $h, string $alt, string $caption): 
     h(allstat_url($config, 'assets/img/help/' . $file)), $w, $h, h($alt), h($caption)
 );
 
-allstat_admin_header('Import z CSV', 'sources', $user, $config);
+allstat_admin_header(t('Import z CSV'), 'sources', $user, $config);
 ?>
 <div class="admin-card">
     <div class="admin-card-header">
         <div>
-            <h2>Import z CSV (Meta Business Suite)</h2>
-            <p>Část čísel Meta přes API nedává: dosah u některých facebookových příspěvků, rozpad organické a placené a demografii Facebooku. Doplníš je ze dvou exportů z Meta Business Suite níže. Export obsahu navíc obnoví čísla starších příspěvků, noční synchronizace totiž aktualizuje jen posledních 7 dní. Každý export zabere pár minut a stačí ho dělat jednou za měsíc.</p>
+            <h2><?= h(t('Import z CSV (Meta Business Suite)')) ?></h2>
+            <p><?= h(t('Část čísel Meta přes API nedává: dosah u některých facebookových příspěvků, rozpad organické a placené a demografii Facebooku. Doplníš je ze dvou exportů z Meta Business Suite níže. Export obsahu navíc obnoví čísla starších příspěvků, noční synchronizace totiž aktualizuje jen posledních 7 dní. Každý export zabere pár minut a stačí ho dělat jednou za měsíc.')) ?></p>
         </div>
     </div>
 </div>
@@ -469,54 +468,54 @@ allstat_admin_header('Import z CSV', 'sources', $user, $config);
 <div class="admin-card" id="obsah">
     <div class="admin-card-header">
         <div>
-            <h2>1. Obsah příspěvků <span>(Facebook i Instagram)</span></h2>
-            <p><strong>Co doplní:</strong> dosah tam, kde ho API nevrátí, rozpad organické a placené (Meta ho z API zrušila 15. 6. 2026) a aktuální čísla starších příspěvků (zobrazení, dosah, reakce, sdílení, uložení, doba sledování). U Instagramu dává všechna čísla i API, export je tam jen rychlejší náhrada tlačítka „Stáhnout historii". Čísla se párují podle ID příspěvku, příspěvek proto musí být v AllStatu už stažený.</p>
+            <h2><?= h(t('1. Obsah příspěvků')) ?> <span><?= h(t('(Facebook i Instagram)')) ?></span></h2>
+            <p><?= t('<strong>Co doplní:</strong> dosah tam, kde ho API nevrátí, rozpad organické a placené (Meta ho z API zrušila 15. 6. 2026) a aktuální čísla starších příspěvků (zobrazení, dosah, reakce, sdílení, uložení, doba sledování). U Instagramu dává všechna čísla i API, export je tam jen rychlejší náhrada tlačítka „Stáhnout historii". Čísla se párují podle ID příspěvku, příspěvek proto musí být v AllStatu už stažený.') ?></p>
         </div>
     </div>
     <div class="admin-card-body">
         <ol class="setup-steps">
-            <li><strong>V Meta Business Suite otevři Přehledy → Obsah</strong> (<a href="<?= h($bsContentUrl) ?>" target="_blank" rel="noopener">otevřít</a>) a vpravo nahoře klikni na <strong>Exportovat data</strong>. Otevře se okno Exportovat metrická data.</li>
-            <li><strong>Facebook stránka:</strong> nech záložku Facebook a nastav:
+            <li><?= t('<strong>V Meta Business Suite otevři Přehledy → Obsah</strong> (<a href="{url}" target="_blank" rel="noopener">otevřít</a>) a vpravo nahoře klikni na <strong>Exportovat data</strong>. Otevře se okno Exportovat metrická data.', ['url' => h($bsContentUrl)]) ?></li>
+            <li><?= t('<strong>Facebook stránka:</strong> nech záložku Facebook a nastav:') ?>
                 <ul class="export-settings">
-                    <li>Stránky: <strong>jen jedna stránka</strong>, ta, kterou níže vybereš jako napojení</li>
-                    <li>Období: třeba <strong>Posledních 90 dní</strong> (export obsahuje příspěvky zveřejněné v tomto období, čísla u nich jsou za celou dobu). Business Suite povolí nejvýš rok, starší příspěvky exportuj dalším souborem</li>
-                    <li>Předvolby metrik: <strong>zaškrtni všech 5</strong>, jinak v exportu chybí rozpad organické a placené</li>
-                    <li>Zobrazení dat: <strong>Dlouhodobě</strong> (ne Denně)</li>
-                    <li>Úroveň obsahu: <strong>Příspěvek</strong> (ne Video ani Stránka)</li>
-                    <li>Filtr: nech Datum vytvoření</li>
+                    <li><?= t('Stránky: <strong>jen jedna stránka</strong>, ta, kterou níže vybereš jako napojení') ?></li>
+                    <li><?= t('Období: třeba <strong>Posledních 90 dní</strong> (export obsahuje příspěvky zveřejněné v tomto období, čísla u nich jsou za celou dobu). Business Suite povolí nejvýš rok, starší příspěvky exportuj dalším souborem') ?></li>
+                    <li><?= t('Předvolby metrik: <strong>zaškrtni všech 5</strong>, jinak v exportu chybí rozpad organické a placené') ?></li>
+                    <li><?= t('Zobrazení dat: <strong>Dlouhodobě</strong> (ne Denně)') ?></li>
+                    <li><?= t('Úroveň obsahu: <strong>Příspěvek</strong> (ne Video ani Stránka)') ?></li>
+                    <li><?= h(t('Filtr: nech Datum vytvoření')) ?></li>
                 </ul>
             </li>
-            <li><strong>Instagram účet:</strong> přepni na záložku Instagram, v poli Účty vyber jeden účet, nastav Období a nech volbu <strong>Příspěvek</strong> (ne Příběhy). Jiné volby tu nejsou.</li>
-            <li>Klikni na <strong>Generovat</strong>. Soubor se nestáhne hned, Meta ho desítky sekund připravuje. Až se objeví „Váš export byl dokončen", klikni na <strong>Stáhnout export</strong>. Hotové exporty najdeš i později pod šipkou vedle tlačítka Exportovat data.</li>
-            <li>Stažený soubor (jmenuje se třeba <code>Jul-01-2026_Sep-28-2026_1812859779746514.csv</code>) nahraj tady a vyber stejnou stránku nebo účet:</li>
+            <li><?= t('<strong>Instagram účet:</strong> přepni na záložku Instagram, v poli Účty vyber jeden účet, nastav Období a nech volbu <strong>Příspěvek</strong> (ne Příběhy). Jiné volby tu nejsou.') ?></li>
+            <li><?= t('Klikni na <strong>Generovat</strong>. Soubor se nestáhne hned, Meta ho desítky sekund připravuje. Až se objeví „Váš export byl dokončen", klikni na <strong>Stáhnout export</strong>. Hotové exporty najdeš i později pod šipkou vedle tlačítka Exportovat data.') ?></li>
+            <li><?= t('Stažený soubor (jmenuje se třeba <code>Jul-01-2026_Sep-28-2026_1812859779746514.csv</code>) nahraj tady a vyber stejnou stránku nebo účet:') ?></li>
         </ol>
         <details class="help-shots">
-            <summary>Ukázat obrázky z Business Suite</summary>
+            <summary><?= h(t('Ukázat obrázky z Business Suite')) ?></summary>
             <div class="help-shots-grid">
-                <?= $shot('bs-1-obsah-exportovat-data.webp', 750, 440, 'Business Suite, Přehledy: vlevo položka Obsah, nahoře tlačítko Exportovat data', '1. Přehledy → Obsah, nahoře tlačítko Exportovat data.') ?>
-                <?= $shot('bs-2-facebook-nastaveni.webp', 770, 582, 'Okno Exportovat metrická data, záložka Facebook se správným nastavením', '2. Facebook: jedna stránka, všech 5 předvoleb metrik, Zobrazení dat Dlouhodobě, Úroveň obsahu Příspěvek, pak Generovat.') ?>
-                <?= $shot('bs-3-predvolby-metrik.webp', 770, 582, 'Rozbalené Předvolby metrik se všemi pěti zaškrtnutými možnostmi', 'Předvolby metrik: zaškrtni všech 5 možností.') ?>
-                <?= $shot('bs-2b-instagram-nastaveni.webp', 770, 494, 'Okno Exportovat metrická data, záložka Instagram s vybraným účtem a volbou Příspěvek', '3. Instagram: jeden účet a volba Příspěvek.') ?>
-                <?= $shot('bs-4-export-hotovo.webp', 372, 262, 'Okénko Váš export byl dokončen s tlačítkem Stáhnout export', '4. Po chvíli se objeví „Váš export byl dokončen", klikni na Stáhnout export.') ?>
+                <?= $shot('bs-1-obsah-exportovat-data.webp', 750, 440, t('Business Suite, Přehledy: vlevo položka Obsah, nahoře tlačítko Exportovat data'), t('1. Přehledy → Obsah, nahoře tlačítko Exportovat data.')) ?>
+                <?= $shot('bs-2-facebook-nastaveni.webp', 770, 582, t('Okno Exportovat metrická data, záložka Facebook se správným nastavením'), t('2. Facebook: jedna stránka, všech 5 předvoleb metrik, Zobrazení dat Dlouhodobě, Úroveň obsahu Příspěvek, pak Generovat.')) ?>
+                <?= $shot('bs-3-predvolby-metrik.webp', 770, 582, t('Rozbalené Předvolby metrik se všemi pěti zaškrtnutými možnostmi'), t('Předvolby metrik: zaškrtni všech 5 možností.')) ?>
+                <?= $shot('bs-2b-instagram-nastaveni.webp', 770, 494, t('Okno Exportovat metrická data, záložka Instagram s vybraným účtem a volbou Příspěvek'), t('3. Instagram: jeden účet a volba Příspěvek.')) ?>
+                <?= $shot('bs-4-export-hotovo.webp', 372, 262, t('Okénko Váš export byl dokončen s tlačítkem Stáhnout export'), t('4. Po chvíli se objeví „Váš export byl dokončen", klikni na Stáhnout export.')) ?>
             </div>
         </details>
         <form method="post" enctype="multipart/form-data" class="form-grid form-grid-3">
             <?= allstat_csrf_field() ?>
             <input type="hidden" name="import_type" value="content">
-            <label><span>Napojení (stránka / účet)</span>
+            <label><span><?= h(t('Napojení (stránka / účet)')) ?></span>
                 <select name="connection_id" required>
                     <?php foreach ($connections as $c): ?>
                         <option value="<?= (int) $c['id'] ?>" <?= $preselect === (int) $c['id'] ? 'selected' : '' ?>>
                             <?= h($providerLabel((string) $c['provider_key'])) ?>: <?= h(($c['account_label'] ?? '') !== '' ? $c['account_label'] : $c['domain_url']) ?>
                         </option>
                     <?php endforeach; ?>
-                    <?php if (!$connections): ?><option value="0">Žádné Facebook / Instagram napojení</option><?php endif; ?>
+                    <?php if (!$connections): ?><option value="0"><?= h(t('Žádné Facebook / Instagram napojení')) ?></option><?php endif; ?>
                 </select>
             </label>
-            <label><span>CSV „Obsah" z Business Suite</span><input type="file" name="csv" accept=".csv,text/csv" required></label>
-            <div class="form-actions"><button class="button-primary" type="submit">Importovat obsah</button></div>
+            <label><span><?= h(t('CSV „Obsah" z Business Suite')) ?></span><input type="file" name="csv" accept=".csv,text/csv" required></label>
+            <div class="form-actions"><button class="button-primary" type="submit"><?= h(t('Importovat obsah')) ?></button></div>
         </form>
-        <p class="import-pitfalls"><strong>Pozor na záměny:</strong> soubory jako „Top formáty obsahu.csv" nebo „Zobrazení.csv" jsou exporty jednoho grafu z přehledu, import je nepřečte. Export se Zobrazením dat „Denně" nebo s Úrovní obsahu „Video" či „Stránka" import odmítne a napíše, co v okně exportu změnit.</p>
+        <p class="import-pitfalls"><?= t('<strong>Pozor na záměny:</strong> soubory jako „Top formáty obsahu.csv" nebo „Zobrazení.csv" jsou exporty jednoho grafu z přehledu, import je nepřečte. Export se Zobrazením dat „Denně" nebo s Úrovní obsahu „Video" či „Stránka" import odmítne a napíše, co v okně exportu změnit.') ?></p>
     </div>
 </div>
 
@@ -524,38 +523,38 @@ allstat_admin_header('Import z CSV', 'sources', $user, $config);
 <div class="admin-card" id="publikum">
     <div class="admin-card-header">
         <div>
-            <h2>2. Publikum a demografie <span>(Facebook)</span></h2>
-            <p><strong>Co doplní:</strong> věk, pohlaví, nejčastější města a země publika <strong>Facebook stránky</strong>, Meta tuhle demografii z API úplně odebrala. Instagram ji do AllStatu posílá přes API sám, tam CSV není potřeba. Import je snímek k dnešnímu dni. Publikum se mění pomalu, stačí jednou za měsíc.</p>
+            <h2><?= h(t('2. Publikum a demografie')) ?> <span><?= h(t('(Facebook)')) ?></span></h2>
+            <p><?= t('<strong>Co doplní:</strong> věk, pohlaví, nejčastější města a země publika <strong>Facebook stránky</strong>, Meta tuhle demografii z API úplně odebrala. Instagram ji do AllStatu posílá přes API sám, tam CSV není potřeba. Import je snímek k dnešnímu dni. Publikum se mění pomalu, stačí jednou za měsíc.') ?></p>
         </div>
     </div>
     <div class="admin-card-body">
         <ol class="setup-steps">
-            <li><strong>V Meta Business Suite otevři Přehledy → Okruh uživatelů</strong> (<a href="<?= h($bsAudienceUrl) ?>" target="_blank" rel="noopener">otevřít</a>). Nahoře musí být ve „Výběr entity" <strong>Facebook</strong> a v přepínači úplně vlevo nahoře správná stránka.</li>
-            <li>Na záložce <strong>Demografické údaje</strong> klikni vpravo na <strong>Exportovat</strong> a vyber <strong>Exportovat jako CSV</strong>. Soubor <code>Okruh uživatelů.csv</code> se stáhne hned.</li>
-            <li>Nahraj ho tady:</li>
+            <li><?= t('<strong>V Meta Business Suite otevři Přehledy → Okruh uživatelů</strong> (<a href="{url}" target="_blank" rel="noopener">otevřít</a>). Nahoře musí být ve „Výběr entity" <strong>Facebook</strong> a v přepínači úplně vlevo nahoře správná stránka.', ['url' => h($bsAudienceUrl)]) ?></li>
+            <li><?= t('Na záložce <strong>Demografické údaje</strong> klikni vpravo na <strong>Exportovat</strong> a vyber <strong>Exportovat jako CSV</strong>. Soubor <code>Okruh uživatelů.csv</code> se stáhne hned.') ?></li>
+            <li><?= h(t('Nahraj ho tady:')) ?></li>
         </ol>
         <details class="help-shots">
-            <summary>Ukázat obrázek z Business Suite</summary>
+            <summary><?= h(t('Ukázat obrázek z Business Suite')) ?></summary>
             <div class="help-shots-grid">
-                <?= $shot('bs-5-okruh-uzivatelu-export.webp', 750, 500, 'Business Suite, Přehledy, Okruh uživatelů: přepínač Facebook a menu Exportovat s volbou Exportovat jako CSV', 'Přehledy → Okruh uživatelů, nahoře Facebook, vpravo Exportovat → Exportovat jako CSV.') ?>
+                <?= $shot('bs-5-okruh-uzivatelu-export.webp', 750, 500, t('Business Suite, Přehledy, Okruh uživatelů: přepínač Facebook a menu Exportovat s volbou Exportovat jako CSV'), t('Přehledy → Okruh uživatelů, nahoře Facebook, vpravo Exportovat → Exportovat jako CSV.')) ?>
             </div>
         </details>
         <?php if ($fbConnections): ?>
         <form method="post" enctype="multipart/form-data" class="form-grid form-grid-3">
             <?= allstat_csrf_field() ?>
             <input type="hidden" name="import_type" value="audience">
-            <label><span>Facebook stránka</span>
+            <label><span><?= h(t('Facebook stránka')) ?></span>
                 <select name="connection_id" required>
                     <?php foreach ($fbConnections as $c): ?>
                         <option value="<?= (int) $c['id'] ?>"><?= h(($c['account_label'] ?? '') !== '' ? $c['account_label'] : $c['domain_url']) ?></option>
                     <?php endforeach; ?>
                 </select>
             </label>
-            <label><span>CSV „Okruh uživatelů" z Business Suite</span><input type="file" name="csv" accept=".csv,text/csv" required></label>
-            <div class="form-actions"><button class="button-primary" type="submit">Importovat demografii</button></div>
+            <label><span><?= h(t('CSV „Okruh uživatelů" z Business Suite')) ?></span><input type="file" name="csv" accept=".csv,text/csv" required></label>
+            <div class="form-actions"><button class="button-primary" type="submit"><?= h(t('Importovat demografii')) ?></button></div>
         </form>
         <?php else: ?>
-        <p class="table-muted">Zatím není napojená žádná Facebook stránka.</p>
+        <p class="table-muted"><?= h(t('Zatím není napojená žádná Facebook stránka.')) ?></p>
         <?php endif; ?>
     </div>
 </div>
@@ -563,8 +562,8 @@ allstat_admin_header('Import z CSV', 'sources', $user, $config);
 <div class="admin-card">
     <div class="admin-card-header">
         <div>
-            <h2>Jak import funguje</h2>
-            <p>Čísla v exportu jsou za celou dobu života příspěvku a časem jen rostou. Import proto u každého čísla nechá tu vyšší hodnotu: nic nesníží a nic nesmaže, ani když v exportu nějaký sloupec chybí. Stejný soubor jde bez obav nahrát znovu. Facebook v exportu počítá reakce a komentáře včetně těch na cizích sdíleních příspěvku, AllStat je proto uloží do rozšířeného čísla v detailu příspěvku a hlavní čísla nechá jen za originál. Typ obsahu z exportu doplní jen tam, kde ho API nezná (Facebook v exportu nerozlišuje reels a videa, API ano).</p>
+            <h2><?= h(t('Jak import funguje')) ?></h2>
+            <p><?= h(t('Čísla v exportu jsou za celou dobu života příspěvku a časem jen rostou. Import proto u každého čísla nechá tu vyšší hodnotu: nic nesníží a nic nesmaže, ani když v exportu nějaký sloupec chybí. Stejný soubor jde bez obav nahrát znovu. Facebook v exportu počítá reakce a komentáře včetně těch na cizích sdíleních příspěvku, AllStat je proto uloží do rozšířeného čísla v detailu příspěvku a hlavní čísla nechá jen za originál. Typ obsahu z exportu doplní jen tam, kde ho API nezná (Facebook v exportu nerozlišuje reels a videa, API ano).')) ?></p>
         </div>
     </div>
 </div>

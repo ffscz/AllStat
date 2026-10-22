@@ -31,35 +31,36 @@ foreach ($connections as $connection) {
     $statusCounts[$connection['status']] = ($statusCounts[$connection['status']] ?? 0) + 1;
 }
 
-allstat_admin_header('Zdroje dat', 'sources', $user, $config);
+allstat_admin_header(t('Zdroje dat'), 'sources', $user, $config);
 ?>
 <div class="admin-stats">
-    <div class="stat-tile"><span>Napojení</span><strong><?= count($connections) ?></strong></div>
+    <div class="stat-tile"><span><?= h(t('Napojení')) ?></span><strong><?= count($connections) ?></strong></div>
     <div class="stat-tile"><span>OK</span><strong><?= (int) $statusCounts['ok'] ?></strong></div>
-    <div class="stat-tile"><span>Varování</span><strong><?= (int) $statusCounts['warning'] ?></strong></div>
-    <div class="stat-tile"><span>Chyby</span><strong><?= (int) $statusCounts['error'] ?></strong></div>
+    <div class="stat-tile"><span><?= h(t('Varování')) ?></span><strong><?= (int) $statusCounts['warning'] ?></strong></div>
+    <div class="stat-tile"><span><?= h(t('Chyby')) ?></span><strong><?= (int) $statusCounts['error'] ?></strong></div>
 </div>
 
 <div class="admin-card">
     <div class="admin-card-header">
         <div>
-            <h2>Napojené služby</h2>
-            <p>Každý řádek je konkrétní napojení služby na web, včetně tokenů a provider konfigurace.</p>
+            <h2><?= h(t('Napojené služby')) ?></h2>
+            <p><?= h(t('Každý řádek je konkrétní napojení služby na web, včetně tokenů a provider konfigurace.')) ?></p>
         </div>
         <div class="card-header-actions">
             <form method="get" class="toolbar">
-                <label class="filter-control"><i data-lucide="globe-2"></i><select name="domain_id" data-autosubmit><option value="">Všechny weby</option><?php foreach ($domains as $domain): ?><option value="<?= (int) $domain['id'] ?>" <?= $domainId === (int) $domain['id'] ? 'selected' : '' ?>><?= h($domain['url']) ?></option><?php endforeach; ?></select></label>
+                <label class="filter-control"><i data-lucide="globe-2"></i><select name="domain_id" data-autosubmit><option value=""><?= h(t('Všechny weby')) ?></option><?php foreach ($domains as $domain): ?><option value="<?= (int) $domain['id'] ?>" <?= $domainId === (int) $domain['id'] ? 'selected' : '' ?>><?= h($domain['url']) ?></option><?php endforeach; ?></select></label>
             </form>
             <?php if ($connections): ?>
-                <button class="button-primary" type="button" data-sync-all data-csrf="<?= h(allstat_csrf_token()) ?>" title="Postupně stáhne aktuální data (posledních 7 dní) pro všechna napojení níže, náhrada za cron."><i data-lucide="refresh-cw"></i> Synchronizovat vše (7 dní)</button>
+                <button class="button-primary" type="button" data-sync-all data-csrf="<?= h(allstat_csrf_token()) ?>" title="<?= h(t('Postupně stáhne aktuální data (posledních 7 dní) pro všechna napojení níže, náhrada za cron.')) ?>"><i data-lucide="refresh-cw"></i> <?= h(t('Synchronizovat vše (7 dní)')) ?></button>
             <?php endif; ?>
-            <a class="button-secondary" href="logs.php"><i data-lucide="list"></i> Sync log</a>
+            <a class="button-secondary" href="google-accounts.php" title="<?= h(t('Připojit weby z GA4 a Search Console výběrem ze seznamu Google účtu')) ?>"><i data-lucide="key-round"></i> <?= h(t('Import z Google')) ?></a>
+            <a class="button-secondary" href="logs.php"><i data-lucide="list"></i> <?= h(t('Sync log')) ?></a>
         </div>
     </div>
     <div class="connection-result sync-all-result" data-sync-all-result hidden></div>
     <div class="admin-card-body table-scroll">
         <table class="admin-table">
-            <thead><tr><th>Web</th><th>Služba</th><th>Účet/property</th><th>Stav</th><th>Token</th><th>Sync</th><th></th></tr></thead>
+            <thead><tr><th><?= h(t('Web')) ?></th><th><?= h(t('Služba')) ?></th><th><?= h(t('Účet/property')) ?></th><th><?= h(t('Stav')) ?></th><th>Token</th><th><?= h(t('Sync')) ?></th><th></th></tr></thead>
             <tbody>
             <?php foreach ($connections as $connection): ?>
                 <tr data-conn-id="<?= (int) $connection['id'] ?>" data-conn-label="<?= h($connection['domain_url'] . ' · ' . $connection['source_name'] . ($connection['account_label'] ? ' (' . $connection['account_label'] . ')' : '')) ?>">
@@ -72,32 +73,32 @@ allstat_admin_header('Zdroje dat', 'sources', $user, $config);
                     </td>
                     <td><?= h($connection['account_label'] ?: '-') ?><div class="table-muted"><?= h($connection['property_id'] ?: $connection['external_account_id'] ?: '') ?></div></td>
                     <td><?= allstat_status_badge($connection['status']) ?></td>
-                    <td><?= $connection['token_expires_at'] ? h(allstat_iso_to_cz($connection['token_expires_at'])) : '<span class="table-muted">není nastaven</span>' ?></td>
-                    <td><?= $connection['last_sync_at'] ? h(allstat_iso_to_cz($connection['last_sync_at'])) : '<span class="table-muted">nikdy</span>' ?></td>
+                    <td><?= !empty($connection['oauth_account_id']) ? '<span class="table-muted">' . h(t('z Google účtu')) . '</span>' : ($connection['token_expires_at'] ? h(allstat_iso_to_cz($connection['token_expires_at'])) : '<span class="table-muted">' . h(t('není nastaven')) . '</span>') ?></td>
+                    <td><?= $connection['last_sync_at'] ? h(allstat_iso_to_cz($connection['last_sync_at'])) : '<span class="table-muted">' . h(t('nikdy')) . '</span>' ?></td>
                     <td>
                         <div class="table-actions">
-                            <a class="button-secondary" href="source-edit.php?id=<?= (int) $connection['id'] ?>">Upravit</a>
+                            <a class="button-secondary" href="source-edit.php?id=<?= (int) $connection['id'] ?>"><?= h(t('Upravit')) ?></a>
                             <?php if (!empty($connection['supports_oauth'])): ?><a class="button-secondary" href="oauth-start.php?connection_id=<?= (int) $connection['id'] ?>">OAuth</a><?php endif; ?>
-                            <form method="post" data-confirm="Odstranit napojení?">
+                            <form method="post" data-confirm="<?= h(t('Odstranit napojení?')) ?>">
                                 <?= allstat_csrf_field() ?>
                                 <input type="hidden" name="id" value="<?= (int) $connection['id'] ?>">
-                                <button class="button-danger" type="submit">Smazat</button>
+                                <button class="button-danger" type="submit"><?= h(t('Smazat')) ?></button>
                             </form>
                         </div>
                     </td>
                 </tr>
             <?php endforeach; ?>
-            <?php if (!$connections): ?><tr><td colspan="7" class="table-muted">Zatím tu není žádné napojení.</td></tr><?php endif; ?>
+            <?php if (!$connections): ?><tr><td colspan="7" class="table-muted"><?= h(t('Zatím tu není žádné napojení.')) ?></td></tr><?php endif; ?>
             </tbody>
         </table>
     </div>
 </div>
 
 <div class="admin-card">
-    <div class="admin-card-header"><h2>Přidat službu</h2></div>
+    <div class="admin-card-header"><h2><?= h(t('Přidat službu')) ?></h2></div>
     <div class="admin-card-body table-scroll">
         <table class="admin-table">
-            <thead><tr><th>Služba</th><th>Kategorie</th><th>Typ</th><th>Dokumentace</th><th></th></tr></thead>
+            <thead><tr><th><?= h(t('Služba')) ?></th><th><?= h(t('Kategorie')) ?></th><th><?= h(t('Typ')) ?></th><th><?= h(t('Dokumentace')) ?></th><th></th></tr></thead>
             <tbody>
             <?php foreach ($sources as $source): ?>
                 <tr>
@@ -108,10 +109,10 @@ allstat_admin_header('Zdroje dat', 'sources', $user, $config);
                         </div>
                     </td>
                     <td><?= h(allstat_provider_categories()[$source['category']] ?? $source['category']) ?></td>
-                    <td><?= !empty($source['supports_oauth']) ? 'OAuth' : 'API klíč' ?></td>
-                    <td><?= $source['docs_url'] ? '<a class="text-link" href="' . h($source['docs_url']) . '" target="_blank" rel="noreferrer">Dokumentace <i data-lucide="external-link"></i></a>' : '<span class="table-muted">-</span>' ?></td>
+                    <td><?= !empty($source['supports_oauth']) ? 'OAuth' : t('API klíč') ?></td>
+                    <td><?= $source['docs_url'] ? '<a class="text-link" href="' . h($source['docs_url']) . '" target="_blank" rel="noreferrer">' . h(t('Dokumentace')) . ' <i data-lucide="external-link"></i></a>' : '<span class="table-muted">-</span>' ?></td>
                     <?php $isMetaFam = in_array($source['provider_key'] ?? '', ['facebook_pages', 'instagram_business', 'meta_ads'], true); ?>
-                    <td><?php if ($isMetaFam): ?><a class="button-primary" href="meta-connect.php"><?= allstat_meta_button_icon() ?> Připojit přes Meta</a><?php else: ?><a class="button-primary" href="source-edit.php?source_id=<?= (int) $source['id'] ?><?= $domainId ? '&domain_id=' . (int) $domainId : '' ?>">Přidat</a><?php endif; ?></td>
+                    <td><?php if ($isMetaFam): ?><a class="button-primary" href="meta-connect.php"><?= allstat_meta_button_icon() ?> <?= h(t('Připojit přes Meta')) ?></a><?php else: ?><a class="button-primary" href="source-edit.php?source_id=<?= (int) $source['id'] ?><?= $domainId ? '&domain_id=' . (int) $domainId : '' ?>"><?= h(t('Přidat')) ?></a><?php endif; ?></td>
                 </tr>
             <?php endforeach; ?>
             </tbody>

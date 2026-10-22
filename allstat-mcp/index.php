@@ -56,6 +56,8 @@ $config = require $app . '/config.php';
 date_default_timezone_set($config['app']['timezone']);
 
 require_once $app . '/lib/helpers.php';
+// Data pro AI, feedy a cron jsou vždy česky (jejich podobu čtou jiné programy), bez ohledu na cookie jazyka.
+allstat_locale('cs');
 require_once $app . '/lib/database.php';
 require_once $app . '/lib/providers.php';
 require_once $app . '/lib/migrations.php';

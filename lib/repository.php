@@ -9,37 +9,37 @@ require_once __DIR__ . '/ai-sources.php';
  */
 function allstat_ga4_event_label(string $name): string
 {
-    static $map = [
-        'page_view' => 'Zobrazení stránky',
-        'session_start' => 'Začátek relace',
-        'first_visit' => 'První návštěva',
-        'user_engagement' => 'Aktivní zapojení',
-        'scroll' => 'Scrollování',
-        'click' => 'Kliknutí',
-        'form_submit' => 'Odeslání formuláře',
-        'form_start' => 'Začátek formuláře',
-        'generate_lead' => 'Lead (poptávka)',
-        'file_download' => 'Stažení souboru',
-        'video_start' => 'Spuštění videa',
-        'video_progress' => 'Průběh videa',
-        'video_complete' => 'Dokončení videa',
-        'view_search_results' => 'Zobrazení výsledků hledání',
-        'search' => 'Vyhledávání',
-        'purchase' => 'Nákup',
-        'add_to_cart' => 'Přidání do košíku',
-        'begin_checkout' => 'Zahájení objednávky',
-        'sign_up' => 'Registrace',
-        'login' => 'Přihlášení',
-        'view_item' => 'Zobrazení produktu',
-        'view_item_list' => 'Zobrazení seznamu produktů',
-        'select_item' => 'Výběr produktu',
-        'view_cart' => 'Zobrazení košíku',
-        'remove_from_cart' => 'Odebrání z košíku',
-        'add_shipping_info' => 'Zadání dopravy',
-        'add_payment_info' => 'Zadání platby',
-        'add_to_wishlist' => 'Přidání do oblíbených',
-        'refund' => 'Vrácení peněz',
-        'outbound_click' => 'Odchozí proklik',
+    $map = [
+        'page_view' => t('Zobrazení stránky'),
+        'session_start' => t('Začátek relace'),
+        'first_visit' => t('První návštěva'),
+        'user_engagement' => t('Aktivní zapojení'),
+        'scroll' => t('Scrollování'),
+        'click' => t('Kliknutí'),
+        'form_submit' => t('Odeslání formuláře'),
+        'form_start' => t('Začátek formuláře'),
+        'generate_lead' => t('Lead (poptávka)'),
+        'file_download' => t('Stažení souboru'),
+        'video_start' => t('Spuštění videa'),
+        'video_progress' => t('Průběh videa'),
+        'video_complete' => t('Dokončení videa'),
+        'view_search_results' => t('Zobrazení výsledků hledání'),
+        'search' => t('Vyhledávání'),
+        'purchase' => t('Nákup'),
+        'add_to_cart' => t('Přidání do košíku'),
+        'begin_checkout' => t('Zahájení objednávky'),
+        'sign_up' => t('Registrace'),
+        'login' => t('Přihlášení'),
+        'view_item' => t('Zobrazení produktu'),
+        'view_item_list' => t('Zobrazení seznamu produktů'),
+        'select_item' => t('Výběr produktu'),
+        'view_cart' => t('Zobrazení košíku'),
+        'remove_from_cart' => t('Odebrání z košíku'),
+        'add_shipping_info' => t('Zadání dopravy'),
+        'add_payment_info' => t('Zadání platby'),
+        'add_to_wishlist' => t('Přidání do oblíbených'),
+        'refund' => t('Vrácení peněz'),
+        'outbound_click' => t('Odchozí proklik'),
     ];
 
     return $map[$name] ?? $name;
@@ -47,29 +47,29 @@ function allstat_ga4_event_label(string $name): string
 
 function allstat_ga4_channel_label(string $name): string
 {
-    static $map = [
-        'Direct' => 'Přímá návštěvnost',
-        'Organic Search' => 'Organické vyhledávání',
-        'Paid Search' => 'Placené vyhledávání',
-        'Referral' => 'Odkazující weby',
-        'Organic Social' => 'Organické sociální sítě',
-        'Paid Social' => 'Placené sociální sítě',
-        'Social' => 'Sociální sítě',
+    $map = [
+        'Direct' => t('Přímá návštěvnost'),
+        'Organic Search' => t('Organické vyhledávání'),
+        'Paid Search' => t('Placené vyhledávání'),
+        'Referral' => t('Odkazující weby'),
+        'Organic Social' => t('Organické sociální sítě'),
+        'Paid Social' => t('Placené sociální sítě'),
+        'Social' => t('Sociální sítě'),
         // GA4 přidalo 5/2026 nativní kanál pro návštěvy z AI asistentů (medium=ai-assistant).
-        'AI Assistant' => 'AI asistenti',
-        'Email' => 'E-mail',
-        'Display' => 'Display reklama',
-        'Affiliates' => 'Afiliace',
-        'Organic Shopping' => 'Organické nákupy',
-        'Paid Shopping' => 'Placené nákupy',
-        'Organic Video' => 'Organické video',
-        'Paid Video' => 'Placené video',
+        'AI Assistant' => t('AI asistenti'),
+        'Email' => t('E-mail'),
+        'Display' => t('Display reklama'),
+        'Affiliates' => t('Afiliace'),
+        'Organic Shopping' => t('Organické nákupy'),
+        'Paid Shopping' => t('Placené nákupy'),
+        'Organic Video' => t('Organické video'),
+        'Paid Video' => t('Placené video'),
         'Audio' => 'Audio',
         'SMS' => 'SMS',
-        'Mobile Push Notifications' => 'Push notifikace',
+        'Mobile Push Notifications' => t('Push notifikace'),
         'Cross-network' => 'Cross-network',
-        'Unassigned' => 'Nepřiřazeno',
-        '(other)' => 'Ostatní',
+        'Unassigned' => t('Nepřiřazeno'),
+        '(other)' => t('Ostatní'),
     ];
 
     return $map[$name] ?? $name;
@@ -398,8 +398,8 @@ function allstat_utm_clean(string $value, string $emptyLabel): string
 function allstat_utm_campaign_label(string $campaign): string
 {
     return match ($campaign) {
-        '(cross-network)' => 'Google reklamy, více sítí (cross-network)',
-        default => allstat_utm_clean($campaign, '(bez kampaně)'),
+        '(cross-network)' => t('Google reklamy, více sítí (cross-network)'),
+        default => allstat_utm_clean($campaign, t('(bez kampaně)')),
     };
 }
 
@@ -570,12 +570,12 @@ function allstat_query_gsc_pages(PDO $pdo, int $domainId, string $start, string 
 function allstat_query_ecommerce_funnel(PDO $pdo, int $domainId, string $start, string $end): array
 {
     $stepDefs = [
-        'view_item'         => 'Zobrazení produktu',
-        'add_to_cart'       => 'Přidání do košíku',
-        'begin_checkout'    => 'Zahájení objednávky',
-        'add_shipping_info' => 'Zadání dopravy',
-        'add_payment_info'  => 'Zadání platby',
-        'purchase'          => 'Nákup',
+        'view_item'         => t('Zobrazení produktu'),
+        'add_to_cart'       => t('Přidání do košíku'),
+        'begin_checkout'    => t('Zahájení objednávky'),
+        'add_shipping_info' => t('Zadání dopravy'),
+        'add_payment_info'  => t('Zadání platby'),
+        'purchase'          => t('Nákup'),
     ];
     $names = array_keys($stepDefs);
     $names[] = 'remove_from_cart'; // leak indicator, not a forward step
@@ -701,7 +701,7 @@ function allstat_query_demographics(PDO $pdo, int $domainId, string $start, stri
     }
 
     $ageOrder = ['18-24', '25-34', '35-44', '45-54', '55-64', '65+'];
-    $genderLabels = ['male' => 'Muži', 'female' => 'Ženy'];
+    $genderLabels = ['male' => t('Muži'), 'female' => t('Ženy')];
     $isUnknown = static fn (string $v): bool => $v === '' || $v === 'unknown' || $v === '(not set)';
 
     $ageAgg = []; $genderAgg = []; $total = 0; $known = 0;
@@ -725,7 +725,7 @@ function allstat_query_demographics(PDO $pdo, int $domainId, string $start, stri
         }
         if (!empty($agg['unknown'])) {
             $u = (int) $agg['unknown'];
-            $out[] = ['label' => 'Neurčeno', 'users' => $u, 'usersLabel' => allstat_number($u),
+            $out[] = ['label' => t('Neurčeno'), 'users' => $u, 'usersLabel' => allstat_number($u),
                 'share' => $total > 0 ? $u / $total * 100 : 0, 'shareLabel' => allstat_percent($total > 0 ? $u / $total * 100 : 0, 1)];
         }
         return $out;
@@ -871,18 +871,18 @@ function allstat_query_devices(PDO $pdo, int $domainId, string $start, string $e
  */
 function allstat_device_label(string $device): string
 {
-    static $map = [
-        'mobile' => 'Mobil',
+    $map = [
+        'mobile' => t('Mobil'),
         'desktop' => 'Desktop',
-        'tablet' => 'Tablet',
+        'tablet' => t('Tablet'),
         'smart tv' => 'Smart TV',
         'smarttv' => 'Smart TV',
-        'wearable' => 'Nositelné',
-        'console' => 'Konzole',
+        'wearable' => t('Nositelné'),
+        'console' => t('Konzole'),
     ];
     $key = mb_strtolower(trim($device));
 
-    return $map[$key] ?? ($device === '' ? 'Ostatní' : mb_strtoupper(mb_substr($device, 0, 1)) . mb_substr($device, 1));
+    return $map[$key] ?? ($device === '' ? t('Ostatní') : mb_strtoupper(mb_substr($device, 0, 1)) . mb_substr($device, 1));
 }
 
 /**
@@ -1101,7 +1101,7 @@ function allstat_get_social_posts(PDO $pdo, int $connectionId, string $start, st
     // Jeden mapper pro Top dle engagementu i Top dle uložení.
     $mapPost = static function (array $p): array {
         $msg = trim((string) $p['message']);
-        if ($msg === '') { $msg = '(bez textu)'; }
+        if ($msg === '') { $msg = t('(bez textu)'); }
         $reach = (int) $p['reach'];
         $eng = (int) $p['engagement'];
         $views = (int) ($p['impressions'] ?? 0);
@@ -1207,54 +1207,54 @@ function allstat_social_post_detail(array $row): array
     $comViral = (int) ($row['comments_viral'] ?? 0);
 
     $groups = [];
-    $groups[] = ['title' => 'Přehled', 'items' => [
-        ['label' => 'Zobrazení', 'value' => $n($views), 'hint' => 'Kolikrát se příspěvek ukázal, i opakovaně témuž člověku.'],
-        ['label' => 'Diváci (dosah)', 'value' => $n($reach), 'hint' => 'Kolik různých lidí příspěvek vidělo.'],
-        ['label' => 'Čistý počet interakcí', 'value' => $n($rea + $com + $sha), 'hint' => 'Reakce + komentáře + sdílení na tomto příspěvku.'],
-        ['label' => 'Kliknutí na odkazy', 'value' => $n((int) ($row['link_clicks'] ?? 0)), 'hint' => 'Jen prokliky na odkaz, ne rozkliknutí fotky nebo textu.'],
+    $groups[] = ['title' => t('Přehled'), 'items' => [
+        ['label' => t('Zobrazení'), 'value' => $n($views), 'hint' => t('Kolikrát se příspěvek ukázal, i opakovaně témuž člověku.')],
+        ['label' => t('Diváci (dosah)'), 'value' => $n($reach), 'hint' => t('Kolik různých lidí příspěvek vidělo.')],
+        ['label' => t('Čistý počet interakcí'), 'value' => $n($rea + $com + $sha), 'hint' => t('Reakce + komentáře + sdílení na tomto příspěvku.')],
+        ['label' => t('Kliknutí na odkazy'), 'value' => $n((int) ($row['link_clicks'] ?? 0)), 'hint' => t('Jen prokliky na odkaz, ne rozkliknutí fotky nebo textu.')],
     ]];
-    $groups[] = ['title' => 'Interakce', 'items' => [
-        ['label' => 'To se mi líbí a reakce', 'value' => $n($rea), 'hint' => 'Reakce přímo na tomto příspěvku, stejné číslo jako v Business Suite.'],
-        ['label' => 'Komentáře', 'value' => $n($com), 'hint' => 'Komentáře pod tímto příspěvkem.'],
-        ['label' => 'Sdílení', 'value' => $n($sha), 'hint' => 'Kolikrát lidé příspěvek sdíleli dál.'],
-        ['label' => 'Uložení', 'value' => $n($saved), 'hint' => 'Facebook tuhle metriku pro stránky přes API nedává, proto bývá prázdná.'],
+    $groups[] = ['title' => t('Interakce'), 'items' => [
+        ['label' => t('To se mi líbí a reakce'), 'value' => $n($rea), 'hint' => t('Reakce přímo na tomto příspěvku, stejné číslo jako v Business Suite.')],
+        ['label' => t('Komentáře'), 'value' => $n($com), 'hint' => t('Komentáře pod tímto příspěvkem.')],
+        ['label' => t('Sdílení'), 'value' => $n($sha), 'hint' => t('Kolikrát lidé příspěvek sdíleli dál.')],
+        ['label' => t('Uložení'), 'value' => $n($saved), 'hint' => t('Facebook tuhle metriku pro stránky přes API nedává, proto bývá prázdná.')],
     ]];
 
     // Prokliky po typech (post_clicks_by_type) — ať je vidět, z čeho se skládá celkové číslo klikům.
     $clicks = [];
     $decoded = json_decode((string) ($row['clicks_json'] ?? ''), true);
     if (is_array($decoded)) {
-        static $clickLabels = ['link clicks' => 'Kliknutí na odkaz', 'photo view' => 'Zobrazení fotky',
-            'other clicks' => 'Ostatní kliknutí (rozbalení textu, jméno stránky)', 'video play' => 'Přehrání videa'];
+        $clickLabels = ['link clicks' => t('Kliknutí na odkaz'), 'photo view' => t('Zobrazení fotky'),
+            'other clicks' => t('Ostatní kliknutí (rozbalení textu, jméno stránky)'), 'video play' => t('Přehrání videa')];
         foreach ($decoded as $k => $v) {
             if ((int) $v <= 0) { continue; }
             $clicks[] = ['label' => $clickLabels[$k] ?? ucfirst((string) $k), 'value' => allstat_number((int) $v), 'hint' => ''];
         }
     }
-    $clicks[] = ['label' => 'Kliknutí celkem', 'value' => $n((int) ($row['post_clicks'] ?? 0)), 'hint' => 'Součet všech typů kliknutí na příspěvek.'];
-    $groups[] = ['title' => 'Kliknutí', 'items' => $clicks];
+    $clicks[] = ['label' => t('Kliknutí celkem'), 'value' => $n((int) ($row['post_clicks'] ?? 0)), 'hint' => t('Součet všech typů kliknutí na příspěvek.')];
+    $groups[] = ['title' => t('Kliknutí'), 'items' => $clicks];
 
     // Doplňky, které Business Suite v tomhle panelu nemá, ale AllStat je umí: dosah mezi sledujícími
     // a širší „virální" počet interakcí včetně přesdílení (odtud plynul starý rozpor v číslech).
     $extra = [
-        ['label' => 'Dosah mezi sledujícími', 'value' => $n($fanReach),
-         'hint' => $reach > 0 && $fanReach > 0 ? 'Z celkového dosahu ' . allstat_number($reach) . ' tvoří sledující ' . allstat_percent(round($fanReach / $reach * 100, 1), 1) . '.' : 'Kolik zasažených lidí stránku už sleduje.'],
+        ['label' => t('Dosah mezi sledujícími'), 'value' => $n($fanReach),
+         'hint' => $reach > 0 && $fanReach > 0 ? t('Z celkového dosahu {reach} tvoří sledující {share}.', ['reach' => allstat_number($reach), 'share' => allstat_percent(round($fanReach / $reach * 100, 1), 1)]) : t('Kolik zasažených lidí stránku už sleduje.')],
     ];
     if ($viral > $rea || $comViral > $com) {
-        $extra[] = ['label' => 'Reakce včetně přesdílení', 'value' => $n($viral),
-            'hint' => 'Facebook počítá i reakce na cizích sdíleních tohoto příspěvku. O ' . allstat_number(max(0, $viral - $rea)) . ' víc než na originálu; Business Suite ukazuje jen originál.'];
-        $extra[] = ['label' => 'Komentáře včetně přesdílení', 'value' => $n($comViral), 'hint' => 'Totéž pro komentáře.'];
+        $extra[] = ['label' => t('Reakce včetně přesdílení'), 'value' => $n($viral),
+            'hint' => t('Facebook počítá i reakce na cizích sdíleních tohoto příspěvku. O {diff} víc než na originálu; Business Suite ukazuje jen originál.', ['diff' => allstat_number(max(0, $viral - $rea))])];
+        $extra[] = ['label' => t('Komentáře včetně přesdílení'), 'value' => $n($comViral), 'hint' => t('Totéž pro komentáře.')];
     }
-    $groups[] = ['title' => 'Navíc oproti Business Suite', 'items' => $extra];
+    $groups[] = ['title' => t('Navíc oproti Business Suite'), 'items' => $extra];
 
     return $groups;
 }
 
 function allstat_social_reaction_breakdown(array $row): array
 {
-    static $meta = [
-        'r_like' => ['👍', 'To se mi líbí'], 'r_love' => ['❤️', 'Super'], 'r_haha' => ['😂', 'Haha'],
-        'r_wow' => ['😮', 'Paráda'], 'r_sad' => ['😢', 'To mě mrzí'], 'r_angry' => ['😡', 'To mě štve'],
+    $meta = [
+        'r_like' => ['👍', t('To se mi líbí')], 'r_love' => ['❤️', t('Super')], 'r_haha' => ['😂', t('Haha')],
+        'r_wow' => ['😮', t('Paráda')], 'r_sad' => ['😢', t('To mě mrzí')], 'r_angry' => ['😡', t('To mě štve')],
     ];
     $out = [];
     foreach ($meta as $key => [$emoji, $label]) {
@@ -1274,15 +1274,15 @@ function allstat_social_reaction_breakdown(array $row): array
 function allstat_social_format_label(string $format): string
 {
     return match ($format) {
-        'photo', 'image' => 'Foto',
-        'video' => 'Video',
+        'photo', 'image' => t('Foto'),
+        'video' => t('Video'),
         'reel' => 'Reel',
-        'link' => 'Odkaz',
+        'link' => t('Odkaz'),
         'status' => 'Text',
-        'share' => 'Sdílení',
+        'share' => t('Sdílení'),
         'album', 'carousel_album' => 'Album',
         'story' => 'Story',
-        '' => 'Ostatní',
+        '' => t('Ostatní'),
         default => mb_strtoupper(mb_substr($format, 0, 1)) . mb_substr($format, 1),
     };
 }
@@ -1294,11 +1294,11 @@ function allstat_social_post_date(string $publishedAt, string $metricDate): stri
 {
     if ($publishedAt !== '' && $publishedAt !== '0000-00-00 00:00:00') {
         try {
-            return (new DateTimeImmutable($publishedAt))->format('d.m. H:i');
+            return (new DateTimeImmutable($publishedAt))->format(allstat_locale() === 'en' ? 'j M H:i' : 'd.m. H:i');
         } catch (Throwable) { /* fall through to date-only */ }
     }
     try {
-        return (new DateTimeImmutable(substr($metricDate, 0, 10)))->format('d.m.');
+        return (new DateTimeImmutable(substr($metricDate, 0, 10)))->format(allstat_locale() === 'en' ? 'j M' : 'd.m.');
     } catch (Throwable) {
         return $metricDate;
     }
@@ -1329,7 +1329,11 @@ function allstat_social_build_heatmap(array $rows): ?array
         $total += (int) $r['cnt'];
     }
     $maxAvg = 0.0;
-    $days = ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'];
+    $days = match (allstat_locale()) {
+        'en' => ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        'sk' => ['Po', 'Ut', 'St', 'Št', 'Pi', 'So', 'Ne'],
+        default => ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'],
+    };
     $slots = [];
     for ($w = 0; $w < 7; $w++) {
         for ($b = 0; $b < 6; $b++) {
@@ -1394,7 +1398,7 @@ function allstat_get_social_posts_page(PDO $pdo, int $connectionId, string $star
         'perPage' => $perPage,
         'rows' => array_map(static function (array $p): array {
             $msg = trim((string) $p['message']);
-            if ($msg === '') { $msg = '(bez textu)'; }
+            if ($msg === '') { $msg = t('(bez textu)'); }
             $reach = (int) $p['reach'];
             $eng = (int) $p['engagement'];
             $views = (int) ($p['impressions'] ?? 0);
@@ -1428,19 +1432,19 @@ function allstat_get_social_posts_page(PDO $pdo, int $connectionId, string $star
 /** IG pohlaví F/M/U → český popisek. */
 function allstat_ig_gender_label(string $g): string
 {
-    return ['F' => 'Ženy', 'M' => 'Muži', 'U' => 'Neuvedeno'][strtoupper($g)] ?? $g;
+    return ['F' => t('Ženy'), 'M' => t('Muži'), 'U' => t('Neuvedeno')][strtoupper($g)] ?? $g;
 }
 
 /** ISO kód země → český název (fallback = kód). */
 function allstat_ig_country_label(string $iso): string
 {
-    static $m = [
-        'CZ' => 'Česko', 'SK' => 'Slovensko', 'DE' => 'Německo', 'AT' => 'Rakousko', 'PL' => 'Polsko',
-        'GB' => 'Velká Británie', 'US' => 'USA', 'UA' => 'Ukrajina', 'ES' => 'Španělsko', 'IT' => 'Itálie',
-        'FR' => 'Francie', 'NL' => 'Nizozemsko', 'HU' => 'Maďarsko', 'CH' => 'Švýcarsko', 'IE' => 'Irsko',
-        'BE' => 'Belgie', 'SE' => 'Švédsko', 'DK' => 'Dánsko', 'PT' => 'Portugalsko', 'RU' => 'Rusko',
-        'CA' => 'Kanada', 'HR' => 'Chorvatsko', 'RS' => 'Srbsko', 'RO' => 'Rumunsko', 'BG' => 'Bulharsko',
-        'GR' => 'Řecko', 'NO' => 'Norsko', 'FI' => 'Finsko', 'VN' => 'Vietnam', 'SI' => 'Slovinsko',
+    $m = [
+        'CZ' => t('Česko'), 'SK' => t('Slovensko'), 'DE' => t('Německo'), 'AT' => t('Rakousko'), 'PL' => t('Polsko'),
+        'GB' => t('Velká Británie'), 'US' => 'USA', 'UA' => t('Ukrajina'), 'ES' => t('Španělsko'), 'IT' => t('Itálie'),
+        'FR' => t('Francie'), 'NL' => t('Nizozemsko'), 'HU' => t('Maďarsko'), 'CH' => t('Švýcarsko'), 'IE' => t('Irsko'),
+        'BE' => t('Belgie'), 'SE' => t('Švédsko'), 'DK' => t('Dánsko'), 'PT' => t('Portugalsko'), 'RU' => t('Rusko'),
+        'CA' => t('Kanada'), 'HR' => t('Chorvatsko'), 'RS' => t('Srbsko'), 'RO' => t('Rumunsko'), 'BG' => t('Bulharsko'),
+        'GR' => t('Řecko'), 'NO' => t('Norsko'), 'FI' => t('Finsko'), 'VN' => 'Vietnam', 'SI' => t('Slovinsko'),
     ];
     return $m[strtoupper($iso)] ?? $iso;
 }
@@ -1704,15 +1708,15 @@ function allstat_query_source_statuses(PDO $pdo, int $domainId): array
  */
 function allstat_youtube_traffic_label(string $type): string
 {
-    static $map = [
-        'YT_SEARCH' => 'Vyhledávání YouTube', 'SUGGESTED' => 'Navrhovaná videa', 'RELATED_VIDEO' => 'Navrhovaná videa',
-        'EXT_URL' => 'Externí weby a aplikace', 'EXTERNAL' => 'Externí weby a aplikace', 'NO_LINK_OTHER' => 'Přímý přístup / neznámé',
-        'NO_LINK_EMBEDDED' => 'Vložený přehrávač (embed)', 'YT_CHANNEL' => 'Stránka kanálu', 'SUBSCRIBER' => 'Odběratelé (kanál Odebíráno / domů)',
-        'PLAYLIST' => 'Playlisty', 'YT_PLAYLIST_PAGE' => 'Stránka playlistu', 'NOTIFICATION' => 'Notifikace', 'SHORTS' => 'Shorts feed',
-        'ADVERTISING' => 'Reklama', 'PROMOTED' => 'Propagovaný obsah', 'END_SCREEN' => 'Závěrečná obrazovka', 'ANNOTATION' => 'Anotace / karty',
-        'CAMPAIGN_CARD' => 'Karta kampaně', 'HASHTAGS' => 'Hashtagy', 'YT_OTHER_PAGE' => 'Jiné stránky YouTube', 'SOUND_PAGE' => 'Stránka zvuku',
-        'PRODUCT_PAGE' => 'Stránka produktu', 'VIDEO_REMIXES' => 'Remixy videa', 'LIVE_REDIRECT' => 'Přesměrování z živého vysílání',
-        'IMMERSIVE_LIVE' => 'Živé vysílání (feed)', 'YT_SEARCH_SHORTS' => 'Vyhledávání Shorts',
+    $map = [
+        'YT_SEARCH' => t('Vyhledávání YouTube'), 'SUGGESTED' => t('Navrhovaná videa'), 'RELATED_VIDEO' => t('Navrhovaná videa'),
+        'EXT_URL' => t('Externí weby a aplikace'), 'EXTERNAL' => t('Externí weby a aplikace'), 'NO_LINK_OTHER' => t('Přímý přístup / neznámé'),
+        'NO_LINK_EMBEDDED' => t('Vložený přehrávač (embed)'), 'YT_CHANNEL' => t('Stránka kanálu'), 'SUBSCRIBER' => t('Odběratelé (kanál Odebíráno / domů)'),
+        'PLAYLIST' => t('Playlisty'), 'YT_PLAYLIST_PAGE' => t('Stránka playlistu'), 'NOTIFICATION' => t('Notifikace'), 'SHORTS' => t('Shorts feed'),
+        'ADVERTISING' => t('Reklama'), 'PROMOTED' => t('Propagovaný obsah'), 'END_SCREEN' => t('Závěrečná obrazovka'), 'ANNOTATION' => t('Anotace / karty'),
+        'CAMPAIGN_CARD' => t('Karta kampaně'), 'HASHTAGS' => t('Hashtagy'), 'YT_OTHER_PAGE' => t('Jiné stránky YouTube'), 'SOUND_PAGE' => t('Stránka zvuku'),
+        'PRODUCT_PAGE' => t('Stránka produktu'), 'VIDEO_REMIXES' => t('Remixy videa'), 'LIVE_REDIRECT' => t('Přesměrování z živého vysílání'),
+        'IMMERSIVE_LIVE' => t('Živé vysílání (feed)'), 'YT_SEARCH_SHORTS' => t('Vyhledávání Shorts'),
     ];
 
     return $map[$type] ?? $type;
@@ -1777,7 +1781,7 @@ function allstat_get_youtube_videos(PDO $pdo, int $connectionId, string $start, 
         'allTimeCount' => $allCount,
         'byFormat' => array_map(static fn (array $f): array => [
             'format' => (string) $f['post_format'],
-            'label' => match ((string) $f['post_format']) { 'short' => 'Shorts', 'live' => 'Živá vysílání', default => 'Videa' },
+            'label' => match ((string) $f['post_format']) { 'short' => t('Shorts'), 'live' => t('Živá vysílání'), default => t('Videa') },
             'count' => (int) $f['cnt'],
             'views' => (int) $f['views'],
             'avgViews' => (int) $f['cnt'] > 0 ? (int) round((int) $f['views'] / (int) $f['cnt']) : 0,
@@ -1802,12 +1806,12 @@ function allstat_youtube_map_video(array $r): array
 
     return [
         'id' => (string) ($r['post_id'] ?? ''),
-        'title' => $title !== '' ? $title : '(bez názvu)',
+        'title' => $title !== '' ? $title : t('(bez názvu)'),
         'permalink' => (string) $r['permalink'],
         'date' => allstat_social_post_date((string) ($r['published_at'] ?? ''), (string) $r['metric_date']),
         'metricDate' => (string) $r['metric_date'],
         'format' => (string) $r['post_format'],
-        'formatLabel' => match ((string) $r['post_format']) { 'short' => 'Short', 'live' => 'Živě', default => 'Video' },
+        'formatLabel' => match ((string) $r['post_format']) { 'short' => t('Short'), 'live' => t('Živě'), default => t('Video') },
         'durationLabel' => $dur > 0 ? allstat_watch_time_label($dur) : '—',
         'views' => $views,
         'viewsLabel' => allstat_number($views),
@@ -1866,7 +1870,7 @@ function allstat_get_youtube_catalog(PDO $pdo, int $connectionId): array
     }
     $unassigned = array_keys(array_diff_key($videos, $inAny));
     if ($unassigned) {
-        $groups['_none'] = ['id' => '', 'title' => 'Nezařazená do playlistu', 'videos' => $unassigned];
+        $groups['_none'] = ['id' => '', 'title' => t('Nezařazená do playlistu'), 'videos' => $unassigned];
     }
 
     $summarize = static function (array $g) use ($videos): array {
@@ -1948,13 +1952,13 @@ function allstat_get_youtube_audience(PDO $pdo, int $connectionId, string $start
             return [$date, $rows];
         };
         [$geoDate, $geo] = $snapshot('geo_country');
-        $out['geoDate'] = $geoDate !== '' ? (new DateTimeImmutable($geoDate))->format('j. n. Y') : '';
+        $out['geoDate'] = $geoDate !== '' ? allstat_date_label((new DateTimeImmutable($geoDate))->getTimestamp()) : '';
         $out['geo'] = $share(array_map(static fn (array $r): array => ['label' => allstat_youtube_country_label((string) $r['dimension']), 'value' => (float) $r['metric_value']], $geo));
         [$demoDate, $age] = $snapshot('viewer_age');
         [, $gender] = $snapshot('viewer_gender');
-        $out['demoDate'] = $demoDate !== '' ? (new DateTimeImmutable($demoDate))->format('j. n. Y') : '';
+        $out['demoDate'] = $demoDate !== '' ? allstat_date_label((new DateTimeImmutable($demoDate))->getTimestamp()) : '';
         $ageLabel = static fn (string $d): string => match ($d) { 'age13-17' => '13–17', 'age18-24' => '18–24', 'age25-34' => '25–34', 'age35-44' => '35–44', 'age45-54' => '45–54', 'age55-64' => '55–64', 'age65-' => '65+', default => $d };
-        $genderLabel = static fn (string $d): string => match ($d) { 'female' => 'Ženy', 'male' => 'Muži', 'user_specified' => 'Jiné / neuvedeno', default => $d };
+        $genderLabel = static fn (string $d): string => match ($d) { 'female' => t('Ženy'), 'male' => t('Muži'), 'user_specified' => t('Jiné / neuvedeno'), default => $d };
         $out['age'] = array_map(static fn (array $r): array => ['label' => $ageLabel((string) $r['dimension']), 'value' => (float) $r['metric_value']], $age);
         usort($out['age'], static fn ($a, $b) => strcmp($a['label'], $b['label']));
         $out['gender'] = array_map(static fn (array $r): array => ['label' => $genderLabel((string) $r['dimension']), 'value' => (float) $r['metric_value']], $gender);
@@ -1972,11 +1976,11 @@ function allstat_get_youtube_audience(PDO $pdo, int $connectionId, string $start
  */
 function allstat_youtube_country_label(string $code): string
 {
-    static $map = ['CZ' => 'Česko', 'SK' => 'Slovensko', 'DE' => 'Německo', 'AT' => 'Rakousko', 'PL' => 'Polsko', 'US' => 'USA', 'GB' => 'Velká Británie',
-        'FR' => 'Francie', 'IT' => 'Itálie', 'ES' => 'Španělsko', 'NL' => 'Nizozemsko', 'BE' => 'Belgie', 'CH' => 'Švýcarsko', 'HU' => 'Maďarsko', 'UA' => 'Ukrajina',
-        'RU' => 'Rusko', 'IN' => 'Indie', 'CA' => 'Kanada', 'AU' => 'Austrálie', 'SE' => 'Švédsko', 'NO' => 'Norsko', 'DK' => 'Dánsko', 'FI' => 'Finsko', 'IE' => 'Irsko',
-        'PT' => 'Portugalsko', 'RO' => 'Rumunsko', 'BG' => 'Bulharsko', 'HR' => 'Chorvatsko', 'SI' => 'Slovinsko', 'GR' => 'Řecko', 'TR' => 'Turecko', 'BR' => 'Brazílie',
-        'MX' => 'Mexiko', 'JP' => 'Japonsko', 'KR' => 'Jižní Korea', 'CN' => 'Čína', 'VN' => 'Vietnam', 'PH' => 'Filipíny', 'ID' => 'Indonésie', 'ZZ' => 'Neznámá'];
+    $map = ['CZ' => t('Česko'), 'SK' => t('Slovensko'), 'DE' => t('Německo'), 'AT' => t('Rakousko'), 'PL' => t('Polsko'), 'US' => 'USA', 'GB' => t('Velká Británie'),
+        'FR' => t('Francie'), 'IT' => t('Itálie'), 'ES' => t('Španělsko'), 'NL' => t('Nizozemsko'), 'BE' => t('Belgie'), 'CH' => t('Švýcarsko'), 'HU' => t('Maďarsko'), 'UA' => t('Ukrajina'),
+        'RU' => t('Rusko'), 'IN' => t('Indie'), 'CA' => t('Kanada'), 'AU' => t('Austrálie'), 'SE' => t('Švédsko'), 'NO' => t('Norsko'), 'DK' => t('Dánsko'), 'FI' => t('Finsko'), 'IE' => t('Irsko'),
+        'PT' => t('Portugalsko'), 'RO' => t('Rumunsko'), 'BG' => t('Bulharsko'), 'HR' => t('Chorvatsko'), 'SI' => t('Slovinsko'), 'GR' => t('Řecko'), 'TR' => t('Turecko'), 'BR' => t('Brazílie'),
+        'MX' => t('Mexiko'), 'JP' => t('Japonsko'), 'KR' => t('Jižní Korea'), 'CN' => t('Čína'), 'VN' => 'Vietnam', 'PH' => t('Filipíny'), 'ID' => t('Indonésie'), 'ZZ' => t('Neznámá')];
 
     return $map[strtoupper($code)] ?? $code;
 }
@@ -2031,7 +2035,7 @@ function allstat_dashboard_provider_options(?PDO $pdo, int $domainId): array
 function allstat_provider_metric_labels(string $providerKey): array
 {
     if ($providerKey === 'clarity') {
-        return ['sessions' => 'Návštěvy', 'bot_sessions' => 'Boti'];
+        return ['sessions' => t('Návštěvy'), 'bot_sessions' => t('Boti')];
     }
 
     return array_map(static fn (array $meta): string => $meta['label'], allstat_provider_metric_meta($providerKey));
@@ -2047,60 +2051,60 @@ function allstat_provider_metric_meta(string $providerKey): array
 {
     return match ($providerKey) {
         'seznam_wmt' => [
-            'indexed' => ['label' => 'Indexované', 'icon' => 'check-circle-2', 'color' => 'green', 'tooltip' => 'Počet stránek webu zařazených v indexu Seznam.cz (aktuální stav k poslednímu dni). Trend ukazuje vývoj, propad = problém s indexací.'],
-            'content' => ['label' => 'Obsahové stránky', 'icon' => 'file-text', 'color' => 'blue', 'tooltip' => 'Stránky s obsahem (skutečné indexovatelné stránky, ne obrázky/přesměrování). Aktuální stav.'],
-            'downloaded' => ['label' => 'Stažené', 'icon' => 'download', 'color' => 'cyan', 'tooltip' => 'Kolik stránek robot Seznamu stáhl a zná. Aktuální stav.'],
-            'error' => ['label' => 'Chyby', 'icon' => 'alert-triangle', 'color' => 'rose', 'tooltip' => 'Stránky, u kterých robot narazil na chybu (nedostupné, chybové kódy). Rostoucí číslo = řešit.'],
-            'redirected' => ['label' => 'Přesměrování', 'icon' => 'corner-down-right', 'color' => 'orange', 'tooltip' => 'Stránky vracející přesměrování. Aktuální stav.'],
-            'doc_count' => ['label' => 'Dokumenty celkem', 'icon' => 'files', 'color' => 'violet', 'tooltip' => 'Celkový počet dokumentů webu, které Seznam eviduje. Aktuální stav.'],
+            'indexed' => ['label' => t('Indexované'), 'icon' => 'check-circle-2', 'color' => 'green', 'tooltip' => t('Počet stránek webu zařazených v indexu Seznam.cz (aktuální stav k poslednímu dni). Trend ukazuje vývoj, propad = problém s indexací.')],
+            'content' => ['label' => t('Obsahové stránky'), 'icon' => 'file-text', 'color' => 'blue', 'tooltip' => t('Stránky s obsahem (skutečné indexovatelné stránky, ne obrázky/přesměrování). Aktuální stav.')],
+            'downloaded' => ['label' => t('Stažené'), 'icon' => 'download', 'color' => 'cyan', 'tooltip' => t('Kolik stránek robot Seznamu stáhl a zná. Aktuální stav.')],
+            'error' => ['label' => t('Chyby'), 'icon' => 'alert-triangle', 'color' => 'rose', 'tooltip' => t('Stránky, u kterých robot narazil na chybu (nedostupné, chybové kódy). Rostoucí číslo = řešit.')],
+            'redirected' => ['label' => t('Přesměrování'), 'icon' => 'corner-down-right', 'color' => 'orange', 'tooltip' => t('Stránky vracející přesměrování. Aktuální stav.')],
+            'doc_count' => ['label' => t('Dokumenty celkem'), 'icon' => 'files', 'color' => 'violet', 'tooltip' => t('Celkový počet dokumentů webu, které Seznam eviduje. Aktuální stav.')],
         ],
         'facebook_pages' => [
-            'followers_total' => ['label' => 'Sledující celkem', 'icon' => 'users', 'color' => 'green', 'tooltip' => 'Celkový počet sledujících stránky (Facebook followers_count), aktuální stav k poslednímu syncu. Ukládá se denně, takže postupně vznikne graf vývoje; zpětnou historii Facebook API nedává.'],
-            'reach' => ['label' => 'Dosah', 'icon' => 'eye', 'color' => 'blue', 'tooltip' => 'Unikátní lidé, kteří viděli obsah stránky (Facebook page_impressions_unique, po 15. 6. 2026 page_total_media_view_unique). Součet za období, klíčová metrika organického dosahu.'],
-            'page_impressions' => ['label' => 'Zobrazení', 'icon' => 'eye', 'color' => 'cyan', 'tooltip' => 'Kolikrát se obsah stránky zobrazil celkem, vč. opakovaných (Facebook page_media_view, náhrada zrušené page_impressions). Součet za období.'],
-            'engagements' => ['label' => 'Engagement', 'icon' => 'activity', 'color' => 'violet', 'tooltip' => 'Interakce s příspěvky (reakce, komentáře, sdílení, prokliky), Facebook page_post_engagements. Součet za období.'],
-            'page_views' => ['label' => 'Návštěvy profilu', 'icon' => 'users-round', 'color' => 'teal', 'tooltip' => 'Kolikrát si lidé zobrazili profil stránky (Facebook page_views_total). Součet za období.'],
-            'new_follows' => ['label' => 'Noví sledující', 'icon' => 'user-plus', 'color' => 'green', 'tooltip' => 'Noví sledující za období (Facebook page_daily_follows). Nahrazuje zrušené page_fan_adds.'],
-            'unfollows' => ['label' => 'Odhlášení', 'icon' => 'user-minus', 'color' => 'rose', 'tooltip' => 'Kolik lidí přestalo sledovat stránku (Facebook page_daily_unfollows). Noví − odhlášení = čistý přírůstek.'],
+            'followers_total' => ['label' => t('Sledující celkem'), 'icon' => 'users', 'color' => 'green', 'tooltip' => t('Celkový počet sledujících stránky (Facebook followers_count), aktuální stav k poslednímu syncu. Ukládá se denně, takže postupně vznikne graf vývoje; zpětnou historii Facebook API nedává.')],
+            'reach' => ['label' => t('Dosah'), 'icon' => 'eye', 'color' => 'blue', 'tooltip' => t('Unikátní lidé, kteří viděli obsah stránky (Facebook page_impressions_unique, po 15. 6. 2026 page_total_media_view_unique). Součet za období, klíčová metrika organického dosahu.')],
+            'page_impressions' => ['label' => t('Zobrazení'), 'icon' => 'eye', 'color' => 'cyan', 'tooltip' => t('Kolikrát se obsah stránky zobrazil celkem, vč. opakovaných (Facebook page_media_view, náhrada zrušené page_impressions). Součet za období.')],
+            'engagements' => ['label' => t('Engagement'), 'icon' => 'activity', 'color' => 'violet', 'tooltip' => t('Interakce s příspěvky (reakce, komentáře, sdílení, prokliky), Facebook page_post_engagements. Součet za období.')],
+            'page_views' => ['label' => t('Návštěvy profilu'), 'icon' => 'users-round', 'color' => 'teal', 'tooltip' => t('Kolikrát si lidé zobrazili profil stránky (Facebook page_views_total). Součet za období.')],
+            'new_follows' => ['label' => t('Noví sledující'), 'icon' => 'user-plus', 'color' => 'green', 'tooltip' => t('Noví sledující za období (Facebook page_daily_follows). Nahrazuje zrušené page_fan_adds.')],
+            'unfollows' => ['label' => tc('social', 'Odhlášení'), 'icon' => 'user-minus', 'color' => 'rose', 'tooltip' => t('Kolik lidí přestalo sledovat stránku (Facebook page_daily_unfollows). Noví − odhlášení = čistý přírůstek.')],
         ],
         'instagram_business' => [
-            'followers_total' => ['label' => 'Sledující celkem', 'icon' => 'users', 'color' => 'green', 'tooltip' => 'Celkový počet sledujících profilu (Instagram followers_count), aktuální stav k poslednímu syncu. Ukládá se denně, takže postupně vznikne graf vývoje; zpětnou historii API nedává.'],
-            'reach' => ['label' => 'Dosah', 'icon' => 'eye', 'color' => 'blue', 'tooltip' => 'Unikátní účty, které viděly obsah (Instagram reach). Součet denního dosahu za období.'],
-            'new_follows' => ['label' => 'Noví sledující', 'icon' => 'user-plus', 'color' => 'green', 'tooltip' => 'Noví sledující za období (Instagram follower_count, denní přírůstek). Nahradilo „Návštěvy profilu", tu Meta překlopila na jiný tvar dotazu (metric_type=total_value), který nejde po dnech.'],
+            'followers_total' => ['label' => t('Sledující celkem'), 'icon' => 'users', 'color' => 'green', 'tooltip' => t('Celkový počet sledujících profilu (Instagram followers_count), aktuální stav k poslednímu syncu. Ukládá se denně, takže postupně vznikne graf vývoje; zpětnou historii API nedává.')],
+            'reach' => ['label' => t('Dosah'), 'icon' => 'eye', 'color' => 'blue', 'tooltip' => t('Unikátní účty, které viděly obsah (Instagram reach). Součet denního dosahu za období.')],
+            'new_follows' => ['label' => t('Noví sledující'), 'icon' => 'user-plus', 'color' => 'green', 'tooltip' => t('Noví sledující za období (Instagram follower_count, denní přírůstek). Nahradilo „Návštěvy profilu", tu Meta překlopila na jiný tvar dotazu (metric_type=total_value), který nejde po dnech.')],
         ],
         'meta_ads' => [
-            'spend' => ['label' => 'Útrata', 'icon' => 'wallet', 'color' => 'rose', 'tooltip' => 'Útrata za reklamu (Meta Ads spend) za období. Fáze 2 doplní odvozené ROAS / CPC / CPM / CTR / frequency.'],
-            'impressions' => ['label' => 'Zobrazení', 'icon' => 'eye', 'color' => 'orange', 'tooltip' => 'Počet zobrazení reklam (Meta Ads impressions).'],
-            'clicks' => ['label' => 'Kliknutí', 'icon' => 'mouse-pointer-click', 'color' => 'violet', 'tooltip' => 'Počet kliknutí na reklamy (Meta Ads clicks).'],
-            'reach' => ['label' => 'Dosah', 'icon' => 'users-round', 'color' => 'blue', 'tooltip' => 'Unikátní lidé, kteří viděli reklamu (Meta Ads reach).'],
+            'spend' => ['label' => t('Útrata'), 'icon' => 'wallet', 'color' => 'rose', 'tooltip' => t('Útrata za reklamu (Meta Ads spend) za období. Fáze 2 doplní odvozené ROAS / CPC / CPM / CTR / frequency.')],
+            'impressions' => ['label' => t('Zobrazení'), 'icon' => 'eye', 'color' => 'orange', 'tooltip' => t('Počet zobrazení reklam (Meta Ads impressions).')],
+            'clicks' => ['label' => t('Kliknutí'), 'icon' => 'mouse-pointer-click', 'color' => 'violet', 'tooltip' => t('Počet kliknutí na reklamy (Meta Ads clicks).')],
+            'reach' => ['label' => t('Dosah'), 'icon' => 'users-round', 'color' => 'blue', 'tooltip' => t('Unikátní lidé, kteří viděli reklamu (Meta Ads reach).')],
         ],
         'youtube' => [
             // Klíče = recept youtube v sync-engines.php. followers_total / views_total / videos_total jsou SNAPSHOTY
             // (stav kanálu k datu), ostatní denní součty z YouTube Analytics. avg_view_duration (denní průměr) tu
             // záměrně není, view ho dopočítá ze součtů (sledovaný čas ÷ zhlédnutí).
-            'followers_total' => ['label' => 'Odběratelé celkem', 'icon' => 'users', 'color' => 'green', 'tooltip' => 'Celkový počet odběratelů kanálu (YouTube subscriberCount), stav k poslednímu syncu. Ukládá se denně, takže postupně vznikne graf vývoje; zpětnou historii Data API nedává.'],
-            'views' => ['label' => 'Zhlédnutí', 'icon' => 'eye', 'color' => 'blue', 'tooltip' => 'Počet zhlédnutí videí kanálu za období (YouTube Analytics views, denní součet). Počítá se každé přehrání, ne unikátní diváci.'],
-            'watch_time_min' => ['label' => 'Sledovaný čas', 'icon' => 'clock', 'color' => 'cyan', 'tooltip' => 'Celková doba, kterou diváci strávili sledováním videí kanálu za období (YouTube Analytics estimatedMinutesWatched). Klíčová metrika pro algoritmus YouTube.'],
-            'new_follows' => ['label' => 'Noví odběratelé', 'icon' => 'user-plus', 'color' => 'green', 'tooltip' => 'Kolik lidí se za období přihlásilo k odběru (YouTube Analytics subscribersGained). Součet za období.'],
-            'unfollows' => ['label' => 'Odhlášení odběru', 'icon' => 'user-minus', 'color' => 'rose', 'tooltip' => 'Kolik lidí za období odběr zrušilo (YouTube Analytics subscribersLost). Noví − odhlášení = čistý přírůstek.'],
-            'likes' => ['label' => 'To se mi líbí', 'icon' => 'thumbs-up', 'color' => 'violet', 'tooltip' => 'Počet „líbí se mi" u videí kanálu za období (YouTube Analytics likes, bez ohledu na datum publikace videa).'],
-            'comments' => ['label' => 'Komentáře', 'icon' => 'message-circle', 'color' => 'teal', 'tooltip' => 'Počet komentářů u videí kanálu za období (YouTube Analytics comments).'],
-            'shares' => ['label' => 'Sdílení', 'icon' => 'share-2', 'color' => 'orange', 'tooltip' => 'Kolikrát diváci videa sdíleli tlačítkem Sdílet (YouTube Analytics shares).'],
-            'views_total' => ['label' => 'Zhlédnutí celkem', 'icon' => 'play-circle', 'color' => 'blue', 'tooltip' => 'Celoživotní počet zhlédnutí všech videí kanálu (YouTube viewCount), stav k poslednímu syncu. Není to součet za období.'],
+            'followers_total' => ['label' => t('Odběratelé celkem'), 'icon' => 'users', 'color' => 'green', 'tooltip' => t('Celkový počet odběratelů kanálu (YouTube subscriberCount), stav k poslednímu syncu. Ukládá se denně, takže postupně vznikne graf vývoje; zpětnou historii Data API nedává.')],
+            'views' => ['label' => t('Zhlédnutí'), 'icon' => 'eye', 'color' => 'blue', 'tooltip' => t('Počet zhlédnutí videí kanálu za období (YouTube Analytics views, denní součet). Počítá se každé přehrání, ne unikátní diváci.')],
+            'watch_time_min' => ['label' => t('Sledovaný čas'), 'icon' => 'clock', 'color' => 'cyan', 'tooltip' => t('Celková doba, kterou diváci strávili sledováním videí kanálu za období (YouTube Analytics estimatedMinutesWatched). Klíčová metrika pro algoritmus YouTube.')],
+            'new_follows' => ['label' => t('Noví odběratelé'), 'icon' => 'user-plus', 'color' => 'green', 'tooltip' => t('Kolik lidí se za období přihlásilo k odběru (YouTube Analytics subscribersGained). Součet za období.')],
+            'unfollows' => ['label' => t('Odhlášení odběru'), 'icon' => 'user-minus', 'color' => 'rose', 'tooltip' => t('Kolik lidí za období odběr zrušilo (YouTube Analytics subscribersLost). Noví − odhlášení = čistý přírůstek.')],
+            'likes' => ['label' => t('To se mi líbí'), 'icon' => 'thumbs-up', 'color' => 'violet', 'tooltip' => t('Počet „líbí se mi" u videí kanálu za období (YouTube Analytics likes, bez ohledu na datum publikace videa).')],
+            'comments' => ['label' => t('Komentáře'), 'icon' => 'message-circle', 'color' => 'teal', 'tooltip' => t('Počet komentářů u videí kanálu za období (YouTube Analytics comments).')],
+            'shares' => ['label' => t('Sdílení'), 'icon' => 'share-2', 'color' => 'orange', 'tooltip' => t('Kolikrát diváci videa sdíleli tlačítkem Sdílet (YouTube Analytics shares).')],
+            'views_total' => ['label' => t('Zhlédnutí celkem'), 'icon' => 'play-circle', 'color' => 'blue', 'tooltip' => t('Celoživotní počet zhlédnutí všech videí kanálu (YouTube viewCount), stav k poslednímu syncu. Není to součet za období.')],
             // videos_total (počet videí, snapshot) se ukládá taky, ale dlaždici nemá: počet ukazuje sekce Videa.
         ],
         'linkedin_company' => [
             // Local keys = recipe map in sync-engines.php (impressionCount→impressions, …). All are daily
             // COUNTS → safely summable. The 6th recipe key `engagement_rate` is a daily RATE (nesčítatelné),
             // so it's deliberately NOT whitelisted here → hidden; engagement se dopočítá v pořádné view.
-            'followers_total' => ['label' => 'Sledující celkem', 'icon' => 'users', 'color' => 'green', 'tooltip' => 'Celkový počet sledujících firemní stránky (LinkedIn networkSizes), aktuální stav k poslednímu syncu. Ukládá se denně, takže postupně vznikne graf vývoje; zpětnou historii API nedává.'],
-            'new_follows' => ['label' => 'Noví sledující', 'icon' => 'user-plus', 'color' => 'green', 'tooltip' => 'Čistý přírůstek sledujících za období (LinkedIn followerGains, organic + paid). Odpovídá údaji „Noví sledující uživatelé" ve statistikách LinkedInu. Je to čistá změna: den, kdy stránka o sledující přišla, je záporný. Kolik lidí se odhlásilo LinkedIn API neprozradí, jen výslednou změnu.'],
-            'impressions' => ['label' => 'Zobrazení', 'icon' => 'eye', 'color' => 'blue', 'tooltip' => 'Kolikrát se příspěvky stránky zobrazily (LinkedIn impressionCount). Součet za období.'],
-            'page_views' => ['label' => 'Návštěvy stránky', 'icon' => 'users-round', 'color' => 'teal', 'tooltip' => 'Kolikrát lidé zobrazili firemní stránku na LinkedIn (organizationPageStatistics, allPageViews, mobil i desktop, všechny záložky). Součet za období.'],
-            'clicks' => ['label' => 'Prokliky', 'icon' => 'mouse-pointer-click', 'color' => 'cyan', 'tooltip' => 'Prokliky na příspěvky/odkazy stránky (LinkedIn clickCount). Součet za období.'],
-            'likes' => ['label' => 'To se mi líbí', 'icon' => 'thumbs-up', 'color' => 'violet', 'tooltip' => 'Počet reakcí „To se mi líbí" (LinkedIn likeCount). Součet za období.'],
-            'comments' => ['label' => 'Komentáře', 'icon' => 'message-circle', 'color' => 'teal', 'tooltip' => 'Počet komentářů u příspěvků (LinkedIn commentCount). Součet za období.'],
-            'shares' => ['label' => 'Sdílení', 'icon' => 'share-2', 'color' => 'green', 'tooltip' => 'Počet sdílení příspěvků (LinkedIn shareCount). Součet za období.'],
+            'followers_total' => ['label' => t('Sledující celkem'), 'icon' => 'users', 'color' => 'green', 'tooltip' => t('Celkový počet sledujících firemní stránky (LinkedIn networkSizes), aktuální stav k poslednímu syncu. Ukládá se denně, takže postupně vznikne graf vývoje; zpětnou historii API nedává.')],
+            'new_follows' => ['label' => t('Noví sledující'), 'icon' => 'user-plus', 'color' => 'green', 'tooltip' => t('Čistý přírůstek sledujících za období (LinkedIn followerGains, organic + paid). Odpovídá údaji „Noví sledující uživatelé" ve statistikách LinkedInu. Je to čistá změna: den, kdy stránka o sledující přišla, je záporný. Kolik lidí se odhlásilo LinkedIn API neprozradí, jen výslednou změnu.')],
+            'impressions' => ['label' => t('Zobrazení'), 'icon' => 'eye', 'color' => 'blue', 'tooltip' => t('Kolikrát se příspěvky stránky zobrazily (LinkedIn impressionCount). Součet za období.')],
+            'page_views' => ['label' => t('Návštěvy stránky'), 'icon' => 'users-round', 'color' => 'teal', 'tooltip' => t('Kolikrát lidé zobrazili firemní stránku na LinkedIn (organizationPageStatistics, allPageViews, mobil i desktop, všechny záložky). Součet za období.')],
+            'clicks' => ['label' => t('Prokliky'), 'icon' => 'mouse-pointer-click', 'color' => 'cyan', 'tooltip' => t('Prokliky na příspěvky/odkazy stránky (LinkedIn clickCount). Součet za období.')],
+            'likes' => ['label' => t('To se mi líbí'), 'icon' => 'thumbs-up', 'color' => 'violet', 'tooltip' => t('Počet reakcí „To se mi líbí" (LinkedIn likeCount). Součet za období.')],
+            'comments' => ['label' => t('Komentáře'), 'icon' => 'message-circle', 'color' => 'teal', 'tooltip' => t('Počet komentářů u příspěvků (LinkedIn commentCount). Součet za období.')],
+            'shares' => ['label' => t('Sdílení'), 'icon' => 'share-2', 'color' => 'green', 'tooltip' => t('Počet sdílení příspěvků (LinkedIn shareCount). Součet za období.')],
         ],
         default => [],
     };
@@ -2263,9 +2267,9 @@ function allstat_get_provider_view(PDO $pdo, int $domainId, int $connectionId, s
                     $avgSeries[] = $v > 0 ? round((float) ($byMetric['watch_time_min'][$pk] ?? 0) * 60 / $v, 1) : 0.0;
                 }
                 $avgSec = $viewsTotal > 0 ? $watchMin * 60 / $viewsTotal : 0.0;
-                $metrics[] = ['key' => 'avg_view_duration_derived', 'label' => 'Ø doba zhlédnutí', 'total' => round($avgSec, 1),
+                $metrics[] = ['key' => 'avg_view_duration_derived', 'label' => t('Ø doba zhlédnutí'), 'total' => round($avgSec, 1),
                     'totalLabel' => allstat_duration_label($avgSec), 'series' => $avgSeries, 'icon' => 'timer', 'color' => 'cyan',
-                    'tooltip' => 'Průměrná doba jednoho zhlédnutí = sledovaný čas ÷ zhlédnutí za období (vážený průměr, stejně jako YouTube Studio). Delší = obsah lidi drží.'];
+                    'tooltip' => t('Průměrná doba jednoho zhlédnutí = sledovaný čas ÷ zhlédnutí za období (vážený průměr, stejně jako YouTube Studio). Delší = obsah lidi drží.')];
             }
             if (isset($byKey['new_follows']) || isset($byKey['unfollows'])) {
                 $netSeries = [];
@@ -2273,9 +2277,9 @@ function allstat_get_provider_view(PDO $pdo, int $domainId, int $connectionId, s
                     $netSeries[] = round((float) ($byMetric['new_follows'][$pk] ?? 0) - (float) ($byMetric['unfollows'][$pk] ?? 0), 0);
                 }
                 $net = (float) ($byKey['new_follows']['total'] ?? 0) - (float) ($byKey['unfollows']['total'] ?? 0);
-                $metrics[] = ['key' => 'subscribers_net', 'label' => 'Čistý přírůstek odběratelů', 'total' => $net,
+                $metrics[] = ['key' => 'subscribers_net', 'label' => t('Čistý přírůstek odběratelů'), 'total' => $net,
                     'totalLabel' => ($net > 0 ? '+' : '') . allstat_number($net), 'series' => $netSeries, 'icon' => 'trending-up', 'color' => 'green',
-                    'tooltip' => 'Noví odběratelé − odhlášení za období. Odpovídá „Odběratelé" v YouTube Studio za stejné období.'];
+                    'tooltip' => t('Noví odběratelé − odhlášení za období. Odpovídá „Odběratelé" v YouTube Studio za stejné období.')];
             }
             $ix = ['likes', 'comments', 'shares'];
             if (isset($byKey['likes']) || isset($byKey['comments']) || isset($byKey['shares'])) {
@@ -2287,9 +2291,9 @@ function allstat_get_provider_view(PDO $pdo, int $domainId, int $connectionId, s
                 }
                 $engTotal = 0.0;
                 foreach ($ix as $k) { $engTotal += (float) ($byKey[$k]['total'] ?? 0); }
-                $metrics[] = ['key' => 'engagements_total', 'label' => 'Celkový engagement', 'total' => $engTotal,
+                $metrics[] = ['key' => 'engagements_total', 'label' => t('Celkový engagement'), 'total' => $engTotal,
                     'totalLabel' => allstat_number($engTotal), 'series' => $engSeries, 'icon' => 'activity', 'color' => 'orange',
-                    'tooltip' => 'To se mi líbí + komentáře + sdílení za období. Míra zapojení = engagement ÷ zhlédnutí' . ($viewsTotal > 0 ? ' = ' . allstat_number($engTotal / $viewsTotal * 100, 2) . ' %' : '') . '.'];
+                    'tooltip' => t('To se mi líbí + komentáře + sdílení za období. Míra zapojení = engagement ÷ zhlédnutí{rate}.', ['rate' => $viewsTotal > 0 ? ' = ' . allstat_number($engTotal / $viewsTotal * 100, 2) . ' %' : ''])];
             }
             // Pořadí dlaždic: komunita → konzumace → interakce → celoživotní stav (odvozené hned u svých zdrojů).
             $order = array_flip(['followers_total', 'subscribers_net', 'new_follows', 'unfollows', 'views', 'watch_time_min', 'avg_view_duration_derived',
@@ -2314,18 +2318,18 @@ function allstat_get_provider_view(PDO $pdo, int $domainId, int $connectionId, s
             $engTotal = 0.0;
             foreach ($ix as $k) { $engTotal += (float) ($byKey[$k]['total'] ?? 0); }
             $imprTotal = (float) ($byKey['impressions']['total'] ?? 0);
-            $metrics[] = ['key' => 'engagements_total', 'label' => 'Celkový engagement', 'total' => $engTotal,
+            $metrics[] = ['key' => 'engagements_total', 'label' => t('Celkový engagement'), 'total' => $engTotal,
                 'totalLabel' => allstat_number($engTotal), 'series' => $engSeries, 'icon' => 'activity', 'color' => 'orange',
-                'tooltip' => 'Součet sociálních interakcí (To se mi líbí + komentáře + sdílení) za období. Prokliky jsou samostatně (dlaždice Prokliky).'];
+                'tooltip' => t('Součet sociálních interakcí (To se mi líbí + komentáře + sdílení) za období. Prokliky jsou samostatně (dlaždice Prokliky).')];
             $rate = $imprTotal > 0 ? $engTotal / $imprTotal * 100 : 0.0;
             $rateSeries = [];
             foreach ($periodKeys as $i => $pk) {
                 $imp = (float) ($byMetric['impressions'][$pk] ?? 0);
                 $rateSeries[] = $imp > 0 ? round($engSeries[$i] / $imp * 100, 2) : 0.0;
             }
-            $metrics[] = ['key' => 'engagement_rate_derived', 'label' => 'Míra zapojení', 'total' => $rate,
+            $metrics[] = ['key' => 'engagement_rate_derived', 'label' => t('Míra zapojení'), 'total' => $rate,
                 'totalLabel' => allstat_number($rate, 2) . ' %', 'series' => $rateSeries, 'icon' => 'percent', 'color' => 'violet',
-                'tooltip' => 'Sociální interakce (reakce + komentáře + sdílení) ÷ zobrazení za období. Pozn.: LinkedIn do své oficiální míry počítá i prokliky a sledování, tady je záměrně užší „sociální" engagement.'];
+                'tooltip' => t('Sociální interakce (reakce + komentáře + sdílení) ÷ zobrazení za období. Pozn.: LinkedIn do své oficiální míry počítá i prokliky a sledování, tady je záměrně užší „sociální" engagement.')];
         }
     }
 
@@ -2341,18 +2345,18 @@ function allstat_get_provider_view(PDO $pdo, int $domainId, int $connectionId, s
  */
 function allstat_clarity_smart_event_label(string $name): string
 {
-    static $map = [
-        'Outbound click' => 'Odchozí proklik',
-        'Contact us' => 'Kontakt',
-        'Show more' => 'Zobrazit více',
-        'Download' => 'Stažení',
-        'Submit form' => 'Odeslání formuláře',
-        'Login' => 'Přihlášení',
-        'Sign up' => 'Registrace',
-        'Search' => 'Vyhledávání',
-        'Add to cart' => 'Přidání do košíku',
-        'Checkout' => 'Pokladna',
-        'Purchase' => 'Nákup',
+    $map = [
+        'Outbound click' => t('Odchozí proklik'),
+        'Contact us' => t('Kontakt'),
+        'Show more' => t('Zobrazit více'),
+        'Download' => t('Stažení'),
+        'Submit form' => t('Odeslání formuláře'),
+        'Login' => t('Přihlášení'),
+        'Sign up' => t('Registrace'),
+        'Search' => t('Vyhledávání'),
+        'Add to cart' => t('Přidání do košíku'),
+        'Checkout' => t('Pokladna'),
+        'Purchase' => t('Nákup'),
     ];
 
     return $map[$name] ?? $name;
@@ -2366,15 +2370,15 @@ function allstat_get_clarity_breakdowns(PDO $pdo, int $domainId, int $connection
 {
     [$start, $end] = allstat_limited_range($start, $end);
     $sections = [
-        'referrer' => ['title' => 'Top referrery', 'help' => 'Odkud návštěvníci přišli (Clarity referrer). Součet relací za zvolené období.'],
-        'page' => ['title' => 'Top stránky', 'help' => 'Nejnavštěvovanější stránky podle počtu návštěv (Clarity).'],
-        'device' => ['title' => 'Zařízení', 'help' => 'Rozdělení relací podle typu zařízení (Clarity).'],
-        'browser' => ['title' => 'Prohlížeče', 'help' => 'Rozdělení relací podle prohlížeče (Clarity).'],
-        'os' => ['title' => 'Operační systémy', 'help' => 'Rozdělení relací podle operačního systému (Clarity).'],
-        'country' => ['title' => 'Země', 'help' => 'Rozdělení relací podle země návštěvníka (Clarity).'],
-        'smart_event' => ['title' => 'Smart events', 'help' => 'Akce sledované Clarity (prokliky, kontakt…). Počet relací, ve kterých akce nastala.'],
+        'referrer' => ['title' => t('Top referrery'), 'help' => t('Odkud návštěvníci přišli (Clarity referrer). Součet relací za zvolené období.')],
+        'page' => ['title' => t('Top stránky'), 'help' => t('Nejnavštěvovanější stránky podle počtu návštěv (Clarity).')],
+        'device' => ['title' => t('Zařízení'), 'help' => t('Rozdělení relací podle typu zařízení (Clarity).')],
+        'browser' => ['title' => t('Prohlížeče'), 'help' => t('Rozdělení relací podle prohlížeče (Clarity).')],
+        'os' => ['title' => t('Operační systémy'), 'help' => t('Rozdělení relací podle operačního systému (Clarity).')],
+        'country' => ['title' => t('Země'), 'help' => t('Rozdělení relací podle země návštěvníka (Clarity).')],
+        'smart_event' => ['title' => 'Smart events', 'help' => t('Akce sledované Clarity (prokliky, kontakt…). Počet relací, ve kterých akce nastala.')],
     ];
-    $deviceLabels = ['PC' => 'Počítač', 'Mobile' => 'Mobil', 'Tablet' => 'Tablet', 'Other' => 'Ostatní'];
+    $deviceLabels = ['PC' => t('Počítač'), 'Mobile' => t('Mobil'), 'Tablet' => t('Tablet'), 'Other' => t('Ostatní')];
     $out = [];
 
     foreach ($sections as $key => $meta) {
@@ -2439,21 +2443,21 @@ function allstat_get_clarity_kpis(PDO $pdo, int $domainId, int $connectionId, st
 {
     [$start, $end] = allstat_limited_range($start, $end);
     $definitions = [
-        ['key' => 'sessions', 'label' => 'Návštěvy', 'icon' => 'users-round', 'color' => 'teal', 'agg' => 'sum', 'format' => 'number', 'tooltip' => 'Počet relací (sessions) v Microsoft Clarity za zvolené období. Součet přes dny.'],
-        ['key' => 'bot_sessions', 'label' => 'Boti', 'icon' => 'bug', 'color' => 'rose', 'agg' => 'sum', 'format' => 'number', 'tooltip' => 'Relace vyhodnocené Clarity jako automatický provoz (boti). Součet za období.'],
-        ['key' => 'distinct_users', 'label' => 'Uživatelé (součet dní)', 'icon' => 'user', 'color' => 'cyan', 'agg' => 'sum', 'format' => 'number', 'tooltip' => 'Různí uživatelé podle Clarity za každý den, sečtení přes dny (kdo přišel ve více dnech, je tu vícekrát).'],
-        ['key' => 'new_user_sessions', 'label' => 'Noví uživatelé', 'icon' => 'user-plus', 'color' => 'cyan', 'agg' => 'sum', 'format' => 'number', 'tooltip' => 'Relace nových návštěvníků (poprvé na webu) dle Clarity. Jen z ručního CSV importu, API je nedává. Součet za období.'],
-        ['key' => 'active_time', 'label' => 'Aktivní čas', 'icon' => 'clock', 'color' => 'orange', 'agg' => 'wavg', 'format' => 'duration', 'tooltip' => 'Průměrný aktivní čas na relaci (čas reálné interakce uživatele). Vážený průměr přes dny.'],
-        ['key' => 'total_time', 'label' => 'Celkový čas', 'icon' => 'timer', 'color' => 'orange', 'agg' => 'wavg', 'format' => 'duration', 'tooltip' => 'Průměrná celková doba relace včetně nečinnosti (Clarity totalTime). Vážený průměr přes dny.'],
-        ['key' => 'scroll_depth', 'label' => 'Scroll depth', 'icon' => 'mouse-pointer-2', 'color' => 'violet', 'agg' => 'wavg', 'format' => 'percent', 'tooltip' => 'Průměrná hloubka scrollu stránky (%). Vážený průměr přes dny.'],
-        ['key' => 'pages_per_session', 'label' => 'Stránky/relace', 'icon' => 'files', 'color' => 'blue', 'agg' => 'wavg', 'format' => 'number2', 'tooltip' => 'Průměrný počet zobrazených stránek na jednu relaci. Vážený průměr přes dny.'],
+        ['key' => 'sessions', 'label' => t('Návštěvy'), 'icon' => 'users-round', 'color' => 'teal', 'agg' => 'sum', 'format' => 'number', 'tooltip' => t('Počet relací (sessions) v Microsoft Clarity za zvolené období. Součet přes dny.')],
+        ['key' => 'bot_sessions', 'label' => t('Boti'), 'icon' => 'bug', 'color' => 'rose', 'agg' => 'sum', 'format' => 'number', 'tooltip' => t('Relace vyhodnocené Clarity jako automatický provoz (boti). Součet za období.')],
+        ['key' => 'distinct_users', 'label' => t('Uživatelé (součet dní)'), 'icon' => 'user', 'color' => 'cyan', 'agg' => 'sum', 'format' => 'number', 'tooltip' => t('Různí uživatelé podle Clarity za každý den, sečtení přes dny (kdo přišel ve více dnech, je tu vícekrát).')],
+        ['key' => 'new_user_sessions', 'label' => t('Noví uživatelé'), 'icon' => 'user-plus', 'color' => 'cyan', 'agg' => 'sum', 'format' => 'number', 'tooltip' => t('Relace nových návštěvníků (poprvé na webu) dle Clarity. Jen z ručního CSV importu, API je nedává. Součet za období.')],
+        ['key' => 'active_time', 'label' => t('Aktivní čas'), 'icon' => 'clock', 'color' => 'orange', 'agg' => 'wavg', 'format' => 'duration', 'tooltip' => t('Průměrný aktivní čas na relaci (čas reálné interakce uživatele). Vážený průměr přes dny.')],
+        ['key' => 'total_time', 'label' => t('Celkový čas'), 'icon' => 'timer', 'color' => 'orange', 'agg' => 'wavg', 'format' => 'duration', 'tooltip' => t('Průměrná celková doba relace včetně nečinnosti (Clarity totalTime). Vážený průměr přes dny.')],
+        ['key' => 'scroll_depth', 'label' => 'Scroll depth', 'icon' => 'mouse-pointer-2', 'color' => 'violet', 'agg' => 'wavg', 'format' => 'percent', 'tooltip' => t('Průměrná hloubka scrollu stránky (%). Vážený průměr přes dny.')],
+        ['key' => 'pages_per_session', 'label' => t('Stránky/relace'), 'icon' => 'files', 'color' => 'blue', 'agg' => 'wavg', 'format' => 'number2', 'tooltip' => t('Průměrný počet zobrazených stránek na jednu relaci. Vážený průměr přes dny.')],
         // Frustrační signály: podíl relací, ve kterých signál nastal (vážený průměr přes dny), počet v count.
-        ['key' => 'rage_clicks_pct', 'count' => 'rage_clicks', 'label' => 'Rage clicks', 'icon' => 'zap', 'color' => 'rose', 'agg' => 'wavg', 'format' => 'percent', 'tooltip' => 'Podíl relací s „naštvaným" opakovaným klikáním na stejné místo (Clarity Rage clicks). Ukazuje, co nefunguje, jak lidé čekají.'],
-        ['key' => 'dead_clicks_pct', 'count' => 'dead_clicks', 'label' => 'Dead clicks', 'icon' => 'mouse-pointer-click', 'color' => 'rose', 'agg' => 'wavg', 'format' => 'percent', 'tooltip' => 'Podíl relací s kliknutím, po kterém se nic nestalo (Clarity Dead clicks). Typicky prvek, který vypadá jako odkaz.'],
-        ['key' => 'quickbacks_pct', 'count' => 'quickbacks', 'label' => 'Rychlé návraty', 'icon' => 'undo-2', 'color' => 'orange', 'agg' => 'wavg', 'format' => 'percent', 'tooltip' => 'Podíl relací, kde se člověk hned vrátil z otevřené stránky zpět (Clarity Quick backs). Stránka nesplnila očekávání.'],
-        ['key' => 'excessive_scroll_pct', 'count' => 'excessive_scroll', 'label' => 'Nadměrný scroll', 'icon' => 'arrow-down-up', 'color' => 'orange', 'agg' => 'wavg', 'format' => 'percent', 'tooltip' => 'Podíl relací s přehnaným scrollováním tam a zpět (Clarity Excessive scrolling). Člověk nemůže najít, co hledá.'],
-        ['key' => 'script_errors_pct', 'count' => 'script_errors', 'label' => 'Chyby JavaScriptu', 'icon' => 'bug', 'color' => 'rose', 'agg' => 'wavg', 'format' => 'percent', 'tooltip' => 'Podíl relací s chybou JavaScriptu na stránce (Clarity Script errors).'],
-        ['key' => 'error_clicks_pct', 'count' => 'error_clicks', 'label' => 'Kliknutí s chybou', 'icon' => 'alert-triangle', 'color' => 'rose', 'agg' => 'wavg', 'format' => 'percent', 'tooltip' => 'Podíl relací, kde kliknutí vyvolalo chybu JavaScriptu (Clarity Error clicks).'],
+        ['key' => 'rage_clicks_pct', 'count' => 'rage_clicks', 'label' => 'Rage clicks', 'icon' => 'zap', 'color' => 'rose', 'agg' => 'wavg', 'format' => 'percent', 'tooltip' => t('Podíl relací s „naštvaným" opakovaným klikáním na stejné místo (Clarity Rage clicks). Ukazuje, co nefunguje, jak lidé čekají.')],
+        ['key' => 'dead_clicks_pct', 'count' => 'dead_clicks', 'label' => 'Dead clicks', 'icon' => 'mouse-pointer-click', 'color' => 'rose', 'agg' => 'wavg', 'format' => 'percent', 'tooltip' => t('Podíl relací s kliknutím, po kterém se nic nestalo (Clarity Dead clicks). Typicky prvek, který vypadá jako odkaz.')],
+        ['key' => 'quickbacks_pct', 'count' => 'quickbacks', 'label' => t('Rychlé návraty'), 'icon' => 'undo-2', 'color' => 'orange', 'agg' => 'wavg', 'format' => 'percent', 'tooltip' => t('Podíl relací, kde se člověk hned vrátil z otevřené stránky zpět (Clarity Quick backs). Stránka nesplnila očekávání.')],
+        ['key' => 'excessive_scroll_pct', 'count' => 'excessive_scroll', 'label' => t('Nadměrný scroll'), 'icon' => 'arrow-down-up', 'color' => 'orange', 'agg' => 'wavg', 'format' => 'percent', 'tooltip' => t('Podíl relací s přehnaným scrollováním tam a zpět (Clarity Excessive scrolling). Člověk nemůže najít, co hledá.')],
+        ['key' => 'script_errors_pct', 'count' => 'script_errors', 'label' => t('Chyby JavaScriptu'), 'icon' => 'bug', 'color' => 'rose', 'agg' => 'wavg', 'format' => 'percent', 'tooltip' => t('Podíl relací s chybou JavaScriptu na stránce (Clarity Script errors).')],
+        ['key' => 'error_clicks_pct', 'count' => 'error_clicks', 'label' => t('Kliknutí s chybou'), 'icon' => 'alert-triangle', 'color' => 'rose', 'agg' => 'wavg', 'format' => 'percent', 'tooltip' => t('Podíl relací, kde kliknutí vyvolalo chybu JavaScriptu (Clarity Error clicks).')],
     ];
 
     $keys = array_merge(array_column($definitions, 'key'), array_values(array_filter(array_column($definitions, 'count'))));
@@ -2541,7 +2545,7 @@ function allstat_get_clarity_kpis(PDO $pdo, int $domainId, int $connectionId, st
         ];
         if (isset($def['count']) && $value !== null) {
             $metric['count'] = (int) round($count);
-            $metric['displayValue'] .= ' relací (' . allstat_number($count, 0) . '×)';
+            $metric['displayValue'] = t('{value} relací ({count}×)', ['value' => $metric['displayValue'], 'count' => allstat_number($count, 0)]);
         }
         $metrics[] = $metric;
     }
@@ -2594,29 +2598,29 @@ function allstat_get_meta_ads_kpis(PDO $pdo, int $domainId, int $connectionId, s
     $countSeries = static fn (string $key): array => array_map(static fn (string $d): float => round((float) ($byDate[$d][$key] ?? 0), 2), $dates);
 
     $defs = [
-        ['key' => 'spend', 'label' => 'Útrata', 'icon' => 'wallet', 'color' => 'rose', 'value' => $sum['spend'], 'format' => 'money0', 'series' => $countSeries('spend'), 'tooltip' => 'Kolik jsi za reklamu utratil za zvolené období (součet přes dny), v měně účtu.'],
-        ['key' => 'roas', 'label' => 'ROAS', 'icon' => 'trending-up', 'color' => 'green', 'value' => $ratio($sum['conversion_value'], $sum['spend']), 'format' => 'x', 'series' => $derivedSeries('conversion_value', 'spend', 1.0), 'tooltip' => 'Návratnost výdajů na reklamu = tržby z konverzí ÷ útrata. „3×" = z 1 Kč v reklamě se vrátily 3 Kč tržeb. 0 = účet neměří tržby/konverze (není co dělit), typické u awareness/traffic kampaní.'],
-        ['key' => 'pno', 'label' => 'PNO', 'icon' => 'percent', 'color' => 'rose', 'value' => $ratio($sum['spend'], $sum['conversion_value'], 100.0), 'format' => 'percent', 'series' => $derivedSeries('spend', 'conversion_value', 100.0), 'tooltip' => 'PNO (podíl nákladů na obratu) = útrata ÷ tržby z konverzí × 100. Kolik % z obratu spolkne reklama, převrácená hodnota ROAS (PNO 25 % ≈ ROAS 4×). Nižší = lepší. Skryté u účtů bez měření tržeb.'],
-        ['key' => 'conversions', 'label' => 'Konverze', 'icon' => 'shopping-cart', 'color' => 'teal', 'value' => $sum['conversions'], 'format' => 'number', 'series' => $countSeries('conversions'), 'tooltip' => 'Počet konverzí (nákup, poptávka, registrace…) přiřazených reklamám. 0 = účet nemá nastavené konverzní sledování (pixel / události), takže žádné akce neměří, jede na dosah/provoz.'],
-        ['key' => 'cpa', 'label' => 'CPA', 'icon' => 'target', 'color' => 'orange', 'value' => $ratio($sum['spend'], $sum['conversions']), 'format' => 'money2', 'series' => $derivedSeries('spend', 'conversions', 1.0), 'tooltip' => 'Cena za jednu konverzi = útrata ÷ počet konverzí. Nižší = lepší. Bez konverzí ji nelze spočítat (0).'],
-        ['key' => 'conversion_value', 'label' => 'Hodnota konverzí', 'icon' => 'banknote', 'color' => 'green', 'value' => $sum['conversion_value'], 'format' => 'money0', 'series' => $countSeries('conversion_value'), 'tooltip' => 'Tržby (hodnota objednávek) přiřazené reklamám. 0 = účet nehlásí žádnou hodnotu konverzí.'],
+        ['key' => 'spend', 'label' => t('Útrata'), 'icon' => 'wallet', 'color' => 'rose', 'value' => $sum['spend'], 'format' => 'money0', 'series' => $countSeries('spend'), 'tooltip' => t('Kolik jsi za reklamu utratil za zvolené období (součet přes dny), v měně účtu.')],
+        ['key' => 'roas', 'label' => t('ROAS'), 'icon' => 'trending-up', 'color' => 'green', 'value' => $ratio($sum['conversion_value'], $sum['spend']), 'format' => 'x', 'series' => $derivedSeries('conversion_value', 'spend', 1.0), 'tooltip' => t('Návratnost výdajů na reklamu = tržby z konverzí ÷ útrata. „3×" = z 1 Kč v reklamě se vrátily 3 Kč tržeb. 0 = účet neměří tržby/konverze (není co dělit), typické u awareness/traffic kampaní.')],
+        ['key' => 'pno', 'label' => t('PNO'), 'icon' => 'percent', 'color' => 'rose', 'value' => $ratio($sum['spend'], $sum['conversion_value'], 100.0), 'format' => 'percent', 'series' => $derivedSeries('spend', 'conversion_value', 100.0), 'tooltip' => t('PNO (podíl nákladů na obratu) = útrata ÷ tržby z konverzí × 100. Kolik % z obratu spolkne reklama, převrácená hodnota ROAS (PNO 25 % ≈ ROAS 4×). Nižší = lepší. Skryté u účtů bez měření tržeb.')],
+        ['key' => 'conversions', 'label' => t('Konverze'), 'icon' => 'shopping-cart', 'color' => 'teal', 'value' => $sum['conversions'], 'format' => 'number', 'series' => $countSeries('conversions'), 'tooltip' => t('Počet konverzí (nákup, poptávka, registrace…) přiřazených reklamám. 0 = účet nemá nastavené konverzní sledování (pixel / události), takže žádné akce neměří, jede na dosah/provoz.')],
+        ['key' => 'cpa', 'label' => t('CPA'), 'icon' => 'target', 'color' => 'orange', 'value' => $ratio($sum['spend'], $sum['conversions']), 'format' => 'money2', 'series' => $derivedSeries('spend', 'conversions', 1.0), 'tooltip' => t('Cena za jednu konverzi = útrata ÷ počet konverzí. Nižší = lepší. Bez konverzí ji nelze spočítat (0).')],
+        ['key' => 'conversion_value', 'label' => t('Hodnota konverzí'), 'icon' => 'banknote', 'color' => 'green', 'value' => $sum['conversion_value'], 'format' => 'money0', 'series' => $countSeries('conversion_value'), 'tooltip' => t('Tržby (hodnota objednávek) přiřazené reklamám. 0 = účet nehlásí žádnou hodnotu konverzí.')],
         // CTR a CPC na úrovni účtu počítají VŠECHNA kliknutí (Meta `clicks`). Popisek to musí říkat, jinak se
         // zaměňují s prokliky na web (report za 9/2026 psal „cena za proklik" o ceně za jakékoli kliknutí).
-        ['key' => 'ctr', 'label' => 'CTR (vše)', 'icon' => 'gauge', 'color' => 'cyan', 'value' => $ratio($sum['clicks'], $sum['impressions'], 100.0), 'format' => 'percent', 'series' => $derivedSeries('clicks', 'impressions', 100.0), 'tooltip' => 'Všechna kliknutí ÷ zobrazení × 100. Kolik % lidí, kterým se reklama ukázala, kliklo kamkoliv do reklamy, tedy i na lajk, komentář, jméno stránky nebo rozbalení textu. Na web vede jen „Proklik na odkaz".'],
-        ['key' => 'cpc', 'label' => 'CPC (vše)', 'icon' => 'mouse-pointer-click', 'color' => 'violet', 'value' => $ratio($sum['spend'], $sum['clicks']), 'format' => 'money2', 'series' => $derivedSeries('spend', 'clicks', 1.0), 'tooltip' => 'Cena za jakékoli kliknutí = útrata ÷ všechna kliknutí (i lajky a rozbalení textu). Bývá nižší než cena za proklik na odkaz; kolik stojí přivést člověka na web, ukazuje „Cena / proklik na odkaz".'],
-        ['key' => 'cpm', 'label' => 'CPM', 'icon' => 'eye', 'color' => 'orange', 'value' => $ratio($sum['spend'], $sum['impressions'], 1000.0), 'format' => 'money2', 'series' => $derivedSeries('spend', 'impressions', 1000.0), 'tooltip' => 'Cena za 1 000 zobrazení = útrata ÷ zobrazení × 1 000. Kolik platíš za tisíc zobrazení reklamy. Hlavní měřítko kampaní na povědomí.'],
+        ['key' => 'ctr', 'label' => t('CTR (vše)'), 'icon' => 'gauge', 'color' => 'cyan', 'value' => $ratio($sum['clicks'], $sum['impressions'], 100.0), 'format' => 'percent', 'series' => $derivedSeries('clicks', 'impressions', 100.0), 'tooltip' => t('Všechna kliknutí ÷ zobrazení × 100. Kolik % lidí, kterým se reklama ukázala, kliklo kamkoliv do reklamy, tedy i na lajk, komentář, jméno stránky nebo rozbalení textu. Na web vede jen „Proklik na odkaz".')],
+        ['key' => 'cpc', 'label' => t('CPC (vše)'), 'icon' => 'mouse-pointer-click', 'color' => 'violet', 'value' => $ratio($sum['spend'], $sum['clicks']), 'format' => 'money2', 'series' => $derivedSeries('spend', 'clicks', 1.0), 'tooltip' => t('Cena za jakékoli kliknutí = útrata ÷ všechna kliknutí (i lajky a rozbalení textu). Bývá nižší než cena za proklik na odkaz; kolik stojí přivést člověka na web, ukazuje „Cena / proklik na odkaz".')],
+        ['key' => 'cpm', 'label' => t('CPM'), 'icon' => 'eye', 'color' => 'orange', 'value' => $ratio($sum['spend'], $sum['impressions'], 1000.0), 'format' => 'money2', 'series' => $derivedSeries('spend', 'impressions', 1000.0), 'tooltip' => t('Cena za 1 000 zobrazení = útrata ÷ zobrazení × 1 000. Kolik platíš za tisíc zobrazení reklamy. Hlavní měřítko kampaní na povědomí.')],
         // Z denních řádků jde spočítat jen DENNÍ frekvenci: součet denních dosahů počítá téhož člověka každý
         // den znovu. Skutečná frekvence za celou dobu kampaně je v tabulce kampaní (meta_ads_totals).
-        ['key' => 'frequency', 'label' => 'Denní frekvence', 'icon' => 'repeat', 'color' => 'violet', 'value' => $ratio($sum['impressions'], $sum['reach']), 'format' => 'x2', 'series' => $derivedSeries('impressions', 'reach', 1.0), 'tooltip' => 'Zobrazení ÷ součet denních dosahů = kolikrát průměrně viděl reklamu jeden člověk za JEDEN den. Kolikrát ji viděl za celé období, z denních dat spočítat nejde (tentýž člověk se každý den počítá znovu). Frekvenci za celou dobu kampaně ukazuje tabulka kampaní.'],
-        ['key' => 'reach', 'label' => 'Dosah (součet dní)', 'icon' => 'users-round', 'color' => 'blue', 'value' => $sum['reach'], 'format' => 'number', 'series' => $countSeries('reach'), 'tooltip' => 'Součet denních dosahů. Kdo reklamu viděl ve více dnech, je tu vícekrát, takže různých lidí za období bylo méně. Kolik různých lidí vidělo kampaň za celou dobu, ukazuje tabulka kampaní.'],
-        ['key' => 'impressions', 'label' => 'Zobrazení', 'icon' => 'eye', 'color' => 'blue', 'value' => $sum['impressions'], 'format' => 'number', 'series' => $countSeries('impressions'), 'tooltip' => 'Zobrazení = kolikrát se reklama ukázala celkem, včetně opakovaných zobrazení témuž člověku.'],
-        ['key' => 'clicks', 'label' => 'Kliknutí (vše)', 'icon' => 'mouse-pointer-click', 'color' => 'cyan', 'value' => $sum['clicks'], 'format' => 'number', 'series' => $countSeries('clicks'), 'tooltip' => 'Všechna kliknutí na reklamy za období, vč. lajků, komentářů a prokliků na profil, ne jen prokliky na web. Pro proklik na web sleduj „Prokliky na odkaz".'],
+        ['key' => 'frequency', 'label' => t('Denní frekvence'), 'icon' => 'repeat', 'color' => 'violet', 'value' => $ratio($sum['impressions'], $sum['reach']), 'format' => 'x2', 'series' => $derivedSeries('impressions', 'reach', 1.0), 'tooltip' => t('Zobrazení ÷ součet denních dosahů = kolikrát průměrně viděl reklamu jeden člověk za JEDEN den. Kolikrát ji viděl za celé období, z denních dat spočítat nejde (tentýž člověk se každý den počítá znovu). Frekvenci za celou dobu kampaně ukazuje tabulka kampaní.')],
+        ['key' => 'reach', 'label' => t('Dosah (součet dní)'), 'icon' => 'users-round', 'color' => 'blue', 'value' => $sum['reach'], 'format' => 'number', 'series' => $countSeries('reach'), 'tooltip' => t('Součet denních dosahů. Kdo reklamu viděl ve více dnech, je tu vícekrát, takže různých lidí za období bylo méně. Kolik různých lidí vidělo kampaň za celou dobu, ukazuje tabulka kampaní.')],
+        ['key' => 'impressions', 'label' => t('Zobrazení'), 'icon' => 'eye', 'color' => 'blue', 'value' => $sum['impressions'], 'format' => 'number', 'series' => $countSeries('impressions'), 'tooltip' => t('Zobrazení = kolikrát se reklama ukázala celkem, včetně opakovaných zobrazení témuž člověku.')],
+        ['key' => 'clicks', 'label' => t('Kliknutí (vše)'), 'icon' => 'mouse-pointer-click', 'color' => 'cyan', 'value' => $sum['clicks'], 'format' => 'number', 'series' => $countSeries('clicks'), 'tooltip' => t('Všechna kliknutí na reklamy za období, vč. lajků, komentářů a prokliků na profil, ne jen prokliky na web. Pro proklik na web sleduj „Prokliky na odkaz".')],
         // Awareness/traffic metrics — populují se po dalším stažení dat (z Meta `actions`). U účtů bez
         // konverzí jsou tohle ty hlavní výkonnostní metriky.
-        ['key' => 'link_clicks', 'label' => 'Prokliky na odkaz', 'icon' => 'external-link', 'color' => 'cyan', 'value' => $sum['link_clicks'], 'format' => 'number', 'series' => $countSeries('link_clicks'), 'tooltip' => 'Kliknutí přímo na odkaz reklamy (na web), bez lajků/komentářů. U traffic kampaní hlavní metrika výkonu.'],
-        ['key' => 'cplc', 'label' => 'Cena / proklik na odkaz', 'icon' => 'mouse-pointer-click', 'color' => 'violet', 'value' => $ratio($sum['spend'], $sum['link_clicks']), 'format' => 'money2', 'series' => $derivedSeries('spend', 'link_clicks', 1.0), 'tooltip' => 'Útrata ÷ prokliky na odkaz = kolik stojí jeden proklik na web. Nižší = lepší.'],
-        ['key' => 'lp_views', 'label' => 'Zobrazení vstup. stránky', 'icon' => 'file-check-2', 'color' => 'teal', 'value' => $sum['lp_views'], 'format' => 'number', 'series' => $countSeries('lp_views'), 'tooltip' => 'Kolikrát se po prokliku skutečně načetla cílová stránka (landing page view). Bývá nižší než prokliky, část lidí odejde před načtením; velký rozdíl = pomalý/špatný web.'],
-        ['key' => 'video_views', 'label' => 'Přehrání videa (3 s)', 'icon' => 'play-circle', 'color' => 'orange', 'value' => $sum['video_views'], 'format' => 'number', 'series' => $countSeries('video_views'), 'tooltip' => 'Kolikrát lidé sledovali video v reklamách aspoň 3 sekundy (u Mety „3sekundová přehrání videa"). Samotné spuštění videa při scrollování se nepočítá.'],
+        ['key' => 'link_clicks', 'label' => t('Prokliky na odkaz'), 'icon' => 'external-link', 'color' => 'cyan', 'value' => $sum['link_clicks'], 'format' => 'number', 'series' => $countSeries('link_clicks'), 'tooltip' => t('Kliknutí přímo na odkaz reklamy (na web), bez lajků/komentářů. U traffic kampaní hlavní metrika výkonu.')],
+        ['key' => 'cplc', 'label' => t('Cena / proklik na odkaz'), 'icon' => 'mouse-pointer-click', 'color' => 'violet', 'value' => $ratio($sum['spend'], $sum['link_clicks']), 'format' => 'money2', 'series' => $derivedSeries('spend', 'link_clicks', 1.0), 'tooltip' => t('Útrata ÷ prokliky na odkaz = kolik stojí jeden proklik na web. Nižší = lepší.')],
+        ['key' => 'lp_views', 'label' => t('Zobrazení vstup. stránky'), 'icon' => 'file-check-2', 'color' => 'teal', 'value' => $sum['lp_views'], 'format' => 'number', 'series' => $countSeries('lp_views'), 'tooltip' => t('Kolikrát se po prokliku skutečně načetla cílová stránka (landing page view). Bývá nižší než prokliky, část lidí odejde před načtením; velký rozdíl = pomalý/špatný web.')],
+        ['key' => 'video_views', 'label' => t('Přehrání videa (3 s)'), 'icon' => 'play-circle', 'color' => 'orange', 'value' => $sum['video_views'], 'format' => 'number', 'series' => $countSeries('video_views'), 'tooltip' => t('Kolikrát lidé sledovali video v reklamách aspoň 3 sekundy (u Mety „3sekundová přehrání videa"). Samotné spuštění videa při scrollování se nepočítá.')],
     ];
 
     $metrics = array_map(static function (array $d): array {
@@ -2696,17 +2700,17 @@ function allstat_get_google_ads_kpis(PDO $pdo, int $domainId, int $connectionId,
     $countSeries = static fn (string $key): array => array_map(static fn (string $d): float => round((float) ($byDate[$d][$key] ?? 0), 2), $dates);
 
     $defs = [
-        ['key' => 'cost', 'label' => 'Útrata', 'icon' => 'wallet', 'color' => 'rose', 'value' => $sum['cost'], 'format' => 'money0', 'series' => $countSeries('cost'), 'tooltip' => 'Kolik jsi za Google Ads utratil za období (součet přes dny), v měně účtu.'],
-        ['key' => 'roas', 'label' => 'ROAS', 'icon' => 'trending-up', 'color' => 'green', 'value' => $ratio($sum['conversion_value'], $sum['cost']), 'format' => 'x', 'series' => $derivedSeries('conversion_value', 'cost', 1.0), 'tooltip' => 'Návratnost výdajů = hodnota konverzí ÷ útrata. „3×" = z 1 Kč v reklamě se vrátily 3 Kč tržeb. 0 = účet neměří hodnotu konverzí (není co dělit).'],
-        ['key' => 'pno', 'label' => 'PNO', 'icon' => 'percent', 'color' => 'rose', 'value' => $ratio($sum['cost'], $sum['conversion_value'], 100.0), 'format' => 'percent', 'series' => $derivedSeries('cost', 'conversion_value', 100.0), 'tooltip' => 'PNO (podíl nákladů na obratu) = útrata ÷ hodnota konverzí × 100. Kolik % z obratu spolkne reklama, převrácená hodnota ROAS. Nižší = lepší. Skryté u účtů bez měření hodnoty konverzí.'],
-        ['key' => 'conversions', 'label' => 'Konverze', 'icon' => 'shopping-cart', 'color' => 'teal', 'value' => $sum['conversions'], 'format' => 'number2', 'series' => $countSeries('conversions'), 'tooltip' => 'Počet konverzí přiřazených Google Ads. Může být desetinný (Google počítá modelované/částečné konverze). 0 = účet nemá konverzní sledování.'],
-        ['key' => 'cpa', 'label' => 'CPA', 'icon' => 'target', 'color' => 'orange', 'value' => $ratio($sum['cost'], $sum['conversions']), 'format' => 'money2', 'series' => $derivedSeries('cost', 'conversions', 1.0), 'tooltip' => 'Cena za konverzi = útrata ÷ počet konverzí. Nižší = lepší. Bez konverzí ji nelze spočítat.'],
-        ['key' => 'conversion_value', 'label' => 'Hodnota konverzí', 'icon' => 'banknote', 'color' => 'green', 'value' => $sum['conversion_value'], 'format' => 'money0', 'series' => $countSeries('conversion_value'), 'tooltip' => 'Tržby (hodnota konverzí) přiřazené Google Ads. 0 = účet nehlásí hodnotu konverzí.'],
-        ['key' => 'ctr', 'label' => 'CTR', 'icon' => 'gauge', 'color' => 'cyan', 'value' => $ratio($sum['clicks'], $sum['impressions'], 100.0), 'format' => 'percent', 'series' => $derivedSeries('clicks', 'impressions', 100.0), 'tooltip' => 'Míra prokliku = kliknutí ÷ zobrazení × 100. V search bývá vyšší než v display/PMax.'],
-        ['key' => 'cpc', 'label' => 'CPC', 'icon' => 'mouse-pointer-click', 'color' => 'violet', 'value' => $ratio($sum['cost'], $sum['clicks']), 'format' => 'money2', 'series' => $derivedSeries('cost', 'clicks', 1.0), 'tooltip' => 'Cena za kliknutí = útrata ÷ kliknutí.'],
-        ['key' => 'cpm', 'label' => 'CPM', 'icon' => 'eye', 'color' => 'orange', 'value' => $ratio($sum['cost'], $sum['impressions'], 1000.0), 'format' => 'money2', 'series' => $derivedSeries('cost', 'impressions', 1000.0), 'tooltip' => 'Cena za 1 000 zobrazení = útrata ÷ zobrazení × 1 000.'],
-        ['key' => 'clicks', 'label' => 'Kliknutí', 'icon' => 'mouse-pointer-click', 'color' => 'cyan', 'value' => $sum['clicks'], 'format' => 'number', 'series' => $countSeries('clicks'), 'tooltip' => 'Počet kliknutí na reklamy za období.'],
-        ['key' => 'impressions', 'label' => 'Zobrazení', 'icon' => 'eye', 'color' => 'blue', 'value' => $sum['impressions'], 'format' => 'number', 'series' => $countSeries('impressions'), 'tooltip' => 'Kolikrát se reklamy zobrazily celkem.'],
+        ['key' => 'cost', 'label' => t('Útrata'), 'icon' => 'wallet', 'color' => 'rose', 'value' => $sum['cost'], 'format' => 'money0', 'series' => $countSeries('cost'), 'tooltip' => t('Kolik jsi za Google Ads utratil za období (součet přes dny), v měně účtu.')],
+        ['key' => 'roas', 'label' => t('ROAS'), 'icon' => 'trending-up', 'color' => 'green', 'value' => $ratio($sum['conversion_value'], $sum['cost']), 'format' => 'x', 'series' => $derivedSeries('conversion_value', 'cost', 1.0), 'tooltip' => t('Návratnost výdajů = hodnota konverzí ÷ útrata. „3×" = z 1 Kč v reklamě se vrátily 3 Kč tržeb. 0 = účet neměří hodnotu konverzí (není co dělit).')],
+        ['key' => 'pno', 'label' => t('PNO'), 'icon' => 'percent', 'color' => 'rose', 'value' => $ratio($sum['cost'], $sum['conversion_value'], 100.0), 'format' => 'percent', 'series' => $derivedSeries('cost', 'conversion_value', 100.0), 'tooltip' => t('PNO (podíl nákladů na obratu) = útrata ÷ hodnota konverzí × 100. Kolik % z obratu spolkne reklama, převrácená hodnota ROAS. Nižší = lepší. Skryté u účtů bez měření hodnoty konverzí.')],
+        ['key' => 'conversions', 'label' => t('Konverze'), 'icon' => 'shopping-cart', 'color' => 'teal', 'value' => $sum['conversions'], 'format' => 'number2', 'series' => $countSeries('conversions'), 'tooltip' => t('Počet konverzí přiřazených Google Ads. Může být desetinný (Google počítá modelované/částečné konverze). 0 = účet nemá konverzní sledování.')],
+        ['key' => 'cpa', 'label' => t('CPA'), 'icon' => 'target', 'color' => 'orange', 'value' => $ratio($sum['cost'], $sum['conversions']), 'format' => 'money2', 'series' => $derivedSeries('cost', 'conversions', 1.0), 'tooltip' => t('Cena za konverzi = útrata ÷ počet konverzí. Nižší = lepší. Bez konverzí ji nelze spočítat.')],
+        ['key' => 'conversion_value', 'label' => t('Hodnota konverzí'), 'icon' => 'banknote', 'color' => 'green', 'value' => $sum['conversion_value'], 'format' => 'money0', 'series' => $countSeries('conversion_value'), 'tooltip' => t('Tržby (hodnota konverzí) přiřazené Google Ads. 0 = účet nehlásí hodnotu konverzí.')],
+        ['key' => 'ctr', 'label' => t('CTR'), 'icon' => 'gauge', 'color' => 'cyan', 'value' => $ratio($sum['clicks'], $sum['impressions'], 100.0), 'format' => 'percent', 'series' => $derivedSeries('clicks', 'impressions', 100.0), 'tooltip' => t('Míra prokliku = kliknutí ÷ zobrazení × 100. V search bývá vyšší než v display/PMax.')],
+        ['key' => 'cpc', 'label' => t('CPC'), 'icon' => 'mouse-pointer-click', 'color' => 'violet', 'value' => $ratio($sum['cost'], $sum['clicks']), 'format' => 'money2', 'series' => $derivedSeries('cost', 'clicks', 1.0), 'tooltip' => t('Cena za kliknutí = útrata ÷ kliknutí.')],
+        ['key' => 'cpm', 'label' => t('CPM'), 'icon' => 'eye', 'color' => 'orange', 'value' => $ratio($sum['cost'], $sum['impressions'], 1000.0), 'format' => 'money2', 'series' => $derivedSeries('cost', 'impressions', 1000.0), 'tooltip' => t('Cena za 1 000 zobrazení = útrata ÷ zobrazení × 1 000.')],
+        ['key' => 'clicks', 'label' => t('Kliknutí'), 'icon' => 'mouse-pointer-click', 'color' => 'cyan', 'value' => $sum['clicks'], 'format' => 'number', 'series' => $countSeries('clicks'), 'tooltip' => t('Počet kliknutí na reklamy za období.')],
+        ['key' => 'impressions', 'label' => t('Zobrazení'), 'icon' => 'eye', 'color' => 'blue', 'value' => $sum['impressions'], 'format' => 'number', 'series' => $countSeries('impressions'), 'tooltip' => t('Kolikrát se reklamy zobrazily celkem.')],
     ];
 
     $metrics = array_map(static function (array $d): array {
@@ -2815,7 +2819,7 @@ function allstat_get_seznam_wmt_kpis(PDO $pdo, int $domainId, int $connectionId,
     }
     ksort($byDate);
     $dates = array_keys($byDate);
-    $labels = array_map(static fn (string $d): string => (new DateTimeImmutable($d))->format('j. n.'), $dates);
+    $labels = array_map(static fn (string $d): string => allstat_short_date_label(new DateTimeImmutable($d)), $dates);
     $latest = $dates ? $byDate[$dates[count($dates) - 1]] : [];
 
     $meta = allstat_provider_metric_meta('seznam_wmt');
@@ -2885,7 +2889,7 @@ function allstat_get_meta_ads_recommendations(PDO $pdo, int $domainId, int $conn
         $linkCtr = $s['impressions'] > 0 ? $s['link_clicks'] / $s['impressions'] * 100 : 0.0;
         $cplc = $s['link_clicks'] > 0 ? $s['spend'] / $s['link_clicks'] : 0.0;
     }
-    $scope = $hasGoals ? ' u kampaní na návštěvnost webu' : '';
+    $scope = $hasGoals ? t(' u kampaní na návštěvnost webu') : '';
 
     $rec = [];
     $add = static function (string $level, string $title, string $detail) use (&$rec): void {
@@ -2901,40 +2905,40 @@ function allstat_get_meta_ads_recommendations(PDO $pdo, int $domainId, int $conn
         usort($life, static fn (array $a, array $b): int => $b['frequencyLifetime'] <=> $a['frequencyLifetime']);
         $top = $life[0];
         $f = (float) $top['frequencyLifetime'];
-        $kdo = 'kampaň „' . $top['name'] . '"';
+        $kdo = t('kampaň „{name}"', ['name' => $top['name']]);
         if ($f >= 4) {
-            $add('bad', 'Vysoká frekvence (' . $n($f, 1) . '×), únava publika', 'Za celou dobu viděl ' . $kdo . ' stejný člověk v průměru ' . $n($f, 1) . '×. Publikum je přesycené, roste cena a klesají prokliky. Rozšiř cílení, vyměň kreativu nebo sniž rozpočet.');
+            $add('bad', t('Vysoká frekvence ({freq}×), únava publika', ['freq' => $n($f, 1)]), t('Za celou dobu viděl {kdo} stejný člověk v průměru {freq}×. Publikum je přesycené, roste cena a klesají prokliky. Rozšiř cílení, vyměň kreativu nebo sniž rozpočet.', ['kdo' => $kdo, 'freq' => $n($f, 1)]));
         } elseif ($f >= 3) {
-            $add('warn', 'Zvýšená frekvence (' . $n($f, 1) . '×)', 'Za celou dobu viděl ' . $kdo . ' stejný člověk v průměru ' . $n($f, 1) . '×. Publikum se začíná přesycovat, připrav obměnu kreativy nebo širší publikum.');
+            $add('warn', t('Zvýšená frekvence ({freq}×)', ['freq' => $n($f, 1)]), t('Za celou dobu viděl {kdo} stejný člověk v průměru {freq}×. Publikum se začíná přesycovat, připrav obměnu kreativy nebo širší publikum.', ['kdo' => $kdo, 'freq' => $n($f, 1)]));
         } elseif ($f < 2 && $s['impressions'] > 2000) {
-            $add('good', 'Publikum není přesycené (nejvýš ' . $n($f, 1) . '×)', 'Nejčastěji se opakovala ' . $kdo . ': stejný člověk ji za celou dobu viděl v průměru ' . $n($f, 1) . '×, u ostatních kampaní je to méně. Je prostor přidat rozpočet bez únavy publika.');
+            $add('good', t('Publikum není přesycené (nejvýš {freq}×)', ['freq' => $n($f, 1)]), t('Nejčastěji se opakovala {kdo}: stejný člověk ji za celou dobu viděl v průměru {freq}×, u ostatních kampaní je to méně. Je prostor přidat rozpočet bez únavy publika.', ['kdo' => $kdo, 'freq' => $n($f, 1)]));
         } elseif ($f >= 2) {
-            $add('info', 'Frekvence v normě (nejvýš ' . $n($f, 1) . '×)', 'Nejčastěji se opakovala ' . $kdo . ': stejný člověk ji za celou dobu viděl v průměru ' . $n($f, 1) . '×. To je ještě v pořádku, od 3× se publikum začíná přesycovat. Při delším běhu ji hlídej a včas obměň kreativu.');
+            $add('info', t('Frekvence v normě (nejvýš {freq}×)', ['freq' => $n($f, 1)]), t('Nejčastěji se opakovala {kdo}: stejný člověk ji za celou dobu viděl v průměru {freq}×. To je ještě v pořádku, od 3× se publikum začíná přesycovat. Při delším běhu ji hlídej a včas obměň kreativu.', ['kdo' => $kdo, 'freq' => $n($f, 1)]));
         }
     } elseif ($freqDaily >= 3) {
-        $add('warn', 'Vysoká denní frekvence (' . $n($freqDaily, 1) . '×)', 'Stejný člověk viděl reklamy v průměru ' . $n($freqDaily, 1) . '× za jediný den. Publikum je nejspíš příliš malé, rozšiř cílení nebo sniž denní rozpočet.');
+        $add('warn', t('Vysoká denní frekvence ({freq}×)', ['freq' => $n($freqDaily, 1)]), t('Stejný člověk viděl reklamy v průměru {freq}× za jediný den. Publikum je nejspíš příliš malé, rozšiř cílení nebo sniž denní rozpočet.', ['freq' => $n($freqDaily, 1)]));
     }
 
     // 2) Link CTR (the meaningful click-through to the web), jen kampaně, které mají přivádět na web.
     if ($linkCtr > 0 && $linkCtr < 0.7) {
-        $add('warn', 'Nízká míra prokliku na odkaz (' . $n($linkCtr, 2) . ' %)', 'Z lidí, kterým se reklama ukázala, kliklo na odkaz jen ' . $n($linkCtr, 2) . ' %' . $scope . '. Orientačně se čeká 0,7–1,5 %. Slabý hook/vizuál nebo nepřesné cílení, vyzkoušej jiný úvod videa/obrázek nebo užší publikum.' . ($hasGoals ? '' : ' Kampaně na povědomí mají nízkou míru prokliku přirozeně, ty z toho vynech.'));
+        $add('warn', t('Nízká míra prokliku na odkaz ({ctr} %)', ['ctr' => $n($linkCtr, 2)]), t('Z lidí, kterým se reklama ukázala, kliklo na odkaz jen {ctr} %{scope}. Orientačně se čeká 0,7–1,5 %. Slabý hook/vizuál nebo nepřesné cílení, vyzkoušej jiný úvod videa/obrázek nebo užší publikum.', ['ctr' => $n($linkCtr, 2), 'scope' => $scope]) . ($hasGoals ? '' : t(' Kampaně na povědomí mají nízkou míru prokliku přirozeně, ty z toho vynech.')));
     } elseif ($linkCtr >= 1.5) {
-        $add('good', 'Dobrá míra prokliku (' . $n($linkCtr, 2) . ' %)', ($hasGoals ? 'Kampaně na návštěvnost webu mají dobrou kreativu i cílení' : 'Kreativa i cílení rezonují') . ', drž a škáluj, co funguje.');
+        $add('good', t('Dobrá míra prokliku ({ctr} %)', ['ctr' => $n($linkCtr, 2)]), ($hasGoals ? t('Kampaně na návštěvnost webu mají dobrou kreativu i cílení, drž a škáluj, co funguje.') : t('Kreativa i cílení rezonují, drž a škáluj, co funguje.')));
     }
 
     // 3) Landing-page drop (link clicks vs landing-page views) = web/odkaz problem.
     if ($s['link_clicks'] >= 50 && $lpDrop >= 35) {
-        $add('warn', 'Rozdíl prokliky vs. načtení stránky (−' . $n($lpDrop) . ' %), ověř cookie souhlas', 'Na odkaz kliklo ' . $n($s['link_clicks']) . ' lidí, ale Meta Pixel zaznamenal načtení vstupní stránky jen ' . $n($s['lp_views']) . '× (rozdíl ' . $n($lpDrop) . ' %). V EU to nejčastěji NENÍ ztráta lidí, ale MĚŘENÍ: cookie/consent lišta blokuje Meta Pixel, dokud návštěvník neodsouhlasí cookies, proklik se započítá, ale „načtení stránky" (pixel) ne. Nejdřív ověř míru souhlasu v cookie liště (běžně 30–60 % odmítne); teprve pak řeš rychlost webu, špatnou cílovou URL nebo mezistránku.');
+        $add('warn', t('Rozdíl prokliky vs. načtení stránky (−{drop} %), ověř cookie souhlas', ['drop' => $n($lpDrop)]), t('Na odkaz kliklo {clicks} lidí, ale Meta Pixel zaznamenal načtení vstupní stránky jen {views}× (rozdíl {drop} %). V EU to nejčastěji NENÍ ztráta lidí, ale MĚŘENÍ: cookie/consent lišta blokuje Meta Pixel, dokud návštěvník neodsouhlasí cookies, proklik se započítá, ale „načtení stránky" (pixel) ne. Nejdřív ověř míru souhlasu v cookie liště (běžně 30–60 % odmítne); teprve pak řeš rychlost webu, špatnou cílovou URL nebo mezistránku.', ['clicks' => $n($s['link_clicks']), 'views' => $n($s['lp_views']), 'drop' => $n($lpDrop)]));
     }
 
     // 4) No conversion tracking.
     if ($s['conversions'] <= 0 && $s['conversion_value'] <= 0 && $s['spend'] > 0) {
-        $add('info', 'Účet neměří konverze', 'Reklama utrácí (' . $n($s['spend']) . '), ale neměří žádné výsledky (poptávky/nákupy). Pokud je chceš sledovat (a počítat ROAS), nasaď Meta Pixel + konverzní události na web. Bez toho hodnoť podle prokliků a dosahu, což je u awareness kampaní v pořádku.');
+        $add('info', t('Účet neměří konverze'), t('Reklama utrácí ({spend}), ale neměří žádné výsledky (poptávky/nákupy). Pokud je chceš sledovat (a počítat ROAS), nasaď Meta Pixel + konverzní události na web. Bez toho hodnoť podle prokliků a dosahu, což je u awareness kampaní v pořádku.', ['spend' => $n($s['spend'])]));
     }
 
     // 5) CPC orientation (only when clearly high, to avoid false alarms across markets).
     if ($cplc >= 15) {
-        $add('warn', 'Vyšší cena za proklik na odkaz (' . $n($cplc, 2) . ')', 'Jeden proklik na web tě' . $scope . ' stojí ' . $n($cplc, 2) . '. To bývá hodně, zkus lepší kreativu/cílení nebo levnější umístění.');
+        $add('warn', t('Vyšší cena za proklik na odkaz ({cplc})', ['cplc' => $n($cplc, 2)]), t('Jeden proklik na web tě{scope} stojí {cplc}. To bývá hodně, zkus lepší kreativu/cílení nebo levnější umístění.', ['scope' => $scope, 'cplc' => $n($cplc, 2)]));
     }
 
     // 6) Video views without clicks → missing CTA. Přehrání = aspoň 3 s. U kampaní na povědomí prokliky nejsou
@@ -2946,10 +2950,10 @@ function allstat_get_meta_ads_recommendations(PDO $pdo, int $domainId, int $conn
     } else {
         $vv = $s['video_views'];
         $lc = $s['link_clicks'];
-        $vvNote = $awareCamps ? ' Část přehrání je z kampaní na povědomí, kde prokliky nejsou cílem.' : '';
+        $vvNote = $awareCamps ? t(' Část přehrání je z kampaní na povědomí, kde prokliky nejsou cílem.') : '';
     }
     if ($vv >= 500 && $lc > 0 && $vv > $lc * 6) {
-        $add('warn', 'Hodně přehrání videa, málo prokliků', 'Video v reklamách lidé aspoň 3 sekundy sledovali ' . $n($vv) . '×, ale na odkaz kliklo jen ' . $n($lc) . '×. Chybí jasná výzva k akci (CTA) nebo lidé nevědí, co mají udělat, přidej do videa/popisku jasné „Klikni / Zjisti víc".' . $vvNote);
+        $add('warn', t('Hodně přehrání videa, málo prokliků'), t('Video v reklamách lidé aspoň 3 sekundy sledovali {views}×, ale na odkaz kliklo jen {clicks}×. Chybí jasná výzva k akci (CTA) nebo lidé nevědí, co mají udělat, přidej do videa/popisku jasné „Klikni / Zjisti víc".', ['views' => $n($vv), 'clicks' => $n($lc)]) . $vvNote);
     }
 
     // 7) Per-campaign outlier: nejhorší míra prokliku NA ODKAZ mezi kampaněmi na návštěvnost s rozumnou útratou.
@@ -2966,11 +2970,11 @@ function allstat_get_meta_ads_recommendations(PDO $pdo, int $domainId, int $conn
         }
         if ($worst && $worstCtr > 0 && $avgCtr > 0 && $worstCtr < $avgCtr * 0.6) {
             $w = allstat_rate_in_words($worstCtr, $avgCtr);
-            $detail = 'Na odkaz ' . $w['klikl'] . ' jen ' . $w['a'] . ' lidí, kterým se reklama ukázala. ' . ($hasGoals ? 'V průměru kampaní na návštěvnost webu' : 'V průměru účtu') . ' je to ' . $w['b'] . '. Jeden proklik na web stál ' . $n((float) $worst['cplc'], 2) . ' při útratě ' . $n((float) $worst['spend']) . '. Kandidát na úpravu cílení/kreativy, nebo pozastavení a přesun rozpočtu k lepším.';
+            $detail = t('Na odkaz {klikl} jen {a} lidí, kterým se reklama ukázala. {avg} je to {b}. Jeden proklik na web stál {cplc} při útratě {spend}. Kandidát na úpravu cílení/kreativy, nebo pozastavení a přesun rozpočtu k lepším.', ['klikl' => $w['klikl'], 'a' => $w['a'], 'avg' => ($hasGoals ? t('V průměru kampaní na návštěvnost webu') : t('V průměru účtu')), 'b' => $w['b'], 'cplc' => $n((float) $worst['cplc'], 2), 'spend' => $n((float) $worst['spend'])]);
             if (!$hasGoals) {
-                $detail .= ' Pokud jde o kampaň na povědomí, je nízká míra prokliku v pořádku; tu hodnoť podle ceny za 1 000 zobrazení (' . $n((float) $worst['cpm'], 2) . ').';
+                $detail .= ' ' . t('Pokud jde o kampaň na povědomí, je nízká míra prokliku v pořádku; tu hodnoť podle ceny za 1 000 zobrazení ({cpm}).', ['cpm' => $n((float) $worst['cpm'], 2)]);
             }
-            $add('warn', 'Slabší kampaň: „' . (string) $worst['name'] . '"', $detail);
+            $add('warn', t('Slabší kampaň: „{name}"', ['name' => (string) $worst['name']]), $detail);
         }
     }
 
@@ -2980,17 +2984,17 @@ function allstat_get_meta_ads_recommendations(PDO $pdo, int $domainId, int $conn
         usort($awareCamps, static fn (array $a, array $b): int => $b['spend'] <=> $a['spend']);
         $parts = [];
         foreach (array_slice($awareCamps, 0, 3) as $c) {
-            $p = '„' . $c['name'] . '": 1 000 zobrazení za ' . $n((float) $c['cpm'], 2);
+            $p = t('„{name}": 1 000 zobrazení za {cpm}', ['name' => $c['name'], 'cpm' => $n((float) $c['cpm'], 2)]);
             if ($c['frequencyLifetime'] > 0) {
-                $p .= ', za celou dobu ' . $n((float) $c['reachLifetime']) . ' lidí, každý ji viděl v průměru ' . $n((float) $c['frequencyLifetime'], 2) . '×';
+                $p .= t(', za celou dobu {reach} lidí, každý ji viděl v průměru {freq}×', ['reach' => $n((float) $c['reachLifetime']), 'freq' => $n((float) $c['frequencyLifetime'], 2)]);
             }
             $parts[] = $p;
         }
-        $add('info', 'Kampaně na povědomí hodnoť podle dosahu, ne kliknutí', 'Meta je ukazuje co nejvíc lidem, ne těm, kdo kliknou, proto mají přirozeně nízkou míru prokliku a drahé kliknutí. Rozhoduje cena za 1 000 zobrazení a frekvence. ' . implode('; ', $parts) . '.');
+        $add('info', t('Kampaně na povědomí hodnoť podle dosahu, ne kliknutí'), t('Meta je ukazuje co nejvíc lidem, ne těm, kdo kliknou, proto mají přirozeně nízkou míru prokliku a drahé kliknutí. Rozhoduje cena za 1 000 zobrazení a frekvence. {list}.', ['list' => implode('; ', $parts)]));
     }
 
     if (!$rec) {
-        $add('good', 'Bez zásadních varování', 'Z dostupných metrik za období nevidím žádný výrazný problém. Pokračuj a sleduj frekvenci a míru prokliku.');
+        $add('good', t('Bez zásadních varování'), t('Z dostupných metrik za období nevidím žádný výrazný problém. Pokračuj a sleduj frekvenci a míru prokliku.'));
     }
 
     return $rec;
@@ -3019,7 +3023,7 @@ function allstat_get_meta_ads_demographics(PDO $pdo, int $connectionId, string $
             if ($slot === null) { continue; }
             $bySlot[$slot][] = ['dim' => (string) $r['dimension'], 'v' => (float) $r['v']];
         }
-        $genderLabel = static fn (string $g): string => ['male' => 'Muži', 'female' => 'Ženy', 'unknown' => 'Neuvedeno'][strtolower($g)] ?? $g;
+        $genderLabel = static fn (string $g): string => ['male' => t('Muži'), 'female' => t('Ženy'), 'unknown' => t('Neuvedeno')][strtolower($g)] ?? $g;
         $platLabel = static fn (string $p): string => ['facebook' => 'Facebook', 'instagram' => 'Instagram', 'audience_network' => 'Audience Network', 'messenger' => 'Messenger'][strtolower($p)] ?? ucfirst($p);
         foreach ($bySlot as $slot => $items) {
             usort($items, static fn (array $a, array $b): int => $b['v'] <=> $a['v']);
@@ -3046,14 +3050,14 @@ function allstat_meta_ads_objective(string $code): array
     $code = strtoupper(trim($code));
     [$label, $kind] = match ($code) {
         '' => ['', ''],
-        'OUTCOME_AWARENESS', 'BRAND_AWARENESS', 'REACH', 'LOCAL_AWARENESS' => ['Povědomí', 'awareness'],
-        'VIDEO_VIEWS' => ['Zhlédnutí videa', 'awareness'],
-        'OUTCOME_TRAFFIC', 'LINK_CLICKS' => ['Návštěvnost', 'traffic'],
-        'OUTCOME_ENGAGEMENT', 'POST_ENGAGEMENT', 'PAGE_LIKES', 'EVENT_RESPONSES', 'MESSAGES' => ['Interakce', 'engagement'],
-        'OUTCOME_LEADS', 'LEAD_GENERATION' => ['Potenciální zákazníci', 'leads'],
-        'OUTCOME_SALES', 'PRODUCT_CATALOG_SALES' => ['Prodej', 'sales'],
-        'CONVERSIONS' => ['Konverze', 'sales'],
-        'OUTCOME_APP_PROMOTION', 'APP_INSTALLS' => ['Propagace aplikace', 'app'],
+        'OUTCOME_AWARENESS', 'BRAND_AWARENESS', 'REACH', 'LOCAL_AWARENESS' => [t('Povědomí'), 'awareness'],
+        'VIDEO_VIEWS' => [t('Zhlédnutí videa'), 'awareness'],
+        'OUTCOME_TRAFFIC', 'LINK_CLICKS' => [t('Návštěvnost'), 'traffic'],
+        'OUTCOME_ENGAGEMENT', 'POST_ENGAGEMENT', 'PAGE_LIKES', 'EVENT_RESPONSES', 'MESSAGES' => [t('Interakce'), 'engagement'],
+        'OUTCOME_LEADS', 'LEAD_GENERATION' => [t('Potenciální zákazníci'), 'leads'],
+        'OUTCOME_SALES', 'PRODUCT_CATALOG_SALES' => [t('Prodej'), 'sales'],
+        'CONVERSIONS' => [t('Konverze'), 'sales'],
+        'OUTCOME_APP_PROMOTION', 'APP_INSTALLS' => [t('Propagace aplikace'), 'app'],
         default => [ucfirst(strtolower(str_replace('_', ' ', $code))), ''],
     };
 
@@ -3078,22 +3082,22 @@ function allstat_meta_ads_optimization_label(string $code): string
 
     return match ($code) {
         '' => '',
-        'REACH' => 'Dosah',
-        'IMPRESSIONS' => 'Zobrazení',
-        'AD_RECALL_LIFT' => 'Zapamatování reklamy',
-        'THRUPLAY' => 'ThruPlay (dokoukání videa)',
-        'TWO_SECOND_CONTINUOUS_VIDEO_VIEWS' => 'Souvislé přehrání videa 2 s',
-        'LINK_CLICKS' => 'Kliknutí na odkaz',
-        'LANDING_PAGE_VIEWS' => 'Zobrazení vstupní stránky',
-        'POST_ENGAGEMENT' => 'Interakce s příspěvkem',
-        'PAGE_LIKES' => 'Označení stránky Líbí se',
-        'EVENT_RESPONSES' => 'Odpovědi na událost',
-        'OFFSITE_CONVERSIONS' => 'Konverze na webu',
-        'LEAD_GENERATION', 'QUALITY_LEAD' => 'Potenciální zákazníci',
-        'CONVERSATIONS' => 'Konverzace',
-        'VALUE' => 'Hodnota konverzí',
-        'APP_INSTALLS' => 'Instalace aplikace',
-        'VISIT_INSTAGRAM_PROFILE', 'PROFILE_VISIT' => 'Návštěvy profilu',
+        'REACH' => t('Dosah'),
+        'IMPRESSIONS' => t('Zobrazení'),
+        'AD_RECALL_LIFT' => t('Zapamatování reklamy'),
+        'THRUPLAY' => t('ThruPlay (dokoukání videa)'),
+        'TWO_SECOND_CONTINUOUS_VIDEO_VIEWS' => t('Souvislé přehrání videa 2 s'),
+        'LINK_CLICKS' => t('Kliknutí na odkaz'),
+        'LANDING_PAGE_VIEWS' => t('Zobrazení vstupní stránky'),
+        'POST_ENGAGEMENT' => t('Interakce s příspěvkem'),
+        'PAGE_LIKES' => t('Označení stránky Líbí se'),
+        'EVENT_RESPONSES' => t('Odpovědi na událost'),
+        'OFFSITE_CONVERSIONS' => t('Konverze na webu'),
+        'LEAD_GENERATION', 'QUALITY_LEAD' => t('Potenciální zákazníci'),
+        'CONVERSATIONS' => t('Konverzace'),
+        'VALUE' => t('Hodnota konverzí'),
+        'APP_INSTALLS' => t('Instalace aplikace'),
+        'VISIT_INSTAGRAM_PROFILE', 'PROFILE_VISIT' => t('Návštěvy profilu'),
         default => ucfirst(strtolower(str_replace('_', ' ', $code))),
     };
 }
@@ -3183,13 +3187,13 @@ function allstat_meta_ads_run_label(?array $run): string
         return '';
     }
     if ($a->format('Y-m-d') === $b->format('Y-m-d')) {
-        return $a->format('j. n. Y');
+        return allstat_date_label($a->getTimestamp());
     }
 
-    $label = ($a->format('Y') === $b->format('Y') ? $a->format('j. n.') : $a->format('j. n. Y')) . '–' . $b->format('j. n. Y');
+    $label = ($a->format('Y') === $b->format('Y') ? allstat_short_date_label($a) : allstat_date_label($a->getTimestamp())) . '–' . allstat_date_label($b->getTimestamp());
     $days = (int) ($run['days'] ?? 0);
     if ($days > 0 && $days < $a->diff($b)->days + 1) {
-        $label .= ' (' . $days . ' ' . ($days === 1 ? 'den' : ($days <= 4 ? 'dny' : 'dní')) . ' s útratou)';
+        $label .= ' (' . tn($days, '{count} den s útratou', '{count} dny s útratou', '{count} dní s útratou') . ')';
     }
 
     return $label;
@@ -3419,7 +3423,7 @@ function allstat_get_meta_ads_subbreakdown(PDO $pdo, int $domainId, int $connect
 function allstat_meta_ad_verdict(float $spend, float $impr, float $linkClicks, float $cplc, float $linkCtr, float $freq, float $hook, float $conv, float $avgLinkCtr, float $avgCplc, string $goalKind = '', float $cpm = 0.0, float $avgCpm = 0.0, bool $freqIsLifetime = false): array
 {
     if ($impr < 500 || $spend <= 0) {
-        return ['level' => 'none', 'label' => 'Málo dat', 'reasons' => ['Za období má jen ' . allstat_number($impr, 0) . ' zobrazení, na hodnocení je to málo.']];
+        return ['level' => 'none', 'label' => t('Málo dat'), 'reasons' => [t('Za období má jen {count} zobrazení, na hodnocení je to málo.', ['count' => allstat_number($impr, 0)])]];
     }
 
     $n = static fn (float $v, int $d = 0): string => allstat_number($v, $d);
@@ -3432,30 +3436,30 @@ function allstat_meta_ad_verdict(float $spend, float $impr, float $linkClicks, f
         // „X ze 100 lidí" místo procent z procent. Původní znění („21 % nad průměrem, 7,08 % vs. 5,85 %")
         // míchalo tři různá procenta a bylo pro netechnického čtenáře nesrozumitelné.
         $kolik = allstat_rate_in_words($linkCtr, $avgLinkCtr);
-        if ($pomer >= 1.2) { $plus[] = 'Na odkaz ' . $kolik['klikl'] . ' ' . $kolik['a'] . ' lidí, kterým se reklama ukázala. U ostatních reklam na účtu je to ' . $kolik['b'] . ', tahle tedy táhne líp.'; }
-        elseif ($pomer <= 0.8) { $minus[] = 'Na odkaz ' . $kolik['klikl'] . ' jen ' . $kolik['a'] . ' lidí, kterým se reklama ukázala. U ostatních reklam na účtu je to ' . $kolik['b'] . ', tahle tedy táhne hůř.'; }
+        if ($pomer >= 1.2) { $plus[] = t('Na odkaz {klikl} {a} lidí, kterým se reklama ukázala. U ostatních reklam na účtu je to {b}, tahle tedy táhne líp.', ['klikl' => $kolik['klikl'], 'a' => $kolik['a'], 'b' => $kolik['b']]); }
+        elseif ($pomer <= 0.8) { $minus[] = t('Na odkaz {klikl} jen {a} lidí, kterým se reklama ukázala. U ostatních reklam na účtu je to {b}, tahle tedy táhne hůř.', ['klikl' => $kolik['klikl'], 'a' => $kolik['a'], 'b' => $kolik['b']]); }
     }
 
     // 2) Cena za proklik na odkaz proti průměru účtu (kolik stojí přivedení člověka na web).
     if ($clickGoal && $avgCplc > 0 && $cplc > 0) {
         $pomer = $cplc / $avgCplc;
-        if ($pomer <= 0.85) { $plus[] = 'Přivést jednoho člověka na web stálo ' . $n($cplc, 2) . '. U ostatních reklam na účtu to vychází na ' . $n($avgCplc, 2) . ', tahle je tedy levnější.'; }
-        elseif ($pomer >= 1.25) { $minus[] = 'Přivést jednoho člověka na web stálo ' . $n($cplc, 2) . '. U ostatních reklam na účtu to vychází na ' . $n($avgCplc, 2) . ', tahle je tedy dražší.'; }
+        if ($pomer <= 0.85) { $plus[] = t('Přivést jednoho člověka na web stálo {cplc}. U ostatních reklam na účtu to vychází na {avg}, tahle je tedy levnější.', ['cplc' => $n($cplc, 2), 'avg' => $n($avgCplc, 2)]); }
+        elseif ($pomer >= 1.25) { $minus[] = t('Přivést jednoho člověka na web stálo {cplc}. U ostatních reklam na účtu to vychází na {avg}, tahle je tedy dražší.', ['cplc' => $n($cplc, 2), 'avg' => $n($avgCplc, 2)]); }
     }
 
     // 2b) Povědomí a interakce: cena za 1 000 zobrazení proti ostatním reklamám, které necílí na prokliky.
     if (!$clickGoal && $avgCpm > 0 && $cpm > 0) {
         $pomer = $cpm / $avgCpm;
-        if ($pomer <= 0.85) { $plus[] = 'Tisíc zobrazení stálo ' . $n($cpm, 2) . '. U ostatních reklam, které necílí na prokliky, to vychází na ' . $n($avgCpm, 2) . ', tahle je tedy levnější.'; }
-        elseif ($pomer >= 1.25) { $minus[] = 'Tisíc zobrazení stálo ' . $n($cpm, 2) . '. U ostatních reklam, které necílí na prokliky, to vychází na ' . $n($avgCpm, 2) . ', tahle je tedy dražší.'; }
+        if ($pomer <= 0.85) { $plus[] = t('Tisíc zobrazení stálo {cpm}. U ostatních reklam, které necílí na prokliky, to vychází na {avg}, tahle je tedy levnější.', ['cpm' => $n($cpm, 2), 'avg' => $n($avgCpm, 2)]); }
+        elseif ($pomer >= 1.25) { $minus[] = t('Tisíc zobrazení stálo {cpm}. U ostatních reklam, které necílí na prokliky, to vychází na {avg}, tahle je tedy dražší.', ['cpm' => $n($cpm, 2), 'avg' => $n($avgCpm, 2)]); }
     }
 
     // 3) Únava publika. Denní frekvence o opakování za celou dobu nic neříká, proto jiná formulace.
     if ($freqIsLifetime) {
-        if ($freq >= 4) { $minus[] = 'Stejný člověk reklamu za celou dobu viděl průměrně ' . $n($freq, 1) . '×. To už bývá moc, lidé ji přestávají vnímat.'; }
-        elseif ($freq >= 3) { $minus[] = 'Stejný člověk reklamu za celou dobu viděl průměrně ' . $n($freq, 1) . '×, publikum se začíná přesycovat.'; }
+        if ($freq >= 4) { $minus[] = t('Stejný člověk reklamu za celou dobu viděl průměrně {freq}×. To už bývá moc, lidé ji přestávají vnímat.', ['freq' => $n($freq, 1)]); }
+        elseif ($freq >= 3) { $minus[] = t('Stejný člověk reklamu za celou dobu viděl průměrně {freq}×, publikum se začíná přesycovat.', ['freq' => $n($freq, 1)]); }
     } elseif ($freq >= 3) {
-        $minus[] = 'Stejný člověk reklamu viděl průměrně ' . $n($freq, 1) . '× za jediný den, publikum je nejspíš příliš malé.';
+        $minus[] = t('Stejný člověk reklamu viděl průměrně {freq}× za jediný den, publikum je nejspíš příliš malé.', ['freq' => $n($freq, 1)]);
     }
 
     // 4) Video hook = přehrání aspoň na 3 s ÷ zobrazení (jen když jde o video a máme co měřit). U reklam na
@@ -3463,22 +3467,22 @@ function allstat_meta_ad_verdict(float $spend, float $impr, float $linkClicks, f
     //    míry prokliku (u carouselu s jedním videem se zobrazení počítají i u karet bez videa).
     if ($hook > 0) {
         $h = allstat_rate_in_words($hook, $hook);
-        if ($hook >= 30) { $plus[] = 'Video zaujme, aspoň 3 sekundy ho ' . $h['sledoval'] . ' ' . $h['a'] . ' lidí, kterým se ukázalo.'; }
-        elseif ($hook < 15 && (!$clickGoal || ($avgLinkCtr > 0 && $linkCtr < $avgLinkCtr))) { $minus[] = 'Video málokoho zaujme, aspoň 3 sekundy ho ' . $h['sledoval'] . ' jen ' . $h['a'] . ' lidí, kterým se ukázalo.'; }
+        if ($hook >= 30) { $plus[] = t('Video zaujme, aspoň 3 sekundy ho {sledoval} {a} lidí, kterým se ukázalo.', ['sledoval' => $h['sledoval'], 'a' => $h['a']]); }
+        elseif ($hook < 15 && (!$clickGoal || ($avgLinkCtr > 0 && $linkCtr < $avgLinkCtr))) { $minus[] = t('Video málokoho zaujme, aspoň 3 sekundy ho {sledoval} jen {a} lidí, kterým se ukázalo.', ['sledoval' => $h['sledoval'], 'a' => $h['a']]); }
     }
 
     // 5) Konverze, pokud se na účtu vůbec měří.
-    if ($conv > 0) { $plus[] = 'Přinesla ' . $n($conv) . ' měřených výsledků (přihlášek nebo poptávek).'; }
+    if ($conv > 0) { $plus[] = t('Přinesla {count} měřených výsledků (přihlášek nebo poptávek).', ['count' => $n($conv)]); }
 
-    $level = 'ok'; $label = 'Průměrná';
-    if ($plus && !$minus) { $level = 'good'; $label = 'Nadprůměrná'; }
-    elseif (count($minus) >= 2) { $level = 'bad'; $label = 'Podprůměrná'; }
-    elseif ($minus) { $level = 'warn'; $label = 'Spíš slabší'; }
+    $level = 'ok'; $label = t('Průměrná');
+    if ($plus && !$minus) { $level = 'good'; $label = t('Nadprůměrná'); }
+    elseif (count($minus) >= 2) { $level = 'bad'; $label = t('Podprůměrná'); }
+    elseif ($minus) { $level = 'warn'; $label = t('Spíš slabší'); }
 
     $reasons = array_merge($plus, $minus);
-    if (!$reasons) { $reasons[] = 'Drží se průměru účtu, nic nevyčnívá nahoru ani dolů.'; }
+    if (!$reasons) { $reasons[] = t('Drží se průměru účtu, nic nevyčnívá nahoru ani dolů.'); }
     if (!$clickGoal) {
-        $reasons[] = 'Reklama na ' . ($goalKind === 'engagement' ? 'interakce' : 'povědomí') . ': Meta ji ukazuje co nejvíc lidem, ne těm, kdo kliknou, proto se nehodnotí prokliky na web, ale cena za zobrazení a zájem o video.';
+        $reasons[] = t('Reklama na {goal}: Meta ji ukazuje co nejvíc lidem, ne těm, kdo kliknou, proto se nehodnotí prokliky na web, ale cena za zobrazení a zájem o video.', ['goal' => $goalKind === 'engagement' ? t('interakce') : t('povědomí')]);
     }
 
     return ['level' => $level, 'label' => $label, 'reasons' => $reasons];
@@ -3504,16 +3508,20 @@ function allstat_rate_in_words(float $pctA, float $pctB): array
         $base = 10000;
     }
     $count = static fn (float $pct): int => (int) round($pct / 100 * $base);
-    $slovy = static fn (float $pct): string => allstat_number($count($pct), 0) . match ($base) { 100 => ' ze 100', 1000 => ' z 1 000', default => ' z 10 000' };
+    $slovy = static fn (float $pct): string => match ($base) {
+        100 => t('{count} ze 100', ['count' => allstat_number($count($pct), 0)]),
+        1000 => t('{count} z 1 000', ['count' => allstat_number($count($pct), 0)]),
+        default => t('{count} z 10 000', ['count' => allstat_number($count($pct), 0)]),
+    };
     $nA = $count($pctA);
 
     return [
         'a' => $slovy($pctA),
         'b' => $slovy($pctB),
         // tvary pro „kliknout", „přehrát si" a „sledovat"
-        'klikl' => $nA === 1 ? 'klikl' : ($nA >= 2 && $nA <= 4 ? 'klikli' : 'kliklo'),
-        'prehral' => $nA === 1 ? 'přehrál' : ($nA >= 2 && $nA <= 4 ? 'přehráli' : 'přehrálo'),
-        'sledoval' => $nA === 1 ? 'sledoval' : ($nA >= 2 && $nA <= 4 ? 'sledovali' : 'sledovalo'),
+        'klikl' => $nA === 1 ? t('klikl') : ($nA >= 2 && $nA <= 4 ? t('klikli') : t('kliklo')),
+        'prehral' => $nA === 1 ? t('přehrál') : ($nA >= 2 && $nA <= 4 ? t('přehráli') : t('přehrálo')),
+        'sledoval' => $nA === 1 ? t('sledoval') : ($nA >= 2 && $nA <= 4 ? t('sledovali') : t('sledovalo')),
     ];
 }
 
@@ -3566,13 +3574,13 @@ function allstat_dashboard_payload(
     $returningUsers = (int) ($summary['returning_users'] ?? 0);
     $usersTotal = $newUsers + $returningUsers;
     $newReturning = [
-        'labels' => ['Noví', 'Vracející se'],
+        'labels' => [t('Noví'), t('Vracející se')],
         'values' => [$newUsers, $returningUsers],
         'total' => $usersTotal,
         'totalLabel' => allstat_number($usersTotal),
         'segments' => [
-            ['label' => 'Noví', 'value' => $newUsers, 'valueLabel' => allstat_number($newUsers), 'shareLabel' => allstat_percent($usersTotal > 0 ? $newUsers / $usersTotal * 100 : 0, 1)],
-            ['label' => 'Vracející se', 'value' => $returningUsers, 'valueLabel' => allstat_number($returningUsers), 'shareLabel' => allstat_percent($usersTotal > 0 ? $returningUsers / $usersTotal * 100 : 0, 1)],
+            ['label' => t('Noví'), 'value' => $newUsers, 'valueLabel' => allstat_number($newUsers), 'shareLabel' => allstat_percent($usersTotal > 0 ? $newUsers / $usersTotal * 100 : 0, 1)],
+            ['label' => t('Vracející se'), 'value' => $returningUsers, 'valueLabel' => allstat_number($returningUsers), 'shareLabel' => allstat_percent($usersTotal > 0 ? $returningUsers / $usersTotal * 100 : 0, 1)],
         ],
     ];
 
@@ -3623,7 +3631,7 @@ function allstat_dashboard_payload(
 
 function allstat_empty_dashboard_data(array $domains, int $domainId, string $start, string $end, string $granularity, bool $databaseMode): array
 {
-    $domain = $domains[0] ?? ['id' => $domainId, 'name' => 'Žádný web', 'url' => '-'];
+    $domain = $domains[0] ?? ['id' => $domainId, 'name' => t('Žádný web'), 'url' => '-'];
 
     foreach ($domains as $item) {
         if ((int) $item['id'] === $domainId) {
@@ -3659,20 +3667,20 @@ function allstat_build_kpis(array $summary, array $previous, array $series, arra
     // Marketing-priority order + skupiny pro čitelnou KPI mřížku: Návštěvnost → Zapojení → Konverze → SEO → AI.
     // Barva ikony = KATEGORIE (skupina), ne sentiment (směr řeší šipka trendu) → sjednocená sémantika.
     $definitions = [
-        ['key' => 'visits', 'group' => 'Návštěvnost', 'label' => 'Návštěvy', 'provider' => 'GA4', 'icon' => 'users-round', 'color' => 'blue', 'format' => 'number', 'decimals' => 0],
-        ['key' => 'users', 'group' => 'Návštěvnost', 'label' => 'Uživatelé', 'provider' => 'GA4', 'icon' => 'user', 'color' => 'blue', 'format' => 'number', 'decimals' => 0],
-        ['key' => 'new_users', 'group' => 'Návštěvnost', 'label' => 'Noví uživatelé', 'provider' => 'GA4', 'icon' => 'user-plus', 'color' => 'blue', 'format' => 'number', 'decimals' => 0],
-        ['key' => 'engagement_rate', 'group' => 'Zapojení', 'label' => 'Míra zapojení', 'provider' => 'GA4', 'icon' => 'activity', 'color' => 'violet', 'format' => 'percent', 'decimals' => 1, 'higherIsBetter' => true],
-        ['key' => 'bounce_rate', 'group' => 'Zapojení', 'label' => 'Míra odchodů', 'provider' => 'GA4', 'icon' => 'log-out', 'color' => 'violet', 'format' => 'percent', 'decimals' => 1, 'higherIsBetter' => false],
-        ['key' => 'avg_engagement_time', 'group' => 'Zapojení', 'label' => 'Prům. čas na webu', 'provider' => 'GA4', 'icon' => 'clock', 'color' => 'violet', 'format' => 'duration', 'decimals' => 0, 'higherIsBetter' => true],
-        ['key' => 'conversions', 'group' => 'Konverze', 'label' => 'Konverze', 'provider' => 'GA4', 'icon' => 'shopping-cart', 'color' => 'green', 'format' => 'number', 'decimals' => 0],
-        ['key' => 'conversion_rate', 'group' => 'Konverze', 'label' => 'Konverzní poměr', 'provider' => 'GA4', 'icon' => 'target', 'color' => 'green', 'format' => 'percent', 'decimals' => 2, 'higherIsBetter' => true],
-        ['key' => 'revenue', 'group' => 'Konverze', 'label' => 'Tržby', 'provider' => 'GA4', 'icon' => 'banknote', 'color' => 'green', 'format' => 'number', 'decimals' => 0, 'higherIsBetter' => true],
-        ['key' => 'clicks', 'group' => 'SEO (Search Console)', 'label' => 'Kliknutí', 'provider' => 'GSC', 'icon' => 'mouse-pointer-click', 'color' => 'orange', 'format' => 'number', 'decimals' => 0],
-        ['key' => 'impressions', 'group' => 'SEO (Search Console)', 'label' => 'Zobrazení', 'provider' => 'GSC', 'icon' => 'eye', 'color' => 'orange', 'format' => 'number', 'decimals' => 0],
-        ['key' => 'ctr', 'group' => 'SEO (Search Console)', 'label' => 'CTR', 'provider' => 'GSC', 'icon' => 'gauge', 'color' => 'orange', 'format' => 'percent', 'decimals' => 2],
-        ['key' => 'ai_sessions', 'group' => 'AI vyhledávání', 'label' => 'AI návštěvy', 'provider' => 'GA4', 'icon' => 'sparkles', 'color' => 'teal', 'format' => 'number', 'decimals' => 0, 'higherIsBetter' => true],
-        ['key' => 'ai_share', 'group' => 'AI vyhledávání', 'label' => 'AI podíl', 'provider' => 'GA4', 'icon' => 'pie-chart', 'color' => 'teal', 'format' => 'percent', 'decimals' => 2, 'higherIsBetter' => true],
+        ['key' => 'visits', 'group' => t('Návštěvnost'), 'label' => t('Návštěvy'), 'provider' => 'GA4', 'icon' => 'users-round', 'color' => 'blue', 'format' => 'number', 'decimals' => 0],
+        ['key' => 'users', 'group' => t('Návštěvnost'), 'label' => t('Uživatelé'), 'provider' => 'GA4', 'icon' => 'user', 'color' => 'blue', 'format' => 'number', 'decimals' => 0],
+        ['key' => 'new_users', 'group' => t('Návštěvnost'), 'label' => t('Noví uživatelé'), 'provider' => 'GA4', 'icon' => 'user-plus', 'color' => 'blue', 'format' => 'number', 'decimals' => 0],
+        ['key' => 'engagement_rate', 'group' => t('Zapojení'), 'label' => t('Míra zapojení'), 'provider' => 'GA4', 'icon' => 'activity', 'color' => 'violet', 'format' => 'percent', 'decimals' => 1, 'higherIsBetter' => true],
+        ['key' => 'bounce_rate', 'group' => t('Zapojení'), 'label' => t('Míra odchodů'), 'provider' => 'GA4', 'icon' => 'log-out', 'color' => 'violet', 'format' => 'percent', 'decimals' => 1, 'higherIsBetter' => false],
+        ['key' => 'avg_engagement_time', 'group' => t('Zapojení'), 'label' => t('Prům. čas na webu'), 'provider' => 'GA4', 'icon' => 'clock', 'color' => 'violet', 'format' => 'duration', 'decimals' => 0, 'higherIsBetter' => true],
+        ['key' => 'conversions', 'group' => t('Konverze'), 'label' => t('Konverze'), 'provider' => 'GA4', 'icon' => 'shopping-cart', 'color' => 'green', 'format' => 'number', 'decimals' => 0],
+        ['key' => 'conversion_rate', 'group' => t('Konverze'), 'label' => t('Konverzní poměr'), 'provider' => 'GA4', 'icon' => 'target', 'color' => 'green', 'format' => 'percent', 'decimals' => 2, 'higherIsBetter' => true],
+        ['key' => 'revenue', 'group' => t('Konverze'), 'label' => t('Tržby'), 'provider' => 'GA4', 'icon' => 'banknote', 'color' => 'green', 'format' => 'number', 'decimals' => 0, 'higherIsBetter' => true],
+        ['key' => 'clicks', 'group' => 'SEO (Search Console)', 'label' => t('Kliknutí'), 'provider' => 'GSC', 'icon' => 'mouse-pointer-click', 'color' => 'orange', 'format' => 'number', 'decimals' => 0],
+        ['key' => 'impressions', 'group' => 'SEO (Search Console)', 'label' => t('Zobrazení'), 'provider' => 'GSC', 'icon' => 'eye', 'color' => 'orange', 'format' => 'number', 'decimals' => 0],
+        ['key' => 'ctr', 'group' => 'SEO (Search Console)', 'label' => t('CTR'), 'provider' => 'GSC', 'icon' => 'gauge', 'color' => 'orange', 'format' => 'percent', 'decimals' => 2],
+        ['key' => 'ai_sessions', 'group' => t('AI vyhledávání'), 'label' => t('AI návštěvy'), 'provider' => 'GA4', 'icon' => 'sparkles', 'color' => 'teal', 'format' => 'number', 'decimals' => 0, 'higherIsBetter' => true],
+        ['key' => 'ai_share', 'group' => t('AI vyhledávání'), 'label' => t('AI podíl'), 'provider' => 'GA4', 'icon' => 'pie-chart', 'color' => 'teal', 'format' => 'percent', 'decimals' => 2, 'higherIsBetter' => true],
     ];
 
     $aiBreakdown = '';
@@ -3682,25 +3690,25 @@ function allstat_build_kpis(array $summary, array $previous, array $series, arra
             $parts[] = $aiSource['source'] . ' ' . allstat_number((int) ($aiSource['sessions'] ?? 0));
         }
         if ($parts) {
-            $aiBreakdown = ' Detekováno: ' . implode(', ', $parts) . '.';
+            $aiBreakdown = ' ' . t('Detekováno: {list}.', ['list' => implode(', ', $parts)]);
         }
     }
 
     $tooltips = [
-        'visits' => 'Sessions z GA4, počet návštěv (sekvence interakcí jednoho uživatele do 30min nečinnosti).',
-        'users' => 'Active Users z GA4, unikátní uživatelé s alespoň 1 engaged session.',
-        'new_users' => 'Noví uživatelé z GA4, kolik lidí navštívilo web poprvé. Zbytek (uživatelé − noví) jsou vracející se.',
-        'engagement_rate' => 'Míra zapojení z GA4 = engaged sessions / sessions. Engaged = session >10s, 2+ zobrazení nebo konverze. Benchmark obsahového webu 65–90 %.',
-        'bounce_rate' => 'Bounce rate (míra odchodů) = 100 − míra zapojení. Podíl návštěv bez zapojení (kratší než 10 s, jediné zobrazení, bez konverze). GA4 ji počítá přesně takto. Nižší = lepší.',
-        'avg_engagement_time' => 'Průměrný čas aktivního zapojení na uživatele (GA4 userEngagementDuration / active users). Kvalitní obsah 2–4 min.',
-        'conversions' => 'Key events z GA4, počet dokončených cílových akcí (registrace, kontakt, stažení…).',
-        'conversion_rate' => 'Konverzní poměr = konverze / návštěvy. Měří efektivitu, ne jen objem.',
-        'revenue' => 'Tržby z GA4 (totalRevenue) za období, v měně GA4 property. Zahrnuje nákupy i další příjmy; u e-shopu odpovídá obratu. Zdroj pro porovnání s plánem.',
-        'clicks' => 'Kliknutí z Google Search Console na výsledky hledání směřující na web.',
-        'impressions' => 'Zobrazení z Google Search Console ve výsledcích hledání.',
-        'ctr' => 'Click-through rate = kliknutí / zobrazení (GSC).',
-        'ai_sessions' => 'Návštěvy z AI asistentů (ChatGPT, Perplexity, Gemini, Copilot, Claude…). GA4 dimenze sessionSource, měřitelné jen u nástrojů, které předají referrer.' . $aiBreakdown,
-        'ai_share' => 'Podíl AI asistentů na celkových návštěvách = AI návštěvy / návštěvy (GA4). Ukazuje, jak roste význam AI vyhledávání.',
+        'visits' => t('Sessions z GA4, počet návštěv (sekvence interakcí jednoho uživatele do 30min nečinnosti).'),
+        'users' => t('Active Users z GA4, unikátní uživatelé s alespoň 1 engaged session.'),
+        'new_users' => t('Noví uživatelé z GA4, kolik lidí navštívilo web poprvé. Zbytek (uživatelé − noví) jsou vracející se.'),
+        'engagement_rate' => t('Míra zapojení z GA4 = engaged sessions / sessions. Engaged = session >10s, 2+ zobrazení nebo konverze. Benchmark obsahového webu 65–90 %.'),
+        'bounce_rate' => t('Bounce rate (míra odchodů) = 100 − míra zapojení. Podíl návštěv bez zapojení (kratší než 10 s, jediné zobrazení, bez konverze). GA4 ji počítá přesně takto. Nižší = lepší.'),
+        'avg_engagement_time' => t('Průměrný čas aktivního zapojení na uživatele (GA4 userEngagementDuration / active users). Kvalitní obsah 2–4 min.'),
+        'conversions' => t('Key events z GA4, počet dokončených cílových akcí (registrace, kontakt, stažení…).'),
+        'conversion_rate' => t('Konverzní poměr = konverze / návštěvy. Měří efektivitu, ne jen objem.'),
+        'revenue' => t('Tržby z GA4 (totalRevenue) za období, v měně GA4 property. Zahrnuje nákupy i další příjmy; u e-shopu odpovídá obratu. Zdroj pro porovnání s plánem.'),
+        'clicks' => t('Kliknutí z Google Search Console na výsledky hledání směřující na web.'),
+        'impressions' => t('Zobrazení z Google Search Console ve výsledcích hledání.'),
+        'ctr' => t('Click-through rate = kliknutí / zobrazení (GSC).'),
+        'ai_sessions' => t('Návštěvy z AI asistentů (ChatGPT, Perplexity, Gemini, Copilot, Claude…). GA4 dimenze sessionSource, měřitelné jen u nástrojů, které předají referrer.') . $aiBreakdown,
+        'ai_share' => t('Podíl AI asistentů na celkových návštěvách = AI návštěvy / návštěvy (GA4). Ukazuje, jak roste význam AI vyhledávání.'),
     ];
 
     // Uživatelé za období: přesný počet různých lidí (GA4), nebo jen součet denních uživatelů. Podle toho popisek,
@@ -3708,13 +3716,13 @@ function allstat_build_kpis(array $summary, array $previous, array $series, arra
     $usersUnique = ($summary['users_basis'] ?? 'daily_sum') === 'unique';
     $basisMismatch = ($summary['users_basis'] ?? 'daily_sum') !== ($previous['users_basis'] ?? 'daily_sum');
     if ($usersUnique) {
-        $tooltips['users'] = 'Active Users z GA4 za celé období: každý člověk jednou, i když přišel ve více dnech.';
+        $tooltips['users'] = t('Active Users z GA4 za celé období: každý člověk jednou, i když přišel ve více dnech.');
     } else {
-        $tooltips['users'] = 'Součet denních uživatelů z GA4 (Active Users po dnech): kdo přišel ve více dnech, je započten vícekrát, takže různých lidí bylo méně. Přesný počet AllStat ukládá pro běžná období (posledních 7, 30, 90 a 365 dní, celé měsíce a roky).';
-        $tooltips['avg_engagement_time'] .= ' Tady na denního uživatele (součet dní), proto vychází nižší než v GA4.';
+        $tooltips['users'] = t('Součet denních uživatelů z GA4 (Active Users po dnech): kdo přišel ve více dnech, je započten vícekrát, takže různých lidí bylo méně. Přesný počet AllStat ukládá pro běžná období (posledních 7, 30, 90 a 365 dní, celé měsíce a roky).');
+        $tooltips['avg_engagement_time'] .= t(' Tady na denního uživatele (součet dní), proto vychází nižší než v GA4.');
         foreach ($definitions as &$definition) {
             if ($definition['key'] === 'users') {
-                $definition['label'] = 'Uživatelé (součet dní)';
+                $definition['label'] = t('Uživatelé (součet dní)');
             }
         }
         unset($definition);
@@ -3855,7 +3863,7 @@ function allstat_rebucket_daily(array $byDate, string $granularity): array
     $granularity = allstat_normalize_granularity($granularity);
     ksort($byDate);
     if ($granularity === 'day') {
-        return [$byDate, array_map(static fn (string $d): string => (new DateTimeImmutable($d))->format('j. n.'), array_map('strval', array_keys($byDate)))];
+        return [$byDate, array_map(static fn (string $d): string => allstat_short_date_label(new DateTimeImmutable($d)), array_map('strval', array_keys($byDate)))];
     }
     $buckets = [];
     $bounds = [];
@@ -3883,8 +3891,8 @@ function allstat_series_label(array $row, string $granularity): string
 
     return match ($granularity) {
         'month' => $start->format('n/Y'),
-        'week' => $start->format('j. n.') . '-' . $end->format('j. n.'),
-        default => $start->format('j. n.'),
+        'week' => allstat_short_date_label($start) . '-' . allstat_short_date_label($end),
+        default => allstat_short_date_label($start),
     };
 }
 
@@ -3927,4 +3935,10 @@ function allstat_sync_health(array $statuses, int $staleHours = 48): array
     }
 
     return ['oldestLabel' => $oldestLabel, 'stale' => $stale, 'staleCount' => count($stale)];
+}
+
+/** Krátké datum bez roku: 22. 10. (cs, sk), 22 Oct (en). */
+function allstat_short_date_label(DateTimeInterface $date): string
+{
+    return $date->format(allstat_locale() === 'en' ? 'j M' : 'j. n.');
 }

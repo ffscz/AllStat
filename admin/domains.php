@@ -23,15 +23,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             allstat_set_setting($pdo, 'app.primary_domain_id', (string) (int) $primary['id']);
             allstat_remember_domain_id((int) $primary['id']);
             allstat_audit($pdo, (int) $user['id'], null, 'settings_updated', 'primary_domain_id=' . (int) $primary['id']);
-            $result = ['ok' => true, 'message' => 'Web ' . $primary['name'] . ' je teď primární, otevře se hned po přihlášení.'];
+            $result = ['ok' => true, 'message' => t('Web {name} je teď primární, otevře se hned po přihlášení.', ['name' => $primary['name']])];
         } else {
-            $result = ['ok' => false, 'message' => 'Primárním webem může být jen aktivní web.'];
+            $result = ['ok' => false, 'message' => t('Primárním webem může být jen aktivní web.')];
         }
     } else {
         $result = allstat_save_domain($pdo, (int) $user['id'], $_POST);
     }
 
-    allstat_flash($result['ok'] ? 'ok' : 'error', $result['message']);
+    allstat_flash($result['ok'] ? 'ok' : 'error', t($result['message']));
     allstat_redirect($config, 'admin/domains.php');
 }
 
@@ -43,25 +43,25 @@ $domains = allstat_admin_domains($pdo);
 $activeDomains = array_values(array_filter($domains, static fn (array $d): bool => (int) $d['is_active'] === 1));
 $primaryDomainId = allstat_primary_domain_id($pdo, $activeDomains);
 $primaryIsExplicit = (int) allstat_setting($pdo, 'app.primary_domain_id', '0') === $primaryDomainId && $primaryDomainId > 0;
-allstat_admin_header('Weby', 'domains', $user, $config);
+allstat_admin_header(t('Weby'), 'domains', $user, $config);
 ?>
 <div class="admin-card">
     <div class="admin-card-header">
         <div>
-            <h2><?= $editing ? 'Upravit web' : 'Nový web' ?></h2>
-            <p>Web je základní jednotka pro GA4, GSC, Ads a social napojení.</p>
+            <h2><?= h($editing ? t('Upravit web') : t('Nový web')) ?></h2>
+            <p><?= h(t('Web je základní jednotka pro GA4, GSC, Ads a social napojení.')) ?></p>
         </div>
     </div>
     <div class="admin-card-body">
         <form method="post" class="form-grid">
             <?= allstat_csrf_field() ?>
             <input type="hidden" name="id" value="<?= (int) ($editing['id'] ?? 0) ?>">
-            <label><span>Název</span><input type="text" name="name" required value="<?= h($editing['name'] ?? '') ?>" placeholder="Vaše doména"></label>
-            <label><span>Doména</span><input type="text" name="url" required value="<?= h($editing['url'] ?? '') ?>" placeholder="example.cz"></label>
-            <label><span>Stav</span><select name="is_active"><option value="1" <?= (int) ($editing['is_active'] ?? 1) === 1 ? 'selected' : '' ?>>Aktivní</option><option value="0" <?= isset($editing['is_active']) && (int) $editing['is_active'] === 0 ? 'selected' : '' ?>>Vypnuto</option></select></label>
+            <label><span><?= h(t('Název')) ?></span><input type="text" name="name" required value="<?= h($editing['name'] ?? '') ?>" placeholder="<?= h(t('Vaše doména')) ?>"></label>
+            <label><span><?= h(t('Doména')) ?></span><input type="text" name="url" required value="<?= h($editing['url'] ?? '') ?>" placeholder="example.cz"></label>
+            <label><span><?= h(t('Stav')) ?></span><select name="is_active"><option value="1" <?= (int) ($editing['is_active'] ?? 1) === 1 ? 'selected' : '' ?>><?= h(t('Aktivní')) ?></option><option value="0" <?= isset($editing['is_active']) && (int) $editing['is_active'] === 0 ? 'selected' : '' ?>><?= h(t('Vypnuto')) ?></option></select></label>
             <div class="form-actions">
-                <button class="button-primary" type="submit">Uložit web</button>
-                <?php if ($editing): ?><a class="button-secondary" href="domains.php">Zrušit úpravu</a><?php endif; ?>
+                <button class="button-primary" type="submit"><?= h(t('Uložit web')) ?></button>
+                <?php if ($editing): ?><a class="button-secondary" href="domains.php"><?= h(t('Zrušit úpravu')) ?></a><?php endif; ?>
             </div>
         </form>
     </div>
@@ -70,17 +70,18 @@ allstat_admin_header('Weby', 'domains', $user, $config);
 <div class="admin-card">
     <div class="admin-card-header">
         <div>
-            <h2>Spravované weby</h2>
-            <p>Primární web se otevře hned po přihlášení. Web zvolený v přehledu nebo ve filtrech se pak drží napříč celou administrací, dokud ho sám nepřepneš.<?php if (!$primaryIsExplicit && $primaryDomainId): ?> Primární web zatím není nastaven, používá se web shodný s doménou, na které AllStat běží, jinak první podle abecedy.<?php endif; ?></p>
+            <h2><?= h(t('Spravované weby')) ?></h2>
+            <p><?= h(t('Primární web se otevře hned po přihlášení. Web zvolený v přehledu nebo ve filtrech se pak drží napříč celou administrací, dokud ho sám nepřepneš.')) ?><?php if (!$primaryIsExplicit && $primaryDomainId): ?> <?= h(t('Primární web zatím není nastaven, používá se web shodný s doménou, na které AllStat běží, jinak první podle abecedy.')) ?><?php endif; ?></p>
         </div>
+        <a class="button-secondary" href="google-accounts.php" title="<?= h(t('Založit weby výběrem ze seznamu GA4 a Search Console Google účtu')) ?>"><i data-lucide="key-round"></i> <?= h(t('Přidat weby z Google')) ?></a>
     </div>
     <div class="admin-card-body table-scroll">
         <table class="admin-table">
-            <thead><tr><th>Název</th><th>Doména</th><th>Zdroje</th><th>Stav</th><th></th></tr></thead>
+            <thead><tr><th><?= h(t('Název')) ?></th><th><?= h(t('Doména')) ?></th><th><?= h(t('Zdroje')) ?></th><th><?= h(t('Stav')) ?></th><th></th></tr></thead>
             <tbody>
             <?php foreach ($domains as $domain): $isPrimary = (int) $domain['id'] === $primaryDomainId; ?>
                 <tr>
-                    <td><strong><?= h($domain['name']) ?></strong><?php if ($isPrimary): ?> <span class="status-badge status-info" title="<?= $primaryIsExplicit ? 'Otevře se hned po přihlášení.' : 'Automaticky: shoduje se s doménou aplikace, nebo je první podle abecedy. Potvrď tlačítkem Nastavit jako primární.' ?>">Primární</span><?php endif; ?></td>
+                    <td><strong><?= h($domain['name']) ?></strong><?php if ($isPrimary): ?> <span class="status-badge status-info" title="<?= h($primaryIsExplicit ? t('Otevře se hned po přihlášení.') : t('Automaticky: shoduje se s doménou aplikace, nebo je první podle abecedy. Potvrď tlačítkem Nastavit jako primární.')) ?>"><?= h(t('Primární')) ?></span><?php endif; ?></td>
                     <td><?= h($domain['url']) ?></td>
                     <td><?= (int) $domain['source_count'] ?></td>
                     <td><?= (int) $domain['is_active'] === 1 ? allstat_status_badge('ok') : allstat_status_badge('warning') ?></td>
@@ -91,16 +92,16 @@ allstat_admin_header('Weby', 'domains', $user, $config);
                                 <?= allstat_csrf_field() ?>
                                 <input type="hidden" name="action" value="set_primary">
                                 <input type="hidden" name="id" value="<?= (int) $domain['id'] ?>">
-                                <button class="button-secondary" type="submit" title="Tento web se otevře hned po přihlášení.">Nastavit jako primární</button>
+                                <button class="button-secondary" type="submit" title="<?= h(t('Tento web se otevře hned po přihlášení.')) ?>"><?= h(t('Nastavit jako primární')) ?></button>
                             </form>
                             <?php endif; ?>
-                            <a class="button-secondary" href="domains.php?edit=<?= (int) $domain['id'] ?>">Upravit</a>
-                            <a class="button-secondary" href="sources.php?domain_id=<?= (int) $domain['id'] ?>">Zdroje</a>
-                            <form method="post" data-confirm="Smazat web včetně metrik a napojení?">
+                            <a class="button-secondary" href="domains.php?edit=<?= (int) $domain['id'] ?>"><?= h(t('Upravit')) ?></a>
+                            <a class="button-secondary" href="sources.php?domain_id=<?= (int) $domain['id'] ?>"><?= h(t('Zdroje')) ?></a>
+                            <form method="post" data-confirm="<?= h(t('Smazat web včetně metrik a napojení?')) ?>">
                                 <?= allstat_csrf_field() ?>
                                 <input type="hidden" name="action" value="delete">
                                 <input type="hidden" name="id" value="<?= (int) $domain['id'] ?>">
-                                <button class="button-danger" type="submit">Smazat</button>
+                                <button class="button-danger" type="submit"><?= h(t('Smazat')) ?></button>
                             </form>
                         </div>
                     </td>

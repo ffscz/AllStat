@@ -56,8 +56,8 @@ if (!$domains && allstat_domain_scope() !== null) {
 // naposledy zvolený web, po přihlášení primární web (Nastavení, resp. doména, na které AllStat běží).
 $domainId = allstat_current_domain_id($pdo, $domains, filter_input(INPUT_GET, 'domain_id', FILTER_VALIDATE_INT) ?: null) ?: 1;
 $data = allstat_get_dashboard_data($pdo, (int) $domainId, $start, $end, $granularity);
-$statusLabels = ['ok' => 'OK', 'warning' => 'Varování', 'error' => 'Chyba'];
-$granularityLabels = ['day' => 'Denně', 'week' => 'Týdně', 'month' => 'Měsíčně'];
+$statusLabels = ['ok' => 'OK', 'warning' => t('Varování'), 'error' => t('Chyba')];
+$granularityLabels = ['day' => t('Denně'), 'week' => t('Týdně'), 'month' => t('Měsíčně')];
 
 // Source switcher: overview (GA4/GSC native view) vs. a single connected provider's generic view.
 $providerOptions = allstat_dashboard_provider_options($pdo, (int) $domainId);
@@ -117,7 +117,7 @@ if (!$isGenericView && $requestedView === 'funnel') {
         foreach ($trend['labels'] as $iso) {
             $bucket = new DateTimeImmutable($iso);
             $funnelChart['labels'][] = $bucket->format('j. n.');
-            $funnelChart['longLabels'][] = ($trend['granularity'] === 'week' ? 'Týden od ' : '') . $bucket->format('j. n. Y');
+            $funnelChart['longLabels'][] = ($trend['granularity'] === 'week' ? t('Týden od') . ' ' : '') . allstat_date_label($iso);
         }
         foreach ($funnelReport['steps'] as $i => $step) {
             $funnelChart['series'][] = ['name' => $step['label'], 'event' => $step['event'], 'data' => $trend['series'][$i] ?? []];
@@ -264,11 +264,11 @@ if ($isGenericView) {
 }
 
 ?><!doctype html>
-<html lang="cs" data-theme="light">
+<html lang="<?= h(allstat_locale()) ?>"<?= allstat_i18n_js_attribute() ?> data-theme="light">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= h($config['app']['name']) ?> | Přehled</title>
+    <title><?= h($config['app']['name']) ?> | <?= h(t('Přehled')) ?></title>
     <script nonce="<?= h(allstat_nonce()) ?>">
         document.documentElement.dataset.theme = localStorage.getItem('allstat-theme') || 'light';
     </script>
@@ -276,7 +276,7 @@ if ($isGenericView) {
 </head>
 <body>
     <div class="app-shell" data-dashboard>
-        <aside class="sidebar" id="mainSidebar" aria-label="Hlavní navigace">
+        <aside class="sidebar" id="mainSidebar" aria-label="<?= h(t('Hlavní navigace')) ?>">
             <a class="brand" href="index.php" aria-label="AllStat">
                 <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
                 <span>AllStat</span>
@@ -284,25 +284,27 @@ if ($isGenericView) {
 
             <nav class="sidebar-nav">
                 <?php $isAdmin = ($user['role'] ?? '') === 'admin'; // správa je jen pro administrátora (stránky vrací 403) ?>
-                <a class="active" href="index.php"><?= allstat_icon('home') ?><span>Přehled</span></a>
+                <a class="active" href="index.php"><?= allstat_icon('home') ?><span><?= h(t('Přehled')) ?></span></a>
+                <a href="admin/sites.php"><?= allstat_icon('layout-grid') ?><span><?= h(t('Všechny weby')) ?></span></a>
                 <?php if ($isAdmin): ?>
-                <a href="admin/domains.php"><?= allstat_icon('globe-2') ?><span>Weby</span></a>
-                <a href="admin/sources.php"><?= allstat_icon('database') ?><span>Zdroje dat</span></a>
-                <a href="admin/metrics.php"><?= allstat_icon('line-chart') ?><span>Metriky</span></a>
-                <a href="admin/funnels.php"><?= allstat_icon('filter') ?><span>Trychtýře</span></a>
+                <a href="admin/domains.php"><?= allstat_icon('globe-2') ?><span><?= h(t('Weby')) ?></span></a>
+                <a href="admin/sources.php"><?= allstat_icon('database') ?><span><?= h(t('Zdroje dat')) ?></span></a>
+                <a href="admin/google-accounts.php"><?= allstat_icon('key-round') ?><span><?= h(t('Google účty')) ?></span></a>
+                <a href="admin/metrics.php"><?= allstat_icon('line-chart') ?><span><?= h(t('Metriky')) ?></span></a>
+                <a href="admin/funnels.php"><?= allstat_icon('filter') ?><span><?= h(t('Trychtýře')) ?></span></a>
                 <?php endif; ?>
-                <a href="admin/reports.php"><?= allstat_icon('clipboard-list') ?><span>Reporty</span></a>
+                <a href="admin/reports.php"><?= allstat_icon('clipboard-list') ?><span><?= h(t('Reporty')) ?></span></a>
                 <?php if ($isAdmin): ?>
-                <a href="admin/feeds.php"><?= allstat_icon('sheet') ?><span>Datový feed</span></a>
+                <a href="admin/feeds.php"><?= allstat_icon('sheet') ?><span><?= h(t('Datový feed')) ?></span></a>
                 <?php endif; ?>
                 <span class="nav-divider"></span>
                 <?php if ($isAdmin): ?>
-                <a href="admin/settings.php"><?= allstat_icon('settings') ?><span>Nastavení</span></a>
-                <a href="admin/mcp.php"><?= allstat_icon('plug-zap') ?><span>AI konektory</span></a>
-                <a href="admin/users.php"><?= allstat_icon('users') ?><span>Uživatelé</span></a>
+                <a href="admin/settings.php"><?= allstat_icon('settings') ?><span><?= h(t('Nastavení')) ?></span></a>
+                <a href="admin/mcp.php"><?= allstat_icon('plug-zap') ?><span><?= h(t('AI konektory')) ?></span></a>
+                <a href="admin/users.php"><?= allstat_icon('users') ?><span><?= h(t('Uživatelé')) ?></span></a>
                 <?php endif; ?>
                 <a href="admin/setup-2fa.php"><?= allstat_icon('shield-check') ?><span>2FA</span></a>
-                <a href="admin/logout.php"><?= allstat_icon('log-out') ?><span>Odhlásit</span></a>
+                <a href="admin/logout.php"><?= allstat_icon('log-out') ?><span><?= h(t('Odhlásit')) ?></span></a>
             </nav>
 
             <?php
@@ -316,30 +318,28 @@ if ($isGenericView) {
             // seznam roztahl cely bocni panel.
             $staleNames = implode(', ', array_slice($staleAll, 0, 3));
             $zbytek = count($staleAll) - 3;
-            if ($zbytek > 0) { $staleNames .= ($zbytek <= 4 ? ' a další ' : ' a dalších ') . $zbytek; }
+            if ($zbytek > 0) { $staleNames .= ' ' . t($zbytek <= 4 ? 'a další {count}' : 'a dalších {count}', ['count' => $zbytek]); }
             // Ceska shoda: 1 zdroj se neozval / 2-4 zdroje se neozvaly / 5+ zdroju se neozvalo.
-            $staleTitle = $staleCount === 1
-                ? '1 zdroj se dlouho neozval'
-                : ($staleCount >= 2 && $staleCount <= 4 ? $staleCount . ' zdroje se dlouho neozvaly' : $staleCount . ' zdrojů se dlouho neozvalo');
+            $staleTitle = tn($staleCount, '1 zdroj se dlouho neozval', '{count} zdroje se dlouho neozvaly', '{count} zdrojů se dlouho neozvalo');
             $updateNotice = function_exists('allstat_update_notice') ? allstat_update_notice($pdo, $user, $config) : null;
             ?>
             <?php if ($updateNotice): ?>
             <a class="update-card" href="admin/update.php">
                 <i data-lucide="download" aria-hidden="true"></i>
-                <span><strong>Nová verze <?= h($updateNotice['version']) ?></strong><small>Máš <?= h($updateNotice['installed']) ?>, klikni pro aktualizaci</small></span>
+                <span><strong><?= h(t('Nová verze {version}', ['version' => $updateNotice['version']])) ?></strong><small><?= h(t('Máš {version}, klikni pro aktualizaci', ['version' => $updateNotice['installed']])) ?></small></span>
             </a>
             <?php endif; ?>
             <div class="sync-card">
                 <span class="status-dot <?= $syncOk ? 'status-dot-ok' : 'status-dot-warning' ?>" aria-hidden="true"></span>
                 <strong data-data-mode><?php
-                    if (!$data['meta']['databaseMode']) { echo 'Demo data jsou aktivní'; }
-                    elseif ((int) ($data['meta']['sourceCount'] ?? 0) === 0) { echo 'Zdroje zatím nejsou napojené'; }
+                    if (!$data['meta']['databaseMode']) { echo h(t('Demo data jsou aktivní')); }
+                    elseif ((int) ($data['meta']['sourceCount'] ?? 0) === 0) { echo h(t('Zdroje zatím nejsou napojené')); }
                     elseif ($staleCount > 0) { echo h($staleTitle); }
-                    else { echo 'Všechny zdroje jsou synchronizované'; }
+                    else { echo h(t('Všechny zdroje jsou synchronizované')); }
                 ?></strong>
-                <span>Nejstarší sync: <span data-last-sync><?= h($data['meta']['lastSync']) ?></span></span>
+                <span><?= t('Nejstarší sync: {value}', ['value' => '<span data-last-sync>' . h($data['meta']['lastSync']) . '</span>']) ?></span>
                 <?php if ($staleCount > 0): ?>
-                    <span class="sync-card-stale" title="<?= h(implode(', ', $staleAll)) ?>">Přes 48 h bez dat: <?= h($staleNames) ?>. Zkontroluj cron.</span>
+                    <span class="sync-card-stale" title="<?= h(implode(', ', $staleAll)) ?>"><?= h(t('Přes 48 h bez dat: {names}. Zkontroluj cron.', ['names' => $staleNames])) ?></span>
                 <?php endif; ?>
                 <span class="sync-card-version">AllStat <?= h(allstat_app_version()) ?></span>
             </div>
@@ -351,19 +351,20 @@ if ($isGenericView) {
             <header class="topbar">
                 <div class="topbar-title">
                     <button class="icon-button nav-toggle" id="navToggle" type="button" title="Menu" aria-label="Menu" aria-controls="mainSidebar" aria-expanded="false"><i data-lucide="menu"></i></button>
-                    <h1>Přehled</h1>
+                    <h1><?= h(t('Přehled')) ?></h1>
                     <span class="title-actions">
-                        <button class="icon-button" type="submit" form="dashboardFilters" title="Obnovit data" aria-label="Obnovit data"><i data-lucide="rotate-cw"></i></button>
+                        <button class="icon-button" type="submit" form="dashboardFilters" title="<?= h(t('Obnovit data')) ?>" aria-label="<?= h(t('Obnovit data')) ?>"><i data-lucide="rotate-cw"></i></button>
                         <?php // Sdílení pro AI umí přehled, růst a zdroje; trychtýř do něj nepatří (AI čte trychtýře přes MCP get_funnel). ?>
                         <?php if (!$isFunnelView): ?>
-                        <button class="icon-button" type="button" id="shareAiBtn" title="Sdílet pro AI (dočasný odkaz)" aria-label="Sdílet pro AI"
+                        <button class="icon-button" type="button" id="shareAiBtn" title="<?= h(t('Sdílet pro AI (dočasný odkaz)')) ?>" aria-label="<?= h(t('Sdílet pro AI')) ?>"
                             data-domain="<?= (int) $data['domain']['id'] ?>" data-source="<?= (int) $viewSourceId ?>"
                             data-start="<?= h($data['range']['start']) ?>" data-end="<?= h($data['range']['end']) ?>"
                             data-gran="<?= h($granularity) ?>" data-csrf="<?= h(allstat_csrf_token()) ?>"
                             <?php if ($isGrowthView): ?>data-view="growth" data-months="<?= (int) $growth['window']['n'] ?>"<?php endif; ?>><i data-lucide="sparkles"></i></button>
                         <?php endif; ?>
                         <?= allstat_help_button($isFunnelView ? 'trychtyre' : '') ?>
-                        <button class="avatar-button" id="themeToggle" type="button" title="Motiv" aria-label="Motiv"><i data-lucide="moon"></i></button>
+                        <button class="avatar-button" id="themeToggle" type="button" title="<?= h(t('Motiv')) ?>" aria-label="<?= h(t('Motiv')) ?>"><i data-lucide="moon"></i></button>
+                        <?= allstat_locale_switcher($config) ?>
                     </span>
                 </div>
 
@@ -373,19 +374,19 @@ if ($isGenericView) {
                     // Clarity-style rolling provider: day-scale ranges (its API only covers the last 1-3 days;
                     // longer ranges fill in as the daily cron accumulates).
                     $quickRanges = [
-                        'Dnes' => [$today, $today],
-                        'Včera' => [(new DateTimeImmutable('yesterday'))->format('Y-m-d'), (new DateTimeImmutable('yesterday'))->format('Y-m-d')],
-                        '3 dny' => [(new DateTimeImmutable('today'))->modify('-2 days')->format('Y-m-d'), $today],
-                        '7 dní' => [(new DateTimeImmutable('today'))->modify('-6 days')->format('Y-m-d'), $today],
-                        'Vše' => [(new DateTimeImmutable('today'))->modify('-540 days')->format('Y-m-d'), $today],
+                        t('Dnes') => [$today, $today],
+                        t('Včera') => [(new DateTimeImmutable('yesterday'))->format('Y-m-d'), (new DateTimeImmutable('yesterday'))->format('Y-m-d')],
+                        t('3 dny') => [(new DateTimeImmutable('today'))->modify('-2 days')->format('Y-m-d'), $today],
+                        t('7 dní') => [(new DateTimeImmutable('today'))->modify('-6 days')->format('Y-m-d'), $today],
+                        t('Vše') => [(new DateTimeImmutable('today'))->modify('-540 days')->format('Y-m-d'), $today],
                     ];
                 } else {
                     $quickRanges = [
-                        'Dnes' => [$today, $today],
-                        '7 dní' => [(new DateTimeImmutable('today'))->modify('-6 days')->format('Y-m-d'), $today],
-                        '30 dní' => [(new DateTimeImmutable('today'))->modify('-29 days')->format('Y-m-d'), $today],
-                        '90 dní' => [(new DateTimeImmutable('today'))->modify('-89 days')->format('Y-m-d'), $today],
-                        'Vše' => [(new DateTimeImmutable('today'))->modify('-16 months')->format('Y-m-d'), $today],
+                        t('Dnes') => [$today, $today],
+                        t('7 dní') => [(new DateTimeImmutable('today'))->modify('-6 days')->format('Y-m-d'), $today],
+                        t('30 dní') => [(new DateTimeImmutable('today'))->modify('-29 days')->format('Y-m-d'), $today],
+                        t('90 dní') => [(new DateTimeImmutable('today'))->modify('-89 days')->format('Y-m-d'), $today],
+                        t('Vše') => [(new DateTimeImmutable('today'))->modify('-16 months')->format('Y-m-d'), $today],
                     ];
                 }
                 $curStart = $data['range']['start'];
@@ -394,11 +395,11 @@ if ($isGenericView) {
                 $rlS = new DateTimeImmutable($curStart);
                 $rlE = new DateTimeImmutable($curEnd);
                 if ($curStart === $curEnd) {
-                    $rangeLabel = $rlS->format('j. n. Y');
+                    $rangeLabel = allstat_date_label($curStart);
                 } elseif ($rlS->format('Y') === $rlE->format('Y')) {
-                    $rangeLabel = $rlS->format('j. n.') . ' – ' . $rlE->format('j. n. Y');
+                    $rangeLabel = $rlS->format(allstat_locale() === 'en' ? 'j M' : 'j. n.') . ' – ' . allstat_date_label($curEnd);
                 } else {
-                    $rangeLabel = $rlS->format('j. n. Y') . ' – ' . $rlE->format('j. n. Y');
+                    $rangeLabel = allstat_date_label($curStart) . ' – ' . allstat_date_label($curEnd);
                 }
                 ?>
                 <?php
@@ -407,13 +408,13 @@ if ($isGenericView) {
                 ?>
                 <div class="topbar-controls">
                 <?php if ($isGrowthView): ?>
-                <div class="quick-ranges" aria-label="Období (uzavřené měsíce)">
-                    <?php foreach ([3 => '3 měsíce', 6 => '6 měsíců', 12 => '12 měsíců'] as $gm => $gmLabel): ?>
+                <div class="quick-ranges" aria-label="<?= h(t('Období (uzavřené měsíce)')) ?>">
+                    <?php foreach ([3 => t('3 měsíce'), 6 => t('6 měsíců'), 12 => t('12 měsíců')] as $gm => $gmLabel): ?>
                         <a class="chip <?= $growth['window']['n'] === $gm ? 'is-active' : '' ?>" href="?<?= h(http_build_query(['view' => 'growth', 'months' => $gm, 'domain_id' => (int) $data['domain']['id']])) ?>"><?= h($gmLabel) ?></a>
                     <?php endforeach; ?>
                 </div>
                 <?php else: ?>
-                <div class="quick-ranges" aria-label="Rychlý výběr období">
+                <div class="quick-ranges" aria-label="<?= h(t('Rychlý výběr období')) ?>">
                     <?php foreach ($quickRanges as $label => [$qs, $qe]): ?>
                         <a class="chip <?= ($curStart === $qs && $curEnd === $qe) ? 'is-active' : '' ?>" data-range-start="<?= h($qs) ?>" data-range-end="<?= h($qe) ?>" href="?domain_id=<?= (int) $data['domain']['id'] ?>&start=<?= h($qs) ?>&end=<?= h($qe) ?>&source_id=<?= (int) $viewSourceId ?><?= $rangeLinkTail ?>"><?= h($label) ?></a>
                     <?php endforeach; ?>
@@ -422,9 +423,9 @@ if ($isGenericView) {
 
                 <form class="toolbar" id="dashboardFilters" method="get">
                     <?php if ($isGrowthView): ?>
-                    <div class="filter-control" title="Počítají se jen uzavřené měsíce, rozběhnutý měsíc je v tabulce zvlášť jako „zatím“.">
+                    <div class="filter-control" title="<?= h(t('Počítají se jen uzavřené měsíce, rozběhnutý měsíc je v tabulce zvlášť jako „zatím“.')) ?>">
                         <i data-lucide="calendar-days"></i>
-                        <span class="growth-range-label"><?= h($growth['window']['rangeLabel']) ?> <small>· měsíčně</small></span>
+                        <span class="growth-range-label"><?= h($growth['window']['rangeLabel']) ?> <small>· <?= h(t('měsíčně')) ?></small></span>
                     </div>
                     <input type="hidden" name="view" value="growth">
                     <input type="hidden" name="months" value="<?= (int) $growth['window']['n'] ?>">
@@ -437,7 +438,7 @@ if ($isGenericView) {
                         </button>
                         <input type="hidden" name="start" value="<?= h($data['range']['start']) ?>" data-date-start>
                         <input type="hidden" name="end" value="<?= h($data['range']['end']) ?>" data-date-end>
-                        <div class="date-range-pop" data-date-range-pop role="dialog" aria-label="Výběr období" hidden></div>
+                        <div class="date-range-pop" data-date-range-pop role="dialog" aria-label="<?= h(t('Výběr období')) ?>" hidden></div>
                     </div>
                     <?php if ($isFunnelView): ?>
                     <input type="hidden" name="view" value="funnel">
@@ -448,14 +449,14 @@ if ($isGenericView) {
 
                     <label class="filter-control">
                         <i data-lucide="globe-2"></i>
-                        <select name="domain_id" aria-label="Doména">
+                        <select name="domain_id" aria-label="<?= h(t('Doména')) ?>">
                             <?php foreach ($data['domains'] as $domain): ?>
                                 <option value="<?= (int) $domain['id'] ?>" <?= (int) $domain['id'] === (int) $data['domain']['id'] ? 'selected' : '' ?>>
                                     <?= h($domain['url']) ?>
                                 </option>
                             <?php endforeach; ?>
                             <?php if (!$data['domains']): ?>
-                                <option value="0">Žádný web</option>
+                                <option value="0"><?= h(t('Žádný web')) ?></option>
                             <?php endif; ?>
                         </select>
                     </label>
@@ -463,41 +464,41 @@ if ($isGenericView) {
                     <?php
                     // Group connected providers by category so organic social and Meta Ads (PPC) are
                     // clearly separated; each connection is one option, labelled by its account/page name.
-                    $catGroupCz = ['social' => 'Sociální sítě', 'ppc' => 'Reklama (PPC)', 'analytics' => 'Analytika', 'seo' => 'SEO'];
+                    $catGroupCz = ['social' => t('Sociální sítě'), 'ppc' => t('Reklama (PPC)'), 'analytics' => t('Analytika'), 'seo' => 'SEO'];
                     $genericByGroup = [];
                     foreach ($providerOptions as $opt) {
                         if (empty($opt['generic'])) { continue; }
-                        $groupLabel = $catGroupCz[$opt['category']] ?? ($opt['categoryLabel'] ?? 'Ostatní');
+                        $groupLabel = $catGroupCz[$opt['category']] ?? ($opt['categoryLabel'] ?? t('Ostatní'));
                         $genericByGroup[$groupLabel][] = $opt;
                     }
                     ?>
                     <?php
                     // Vlastní listbox místo <select> — nativní <option> neumí SVG ikony providerů.
-                    $pickerLabel = $isGenericView ? $selectedProvider['label'] . ', ' . $selectedProvider['name'] : ($isGrowthView ? 'Růst kanálů' : ($isFunnelView ? 'Trychtýř: ' . $funnel['name'] : 'Přehled (GA4 + GSC)'));
+                    $pickerLabel = $isGenericView ? $selectedProvider['label'] . ', ' . $selectedProvider['name'] : ($isGrowthView ? t('Růst kanálů') : ($isFunnelView ? t('Trychtýř: {name}', ['name' => $funnel['name']]) : t('Přehled (GA4 + GSC)')));
                     $pickerIcon = $isGrowthView ? '<i data-lucide="trending-up"></i>' : ($isFunnelView ? '<i data-lucide="filter"></i>' : allstat_provider_icon_svg($isGenericView ? (string) $selectedProvider['provider_key'] : 'overview'));
                     $isOverviewSel = !$isGenericView && !$isGrowthView && !$isFunnelView;
                     ?>
                     <div class="filter-control source-picker" data-source-picker data-domain="<?= (int) $data['domain']['id'] ?>" data-start="<?= $isGrowthView ? '' : h($data['range']['start']) ?>" data-end="<?= $isGrowthView ? '' : h($data['range']['end']) ?>">
-                        <button type="button" class="source-picker-btn" aria-haspopup="listbox" aria-expanded="false" aria-label="Zdroj dat">
+                        <button type="button" class="source-picker-btn" aria-haspopup="listbox" aria-expanded="false" aria-label="<?= h(t('Zdroj dat')) ?>">
                             <span class="source-picker-ic"><?= $pickerIcon ?></span>
                             <span class="source-picker-label"><?= h($pickerLabel) ?></span>
                             <i data-lucide="chevron-down"></i>
                         </button>
-                        <div class="source-picker-menu" role="listbox" aria-label="Zdroj dat" hidden>
+                        <div class="source-picker-menu" role="listbox" aria-label="<?= h(t('Zdroj dat')) ?>" hidden>
                             <button type="button" role="option" class="source-picker-item<?= $isGrowthView ? ' is-selected' : '' ?>" aria-selected="<?= $isGrowthView ? 'true' : 'false' ?>" data-value="0" data-view="growth">
                                 <span class="source-picker-ic"><i data-lucide="trending-up"></i></span>
-                                <span>Růst kanálů <small>· všechny kanály po měsících</small></span>
+                                <span><?= h(t('Růst kanálů')) ?> <small>· <?= h(t('všechny kanály po měsících')) ?></small></span>
                             </button>
                             <button type="button" role="option" class="source-picker-item<?= $isOverviewSel ? ' is-selected' : '' ?>" aria-selected="<?= $isOverviewSel ? 'true' : 'false' ?>" data-value="0" data-view="overview">
                                 <span class="source-picker-ic"><?= allstat_provider_icon_svg('overview') ?></span>
-                                <span>Přehled (GA4 + GSC)</span>
+                                <span><?= h(t('Přehled (GA4 + GSC)')) ?></span>
                             </button>
                             <?php if ($funnelOptions): ?>
-                                <div class="source-picker-group">Trychtýře</div>
+                                <div class="source-picker-group"><?= h(t('Trychtýře')) ?></div>
                                 <?php foreach ($funnelOptions as $fOpt): $fSel = $isFunnelView && (int) $fOpt['id'] === (int) $funnel['id']; $fCount = count($fOpt['steps']); ?>
                                     <button type="button" role="option" class="source-picker-item<?= $fSel ? ' is-selected' : '' ?>" aria-selected="<?= $fSel ? 'true' : 'false' ?>" data-value="0" data-view="funnel" data-funnel="<?= (int) $fOpt['id'] ?>">
                                         <span class="source-picker-ic"><i data-lucide="filter"></i></span>
-                                        <span><?= h($fOpt['name']) ?> <small>· <?= $fCount ?> <?= $fCount === 1 ? 'krok' : ($fCount < 5 ? 'kroky' : 'kroků') ?></small></span>
+                                        <span><?= h($fOpt['name']) ?> <small>· <?= h(tn($fCount, '{count} krok', '{count} kroky', '{count} kroků')) ?></small></span>
                                     </button>
                                 <?php endforeach; ?>
                             <?php endif; ?>
@@ -524,43 +525,48 @@ if ($isGenericView) {
             <?php endforeach; unset($_SESSION['flashes']); ?>
 
             <div id="shareResult" class="share-result" hidden>
-                <div class="share-result-head"><strong>Report pro AI</strong> <span data-share-expiry></span><button type="button" class="share-close" data-share-close aria-label="Zavřít">×</button></div>
-                <p class="share-hint"><strong>Klikni „Kopírovat text pro AI"</strong> a vlož do ChatGPT / Claude / Perplexity. Text přečte každá AI hned. Report platí max 15 minut. Odkaz níže je jen pro ruční použití, běžný chat ho sám neotevře.</p>
-                <div style="margin-bottom:8px;"><button type="button" class="button-primary" data-share-copy-text>Kopírovat text pro AI</button></div>
-                <div class="share-url-row"><input type="text" readonly data-share-url aria-label="Odkaz (pro ruční použití)"></div>
-                <div class="share-fmt">Formát: <a href="#" data-share-fmt="md">Markdown</a> · <a href="#" data-share-fmt="json">JSON</a></div>
+                <div class="share-result-head"><strong><?= h(t('Report pro AI')) ?></strong> <span data-share-expiry></span><button type="button" class="share-close" data-share-close aria-label="<?= h(t('Zavřít')) ?>">×</button></div>
+                <p class="share-hint"><?= t('<strong>Klikni „Kopírovat text pro AI"</strong> a vlož do ChatGPT / Claude / Perplexity. Text přečte každá AI hned. Report platí max 15 minut. Odkaz níže je jen pro ruční použití, běžný chat ho sám neotevře.') ?></p>
+                <div style="margin-bottom:8px;"><button type="button" class="button-primary" data-share-copy-text><?= h(t('Kopírovat text pro AI')) ?></button></div>
+                <div class="share-url-row"><input type="text" readonly data-share-url aria-label="<?= h(t('Odkaz (pro ruční použití)')) ?>"></div>
+                <div class="share-fmt"><?= h(t('Formát:')) ?> <a href="#" data-share-fmt="md">Markdown</a> · <a href="#" data-share-fmt="json">JSON</a></div>
             </div>
 
             <?php if ($isGenericView): ?>
             <?php /* ---- Generic single-provider view (Meta, LinkedIn, Ads, Clarity…) ---- */ ?>
             <?php
             // Czech category group + a clear "Meta Ads vs organic" flag for the heading/badges.
-            $provGroupCz = ['social' => 'Sociální sítě', 'ppc' => 'Reklama (PPC)', 'analytics' => 'Analytika', 'seo' => 'SEO'];
+            $provGroupCz = ['social' => t('Sociální sítě'), 'ppc' => t('Reklama (PPC)'), 'analytics' => t('Analytika'), 'seo' => 'SEO'];
             $provGroup = $provGroupCz[$selectedProvider['category']] ?? ($selectedProvider['categoryLabel'] ?? '');
             $provIsAds = ($selectedProvider['category'] ?? '') === 'ppc';
             ?>
             <?php if (empty($providerPayload['hasData'])): ?>
-            <section class="analytics-grid" aria-label="Zdroj">
+            <section class="analytics-grid" aria-label="<?= h(t('Zdroj')) ?>">
                 <article class="panel panel-wide">
                     <div class="panel-header"><h2><?= h($selectedProvider['label']) ?> <span>(<?= h($selectedProvider['name']) ?>)</span></h2></div>
-                    <p class="panel-help"><?= h($provGroup) ?>, tento zdroj zatím nemá data za zvolené období. Napoj a synchronizuj ho ve <a href="admin/sources.php">Zdroje dat</a><?php if (($selectedProvider['provider_key'] ?? '') === 'clarity'): ?>, nebo nahraj denní CSV přes <a href="admin/clarity-import.php?domain_id=<?= (int) $data['domain']['id'] ?>">Import Clarity CSV</a><?php endif; ?>, případně zvol jiné období.</p>
+                    <?php $sourcesLink = '<a href="admin/sources.php">' . h(t('Zdroje dat')) . '</a>'; ?>
+                    <?php if (($selectedProvider['provider_key'] ?? '') === 'clarity'): ?>
+                    <p class="panel-help"><?= t('{group}, tento zdroj zatím nemá data za zvolené období. Napoj a synchronizuj ho ve {sources_link}, nebo nahraj denní CSV přes {import_link}, případně zvol jiné období.', ['group' => h($provGroup), 'sources_link' => $sourcesLink, 'import_link' => '<a href="admin/clarity-import.php?domain_id=' . (int) $data['domain']['id'] . '">' . h(t('Import Clarity CSV')) . '</a>']) ?></p>
+                    <?php else: ?>
+                    <p class="panel-help"><?= t('{group}, tento zdroj zatím nemá data za zvolené období. Napoj a synchronizuj ho ve {sources_link}, případně zvol jiné období.', ['group' => h($provGroup), 'sources_link' => $sourcesLink]) ?></p>
+                    <?php endif; ?>
                 </article>
             </section>
             <?php else: ?>
-            <section class="analytics-grid" aria-label="Vybraný zdroj">
+            <section class="analytics-grid" aria-label="<?= h(t('Vybraný zdroj')) ?>">
                 <article class="panel panel-wide">
                     <div class="panel-header"><h2><?= h($selectedProvider['label']) ?> <span>(<?= h($selectedProvider['name']) ?>)</span></h2></div>
-                    <p class="panel-help"><?= h($provGroup) ?>, data jen za <?= $provIsAds ? 'tento reklamní účet' : 'tuto jednu stránku / účet' ?>. Nemíchá se s ostatními zdroji ani s GA4 přehledem.<?php if ($provIsAds): ?> ROAS a konverze závisí na <strong>atribučním okně</strong> Meta (výchozí 7 dní klik / 1 den zobrazení; lze změnit v config_json napojení).<?php endif; ?></p>
+                    <p class="panel-help"><?= h(t('{group}, data jen za {scope}. Nemíchá se s ostatními zdroji ani s GA4 přehledem.', ['group' => $provGroup, 'scope' => t($provIsAds ? 'tento reklamní účet' : 'tuto jednu stránku / účet')])) ?><?php if ($provIsAds): ?> <?= t('ROAS a konverze závisí na <strong>atribučním okně</strong> Meta (výchozí 7 dní klik / 1 den zobrazení; lze změnit v config_json napojení).') ?><?php endif; ?></p>
                 </article>
             </section>
-            <section class="kpi-grid" aria-label="Metriky zdroje">
+            <section class="kpi-grid" aria-label="<?= h(t('Metriky zdroje')) ?>">
                 <?php foreach ($providerPayload['metrics'] as $metric): ?>
                     <article class="kpi-card kpi-<?= h($metric['color'] ?? 'cyan') ?>">
                         <div class="kpi-head">
                             <span class="kpi-icon"><i data-lucide="<?= h($metric['icon'] ?? 'activity') ?>"></i></span>
                             <span><strong><?= h($metric['label']) ?></strong> <small>(<?= h($selectedProvider['label']) ?>)</small></span>
                             <?php if (!empty($metric['tooltip'])): ?>
-                                <span class="kpi-help" tabindex="0" aria-label="Vysvětlení metriky">
+                                <span class="kpi-help" tabindex="0" aria-label="<?= h(t('Vysvětlení metriky')) ?>">
                                     <i data-lucide="info"></i>
                                     <span class="kpi-help-popover"><?= h($metric['tooltip']) ?></span>
                                 </span>
@@ -573,10 +579,10 @@ if ($isGenericView) {
             </section>
 
             <?php if (!empty($providerPayload['showChart'])): ?>
-            <section class="analytics-grid" aria-label="Trend zdroje">
+            <section class="analytics-grid" aria-label="<?= h(t('Trend zdroje')) ?>">
                 <article class="panel panel-wide">
-                    <div class="panel-header"><h2><?= h($selectedProvider['label']) ?>, trend v čase <span>(<?= h($selectedProvider['name']) ?>)</span></h2></div>
-                    <p class="panel-help">Vývoj klíčových metrik tohoto zdroje v čase za zvolené období. Jen za tento jeden zdroj (nemíchá se s GA4). U jednodenního období se graf nezobrazuje.</p>
+                    <div class="panel-header"><h2><?= h($selectedProvider['label']) ?>, <?= h(t('trend v čase')) ?> <span>(<?= h($selectedProvider['name']) ?>)</span></h2></div>
+                    <p class="panel-help"><?= h(t('Vývoj klíčových metrik tohoto zdroje v čase za zvolené období. Jen za tento jeden zdroj (nemíchá se s GA4). U jednodenního období se graf nezobrazuje.')) ?></p>
                     <div class="chart-frame chart-frame-line"><canvas id="providerChart"></canvas></div>
                 </article>
             </section>
@@ -595,19 +601,19 @@ if ($isGenericView) {
             <?php endif; ?>
             <?php elseif ($isGrowthView): ?>
             <?php if ($growthError): ?>
-                <div class="notice notice-error">Data pro Růst kanálů se nepodařilo načíst. Zkus obnovit stránku, případně otevři <a class="text-link" href="?view=overview&amp;domain_id=<?= (int) $data['domain']['id'] ?>">Přehled (GA4 + GSC)</a>.</div>
+                <div class="notice notice-error"><?= t('Data pro Růst kanálů se nepodařilo načíst. Zkus obnovit stránku, případně otevři {link}.', ['link' => '<a class="text-link" href="?view=overview&amp;domain_id=' . (int) $data['domain']['id'] . '">' . h(t('Přehled (GA4 + GSC)')) . '</a>']) ?></div>
             <?php else: ?>
                 <?php include __DIR__ . '/views/growth.php'; ?>
             <?php endif; ?>
             <?php elseif ($isFunnelView): ?>
             <?php if ($funnelError): ?>
-                <div class="notice notice-error">Data trychtýře se nepodařilo načíst. Zkus obnovit stránku, případně otevři <a class="text-link" href="?view=overview&amp;domain_id=<?= (int) $data['domain']['id'] ?>">Přehled (GA4 + GSC)</a>.</div>
+                <div class="notice notice-error"><?= t('Data trychtýře se nepodařilo načíst. Zkus obnovit stránku, případně otevři {link}.', ['link' => '<a class="text-link" href="?view=overview&amp;domain_id=' . (int) $data['domain']['id'] . '">' . h(t('Přehled (GA4 + GSC)')) . '</a>']) ?></div>
             <?php else: ?>
                 <?php include __DIR__ . '/views/funnel.php'; ?>
             <?php endif; ?>
             <?php else: ?>
             <?php
-            $fmtRangeDate = static fn (string $iso): string => (new DateTimeImmutable($iso))->format('j. n. Y');
+            $fmtRangeDate = static fn (string $iso): string => allstat_date_label($iso);
             $previousRangeLabel = !empty($data['previousRange'])
                 ? $fmtRangeDate($data['previousRange']['start']) . ' – ' . $fmtRangeDate($data['previousRange']['end'])
                 : '';
@@ -629,7 +635,7 @@ if ($isGenericView) {
                             <span class="kpi-icon"><i data-lucide="<?= h($kpi['icon']) ?>"></i></span>
                             <span><strong data-kpi-label><?= h($kpi['label']) ?></strong> <small>(<?= h($kpi['provider']) ?>)</small></span>
                             <?php if (!empty($kpi['tooltip'])): ?>
-                                <span class="kpi-help" tabindex="0" aria-label="Vysvětlení metriky">
+                                <span class="kpi-help" tabindex="0" aria-label="<?= h(t('Vysvětlení metriky')) ?>">
                                     <i data-lucide="info"></i>
                                     <span class="kpi-help-popover"><?= h($kpi['tooltip']) ?></span>
                                 </span>
@@ -638,11 +644,11 @@ if ($isGenericView) {
                         <div class="kpi-value" data-kpi-value><?= h($kpi['displayValue']) ?></div>
                         <div class="kpi-meta">
                             <?php if ($kpi['trend'] === 'none'): ?>
-                                <span class="trend trend-none" data-kpi-change>bez srovnání</span>
-                                <span>(předchozí období nemá data)</span>
+                                <span class="trend trend-none" data-kpi-change><?= h(t('bez srovnání')) ?></span>
+                                <span>(<?= h(t('předchozí období nemá data')) ?>)</span>
                             <?php else: ?>
                                 <span class="trend <?= $kpi['trend'] === 'up' ? 'trend-up' : 'trend-down' ?>" data-kpi-change><?= $kpi['trend'] === 'up' ? '&uarr;' : '&darr;' ?> <?= h($kpi['changeLabel']) ?></span>
-                                <span data-prev-range title="Změna oproti předchozímu období: celé kalendářní měsíce proti předchozím celým měsícům (září proti srpnu), rozběhnutý měsíc proti stejným dnům minulého měsíce, jinak proti stejně dlouhému období těsně před (u „7 dní" předchozích 7 dní, ne loňský rok).">vs. předchozí období<?= $previousRangeLabel !== '' ? ' (' . h($previousRangeLabel) . ')' : '' ?></span>
+                                <span data-prev-range title="<?= h(t('Změna oproti předchozímu období: celé kalendářní měsíce proti předchozím celým měsícům (září proti srpnu), rozběhnutý měsíc proti stejným dnům minulého měsíce, jinak proti stejně dlouhému období těsně před (u „7 dní" předchozích 7 dní, ne loňský rok).')) ?>"><?= h(t('vs. předchozí období')) ?><?= $previousRangeLabel !== '' ? ' (' . h($previousRangeLabel) . ')' : '' ?></span>
                             <?php endif; ?>
                         </div>
                         <div class="sparkline-wrap"><canvas data-sparkline="<?= h($kpi['key']) ?>"></canvas></div>
@@ -652,22 +658,22 @@ if ($isGenericView) {
             </section>
             <?php endforeach; ?>
             </div>
-            <aside class="overview-rail" aria-label="Grafy">
+            <aside class="overview-rail" aria-label="<?= h(t('Grafy')) ?>">
                 <article class="panel panel-wide">
                     <div class="panel-header">
-                        <h2>Návštěvy</h2>
-                        <span class="chart-interval" aria-label="Interval grafu" title="Interval se volí automaticky podle délky období"><i data-lucide="calendar-range"></i>Interval: <strong><?= h($granularityLabels[$data['granularity']] ?? 'Denně') ?></strong></span>
+                        <h2><?= h(t('Návštěvy')) ?></h2>
+                        <span class="chart-interval" aria-label="<?= h(t('Interval grafu')) ?>" title="<?= h(t('Interval se volí automaticky podle délky období')) ?>"><i data-lucide="calendar-range"></i><?= h(t('Interval:')) ?> <strong><?= h($granularityLabels[$data['granularity']] ?? t('Denně')) ?></strong></span>
                     </div>
-                    <p class="panel-help">Trend návštěv (modrá, GA4 sessions), uživatelů (zelená, GA4 active users) a konverzí (fialová, GA4 key events, čte se na <strong>pravé ose</strong>, protože bývají v jiném řádu). Interval grafu se volí <strong>automaticky</strong> podle délky období (krátké → denně, delší → týdně/měsíčně).</p>
+                    <p class="panel-help"><?= t('Trend návštěv (modrá, GA4 sessions), uživatelů (zelená, GA4 active users) a konverzí (fialová, GA4 key events, čte se na <strong>pravé ose</strong>, protože bývají v jiném řádu). Interval grafu se volí <strong>automaticky</strong> podle délky období (krátké → denně, delší → týdně/měsíčně).') ?></p>
                     <div class="chart-frame chart-frame-line"><canvas id="visitsChart"></canvas></div>
                 </article>
 
                 <article class="panel">
                     <div class="panel-header">
-                        <h2>Zdroje návštěv <span>(GA4)</span></h2>
-                        <span class="panel-total"><strong data-traffic-total><?= h($data['charts']['traffic']['totalLabel']) ?></strong> celkem</span>
+                        <h2><?= h(t('Zdroje návštěv')) ?> <span>(GA4)</span></h2>
+                        <span class="panel-total"><strong data-traffic-total><?= h($data['charts']['traffic']['totalLabel']) ?></strong> <?= h(t('celkem')) ?></span>
                     </div>
-                    <p class="panel-help">Rozdělení návštěv podle kanálu (Organic Search, Direct, Referral, Social…). Data z GA4 dimenze <code>sessionDefaultChannelGroup</code>. Délka pruhu = poměr k největšímu kanálu.</p>
+                    <p class="panel-help"><?= t('Rozdělení návštěv podle kanálu (Organic Search, Direct, Referral, Social…). Data z GA4 dimenze <code>sessionDefaultChannelGroup</code>. Délka pruhu = poměr k největšímu kanálu.') ?></p>
                     <?php
                     $barPalette = ['#2563eb', '#16a34a', '#8b5cf6', '#f59e0b', '#06b6d4', '#f43f5e'];
                     $trafficRows = $data['charts']['traffic']['sources'] ?? [];
@@ -682,17 +688,17 @@ if ($isGenericView) {
                                 <span class="bar-row-value"><strong><?= h($r['sessionsLabel']) ?></strong> <small>(<?= h($r['shareLabel']) ?>)</small></span>
                             </div>
                         <?php endforeach; ?>
-                        <?php if (!$trafficRows): ?><p class="table-muted">Zatím bez dat o kanálech, spusť GA4 sync.</p><?php endif; ?>
+                        <?php if (!$trafficRows): ?><p class="table-muted"><?= h(t('Zatím bez dat o kanálech, spusť GA4 sync.')) ?></p><?php endif; ?>
                     </div>
-                    <a class="text-link" href="admin/reports.php?domain_id=<?= (int) $data['domain']['id'] ?>&start=<?= h($data['range']['start']) ?>&end=<?= h($data['range']['end']) ?>#traffic-sources">Zobrazit celý report <i data-lucide="arrow-right"></i></a>
+                    <a class="text-link" href="admin/reports.php?domain_id=<?= (int) $data['domain']['id'] ?>&start=<?= h($data['range']['start']) ?>&end=<?= h($data['range']['end']) ?>#traffic-sources"><?= h(t('Zobrazit celý report')) ?> <i data-lucide="arrow-right"></i></a>
                 </article>
 
                 <article class="panel">
                     <div class="panel-header">
-                        <h2>Zařízení <span>(GA4)</span></h2>
-                        <span class="panel-total"><strong data-device-total><?= h($data['charts']['devices']['totalLabel'] ?? '0') ?></strong> návštěv</span>
+                        <h2><?= h(t('Zařízení')) ?> <span>(GA4)</span></h2>
+                        <span class="panel-total"><strong data-device-total><?= h($data['charts']['devices']['totalLabel'] ?? '0') ?></strong> <?= h(t('návštěv')) ?></span>
                     </div>
-                    <p class="panel-help">Rozdělení návštěv podle typu zařízení (GA4 dimenze <code>deviceCategory</code>). Mobil / Desktop / Tablet.</p>
+                    <p class="panel-help"><?= t('Rozdělení návštěv podle typu zařízení (GA4 dimenze <code>deviceCategory</code>). Mobil / Desktop / Tablet.') ?></p>
                     <?php
                     $deviceRows = $data['charts']['devices']['items'] ?? [];
                     $deviceVals = $data['charts']['devices']['values'] ?? [];
@@ -707,16 +713,16 @@ if ($isGenericView) {
                                 <span class="bar-row-value"><strong><?= h($r['sessionsLabel']) ?></strong> <small>(<?= h($r['shareLabel']) ?>)</small></span>
                             </div>
                         <?php endforeach; ?>
-                        <?php if (!$deviceRows): ?><p class="table-muted">Zatím bez dat o zařízeních, spusť GA4 sync.</p><?php endif; ?>
+                        <?php if (!$deviceRows): ?><p class="table-muted"><?= h(t('Zatím bez dat o zařízeních, spusť GA4 sync.')) ?></p><?php endif; ?>
                     </div>
                 </article>
 
                 <article class="panel">
                     <div class="panel-header">
-                        <h2>Noví vs vracející se <span>(GA4)</span></h2>
-                        <span class="panel-total"><strong data-newreturning-total><?= h($data['charts']['newReturning']['totalLabel'] ?? '0') ?></strong> uživatelů</span>
+                        <h2><?= h(t('Noví vs vracející se')) ?> <span>(GA4)</span></h2>
+                        <span class="panel-total"><strong data-newreturning-total><?= h($data['charts']['newReturning']['totalLabel'] ?? '0') ?></strong> <?= h(t('uživatelů')) ?></span>
                     </div>
-                    <p class="panel-help">Poměr nových a vracejících se uživatelů za období. Vracející se = uživatelé − noví uživatelé (GA4 <code>newUsers</code>).</p>
+                    <p class="panel-help"><?= t('Poměr nových a vracejících se uživatelů za období. Vracející se = uživatelé − noví uživatelé (GA4 <code>newUsers</code>).') ?></p>
                     <?php
                     $nrRows = $data['charts']['newReturning']['segments'] ?? [];
                     $nrVals = $data['charts']['newReturning']['values'] ?? [];
@@ -731,20 +737,20 @@ if ($isGenericView) {
                                 <span class="bar-row-value"><strong><?= h($s['valueLabel']) ?></strong> <small>(<?= h($s['shareLabel']) ?>)</small></span>
                             </div>
                         <?php endforeach; ?>
-                        <?php if (!$nrRows): ?><p class="table-muted">Zatím bez dat, spusť GA4 sync.</p><?php endif; ?>
+                        <?php if (!$nrRows): ?><p class="table-muted"><?= h(t('Zatím bez dat, spusť GA4 sync.')) ?></p><?php endif; ?>
                     </div>
                 </article>
             </aside>
             </div>
 
-            <section class="tables-grid" aria-label="Tabulky">
+            <section class="tables-grid" aria-label="<?= h(t('Tabulky')) ?>">
                 <article class="panel table-panel">
-                    <div class="panel-header"><h2>Top stránky</h2><div class="seg-toggle" role="group" aria-label="Typ stránek"><button type="button" class="seg-btn is-active" data-pages-toggle="vstupni">Vstupní</button><button type="button" class="seg-btn" data-pages-toggle="vsechny">Všechny</button></div></div>
-                    <p class="panel-help" data-pages-help>Top vstupní stránky, kde návštěva začala. GA4 dimenze <code>landingPage</code>. „Změna" = rozdíl proti předchozímu období (u celého měsíce proti předchozímu měsíci, jinak proti stejně dlouhému období těsně před). Přepni na „Všechny" pro nejnavštěvovanější stránky podle zobrazení.</p>
+                    <div class="panel-header"><h2><?= h(t('Top stránky')) ?></h2><div class="seg-toggle" role="group" aria-label="<?= h(t('Typ stránek')) ?>"><button type="button" class="seg-btn is-active" data-pages-toggle="vstupni"><?= h(t('Vstupní')) ?></button><button type="button" class="seg-btn" data-pages-toggle="vsechny"><?= h(t('Všechny')) ?></button></div></div>
+                    <p class="panel-help" data-pages-help><?= t('Top vstupní stránky, kde návštěva začala. GA4 dimenze <code>landingPage</code>. „Změna" = rozdíl proti předchozímu období (u celého měsíce proti předchozímu měsíci, jinak proti stejně dlouhému období těsně před). Přepni na „Všechny" pro nejnavštěvovanější stránky podle zobrazení.') ?></p>
                     <div class="table-scroll">
                         <table>
                             <thead>
-                                <tr data-pages-head><th>Stránka</th><th>Návštěvy</th><th>Změna</th></tr>
+                                <tr data-pages-head><th><?= h(t('Stránka')) ?></th><th><?= h(t('Návštěvy')) ?></th><th><?= h(t('Změna')) ?></th></tr>
                             </thead>
                             <tbody data-pages-rows>
                                 <?php foreach ($data['tables']['landingPages'] as $page):
@@ -760,16 +766,16 @@ if ($isGenericView) {
                             </tbody>
                         </table>
                     </div>
-                    <a class="text-link" href="admin/reports.php?domain_id=<?= (int) $data['domain']['id'] ?>&start=<?= h($data['range']['start']) ?>&end=<?= h($data['range']['end']) ?>#pages">Zobrazit všechny stránky <i data-lucide="arrow-right"></i></a>
+                    <a class="text-link" href="admin/reports.php?domain_id=<?= (int) $data['domain']['id'] ?>&start=<?= h($data['range']['start']) ?>&end=<?= h($data['range']['end']) ?>#pages"><?= h(t('Zobrazit všechny stránky')) ?> <i data-lucide="arrow-right"></i></a>
                 </article>
 
                 <article class="panel table-panel">
-                    <div class="panel-header"><h2>Nejčastější vyhledávací dotazy <span>(GSC)</span></h2></div>
-                    <p class="panel-help">Co lidé hledali v Googlu předtím, než klikli na web. Z Google Search Console, vyplní se až po napojení GSC v <a href="admin/sources.php">Zdrojích dat</a>.</p>
+                    <div class="panel-header"><h2><?= h(t('Nejčastější vyhledávací dotazy')) ?> <span>(GSC)</span></h2></div>
+                    <p class="panel-help"><?= t('Co lidé hledali v Googlu předtím, než klikli na web. Z Google Search Console, vyplní se až po napojení GSC v <a href="admin/sources.php">Zdrojích dat</a>.') ?></p>
                     <div class="table-scroll">
                         <table>
                             <thead>
-                                <tr><th>Dotaz</th><th>Kliknutí</th><th>Zobrazení</th><th>CTR</th></tr>
+                                <tr><th><?= h(t('Dotaz')) ?></th><th><?= h(t('Kliknutí')) ?></th><th><?= h(t('Zobrazení')) ?></th><th>CTR</th></tr>
                             </thead>
                             <tbody data-query-rows>
                                 <?php foreach ($data['tables']['queries'] as $query): ?>
@@ -783,16 +789,16 @@ if ($isGenericView) {
                             </tbody>
                         </table>
                     </div>
-                    <a class="text-link" href="admin/reports.php?domain_id=<?= (int) $data['domain']['id'] ?>&start=<?= h($data['range']['start']) ?>&end=<?= h($data['range']['end']) ?>#queries">Zobrazit všechny dotazy <i data-lucide="arrow-right"></i></a>
+                    <a class="text-link" href="admin/reports.php?domain_id=<?= (int) $data['domain']['id'] ?>&start=<?= h($data['range']['start']) ?>&end=<?= h($data['range']['end']) ?>#queries"><?= h(t('Zobrazit všechny dotazy')) ?> <i data-lucide="arrow-right"></i></a>
                 </article>
 
                 <article class="panel table-panel">
-                    <div class="panel-header"><h2>Konkrétní referrery <span>(GA4)</span></h2></div>
-                    <p class="panel-help">Reálné odkazující weby (GA4 dimenze <code>sessionSource</code>, medium = referral). Návštěvy z AI asistentů jsou označené odznakem <span class="status-badge status-ai">AI</span>.</p>
+                    <div class="panel-header"><h2><?= h(t('Konkrétní referrery')) ?> <span>(GA4)</span></h2></div>
+                    <p class="panel-help"><?= t('Reálné odkazující weby (GA4 dimenze <code>sessionSource</code>, medium = referral). Návštěvy z AI asistentů jsou označené odznakem <span class="status-badge status-ai">AI</span>.') ?></p>
                     <div class="table-scroll">
                         <table>
                             <thead>
-                                <tr><th>Referrer</th><th>Návštěvy</th><th>Podíl</th></tr>
+                                <tr><th>Referrer</th><th><?= h(t('Návštěvy')) ?></th><th><?= h(t('Podíl')) ?></th></tr>
                             </thead>
                             <tbody data-referrer-rows>
                                 <?php foreach ($data['tables']['referrers'] as $ref): ?>
@@ -803,7 +809,7 @@ if ($isGenericView) {
                                     </tr>
                                 <?php endforeach; ?>
                                 <?php if (!$data['tables']['referrers']): ?>
-                                    <tr><td colspan="3" class="table-muted">Zatím bez referral dat, spusť GA4 sync.</td></tr>
+                                    <tr><td colspan="3" class="table-muted"><?= h(t('Zatím bez referral dat, spusť GA4 sync.')) ?></td></tr>
                                 <?php endif; ?>
                             </tbody>
                         </table>
@@ -811,12 +817,12 @@ if ($isGenericView) {
                 </article>
 
                 <article class="panel table-panel">
-                    <div class="panel-header"><h2>Návštěvy podle regionu <span>(GA4)</span></h2></div>
-                    <p class="panel-help">Odkud návštěvníci jsou (GA4 dimenze <code>region</code>). Ukazuje, jestli zasahuješ správnou oblast.</p>
+                    <div class="panel-header"><h2><?= h(t('Návštěvy podle regionu')) ?> <span>(GA4)</span></h2></div>
+                    <p class="panel-help"><?= t('Odkud návštěvníci jsou (GA4 dimenze <code>region</code>). Ukazuje, jestli zasahuješ správnou oblast.') ?></p>
                     <div class="table-scroll">
                         <table>
                             <thead>
-                                <tr><th>Region</th><th>Země</th><th>Návštěvy</th><th>Podíl</th></tr>
+                                <tr><th><?= h(t('Region')) ?></th><th><?= h(t('Země')) ?></th><th><?= h(t('Návštěvy')) ?></th><th><?= h(t('Podíl')) ?></th></tr>
                             </thead>
                             <tbody data-geo-rows>
                                 <?php foreach ($data['tables']['geo'] as $geo): ?>
@@ -828,7 +834,7 @@ if ($isGenericView) {
                                     </tr>
                                 <?php endforeach; ?>
                                 <?php if (!$data['tables']['geo']): ?>
-                                    <tr><td colspan="4" class="table-muted">Zatím bez geo dat, spusť sync.</td></tr>
+                                    <tr><td colspan="4" class="table-muted"><?= h(t('Zatím bez geo dat, spusť sync.')) ?></td></tr>
                                 <?php endif; ?>
                             </tbody>
                         </table>
@@ -836,12 +842,12 @@ if ($isGenericView) {
                 </article>
 
                 <article class="panel table-panel">
-                    <div class="panel-header"><h2>Klíčové akce <span>(GA4)</span></h2></div>
-                    <p class="panel-help">Které události uživatelé spouští (GA4 <code>eventName</code>). „Key events" = akce označené jako konverze (registrace, kontakt, stažení…).</p>
+                    <div class="panel-header"><h2><?= h(t('Klíčové akce')) ?> <span>(GA4)</span></h2></div>
+                    <p class="panel-help"><?= t('Které události uživatelé spouští (GA4 <code>eventName</code>). „Key events" = akce označené jako konverze (registrace, kontakt, stažení…).') ?></p>
                     <div class="table-scroll">
                         <table>
                             <thead>
-                                <tr><th>Akce</th><th>Počet</th><th>Z toho key events</th></tr>
+                                <tr><th><?= h(t('Akce')) ?></th><th><?= h(t('Počet')) ?></th><th><?= h(t('Z toho key events')) ?></th></tr>
                             </thead>
                             <tbody data-event-rows>
                                 <?php foreach ($data['tables']['events'] as $event): ?>
@@ -852,7 +858,7 @@ if ($isGenericView) {
                                     </tr>
                                 <?php endforeach; ?>
                                 <?php if (!$data['tables']['events']): ?>
-                                    <tr><td colspan="3" class="table-muted">Zatím bez event dat, spusť sync.</td></tr>
+                                    <tr><td colspan="3" class="table-muted"><?= h(t('Zatím bez event dat, spusť sync.')) ?></td></tr>
                                 <?php endif; ?>
                             </tbody>
                         </table>
@@ -861,43 +867,43 @@ if ($isGenericView) {
 
                 <?php $utmCampaigns = $data['tables']['utm'] ?? []; ?>
                 <article class="panel table-panel">
-                    <div class="panel-header"><h2>Kampaně (UTM) <span>(GA4)</span></h2></div>
-                    <p class="panel-help">Návštěvy z odkazů označených UTM parametry (<code>utm_campaign</code>, <code>utm_source</code>…), funguje pro Meta reklamy, newslettery i jakýkoli otagovaný odkaz. Štítek „varianta" (<code>utm_content</code>) odlišuje A/B verze stejné kampaně. Organická a přímá návštěvnost se sem nezahrnuje.</p>
+                    <div class="panel-header"><h2><?= h(t('Kampaně (UTM)')) ?> <span>(GA4)</span></h2></div>
+                    <p class="panel-help"><?= t('Návštěvy z odkazů označených UTM parametry (<code>utm_campaign</code>, <code>utm_source</code>…), funguje pro Meta reklamy, newslettery i jakýkoli otagovaný odkaz. Štítek „varianta" (<code>utm_content</code>) odlišuje A/B verze stejné kampaně. Organická a přímá návštěvnost se sem nezahrnuje.') ?></p>
                     <div class="utm-list" data-utm-list>
                         <?php foreach ($utmCampaigns as $c): ?>
                             <div class="utm-item">
                                 <div class="utm-item-top">
                                     <span class="utm-name" title="utm_campaign"><?= h($c['campaignLabel']) ?></span>
-                                    <span class="utm-value"><strong><?= h($c['sessionsLabel']) ?></strong> <small>návštěv · <?= h($c['shareLabel']) ?></small></span>
+                                    <span class="utm-value"><strong><?= h($c['sessionsLabel']) ?></strong> <small><?= h(t('návštěv')) ?> · <?= h($c['shareLabel']) ?></small></span>
                                 </div>
                                 <div class="utm-track"><div class="utm-fill" style="width: <?= round(max(3, (float) $c['share']), 1) ?>%;"></div></div>
                                 <div class="utm-tags">
                                     <span class="utm-chip" title="utm_source / utm_medium"><?= h($c['channelLabel']) ?></span>
-                                    <?php if ($c['contentLabel'] !== '—'): ?><span class="utm-chip" title="utm_content, A/B varianta">varianta: <?= h($c['contentLabel']) ?></span><?php endif; ?>
-                                    <span class="utm-chip<?= (int) $c['conversions'] > 0 ? ' utm-chip-ok' : '' ?>" title="Konverze z této kampaně (a podíl z jejích návštěv)">konverze: <?= h($c['conversionsLabel']) ?><?= $c['convRate'] !== '—' ? ' (' . h($c['convRate']) . ')' : '' ?></span>
+                                    <?php if ($c['contentLabel'] !== '—'): ?><span class="utm-chip" title="<?= h(t('utm_content, A/B varianta')) ?>"><?= h(t('varianta: {value}', ['value' => $c['contentLabel']])) ?></span><?php endif; ?>
+                                    <span class="utm-chip<?= (int) $c['conversions'] > 0 ? ' utm-chip-ok' : '' ?>" title="<?= h(t('Konverze z této kampaně (a podíl z jejích návštěv)')) ?>"><?= h(t('konverze: {value}', ['value' => $c['conversionsLabel'] . ($c['convRate'] !== '—' ? ' (' . $c['convRate'] . ')' : '')])) ?></span>
                                 </div>
                                 <?php if ($c['pages']): ?>
-                                    <div class="utm-pages">Kam přišli: <?= implode(' · ', array_map(static fn (array $p): string => h($p['path']) . ' <span class="table-muted">(' . h($p['sessionsLabel']) . ')</span>', $c['pages'])) ?></div>
+                                    <div class="utm-pages"><?= h(t('Kam přišli:')) ?> <?= implode(' · ', array_map(static fn (array $p): string => h($p['path']) . ' <span class="table-muted">(' . h($p['sessionsLabel']) . ')</span>', $c['pages'])) ?></div>
                                 <?php endif; ?>
                             </div>
                         <?php endforeach; ?>
                         <?php if (!$utmCampaigns): ?>
-                            <p class="table-muted">Zatím žádná návštěvnost s UTM parametry za zvolené období. Otaguj odkazy (např. <code>?utm_campaign=jaro&amp;utm_source=facebook&amp;utm_medium=cpc&amp;utm_content=banner1</code>) a po dalším GA4 syncu se kampaně objeví zde.</p>
+                            <p class="table-muted"><?= t('Zatím žádná návštěvnost s UTM parametry za zvolené období. Otaguj odkazy (např. <code>?utm_campaign=jaro&amp;utm_source=facebook&amp;utm_medium=cpc&amp;utm_content=banner1</code>) a po dalším GA4 syncu se kampaně objeví zde.') ?></p>
                         <?php endif; ?>
                     </div>
                 </article>
 
                 <?php $funnel = $data['tables']['funnel'] ?? []; if (!empty($funnel['hasData'])): ?>
                 <article class="panel table-panel table-panel-wide">
-                    <div class="panel-header"><h2>Nákupní trychtýř <span>(e-commerce)</span></h2></div>
-                    <p class="panel-help">Kroky nákupu z GA4 e-commerce událostí za období. <strong>Pokles</strong> = kolik % lidí mezi kroky odpadlo; největší pokles je <strong>úzké hrdlo</strong>. <?= h($funnel['overallLabel']) ?><?= $funnel['removeFromCart'] > 0 ? ' · Odebrání z košíku: ' . h($funnel['removeFromCartLabel']) : '' ?>.</p>
+                    <div class="panel-header"><h2><?= h(t('Nákupní trychtýř')) ?> <span>(e-commerce)</span></h2></div>
+                    <p class="panel-help"><?= t('Kroky nákupu z GA4 e-commerce událostí za období. <strong>Pokles</strong> = kolik % lidí mezi kroky odpadlo; největší pokles je <strong>úzké hrdlo</strong>.') ?> <?= h($funnel['overallLabel']) ?><?= $funnel['removeFromCart'] > 0 ? ' · ' . h(t('Odebrání z košíku: {value}', ['value' => $funnel['removeFromCartLabel']])) : '' ?>.</p>
                     <div class="table-scroll">
                         <table>
-                            <thead><tr><th>Krok</th><th>Počet</th><th>Podíl z vrcholu</th><th>Pokles vs. předchozí</th></tr></thead>
+                            <thead><tr><th><?= h(t('Krok')) ?></th><th><?= h(t('Počet')) ?></th><th><?= h(t('Podíl z vrcholu')) ?></th><th><?= h(t('Pokles vs. předchozí')) ?></th></tr></thead>
                             <tbody>
                                 <?php foreach ($funnel['steps'] as $step): ?>
                                     <tr>
-                                        <td><?= h($step['label']) ?><?= $step['isBottleneck'] ? ' <span class="status-badge status-warning">úzké hrdlo</span>' : '' ?></td>
+                                        <td><?= h($step['label']) ?><?= $step['isBottleneck'] ? ' <span class="status-badge status-warning">' . h(t('úzké hrdlo')) . '</span>' : '' ?></td>
                                         <td><?= h($step['countLabel']) ?></td>
                                         <td>
                                             <span style="display:inline-block;height:8px;border-radius:4px;background:#6366f1;width:<?= (int) round($step['share']) ?>%;min-width:3px;vertical-align:middle"></span>
@@ -914,11 +920,11 @@ if ($isGenericView) {
 
                 <?php $products = $data['tables']['topProducts'] ?? []; if ($products): ?>
                 <article class="panel table-panel table-panel-wide">
-                    <div class="panel-header"><h2>Top produkty <span>(e-commerce)</span></h2></div>
-                    <p class="panel-help">Nejprodávanější produkty podle tržeb (GA4 <code>itemName</code>). <strong>Konverze</strong> = kolik % zobrazení produktu skončilo nákupem.</p>
+                    <div class="panel-header"><h2><?= h(t('Top produkty')) ?> <span>(e-commerce)</span></h2></div>
+                    <p class="panel-help"><?= t('Nejprodávanější produkty podle tržeb (GA4 <code>itemName</code>). <strong>Konverze</strong> = kolik % zobrazení produktu skončilo nákupem.') ?></p>
                     <div class="table-scroll">
                         <table>
-                            <thead><tr><th>Produkt</th><th>Zobrazení</th><th>Do košíku</th><th>Prodáno</th><th>Tržby</th><th>Konverze</th></tr></thead>
+                            <thead><tr><th><?= h(t('Produkt')) ?></th><th><?= h(t('Zobrazení')) ?></th><th><?= h(t('Do košíku')) ?></th><th><?= h(t('Prodáno')) ?></th><th><?= h(t('Tržby')) ?></th><th><?= h(t('Konverze')) ?></th></tr></thead>
                             <tbody>
                                 <?php foreach ($products as $p): ?>
                                     <tr>
@@ -938,31 +944,31 @@ if ($isGenericView) {
 
                 <?php $demo = $data['tables']['demographics'] ?? []; if (!empty($demo['hasData'])): ?>
                 <article class="panel table-panel">
-                    <div class="panel-header"><h2>Věk <span>(GA4)</span></h2></div>
-                    <p class="panel-help">Věkové složení publika, <strong>modelovaný odhad</strong> (Google Signals). GA4 malé segmenty skrývá kvůli ochraně soukromí, takže součet nemusí dát 100 % a část je „Neurčeno".</p>
+                    <div class="panel-header"><h2><?= h(t('Věk')) ?> <span>(GA4)</span></h2></div>
+                    <p class="panel-help"><?= t('Věkové složení publika, <strong>modelovaný odhad</strong> (Google Signals). GA4 malé segmenty skrývá kvůli ochraně soukromí, takže součet nemusí dát 100 % a část je „Neurčeno".') ?></p>
                     <div class="table-scroll">
                         <table>
-                            <thead><tr><th>Věk</th><th>Uživatelé</th><th>Podíl</th></tr></thead>
+                            <thead><tr><th><?= h(t('Věk')) ?></th><th><?= h(t('Uživatelé')) ?></th><th><?= h(t('Podíl')) ?></th></tr></thead>
                             <tbody>
                                 <?php foreach ($demo['age'] as $a): ?>
                                     <tr><td><?= h($a['label']) ?></td><td><?= h($a['usersLabel']) ?></td><td><?= h($a['shareLabel']) ?></td></tr>
                                 <?php endforeach; ?>
-                                <?php if (!$demo['age']): ?><tr><td colspan="3" class="table-muted">Bez věkových dat (GA4 práh / Signals).</td></tr><?php endif; ?>
+                                <?php if (!$demo['age']): ?><tr><td colspan="3" class="table-muted"><?= h(t('Bez věkových dat (GA4 práh / Signals).')) ?></td></tr><?php endif; ?>
                             </tbody>
                         </table>
                     </div>
                 </article>
                 <article class="panel table-panel">
-                    <div class="panel-header"><h2>Pohlaví <span>(GA4)</span></h2></div>
-                    <p class="panel-help">Rozdělení publika podle pohlaví, modelovaný odhad (Google Signals). Slouží k cílení na segmenty, ne k identifikaci jednotlivců.</p>
+                    <div class="panel-header"><h2><?= h(t('Pohlaví')) ?> <span>(GA4)</span></h2></div>
+                    <p class="panel-help"><?= h(t('Rozdělení publika podle pohlaví, modelovaný odhad (Google Signals). Slouží k cílení na segmenty, ne k identifikaci jednotlivců.')) ?></p>
                     <div class="table-scroll">
                         <table>
-                            <thead><tr><th>Pohlaví</th><th>Uživatelé</th><th>Podíl</th></tr></thead>
+                            <thead><tr><th><?= h(t('Pohlaví')) ?></th><th><?= h(t('Uživatelé')) ?></th><th><?= h(t('Podíl')) ?></th></tr></thead>
                             <tbody>
                                 <?php foreach ($demo['gender'] as $g): ?>
                                     <tr><td><?= h($g['label']) ?></td><td><?= h($g['usersLabel']) ?></td><td><?= h($g['shareLabel']) ?></td></tr>
                                 <?php endforeach; ?>
-                                <?php if (!$demo['gender']): ?><tr><td colspan="3" class="table-muted">Bez dat o pohlaví (GA4 práh / Signals).</td></tr><?php endif; ?>
+                                <?php if (!$demo['gender']): ?><tr><td colspan="3" class="table-muted"><?= h(t('Bez dat o pohlaví (GA4 práh / Signals).')) ?></td></tr><?php endif; ?>
                             </tbody>
                         </table>
                     </div>
@@ -970,11 +976,11 @@ if ($isGenericView) {
                 <?php endif; ?>
 
                 <article class="panel table-panel table-panel-wide">
-                    <div class="panel-header"><h2>Přehled zdrojů dat</h2></div>
+                    <div class="panel-header"><h2><?= h(t('Přehled zdrojů dat')) ?></h2></div>
                     <div class="table-scroll">
                         <table>
                             <thead>
-                                <tr><th>Zdroj</th><th>Stav</th><th>Poslední sync</th><th></th></tr>
+                                <tr><th><?= h(t('Zdroj')) ?></th><th><?= h(t('Stav')) ?></th><th><?= h(t('Poslední sync')) ?></th><th></th></tr>
                             </thead>
                             <tbody data-source-rows>
                                 <?php foreach ($data['tables']['sources'] as $source): ?>
@@ -982,16 +988,16 @@ if ($isGenericView) {
                                         <td><?= h($source['source']) ?></td>
                                         <td><span class="status-badge status-<?= h($source['status']) ?>"><?= h($statusLabels[$source['status']] ?? $source['status']) ?></span></td>
                                         <td><?= h($source['lastSync']) ?></td>
-                                        <td><button class="table-icon-button" type="button" title="Obnovit" aria-label="Obnovit" data-refresh-dashboard><i data-lucide="refresh-cw"></i></button></td>
+                                        <td><button class="table-icon-button" type="button" title="<?= h(t('Obnovit')) ?>" aria-label="<?= h(t('Obnovit')) ?>" data-refresh-dashboard><i data-lucide="refresh-cw"></i></button></td>
                                     </tr>
                                 <?php endforeach; ?>
                                 <?php if (!$data['tables']['sources']): ?>
-                                    <tr><td colspan="4" class="table-muted">Zatím není napojený žádný zdroj dat.</td></tr>
+                                    <tr><td colspan="4" class="table-muted"><?= h(t('Zatím není napojený žádný zdroj dat.')) ?></td></tr>
                                 <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
-                    <a class="text-link" href="admin/sources.php?domain_id=<?= (int) $data['domain']['id'] ?>">Správa zdrojů <i data-lucide="arrow-right"></i></a>
+                    <a class="text-link" href="admin/sources.php?domain_id=<?= (int) $data['domain']['id'] ?>"><?= h(t('Správa zdrojů')) ?> <i data-lucide="arrow-right"></i></a>
                 </article>
             </section>
             <?php endif; ?>
@@ -999,6 +1005,7 @@ if ($isGenericView) {
     </div>
 
     <?php $nonce = allstat_nonce(); ?>
+    <script src="assets/js/i18n.js?v=<?= @filemtime(__DIR__ . '/assets/js/i18n.js') ?: '1' ?>" nonce="<?= h($nonce) ?>"></script>
     <script src="assets/vendor/chart.umd.min.js?v=<?= @filemtime(__DIR__ . '/assets/vendor/chart.umd.min.js') ?: '1' ?>" nonce="<?= h($nonce) ?>"></script>
     <script src="assets/vendor/lucide.min.js?v=<?= @filemtime(__DIR__ . '/assets/vendor/lucide.min.js') ?: '1' ?>" nonce="<?= h($nonce) ?>"></script>
     <script nonce="<?= h($nonce) ?>">window.ALLSTAT_DATA = <?= allstat_json($data) ?>;</script>
@@ -1048,13 +1055,13 @@ if ($isGenericView) {
                 .then(function (r) { return r.json(); })
                 .then(function (d) {
                     btn.disabled = false;
-                    if (!d.ok) { alert(d.message || 'Odkaz se nepodařilo vytvořit.'); return; }
+                    if (!d.ok) { alert(d.message || window.allstatT('Odkaz se nepodařilo vytvořit.')); return; }
                     box.querySelector('[data-share-url]').value = d.url;
                     var exp = (d.expires_at || '').slice(11, 16);
-                    box.querySelector('[data-share-expiry]').textContent = ' · platí ' + d.ttl_minutes + ' min' + (exp ? ' (do ' + exp + ')' : '');
+                    box.querySelector('[data-share-expiry]').textContent = window.allstatT(' · platí {minutes} min', { minutes: d.ttl_minutes }) + (exp ? window.allstatT(' (do {time})', { time: exp }) : '');
                     box.hidden = false;
                 })
-                .catch(function () { btn.disabled = false; alert('Chyba sítě.'); });
+                .catch(function () { btn.disabled = false; alert(window.allstatT('Chyba sítě.')); });
         }
         btn.addEventListener('click', function () { gen(lastFmt); });
         box.querySelectorAll('[data-share-fmt]').forEach(function (a) {
@@ -1068,15 +1075,15 @@ if ($isGenericView) {
                 var url = box.querySelector('[data-share-url]').value;
                 if (!url) { return; }
                 copyTextBtn.disabled = true;
-                copyTextBtn.textContent = 'Stahuji…';
+                copyTextBtn.textContent = window.allstatT('Stahuji…');
                 fetch(url, { headers: { 'Accept': 'text/plain' } })
                     .then(function (r) { if (!r.ok) { throw new Error('http'); } return r.text(); })
                     .then(function (text) {
                         if (navigator.clipboard) { return navigator.clipboard.writeText(text); }
                         var ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
                     })
-                    .then(function () { copyTextBtn.disabled = false; flash(copyTextBtn, 'Text zkopírován ✓', 'Kopírovat text pro AI', 1800); })
-                    .catch(function () { copyTextBtn.disabled = false; copyTextBtn.textContent = 'Kopírovat text pro AI'; alert('Text se nepodařilo načíst, odkaz možná vypršel. Vygeneruj nový (klikni na ✨).'); });
+                    .then(function () { copyTextBtn.disabled = false; flash(copyTextBtn, window.allstatT('Text zkopírován ✓'), window.allstatT('Kopírovat text pro AI'), 1800); })
+                    .catch(function () { copyTextBtn.disabled = false; copyTextBtn.textContent = window.allstatT('Kopírovat text pro AI'); alert(window.allstatT('Text se nepodařilo načíst, odkaz možná vypršel. Vygeneruj nový (klikni na ✨).')); });
             });
         }
         var closeBtn = box.querySelector('[data-share-close]');

@@ -103,7 +103,7 @@ function allstat_meta_exchange_and_discover(PDO $pdo, array $config, string $cod
 {
     $app = allstat_meta_app($pdo, $config);
     if (!$app['configured']) {
-        return ['ok' => false, 'message' => 'Meta App není nastavená (App ID / Secret).'];
+        return ['ok' => false, 'message' => t('Meta App není nastavená (App ID / Secret).')];
     }
 
     // 1) authorization code → short-lived user token
@@ -116,7 +116,7 @@ function allstat_meta_exchange_and_discover(PDO $pdo, array $config, string $cod
 
     if ($r['status'] !== 200 || empty($r['json']['access_token'])) {
         $detail = $r['json']['error']['message'] ?? substr($r['body'], 0, 180);
-        return ['ok' => false, 'message' => 'Výměna kódu za token selhala: ' . $detail];
+        return ['ok' => false, 'message' => t('Výměna kódu za token selhala: {detail}', ['detail' => $detail])];
     }
     $shortToken = (string) $r['json']['access_token'];
 

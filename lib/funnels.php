@@ -28,37 +28,37 @@ function allstat_funnel_templates(): array
 {
     return [
         'quick_check' => [
-            'name' => 'Quick Check (lead)',
-            'description' => 'Cesta návštěvníka od vstupu na web přes Quick Check a zobrazení skóre až po kliknutí na výzvu a lead.',
+            'name' => t('Quick Check (lead)'),
+            'description' => t('Cesta návštěvníka od vstupu na web přes Quick Check a zobrazení skóre až po kliknutí na výzvu a lead.'),
             'steps' => [
-                ['label' => 'Návštěva webu', 'event' => 'session_start'],
-                ['label' => 'Spuštění Quick Checku', 'event' => 'quick_check_start'],
-                ['label' => 'Dokončení', 'event' => 'quick_check_complete'],
-                ['label' => 'Zobrazení skóre', 'event' => 'score_view'],
-                ['label' => 'Klik na CTA', 'event' => 'cta_click'],
-                ['label' => 'Lead', 'event' => 'generate_lead'],
+                ['label' => t('Návštěva webu'), 'event' => 'session_start'],
+                ['label' => t('Spuštění Quick Checku'), 'event' => 'quick_check_start'],
+                ['label' => t('Dokončení'), 'event' => 'quick_check_complete'],
+                ['label' => t('Zobrazení skóre'), 'event' => 'score_view'],
+                ['label' => t('Klik na CTA'), 'event' => 'cta_click'],
+                ['label' => t('Lead'), 'event' => 'generate_lead'],
             ],
         ],
         'lead_form' => [
-            'name' => 'Poptávkový formulář (lead)',
-            'description' => 'Návštěva webu, zahájení a odeslání formuláře a výsledný lead.',
+            'name' => t('Poptávkový formulář (lead)'),
+            'description' => t('Návštěva webu, zahájení a odeslání formuláře a výsledný lead.'),
             'steps' => [
-                ['label' => 'Návštěva webu', 'event' => 'session_start'],
-                ['label' => 'Zahájení formuláře', 'event' => 'form_start'],
-                ['label' => 'Odeslání formuláře', 'event' => 'form_submit'],
-                ['label' => 'Lead', 'event' => 'generate_lead'],
+                ['label' => t('Návštěva webu'), 'event' => 'session_start'],
+                ['label' => t('Zahájení formuláře'), 'event' => 'form_start'],
+                ['label' => t('Odeslání formuláře'), 'event' => 'form_submit'],
+                ['label' => t('Lead'), 'event' => 'generate_lead'],
             ],
         ],
         'ecommerce' => [
-            'name' => 'E-shop (nákup)',
-            'description' => 'Nákupní cesta od návštěvy přes produkt, košík a objednávku až po nákup.',
+            'name' => t('E-shop (nákup)'),
+            'description' => t('Nákupní cesta od návštěvy přes produkt, košík a objednávku až po nákup.'),
             'steps' => [
-                ['label' => 'Návštěva webu', 'event' => 'session_start'],
-                ['label' => 'Zobrazení produktu', 'event' => 'view_item'],
-                ['label' => 'Přidání do košíku', 'event' => 'add_to_cart'],
-                ['label' => 'Zahájení objednávky', 'event' => 'begin_checkout'],
-                ['label' => 'Zadání platby', 'event' => 'add_payment_info'],
-                ['label' => 'Nákup', 'event' => 'purchase'],
+                ['label' => t('Návštěva webu'), 'event' => 'session_start'],
+                ['label' => t('Zobrazení produktu'), 'event' => 'view_item'],
+                ['label' => t('Přidání do košíku'), 'event' => 'add_to_cart'],
+                ['label' => t('Zahájení objednávky'), 'event' => 'begin_checkout'],
+                ['label' => t('Zadání platby'), 'event' => 'add_payment_info'],
+                ['label' => t('Nákup'), 'event' => 'purchase'],
             ],
         ],
     ];
@@ -68,9 +68,9 @@ function allstat_funnel_templates(): array
 function allstat_funnel_breakdowns(): array
 {
     return [
-        'channel' => 'Kanál',
-        'source_medium' => 'Zdroj / médium',
-        'campaign' => 'Kampaň',
+        'channel' => t('Kanál'),
+        'source_medium' => t('Zdroj / médium'),
+        'campaign' => t('Kampaň'),
     ];
 }
 
@@ -136,12 +136,12 @@ function allstat_funnel_clean_input(array $input): array
     $name = preg_replace('/[\x00-\x1F\x7F]/u', '', trim((string) ($input['name'] ?? ''))) ?? '';
     $name = trim($name);
     if ($name === '' || mb_strlen($name) > $limits['name_length']) {
-        return ['Zadejte název trychtýře (1 až ' . $limits['name_length'] . ' znaků).', []];
+        return [t('Zadejte název trychtýře (1 až {max} znaků).', ['max' => $limits['name_length']]), []];
     }
 
     $breakdown = (string) ($input['breakdown'] ?? 'channel');
     if (!array_key_exists($breakdown, allstat_funnel_breakdowns())) {
-        return ['Neplatný způsob rozpadu trychtýře.', []];
+        return [t('Neplatný způsob rozpadu trychtýře.'), []];
     }
 
     $steps = [];
@@ -149,7 +149,7 @@ function allstat_funnel_clean_input(array $input): array
     foreach (is_array($rawSteps) ? array_values($rawSteps) : [] as $index => $raw) {
         $position = $index + 1;
         if (!is_array($raw)) {
-            return ['Krok ' . $position . ' má neplatný tvar.', []];
+            return [t('Krok {position} má neplatný tvar.', ['position' => $position]), []];
         }
         $event = trim((string) ($raw['event'] ?? ''));
         $label = trim((string) ($raw['label'] ?? ''));
@@ -157,7 +157,7 @@ function allstat_funnel_clean_input(array $input): array
             continue;
         }
         if (!preg_match('/^[A-Za-z][A-Za-z0-9_]{0,' . ($limits['event_length'] - 1) . '}$/', $event)) {
-            return ['Krok ' . $position . ': název eventu musí začínat písmenem a smí obsahovat jen písmena, číslice a podtržítko (nejvýše ' . $limits['event_length'] . ' znaků).', []];
+            return [t('Krok {position}: název eventu musí začínat písmenem a smí obsahovat jen písmena, číslice a podtržítko (nejvýše {max} znaků).', ['position' => $position, 'max' => $limits['event_length']]), []];
         }
         $label = preg_replace('/[\x00-\x1F\x7F]/u', '', $label) ?? '';
         $label = mb_substr(trim($label), 0, $limits['label_length']);
@@ -165,7 +165,7 @@ function allstat_funnel_clean_input(array $input): array
     }
 
     if (count($steps) < $limits['min_steps'] || count($steps) > $limits['max_steps']) {
-        return ['Trychtýř musí mít ' . $limits['min_steps'] . ' až ' . $limits['max_steps'] . ' kroků (zadáno ' . count($steps) . ').', []];
+        return [t('Trychtýř musí mít {min} až {max} kroků (zadáno {count}).', ['min' => $limits['min_steps'], 'max' => $limits['max_steps'], 'count' => count($steps)]), []];
     }
 
     return [null, ['name' => $name, 'breakdown' => $breakdown, 'steps' => $steps]];
@@ -182,14 +182,14 @@ function allstat_funnel_save(PDO $pdo, int $domainId, ?int $funnelId, array $inp
     $fail = static fn (string $message): array => ['ok' => false, 'id' => (int) $funnelId, 'message' => $message];
 
     if (!allstat_fetch_one($pdo, 'SELECT id FROM domains WHERE id = ?', [$domainId])) {
-        return $fail('Web neexistuje.');
+        return $fail(t('Web neexistuje.'));
     }
 
     $existing = null;
     if ($funnelId !== null) {
         $existing = allstat_funnel_get($pdo, $funnelId, $domainId);
         if (!$existing) {
-            return $fail('Trychtýř neexistuje nebo patří jinému webu.');
+            return $fail(t('Trychtýř neexistuje nebo patří jinému webu.'));
         }
     }
 
@@ -214,12 +214,12 @@ function allstat_funnel_save(PDO $pdo, int $domainId, ?int $funnelId, array $inp
                 WHERE id = ? AND domain_id = ?
             ')->execute([$clean['name'], $stepsJson, $clean['breakdown'], $isActive, $sortOrder, (int) $funnelId, $domainId]);
 
-            return ['ok' => true, 'id' => (int) $funnelId, 'message' => 'Trychtýř byl uložen.'];
+            return ['ok' => true, 'id' => (int) $funnelId, 'message' => t('Trychtýř byl uložen.')];
         }
 
         $stats = allstat_fetch_one($pdo, 'SELECT COUNT(*) AS total, COALESCE(MAX(sort_order), 0) AS max_sort FROM allstat_funnels WHERE domain_id = ?', [$domainId]);
         if ((int) ($stats['total'] ?? 0) >= $limits['max_funnels']) {
-            return $fail('Web může mít nejvýše ' . $limits['max_funnels'] . ' trychtýřů.');
+            return $fail(t('Web může mít nejvýše {max} trychtýřů.', ['max' => $limits['max_funnels']]));
         }
         $sortOrder = isset($input['sort_order']) ? (int) $input['sort_order'] : (int) ($stats['max_sort'] ?? 0) + 10;
         $pdo->prepare('
@@ -227,11 +227,11 @@ function allstat_funnel_save(PDO $pdo, int $domainId, ?int $funnelId, array $inp
             VALUES (?, ?, ?, ?, ?, ?)
         ')->execute([$domainId, $clean['name'], $stepsJson, $clean['breakdown'], $isActive, $sortOrder]);
 
-        return ['ok' => true, 'id' => (int) $pdo->lastInsertId(), 'message' => 'Trychtýř byl vytvořen. Rozpad podle zdrojů se začne plnit při příští synchronizaci GA4.'];
+        return ['ok' => true, 'id' => (int) $pdo->lastInsertId(), 'message' => t('Trychtýř byl vytvořen. Rozpad podle zdrojů se začne plnit při příští synchronizaci GA4.')];
     } catch (Throwable $exception) {
         error_log('AllStat funnel save: ' . $exception->getMessage());
 
-        return $fail('Trychtýř se nepodařilo uložit.');
+        return $fail(t('Trychtýř se nepodařilo uložit.'));
     }
 }
 
@@ -362,13 +362,13 @@ function allstat_funnel_breakdown_label(string $breakdown, array $row): string
     if ($breakdown === 'campaign') {
         $campaign = $clean($row['campaign'] ?? '');
 
-        return $campaign !== '' ? $campaign : 'Bez kampaně';
+        return $campaign !== '' ? $campaign : t('Bez kampaně');
     }
     if ($breakdown === 'source_medium') {
         $source = $clean($row['source'] ?? '');
         $medium = $clean($row['medium'] ?? '');
         if ($source === '' && $medium === '') {
-            return 'Neurčeno';
+            return t('Neurčeno');
         }
 
         return ($source !== '' ? $source : '(not set)') . ' / ' . ($medium !== '' ? $medium : '(not set)');
@@ -376,7 +376,7 @@ function allstat_funnel_breakdown_label(string $breakdown, array $row): string
 
     $channel = $clean($row['channel'] ?? '');
 
-    return $channel !== '' ? $channel : 'Neurčeno';
+    return $channel !== '' ? $channel : t('Neurčeno');
 }
 
 /**
@@ -468,7 +468,7 @@ function allstat_funnel_breakdown_report(PDO $pdo, int $domainId, array $steps, 
                 $others[$i] += $count;
             }
         }
-        $visible[] = ['label' => 'Ostatní', 'counts' => $others];
+        $visible[] = ['label' => t('Ostatní'), 'counts' => $others, 'isOther' => true];
     }
 
     foreach ($visible as $row) {
@@ -618,19 +618,19 @@ function allstat_funnel_report(PDO $pdo, int $domainId, array $funnel, string $s
             $warnings[] = [
                 'step' => $i,
                 'event' => $step['event'],
-                'message' => 'Event „' . $step['event'] . '“ za posledních 28 dní nepřišel, zkontrolujte měření (GTM).',
+                'message' => t('Event „{event}“ za posledních 28 dní nepřišel, zkontrolujte měření (GTM).', ['event' => $step['event']]),
             ];
         } elseif ($count === 0) {
             $warnings[] = [
                 'step' => $i,
                 'event' => $step['event'],
-                'message' => 'Event „' . $step['event'] . '“ ve zvoleném období nepřišel ani jednou (v posledních 28 dnech ano), takže tady trychtýř končí.',
+                'message' => t('Event „{event}“ ve zvoleném období nepřišel ani jednou (v posledních 28 dnech ano), takže tady trychtýř končí.', ['event' => $step['event']]),
             ];
         } elseif ($i > 0 && $previous > 0 && $count > $previous) {
             $warnings[] = [
                 'step' => $i,
                 'event' => $step['event'],
-                'message' => 'Počet eventů „' . $step['event'] . '“ je vyšší než u předchozího kroku (počítají se události, ne unikátní návštěvníci).',
+                'message' => t('Počet eventů „{event}“ je vyšší než u předchozího kroku (počítají se události, ne unikátní návštěvníci).', ['event' => $step['event']]),
             ];
         }
         $previous = $count;

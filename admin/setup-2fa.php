@@ -37,45 +37,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($result['ok']) {
             unset($_SESSION['totp_setup_secret']);
-            allstat_flash('ok', $result['message']);
+            allstat_flash('ok', t($result['message']));
             if (function_exists('allstat_mcp_revoke_user')) {
                 try {
                     allstat_mcp_revoke_user($pdo, (int) $user['id']);
                 } catch (Throwable $exception) {
                     error_log('AllStat 2FA: odpojení MCP připojení uživatele ' . (int) $user['id'] . ' selhalo: ' . $exception->getMessage());
-                    allstat_flash('error', 'Připojení AI se nepodařilo odpojit. Odpojte je ručně v Administrace → AI konektory (jen pro administrátory).');
+                    allstat_flash('error', t('Připojení AI se nepodařilo odpojit. Odpojte je ručně v Administrace → AI konektory (jen pro administrátory).'));
                 }
             }
             allstat_redirect($config, '');
         }
 
-        $error = $result['message'];
+        $error = t($result['message']);
     }
 }
 
-allstat_admin_header('Dvoufaktorové ověření', '2fa', $user, $config);
+allstat_admin_header(t('Dvoufaktorové ověření'), '2fa', $user, $config);
 ?>
 <div class="admin-card">
     <div class="admin-card-header">
         <div>
-            <h2>2FA pro váš účet</h2>
-            <p>Podporuje aplikace jako Microsoft Authenticator, Google Authenticator, 1Password nebo Bitwarden.</p>
+            <h2><?= h(t('2FA pro váš účet')) ?></h2>
+            <p><?= h(t('Podporuje aplikace jako Microsoft Authenticator, Google Authenticator, 1Password nebo Bitwarden.')) ?></p>
         </div>
-        <span class="secret-state <?= allstat_user_has_totp($user) ? 'on' : 'warn' ?>"><?= allstat_user_has_totp($user) ? 'Zapnuto' : 'Čeká na nastavení' ?></span>
+        <span class="secret-state <?= allstat_user_has_totp($user) ? 'on' : 'warn' ?>"><?= h(allstat_user_has_totp($user) ? t('Zapnuto') : t('Čeká na nastavení')) ?></span>
     </div>
     <div class="admin-card-body">
         <?php if ($error): ?><div class="notice notice-error"><?= h($error) ?></div><?php endif; ?>
         <?php if (allstat_user_has_totp($user)): ?>
-            <p class="form-help">2FA je pro tento účet aktivní. Reset může provést administrátor na stránce uživatelů.</p>
+            <p class="form-help"><?= h(t('2FA je pro tento účet aktivní. Reset může provést administrátor na stránce uživatelů.')) ?></p>
         <?php else: ?>
             <div class="qr-box"><div id="totpQr"></div></div>
             <div class="code-box" data-totp-uri="<?= h($uri) ?>"><?= h($secret) ?></div>
             <form method="post" class="form-stack" style="margin-top:16px">
                 <?= allstat_csrf_field() ?>
-                <label><span>Ověřovací kód</span><input type="text" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required autocomplete="one-time-code"></label>
+                <label><span><?= h(t('Ověřovací kód')) ?></span><input type="text" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required autocomplete="one-time-code"></label>
                 <div class="form-actions">
-                    <button class="button-primary" type="submit">Zapnout 2FA</button>
-                    <button class="button-secondary" type="submit" name="reset_pending_secret" value="1">Vygenerovat nový kód</button>
+                    <button class="button-primary" type="submit"><?= h(t('Zapnout 2FA')) ?></button>
+                    <button class="button-secondary" type="submit" name="reset_pending_secret" value="1"><?= h(t('Vygenerovat nový kód')) ?></button>
                 </div>
             </form>
         <?php endif; ?>

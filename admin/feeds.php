@@ -18,14 +18,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($fid > 0) {
             allstat_feed_revoke($pdo, $fid);
             allstat_audit($pdo, (int) $user['id'], null, 'feed_revoked', (string) $fid);
-            allstat_flash('ok', 'Feed byl zneplatněn, odkaz =IMPORTDATA přestane vracet data.');
+            allstat_flash('ok', t('Feed byl zneplatněn, odkaz =IMPORTDATA přestane vracet data.'));
         }
         allstat_redirect($config, 'admin/feeds.php');
     }
 
     $domainId = (int) ($_POST['domain_id'] ?? 0);
     if ($domainId <= 0) {
-        allstat_flash('error', 'Vyber web.');
+        allstat_flash('error', t('Vyber web.'));
         allstat_redirect($config, 'admin/feeds.php');
     }
 
@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         (string) ($_POST['label'] ?? '')
     );
     allstat_audit($pdo, (int) $user['id'], null, 'feed_created', 'domain=' . $domainId);
-    allstat_flash('ok', 'Feed vytvořen. Zkopíruj vzorec =IMPORTDATA z tabulky níže do svého Google Sheetu.');
+    allstat_flash('ok', t('Feed vytvořen. Zkopíruj vzorec =IMPORTDATA z tabulky níže do svého Google Sheetu.'));
     allstat_redirect($config, 'admin/feeds.php');
 }
 
@@ -55,65 +55,65 @@ $feedBase = $scheme . '://' . $host . allstat_url($config, 'feed.php');
 $shapes = allstat_feed_shapes();
 $ranges = allstat_feed_ranges();
 
-allstat_admin_header('Datový feed', 'feeds', $user, $config);
+allstat_admin_header(t('Datový feed'), 'feeds', $user, $config);
 ?>
 <div class="admin-card">
     <div class="admin-card-header">
         <div>
-            <h2>Export do Google Sheetu (pull přes =IMPORTDATA)</h2>
-            <p>Vytvoř <strong>read-only</strong> odkaz na data jednoho webu (GA4 + GSC, včetně <strong>Tržeb</strong>). V Google Sheetu pak stačí jedna buňka <code>=IMPORTDATA("…")</code> a list si data sám natáhne (Google obnovuje ~1×/h). AllStat <strong>nemá žádný přístup do tvého Google účtu</strong>, odkaz jen vystavuje agregovaná čísla. Token = přístup; kdykoli ho zneplatníš a přestane vracet data.</p>
+            <h2><?= h(t('Export do Google Sheetu (pull přes =IMPORTDATA)')) ?></h2>
+            <p><?= t('Vytvoř <strong>read-only</strong> odkaz na data jednoho webu (GA4 + GSC, včetně <strong>Tržeb</strong>). V Google Sheetu pak stačí jedna buňka <code>=IMPORTDATA("…")</code> a list si data sám natáhne (Google obnovuje ~1×/h). AllStat <strong>nemá žádný přístup do tvého Google účtu</strong>, odkaz jen vystavuje agregovaná čísla. Token = přístup; kdykoli ho zneplatníš a přestane vracet data.') ?></p>
         </div>
     </div>
     <div class="admin-card-body">
         <form method="post" class="form-grid form-grid-3">
             <?= allstat_csrf_field() ?>
             <input type="hidden" name="action" value="create">
-            <label><span>Web</span>
+            <label><span><?= h(t('Web')) ?></span>
                 <select name="domain_id" required>
                     <?php foreach ($domains as $domain): ?>
                         <option value="<?= (int) $domain['id'] ?>" <?= $preselect === (int) $domain['id'] ? 'selected' : '' ?>><?= h($domain['url']) ?></option>
                     <?php endforeach; ?>
                 </select>
             </label>
-            <label><span>Podoba</span>
+            <label><span><?= h(t('Podoba')) ?></span>
                 <select name="shape">
                     <?php foreach ($shapes as $k => $lbl): ?>
-                        <option value="<?= h($k) ?>"><?= h($lbl) ?></option>
+                        <option value="<?= h($k) ?>"><?= h(t($lbl)) ?></option>
                     <?php endforeach; ?>
                 </select>
             </label>
-            <label><span>Granularita (u řady)</span>
+            <label><span><?= h(t('Granularita (u řady)')) ?></span>
                 <select name="granularity">
-                    <option value="month" selected>Po měsících</option>
-                    <option value="week">Po týdnech</option>
-                    <option value="day">Po dnech</option>
+                    <option value="month" selected><?= h(t('Po měsících')) ?></option>
+                    <option value="week"><?= h(t('Po týdnech')) ?></option>
+                    <option value="day"><?= h(t('Po dnech')) ?></option>
                 </select>
             </label>
-            <label><span>Období (klouzavé)</span>
+            <label><span><?= h(t('Období (klouzavé)')) ?></span>
                 <select name="range_key">
                     <?php foreach ($ranges as $k => $lbl): ?>
-                        <option value="<?= h($k) ?>" <?= $k === 'last_12_months' ? 'selected' : '' ?>><?= h($lbl) ?></option>
+                        <option value="<?= h($k) ?>" <?= $k === 'last_12_months' ? 'selected' : '' ?>><?= h(t($lbl)) ?></option>
                     <?php endforeach; ?>
                 </select>
             </label>
-            <label><span>Formát</span>
+            <label><span><?= h(t('Formát')) ?></span>
                 <select name="format">
-                    <option value="csv" selected>CSV (pro =IMPORTDATA)</option>
+                    <option value="csv" selected><?= h(t('CSV (pro =IMPORTDATA)')) ?></option>
                     <option value="tsv">TSV</option>
                     <option value="json">JSON</option>
                 </select>
             </label>
-            <label><span>Popisek (volitelně)</span><input type="text" name="label" maxlength="120" placeholder="např. Blend 2026"></label>
-            <div class="form-actions"><button class="button-primary" type="submit">Vytvořit feed</button></div>
+            <label><span><?= h(t('Popisek (volitelně)')) ?></span><input type="text" name="label" maxlength="120" placeholder="<?= h(t('např. Blend 2026')) ?>"></label>
+            <div class="form-actions"><button class="button-primary" type="submit"><?= h(t('Vytvořit feed')) ?></button></div>
         </form>
     </div>
 </div>
 
 <div class="admin-card">
-    <div class="admin-card-header"><h2>Moje feedy</h2></div>
+    <div class="admin-card-header"><h2><?= h(t('Moje feedy')) ?></h2></div>
     <div class="admin-card-body table-scroll">
         <table class="admin-table">
-            <thead><tr><th>Web</th><th>Co exportuje</th><th>Vzorec do Google Sheetu</th><th>Naposledy staženo</th><th></th></tr></thead>
+            <thead><tr><th><?= h(t('Web')) ?></th><th><?= h(t('Co exportuje')) ?></th><th><?= h(t('Vzorec do Google Sheetu')) ?></th><th><?= h(t('Naposledy staženo')) ?></th><th></th></tr></thead>
             <tbody>
                 <?php foreach ($feeds as $f): ?>
                     <?php
@@ -121,8 +121,8 @@ allstat_admin_header('Datový feed', 'feeds', $user, $config);
                         $url = $feedBase . '?key=' . rawurlencode((string) $f['token']);
                         if (($f['format'] ?? 'csv') !== 'csv') { $url .= '&format=' . rawurlencode((string) $f['format']); }
                         $formula = '=IMPORTDATA("' . $url . '")';
-                        $what = ($shapes[$f['shape']] ?? (string) $f['shape']) . ' · ' . ($ranges[$f['range_key']] ?? (string) $f['range_key']);
-                        if (($f['shape'] ?? '') === 'series') { $what .= ' · ' . (string) $f['granularity']; }
+                        $what = t($shapes[$f['shape']] ?? (string) $f['shape']) . ' · ' . t($ranges[$f['range_key']] ?? (string) $f['range_key']);
+                        if (($f['shape'] ?? '') === 'series') { $what .= ' · ' . t((string) $f['granularity']); }
                     ?>
                     <tr>
                         <td>
@@ -132,26 +132,26 @@ allstat_admin_header('Datový feed', 'feeds', $user, $config);
                         <td><?= h($what) ?></td>
                         <td>
                             <?php if ($revoked): ?>
-                                <span class="status-badge status-error">Zneplatněno</span>
+                                <span class="status-badge status-error"><?= h(t('Zneplatněno')) ?></span>
                             <?php else: ?>
-                                <input type="text" class="feed-formula" readonly value="<?= h($formula) ?>" data-select-all title="Klikni a zkopíruj (Ctrl+C)">
+                                <input type="text" class="feed-formula" readonly value="<?= h($formula) ?>" data-select-all title="<?= h(t('Klikni a zkopíruj (Ctrl+C)')) ?>">
                             <?php endif; ?>
                         </td>
                         <td><?= $f['last_access_at'] ? h(substr((string) $f['last_access_at'], 0, 16)) : '—' ?></td>
                         <td>
                             <?php if (!$revoked): ?>
-                                <form method="post" data-confirm="Zneplatnit tento feed? Odkaz =IMPORTDATA přestane vracet data.">
+                                <form method="post" data-confirm="<?= h(t('Zneplatnit tento feed? Odkaz =IMPORTDATA přestane vracet data.')) ?>">
                                     <?= allstat_csrf_field() ?>
                                     <input type="hidden" name="action" value="revoke">
                                     <input type="hidden" name="feed_id" value="<?= (int) $f['id'] ?>">
-                                    <button class="button-secondary" type="submit">Zneplatnit</button>
+                                    <button class="button-secondary" type="submit"><?= h(t('Zneplatnit')) ?></button>
                                 </form>
                             <?php endif; ?>
                         </td>
                     </tr>
                 <?php endforeach; ?>
                 <?php if (!$feeds): ?>
-                    <tr><td colspan="5" class="table-muted">Zatím žádný feed. Vytvoř první výše.</td></tr>
+                    <tr><td colspan="5" class="table-muted"><?= h(t('Zatím žádný feed. Vytvoř první výše.')) ?></td></tr>
                 <?php endif; ?>
             </tbody>
         </table>

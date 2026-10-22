@@ -40,7 +40,7 @@ function allstat_save_domain(PDO $pdo, ?int $actorId, array $data): array
     $isActive = !empty($data['is_active']) ? 1 : 0;
 
     if ($name === '' || $url === '') {
-        return ['ok' => false, 'message' => 'Vyplňte název i doménu.'];
+        return ['ok' => false, 'message' => t('Vyplňte název i doménu.')];
     }
 
     $url = preg_replace('#^https?://#', '', $url) ?? $url;
@@ -51,15 +51,15 @@ function allstat_save_domain(PDO $pdo, ?int $actorId, array $data): array
             $statement = $pdo->prepare('UPDATE domains SET name = ?, url = ?, is_active = ? WHERE id = ?');
             $statement->execute([$name, $url, $isActive, $id]);
             allstat_audit($pdo, $actorId, null, 'domain_updated', $url);
-            return ['ok' => true, 'message' => 'Doména byla uložena.'];
+            return ['ok' => true, 'message' => t('Doména byla uložena.')];
         }
 
         $statement = $pdo->prepare('INSERT INTO domains (name, url, is_active) VALUES (?, ?, ?)');
         $statement->execute([$name, $url, $isActive]);
         allstat_audit($pdo, $actorId, null, 'domain_created', $url);
-        return ['ok' => true, 'message' => 'Doména byla vytvořena.'];
+        return ['ok' => true, 'message' => t('Doména byla vytvořena.')];
     } catch (Throwable $exception) {
-        return ['ok' => false, 'message' => str_contains($exception->getMessage(), 'Duplicate') ? 'Tato doména už existuje.' : 'Doménu se nepodařilo uložit.'];
+        return ['ok' => false, 'message' => str_contains($exception->getMessage(), 'Duplicate') ? t('Tato doména už existuje.') : t('Doménu se nepodařilo uložit.')];
     }
 }
 
@@ -77,10 +77,10 @@ function allstat_delete_domain(PDO $pdo, ?int $actorId, int $id): array
         $pdo->commit();
     } catch (Throwable $exception) {
         $pdo->rollBack();
-        return ['ok' => false, 'message' => 'Doménu se nepodařilo odstranit.'];
+        return ['ok' => false, 'message' => t('Doménu se nepodařilo odstranit.')];
     }
 
-    return ['ok' => true, 'message' => 'Doména byla odstraněna včetně navázaných dat.'];
+    return ['ok' => true, 'message' => t('Doména byla odstraněna včetně navázaných dat.')];
 }
 
 function allstat_data_sources(PDO $pdo): array
@@ -231,7 +231,7 @@ function allstat_inherit_oauth_credentials(PDO $pdo, int $connectionId, int $don
 {
     $connection = allstat_get_connection($pdo, $connectionId);
     if (!$connection) {
-        return ['ok' => false, 'message' => 'Napojení neexistuje.'];
+        return ['ok' => false, 'message' => t('Napojení neexistuje.')];
     }
 
     $donors = allstat_oauth_donors($pdo, $connectionId, (string) $connection['provider_key']);
@@ -243,17 +243,17 @@ function allstat_inherit_oauth_credentials(PDO $pdo, int $connectionId, int $don
             if ((int) $d['id'] === $donorId) { $donor = $d; break; }
         }
         if (!$donor) {
-            return ['ok' => false, 'message' => 'Zvolené napojení nejde použít jako zdroj údajů (chybí Client ID/Secret nebo je z jiné rodiny).'];
+            return ['ok' => false, 'message' => t('Zvolené napojení nejde použít jako zdroj údajů (chybí Client ID/Secret nebo je z jiné rodiny).')];
         }
     }
     if (!$donor) {
-        return ['ok' => false, 'message' => 'Nenašel jsem jiné napojení (stejná rodina) s vyplněným Client ID a Secret, ze kterého převzít údaje.'];
+        return ['ok' => false, 'message' => t('Nenašel jsem jiné napojení (stejná rodina) s vyplněným Client ID a Secret, ze kterého převzít údaje.')];
     }
 
     $pdo->prepare('UPDATE domain_sources SET client_id = ?, client_secret_enc = ?, updated_at = NOW() WHERE id = ?')
         ->execute([$donor['client_id'], $donor['client_secret_enc'], $connectionId]);
 
-    return ['ok' => true, 'message' => 'Převzato Client ID i Client secret z „' . ($donor['label'] ?? $donor['name']) . '" (Client ID ' . substr((string) $donor['client_id'], 0, 12) . '…). Teď už stačí jen Spustit OAuth.'];
+    return ['ok' => true, 'message' => t('Převzato Client ID i Client secret z „{name}" (Client ID {client_id}…). Teď už stačí jen Spustit OAuth.', ['name' => ($donor['label'] ?? $donor['name']), 'client_id' => substr((string) $donor['client_id'], 0, 12)])];
 }
 
 function allstat_save_connection(PDO $pdo, array $config, ?int $actorId, array $data): array
@@ -265,12 +265,12 @@ function allstat_save_connection(PDO $pdo, array $config, ?int $actorId, array $
     $existing = $id > 0 ? allstat_get_connection($pdo, $id) : null;
 
     if ($domainId <= 0 || $sourceId <= 0) {
-        return ['ok' => false, 'message' => 'Vyberte web i zdroj dat.'];
+        return ['ok' => false, 'message' => t('Vyberte web i zdroj dat.')];
     }
 
     // Uložené tokeny patří k providerovi, pro kterého vznikly. Přepnutím zdroje by šly poslat jinému API.
     if ($existing && (int) $existing['source_id'] !== $sourceId) {
-        return ['ok' => false, 'message' => 'Zdroj dat u existujícího napojení nejde změnit. Založte pro něj nové napojení.'];
+        return ['ok' => false, 'message' => t('Zdroj dat u existujícího napojení nejde změnit. Založte pro něj nové napojení.')];
     }
 
     $source = allstat_fetch_one($pdo, 'SELECT provider_key FROM data_sources WHERE id = ?', [$sourceId]);
@@ -278,7 +278,7 @@ function allstat_save_connection(PDO $pdo, array $config, ?int $actorId, array $
 
     foreach (['auth_url' => 'Authorization URL', 'token_url' => 'Token URL', 'api_base_url' => 'API Base URL'] as $field => $label) {
         if (!allstat_provider_url_allowed($providerKey, (string) ($data[$field] ?? ''))) {
-            return ['ok' => false, 'message' => $label . ' musí používat HTTPS a povolenou doménu providera.'];
+            return ['ok' => false, 'message' => t('{field} musí používat HTTPS a povolenou doménu providera.', ['field' => $label])];
         }
     }
 
@@ -286,7 +286,7 @@ function allstat_save_connection(PDO $pdo, array $config, ?int $actorId, array $
     if ($configJson !== '') {
         json_decode($configJson, true);
         if (json_last_error() !== JSON_ERROR_NONE) {
-            return ['ok' => false, 'message' => 'Doplňková konfigurace musí být validní JSON.'];
+            return ['ok' => false, 'message' => t('Doplňková konfigurace musí být validní JSON.')];
         }
     }
 
@@ -326,26 +326,35 @@ function allstat_save_connection(PDO $pdo, array $config, ?int $actorId, array $
         'is_enabled' => !empty($data['is_enabled']) ? 1 : 0,
     ];
 
+    // Přihlášení přes Google účet (admin/google-accounts.php): jen GA4 a Search Console a jen existující účet.
+    // Když pole ve formuláři není, zůstane uložená hodnota.
+    $values['oauth_account_id'] = $existing ? ((int) ($existing['oauth_account_id'] ?? 0) ?: null) : null;
+    if (array_key_exists('oauth_account_id', $data)) {
+        $requested = (int) $data['oauth_account_id'];
+        $values['oauth_account_id'] = $requested > 0 && in_array($providerKey, ['ga4', 'gsc'], true)
+            && allstat_fetch_one($pdo, "SELECT id FROM allstat_oauth_accounts WHERE id = ? AND provider = 'google'", [$requested]) ? $requested : null;
+    }
+
     if ($id > 0) {
-        $sql = 'UPDATE domain_sources SET domain_id = :domain_id, source_id = :source_id, account_label = :account_label, property_id = :property_id, external_account_id = :external_account_id, client_id = :client_id, client_secret_enc = :client_secret_enc, access_token_enc = :access_token_enc, refresh_token_enc = :refresh_token_enc, scopes = :scopes, auth_url = :auth_url, token_url = :token_url, api_base_url = :api_base_url, config_json = :config_json, config_json_enc = :config_json_enc, status = :status, last_sync_at = :last_sync_at, token_expires_at = :token_expires_at, note = :note, is_enabled = :is_enabled WHERE id = :id';
+        $sql = 'UPDATE domain_sources SET domain_id = :domain_id, source_id = :source_id, oauth_account_id = :oauth_account_id, account_label = :account_label, property_id = :property_id, external_account_id = :external_account_id, client_id = :client_id, client_secret_enc = :client_secret_enc, access_token_enc = :access_token_enc, refresh_token_enc = :refresh_token_enc, scopes = :scopes, auth_url = :auth_url, token_url = :token_url, api_base_url = :api_base_url, config_json = :config_json, config_json_enc = :config_json_enc, status = :status, last_sync_at = :last_sync_at, token_expires_at = :token_expires_at, note = :note, is_enabled = :is_enabled WHERE id = :id';
         $values['id'] = $id;
         $statement = $pdo->prepare($sql);
         $statement->execute($values);
         allstat_audit($pdo, $actorId, null, 'source_connection_updated', (string) $id);
 
-        return ['ok' => true, 'id' => $id, 'message' => 'Napojení zdroje bylo uloženo.'];
+        return ['ok' => true, 'id' => $id, 'message' => t('Napojení zdroje bylo uloženo.')];
     }
 
     try {
-        $sql = 'INSERT INTO domain_sources (domain_id, source_id, account_label, property_id, external_account_id, client_id, client_secret_enc, access_token_enc, refresh_token_enc, scopes, auth_url, token_url, api_base_url, config_json, config_json_enc, status, last_sync_at, token_expires_at, note, is_enabled) VALUES (:domain_id, :source_id, :account_label, :property_id, :external_account_id, :client_id, :client_secret_enc, :access_token_enc, :refresh_token_enc, :scopes, :auth_url, :token_url, :api_base_url, :config_json, :config_json_enc, :status, :last_sync_at, :token_expires_at, :note, :is_enabled)';
+        $sql = 'INSERT INTO domain_sources (domain_id, source_id, oauth_account_id, account_label, property_id, external_account_id, client_id, client_secret_enc, access_token_enc, refresh_token_enc, scopes, auth_url, token_url, api_base_url, config_json, config_json_enc, status, last_sync_at, token_expires_at, note, is_enabled) VALUES (:domain_id, :source_id, :oauth_account_id, :account_label, :property_id, :external_account_id, :client_id, :client_secret_enc, :access_token_enc, :refresh_token_enc, :scopes, :auth_url, :token_url, :api_base_url, :config_json, :config_json_enc, :status, :last_sync_at, :token_expires_at, :note, :is_enabled)';
         $statement = $pdo->prepare($sql);
         $statement->execute($values);
         $id = (int) $pdo->lastInsertId();
         allstat_audit($pdo, $actorId, null, 'source_connection_created', (string) $id);
 
-        return ['ok' => true, 'id' => $id, 'message' => 'Napojení zdroje bylo vytvořeno.'];
+        return ['ok' => true, 'id' => $id, 'message' => t('Napojení zdroje bylo vytvořeno.')];
     } catch (Throwable $exception) {
-        return ['ok' => false, 'message' => str_contains($exception->getMessage(), 'Duplicate') ? 'Tento zdroj už je pro daný web založený.' : 'Napojení se nepodařilo uložit.'];
+        return ['ok' => false, 'message' => str_contains($exception->getMessage(), 'Duplicate') ? t('Tento zdroj už je pro daný web založený.') : t('Napojení se nepodařilo uložit.')];
     }
 }
 
@@ -354,7 +363,7 @@ function allstat_delete_connection(PDO $pdo, ?int $actorId, int $id): array
     $connection = allstat_fetch_one($pdo, 'SELECT domain_id, source_id FROM domain_sources WHERE id = ?', [$id]);
 
     if (!$connection) {
-        return ['ok' => false, 'message' => 'Napojení neexistuje.'];
+        return ['ok' => false, 'message' => t('Napojení neexistuje.')];
     }
 
     $domainId = (int) $connection['domain_id'];
@@ -371,10 +380,10 @@ function allstat_delete_connection(PDO $pdo, ?int $actorId, int $id): array
         $pdo->commit();
     } catch (Throwable $exception) {
         $pdo->rollBack();
-        return ['ok' => false, 'message' => 'Napojení se nepodařilo odstranit.'];
+        return ['ok' => false, 'message' => t('Napojení se nepodařilo odstranit.')];
     }
 
-    return ['ok' => true, 'message' => 'Napojení zdroje bylo odstraněno. Statistiky zůstanou v DB minimálně 30 dnů pro export.'];
+    return ['ok' => true, 'message' => t('Napojení zdroje bylo odstraněno. Statistiky zůstanou v DB minimálně 30 dnů pro export.')];
 }
 
 function allstat_purge_domain_metrics(PDO $pdo, int $domainId): void

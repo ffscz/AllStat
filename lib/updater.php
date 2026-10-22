@@ -99,7 +99,7 @@ function allstat_update_check(PDO $pdo, bool $force = false, int $timeout = 15):
         $cache = [
             'checked_at' => date('Y-m-d H:i:s'),
             'latest' => $latest ?? ($cache['latest'] ?? null),
-            'error' => $latest === null ? 'Feed s verzemi není dostupný (HTTP ' . $response['status'] . ').' : null,
+            'error' => $latest === null ? t('Feed s verzemi není dostupný (HTTP {status}).', ['status' => $response['status']]) : null,
         ];
         allstat_set_setting($pdo, 'update.cache', json_encode($cache, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
     }
@@ -150,7 +150,7 @@ function allstat_update_notice(PDO $pdo, array $user, ?array $config = null): ?a
     if ($config !== null && is_file(allstat_update_root() . '/.htaccess.new')) {
         try {
             if (allstat_update_htaccess_autofix($pdo, allstat_update_selftest_url($config)) === 'merged' && function_exists('allstat_flash')) {
-                allstat_flash('ok', 'Pravidla AllStatu v souboru .htaccess jsou doplněná automaticky, vlastní úpravy zůstaly beze změny.');
+                allstat_flash('ok', t('Pravidla AllStatu v souboru .htaccess jsou doplněná automaticky, vlastní úpravy zůstaly beze změny.'));
             }
         } catch (Throwable) {
             // nevyšlo, karta na stránce Aktualizace zůstane
@@ -172,11 +172,11 @@ function allstat_update_notice(PDO $pdo, array $user, ?array $config = null): ?a
 function allstat_update_verify_package(string $zipPath, array $latest): ?string
 {
     if (!hash_equals($latest['sha256'], hash_file('sha256', $zipPath))) {
-        return 'Kontrolní součet staženého balíčku nesedí (poškozené nebo nedokončené stažení).';
+        return t('Kontrolní součet staženého balíčku nesedí (poškozené nebo nedokončené stažení).');
     }
     $signature = base64_decode($latest['signature'], true);
     if ($signature === false || openssl_verify((string) file_get_contents($zipPath), $signature, ALLSTAT_UPDATE_PUBLIC_KEY, OPENSSL_ALGO_SHA256) !== 1) {
-        return 'Podpis balíčku není platný. Aktualizace byla zastavena, nic se nezměnilo.';
+        return t('Podpis balíčku není platný. Aktualizace byla zastavena, nic se nezměnilo.');
     }
 
     return null;
@@ -191,14 +191,14 @@ function allstat_update_zip_extract(string $zipPath, string $dest, string $top =
     $data = (string) file_get_contents($zipPath);
     $eocd = strrpos($data, "PK\x05\x06");
     if ($eocd === false) {
-        throw new RuntimeException('Balíček není platný ZIP.');
+        throw new RuntimeException(t('Balíček není platný ZIP.'));
     }
     $info = unpack('vdisk/vcdisk/ventries/vtotal/Vsize/Voffset', substr($data, $eocd + 4, 16));
     $pos = (int) $info['offset'];
     $files = [];
     for ($i = 0; $i < (int) $info['total']; $i++) {
         if (substr($data, $pos, 4) !== "PK\x01\x02") {
-            throw new RuntimeException('Poškozený adresář ZIP.');
+            throw new RuntimeException(t('Poškozený adresář ZIP.'));
         }
         $c = unpack('vmade/vneed/vflag/vmethod/vtime/vdate/Vcrc/Vcsize/Vusize/vnlen/velen/vclen/vdisk/viattr/Veattr/Vlocal', substr($data, $pos + 4, 42));
         $name = substr($data, $pos + 46, $c['nlen']);
@@ -207,7 +207,7 @@ function allstat_update_zip_extract(string $zipPath, string $dest, string $top =
             continue;
         }
         if (!str_starts_with($name, $top . '/') || str_contains($name, '\\') || str_contains($name, "\0") || preg_match('#(^|/)\.\.(/|$)#', $name)) {
-            throw new RuntimeException('Nepovolená cesta v balíčku: ' . mb_substr($name, 0, 80));
+            throw new RuntimeException(t('Nepovolená cesta v balíčku: {path}', ['path' => mb_substr($name, 0, 80)]));
         }
         $rel = substr($name, strlen($top) + 1);
         $local = unpack('Vsig/vneed/vflag/vmethod/vtime/vdate/Vcrc/Vcsize/Vusize/vnlen/velen', substr($data, $c['local'], 30));
@@ -218,11 +218,11 @@ function allstat_update_zip_extract(string $zipPath, string $dest, string $top =
             default => false,
         };
         if (!is_string($content) || strlen($content) !== (int) $c['usize'] || (hexdec(hash('crc32b', $content)) & 0xFFFFFFFF) !== ($c['crc'] & 0xFFFFFFFF)) {
-            throw new RuntimeException('Soubor ' . $rel . ' v balíčku je poškozený.');
+            throw new RuntimeException(t('Soubor {file} v balíčku je poškozený.', ['file' => $rel]));
         }
         $target = $dest . '/' . $rel;
         if (!is_dir(dirname($target)) && !@mkdir(dirname($target), 0755, true)) {
-            throw new RuntimeException('Nelze vytvořit složku pro ' . $rel);
+            throw new RuntimeException(t('Nelze vytvořit složku pro {file}', ['file' => $rel]));
         }
         if (@file_put_contents($target, $content) === false) {
             throw new RuntimeException('Nelze zapsat ' . $rel);
@@ -489,15 +489,15 @@ function allstat_update_preflight(array $latest): array
 {
     $root = allstat_update_root();
     $checks = [];
-    $checks[] = ['ok' => version_compare(PHP_VERSION, $latest['min_php'], '>='), 'label' => 'PHP ' . PHP_VERSION . ' (nová verze potřebuje ' . $latest['min_php'] . ' a novější)'];
-    $checks[] = ['ok' => function_exists('openssl_verify') && function_exists('gzinflate'), 'label' => 'Rozšíření openssl a zlib (ověření podpisu, rozbalení)'];
+    $checks[] = ['ok' => version_compare(PHP_VERSION, $latest['min_php'], '>='), 'label' => t('PHP {version} (nová verze potřebuje {min} a novější)', ['version' => PHP_VERSION, 'min' => $latest['min_php']])];
+    $checks[] = ['ok' => function_exists('openssl_verify') && function_exists('gzinflate'), 'label' => t('Rozšíření openssl a zlib (ověření podpisu, rozbalení)')];
     $writable = is_writable($root);
     foreach (['lib', 'admin', 'assets', 'views', 'api', 'cron'] as $dir) {
         $writable = $writable && (!is_dir($root . '/' . $dir) || is_writable($root . '/' . $dir));
     }
-    $checks[] = ['ok' => $writable, 'label' => 'Zápis do složky aplikace'];
+    $checks[] = ['ok' => $writable, 'label' => t('Zápis do složky aplikace')];
     $free = @disk_free_space($root);
-    $checks[] = ['ok' => $free === false || $free > 30 * 1024 * 1024, 'label' => 'Volné místo na disku (aspoň 30 MB)'];
+    $checks[] = ['ok' => $free === false || $free > 30 * 1024 * 1024, 'label' => t('Volné místo na disku (aspoň 30 MB)')];
 
     return ['ok' => !in_array(false, array_column($checks, 'ok'), true), 'checks' => $checks, 'modified' => allstat_update_modified_files()];
 }
@@ -532,10 +532,10 @@ function allstat_update_install(PDO $pdo, int $actorId, bool $reinstall = false,
 {
     $installed = allstat_installed_version();
     if ($installed === null) {
-        return ['ok' => false, 'message' => 'Tato instalace nepochází z veřejného balíčku, aktualizace nasazuje vývojář.', 'warnings' => []];
+        return ['ok' => false, 'message' => t('Tato instalace nepochází z veřejného balíčku, aktualizace nasazuje vývojář.'), 'warnings' => []];
     }
     if ((int) $pdo->query("SELECT GET_LOCK('allstat_update', 0)")->fetchColumn() !== 1) {
-        return ['ok' => false, 'message' => 'Aktualizace už probíhá v jiném okně.', 'warnings' => []];
+        return ['ok' => false, 'message' => t('Aktualizace už probíhá v jiném okně.'), 'warnings' => []];
     }
     @set_time_limit(300);
     ignore_user_abort(true);
@@ -548,18 +548,18 @@ function allstat_update_install(PDO $pdo, int $actorId, bool $reinstall = false,
         $status = allstat_update_check($pdo, true);
         $latest = $status['latest'];
         if ($latest === null || (!$reinstall && !$status['available'])) {
-            throw new RuntimeException($latest === null ? 'Nepodařilo se zjistit vydání na GitHubu.' : 'Není k dispozici novější verze.');
+            throw new RuntimeException($latest === null ? t('Nepodařilo se zjistit vydání na GitHubu.') : t('Není k dispozici novější verze.'));
         }
         $preflight = allstat_update_preflight($latest);
         if (!$preflight['ok']) {
-            throw new RuntimeException('Kontrola serveru neprošla, podrobnosti jsou na stránce Aktualizace.');
+            throw new RuntimeException(t('Kontrola serveru neprošla, podrobnosti jsou na stránce Aktualizace.'));
         }
 
         // 1) Stažení a ověření (SHA-256 + podpis).
         $zipPath = $work . '/allstat-' . $latest['version'] . '.zip';
         $download = allstat_update_fetch($latest['zip_url'], 120);
         if ($download['status'] !== 200 || $download['body'] === '' || strlen($download['body']) > ALLSTAT_UPDATE_MAX_BYTES) {
-            throw new RuntimeException('Balíček se nepodařilo stáhnout (HTTP ' . $download['status'] . ').');
+            throw new RuntimeException(t('Balíček se nepodařilo stáhnout (HTTP {status}).', ['status' => $download['status']]));
         }
         file_put_contents($zipPath, $download['body']);
         if ($error = allstat_update_verify_package($zipPath, $latest)) {
@@ -573,12 +573,12 @@ function allstat_update_install(PDO $pdo, int $actorId, bool $reinstall = false,
         $packageFiles = allstat_update_zip_extract($zipPath, $stage);
         $packageVersion = trim((string) @file_get_contents($stage . '/VERSION'));
         if ($packageVersion !== $latest['version']) {
-            throw new RuntimeException('Verze v balíčku (' . $packageVersion . ') nesedí s vydáním ' . $latest['version'] . '.');
+            throw new RuntimeException(t('Verze v balíčku ({package}) nesedí s vydáním {release}.', ['package' => $packageVersion, 'release' => $latest['version']]));
         }
         $newManifest = allstat_update_read_manifest($stage . '/lib/manifest.json');
         foreach ($newManifest['files'] as $rel => $meta) {
             if (!is_file($stage . '/' . $rel) || hash_file('sha256', $stage . '/' . $rel) !== ($meta['h'] ?? '')) {
-                throw new RuntimeException('Balíček je neúplný (' . $rel . ').');
+                throw new RuntimeException(t('Balíček je neúplný ({file}).', ['file' => $rel]));
             }
         }
         $oldManifest = allstat_update_read_manifest($root . '/lib/manifest.json');
@@ -629,12 +629,12 @@ function allstat_update_install(PDO $pdo, int $actorId, bool $reinstall = false,
             if (hash_file('sha256', $path) === ($meta['h'] ?? '')) {
                 $delete[] = $rel;
             } else {
-                $warnings[] = 'Soubor ' . $rel . ' nová verze už nepoužívá, ale má vaše úpravy, proto zůstal.';
+                $warnings[] = t('Soubor {file} nová verze už nepoužívá, ale má vaše úpravy, proto zůstal.', ['file' => $rel]);
             }
         }
         foreach (allstat_update_modified_files() as $rel) {
             if (isset($write[$rel])) {
-                $warnings[] = 'Soubor ' . $rel . ' měl ruční úpravy a byl přepsán (původní je v záloze).';
+                $warnings[] = t('Soubor {file} měl ruční úpravy a byl přepsán (původní je v záloze).', ['file' => $rel]);
             }
         }
 
@@ -650,7 +650,7 @@ function allstat_update_install(PDO $pdo, int $actorId, bool $reinstall = false,
                     mkdir(dirname($backupDir . '/files/' . $rel), 0755, true);
                 }
                 if (!copy($path, $backupDir . '/files/' . $rel)) {
-                    throw new RuntimeException('Zálohu souboru ' . $rel . ' se nepodařilo vytvořit, nic se nezměnilo.');
+                    throw new RuntimeException(t('Zálohu souboru {file} se nepodařilo vytvořit, nic se nezměnilo.', ['file' => $rel]));
                 }
                 $backedUp[] = $rel;
             } else {
@@ -664,10 +664,10 @@ function allstat_update_install(PDO $pdo, int $actorId, bool $reinstall = false,
             foreach ($write as $targetRel => $sourceRel) {
                 $target = $root . '/' . $targetRel;
                 if (!is_dir(dirname($target)) && !@mkdir(dirname($target), 0755, true)) {
-                    throw new RuntimeException('Nelze vytvořit složku pro ' . $targetRel);
+                    throw new RuntimeException(t('Nelze vytvořit složku pro {file}', ['file' => $targetRel]));
                 }
                 if (!@rename($stage . '/' . $sourceRel, $target) && !@copy($stage . '/' . $sourceRel, $target)) {
-                    throw new RuntimeException('Soubor ' . $targetRel . ' se nepodařilo zapsat.');
+                    throw new RuntimeException(t('Soubor {file} se nepodařilo zapsat.', ['file' => $targetRel]));
                 }
                 $done[] = $targetRel;
             }
@@ -678,7 +678,7 @@ function allstat_update_install(PDO $pdo, int $actorId, bool $reinstall = false,
             foreach ($done as $rel) {
                 in_array($rel, $backedUp, true) ? @copy($backupDir . '/files/' . $rel, $root . '/' . $rel) : @unlink($root . '/' . $rel);
             }
-            throw new RuntimeException($swapError->getMessage() . ' Změněné soubory byly vráceny ze zálohy.');
+            throw new RuntimeException(t('{message} Změněné soubory byly vráceny ze zálohy.', ['message' => $swapError->getMessage()]));
         }
 
         allstat_update_opcache_invalidate($root, array_keys($write));
@@ -701,10 +701,9 @@ function allstat_update_install(PDO $pdo, int $actorId, bool $reinstall = false,
         // Upozornit jen na upravené soubory, kterým z nové verze opravdu něco chybí (zbytečný .new se tím rovnou smaže).
         if ($keptProtected) {
             foreach (array_intersect($keptProtected, array_column(allstat_update_protected_pending(), 'file')) as $rel) {
-                $warnings[] = (in_array($rel, $mergeFailed, true)
-                    ? 'Pravidla do souboru ' . $rel . ' nešlo doplnit automaticky (AllStat pak neodpovídal nebo to nešlo ověřit), soubor zůstal beze změny. AllStat funguje, '
-                    : 'Soubor ' . $rel . ' má na hostingu vlastní úpravy, proto ho aktualizace nepřepsala. AllStat funguje, ')
-                    . 'jen nová verze v tomto souboru mění pravidla: co doplnit, ukazuje karta „Soubor ' . $rel . '“ na stránce Aktualizace.';
+                $warnings[] = in_array($rel, $mergeFailed, true)
+                    ? t('Pravidla do souboru {file} nešlo doplnit automaticky (AllStat pak neodpovídal nebo to nešlo ověřit), soubor zůstal beze změny. AllStat funguje, jen nová verze v tomto souboru mění pravidla: co doplnit, ukazuje karta „Soubor {file}“ na stránce Aktualizace.', ['file' => $rel])
+                    : t('Soubor {file} má na hostingu vlastní úpravy, proto ho aktualizace nepřepsala. AllStat funguje, jen nová verze v tomto souboru mění pravidla: co doplnit, ukazuje karta „Soubor {file}“ na stránce Aktualizace.', ['file' => $rel]);
             }
         }
 
@@ -734,10 +733,10 @@ function allstat_update_install(PDO $pdo, int $actorId, bool $reinstall = false,
         }
 
         $message = $reinstall
-            ? 'AllStat je obnovený z vydání ' . $latest['version'] . ' na GitHubu (předtím ' . $installed . ').'
-            : 'AllStat je aktualizovaný na verzi ' . $latest['version'] . '.';
+            ? t('AllStat je obnovený z vydání {version} na GitHubu (předtím {installed}).', ['version' => $latest['version'], 'installed' => $installed])
+            : t('AllStat je aktualizovaný na verzi {version}.', ['version' => $latest['version']]);
         if ($mergedOk) {
-            $message .= ' Pravidla AllStatu v souboru .htaccess jsou doplněná, vlastní úpravy zůstaly beze změny.';
+            $message .= ' ' . t('Pravidla AllStatu v souboru .htaccess jsou doplněná, vlastní úpravy zůstaly beze změny.');
         }
 
         return ['ok' => true, 'message' => $message, 'warnings' => $warnings];
@@ -758,7 +757,7 @@ function allstat_update_rollback(PDO $pdo, int $actorId): array
     rsort($backups);
     $record = $backups ? json_decode((string) @file_get_contents($backups[0] . '/update.json'), true) : null;
     if (!is_array($record) || allstat_installed_version() !== ($record['to'] ?? null)) {
-        return ['ok' => false, 'message' => 'Není k dispozici záloha, ke které by se dalo vrátit.'];
+        return ['ok' => false, 'message' => t('Není k dispozici záloha, ke které by se dalo vrátit.')];
     }
     $root = allstat_update_root();
     foreach ($record['added'] ?? [] as $rel) {
@@ -766,7 +765,7 @@ function allstat_update_rollback(PDO $pdo, int $actorId): array
     }
     foreach ($record['backed_up'] ?? [] as $rel) {
         if (!@copy($backups[0] . '/files/' . $rel, $root . '/' . $rel)) {
-            return ['ok' => false, 'message' => 'Soubor ' . $rel . ' se nepodařilo vrátit. Záloha je ve složce _update/' . basename($backups[0]) . '.'];
+            return ['ok' => false, 'message' => t('Soubor {file} se nepodařilo vrátit. Záloha je ve složce _update/{folder}.', ['file' => $rel, 'folder' => basename($backups[0])])];
         }
     }
     allstat_update_opcache_invalidate($root, array_merge($record['added'] ?? [], $record['backed_up'] ?? []));
@@ -776,5 +775,5 @@ function allstat_update_rollback(PDO $pdo, int $actorId): array
     allstat_set_setting($pdo, 'update.history', json_encode(array_slice($history, 0, 20), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
     allstat_audit($pdo, $actorId, null, 'app_rollback', $record['to'] . ' → ' . $record['from']);
 
-    return ['ok' => true, 'message' => 'Vráceno na verzi ' . $record['from'] . '.'];
+    return ['ok' => true, 'message' => t('Vráceno na verzi {version}.', ['version' => $record['from']])];
 }

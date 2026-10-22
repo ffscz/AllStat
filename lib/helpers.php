@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/i18n.php';
+
 function h(mixed $value): string
 {
     return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
@@ -7,7 +9,9 @@ function h(mixed $value): string
 
 function allstat_number(float|int|null $value, int $decimals = 0): string
 {
-    return number_format((float) ($value ?? 0), $decimals, ',', ' ');
+    [$decimal, $thousands] = allstat_locale_separators();
+
+    return number_format((float) ($value ?? 0), $decimals, $decimal, $thousands);
 }
 
 function allstat_percent(float|int|null $value, int $decimals = 1): string
@@ -174,13 +178,13 @@ function allstat_change_label(?float $change): string
 function allstat_iso_to_cz(?string $value): string
 {
     if (!$value) {
-        return 'nesync.';
+        return t('nesync.');
     }
 
     try {
-        return (new DateTimeImmutable($value))->format('d.m. H:i');
+        return (new DateTimeImmutable($value))->format(allstat_locale() === 'en' ? 'j M H:i' : 'd.m. H:i');
     } catch (Throwable) {
-        return 'nesync.';
+        return t('nesync.');
     }
 }
 
@@ -245,8 +249,8 @@ function allstat_help_link(string $anchor, string $label): string
 /** Otazník v záhlaví stránky: otevře kapitolu návodu, která ke stránce patří ('' = začátek návodu). */
 function allstat_help_button(string $anchor = ''): string
 {
-    return '<a class="icon-button" href="' . h(allstat_docs_url($anchor)) . '" target="_blank" rel="noopener" title="Nápověda: návod na webu"'
-        . ' aria-label="Nápověda, návod se otevře v nové kartě">' . allstat_icon('circle-help') . '</a>';
+    return '<a class="icon-button" href="' . h(allstat_docs_url($anchor)) . '" target="_blank" rel="noopener" title="' . h(t('Nápověda: návod na webu')) . '"'
+        . ' aria-label="' . h(t('Nápověda, návod se otevře v nové kartě')) . '">' . allstat_icon('circle-help') . '</a>';
 }
 
 /** Podkapitola návodu o napojení dané služby (klíč z data_sources.provider_key). */

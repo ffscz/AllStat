@@ -84,7 +84,7 @@ function allstat_mcp_tool_annotations(string $title): array
 }
 
 /**
- * The 10 tools in a fixed order (deterministic tools/list).
+ * The 11 tools in a fixed order (deterministic tools/list).
  */
 function allstat_mcp_tool_definitions(): array
 {
@@ -102,10 +102,11 @@ function allstat_mcp_tool_definitions(): array
         'annotations' => allstat_mcp_tool_annotations($title),
         'securitySchemes' => $security,
     ];
+    // Prázdné "required" starší validátory JSON Schema (draft-04) odmítají, proto se u nástrojů bez povinných parametrů vynechá.
     $object = static fn (array $props, array $required): array => [
         'type' => 'object',
         'properties' => $props,
-        'required' => $required,
+    ] + ($required !== [] ? ['required' => $required] : []) + [
         'additionalProperties' => false,
     ];
 
@@ -113,8 +114,22 @@ function allstat_mcp_tool_definitions(): array
         $tool(
             'list_websites',
             'Weby a napojené zdroje',
-            'Vrátí weby v AllStatu (website_id, název, adresa) a jejich napojené zdroje dat (Google Analytics, Search Console, sociální sítě, reklamy, YouTube, Clarity) se stavem poslední synchronizace a upozorněním na zastaralá data. Začněte tímto nástrojem: website_id a source_id z něj potřebují všechny ostatní nástroje. Dál typicky get_report nebo get_channel_growth.',
-            ['type' => 'object', 'additionalProperties' => false]
+            'Vrátí weby v AllStatu (website_id, název, adresa, Google účty, přes které jsou napojené) a jejich napojené zdroje dat (Google Analytics, Search Console, sociální sítě, reklamy, YouTube, Clarity) se stavem poslední synchronizace a upozorněním na zastaralá data. Začněte tímto nástrojem: website_id a source_id z něj potřebují všechny ostatní nástroje. Když uživatel řekne, ve kterém Google účtu weby jsou (například „je to v CITADELA“), předejte název v parametru account. Dál typicky get_websites_summary, get_report nebo get_channel_growth.',
+            $object([
+                'account' => ['type' => 'string', 'maxLength' => 120, 'description' => 'Jen weby napojené přes Google účet, jehož název obsahuje tento text (velikost písmen nevadí).'],
+            ], [])
+        ),
+        $tool(
+            'get_websites_summary',
+            'Souhrn všech webů',
+            'Vrátí jedním voláním souhrn všech webů za období: návštěvy, klíčové události, tržby a kliknutí ze Search Console, každou metriku se srovnáním s předchozím obdobím, a součty za všechny weby. Použijte na otázky typu „jak si vedly weby tento měsíc“, „který web nejvíc ztratil“ nebo „porovnej tyto dva weby“; pro detail jednoho webu pak get_overview nebo get_report. Čte jen uložená data.',
+            $object([
+                'account' => ['type' => 'string', 'maxLength' => 120, 'description' => 'Jen weby napojené přes Google účet, jehož název obsahuje tento text.'],
+                'website_ids' => ['type' => 'array', 'items' => ['type' => 'integer', 'minimum' => 1], 'maxItems' => 200, 'description' => 'Jen tyto weby (website_id z list_websites).'],
+            ] + allstat_mcp_tool_props_period() + [
+                'sort' => ['type' => 'string', 'enum' => ['visits', 'change', 'name'], 'default' => 'visits', 'description' => 'visits = nejvíc návštěv první, change = největší pokles návštěv první, name = podle názvu.'],
+                'limit' => ['type' => 'integer', 'minimum' => 1, 'maximum' => 200, 'default' => 50, 'description' => 'Kolik webů vrátit.'],
+            ], [])
         ),
         $tool(
             'get_report',
@@ -1063,6 +1078,7 @@ function allstat_mcp_tool_call(PDO $pdo, array $config, string $name, array $arg
 
     return match ($name) {
         'list_websites' => allstat_mcp_tool_list_websites($pdo, $config, $a),
+        'get_websites_summary' => allstat_mcp_tool_get_websites_summary($pdo, $config, $a),
         'get_report' => allstat_mcp_tool_get_report($pdo, $config, $a),
         'get_channel_growth' => allstat_mcp_tool_get_channel_growth($pdo, $config, $a),
         'get_overview' => allstat_mcp_tool_get_overview($pdo, $config, $a),
@@ -1134,9 +1150,49 @@ function allstat_mcp_tool_format_source(array $r, int $nowTs): array
  * Tool 1: list_websites
  * ---------------------------------------------------------------------------------------------- */
 
-function allstat_mcp_tool_list_websites(PDO $pdo, array $config, array $a): array
+/**
+ * Názvy Google účtů, přes které jsou weby napojené (stejně jako stránka Všechny weby, lib/sites.php).
+ *
+ * @param list<int> $ids
+ * @return array<int, list<string>>
+ */
+function allstat_mcp_tool_google_accounts(PDO $pdo, array $ids): array
+{
+    require_once __DIR__ . '/sites.php';
+
+    return allstat_sites_google_accounts($pdo, $ids);
+}
+
+/**
+ * Weby omezené parametrem account (část názvu Google účtu, bez ohledu na velikost písmen).
+ *
+ * @return array{domains:list<array>, accounts:array<int, list<string>>, all_accounts:list<string>}
+ */
+function allstat_mcp_tool_domains_by_account(PDO $pdo, array $a): array
 {
     $domains = allstat_get_domains($pdo);
+    $accounts = allstat_mcp_tool_google_accounts($pdo, array_map(static fn (array $d): int => (int) $d['id'], $domains));
+    $all = array_values(array_unique(array_merge([], ...array_values($accounts))));
+    $needle = is_string($a['account'] ?? null) ? mb_strtolower(trim(mb_substr($a['account'], 0, 120))) : '';
+    if ($needle !== '') {
+        $domains = array_values(array_filter($domains, static function (array $d) use ($accounts, $needle): bool {
+            foreach ($accounts[(int) $d['id']] ?? [] as $label) {
+                if (str_contains(mb_strtolower($label), $needle)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }));
+    }
+
+    return ['domains' => $domains, 'accounts' => $accounts, 'all_accounts' => $all];
+}
+
+function allstat_mcp_tool_list_websites(PDO $pdo, array $config, array $a): array
+{
+    $byAccount = allstat_mcp_tool_domains_by_account($pdo, $a);
+    $domains = $byAccount['domains'];
     $ids = array_map(static fn (array $d): int => (int) $d['id'], $domains);
     $byWebsite = allstat_mcp_tool_sources($pdo, $ids);
 
@@ -1186,6 +1242,7 @@ function allstat_mcp_tool_list_websites(PDO $pdo, array $config, array $a): arra
             'website_id' => $id,
             'name' => allstat_mcp_tool_sanitize($d['name']),
             'url' => allstat_mcp_tool_sanitize($d['url']),
+            'google_accounts' => array_map('allstat_mcp_tool_sanitize', $byAccount['accounts'][$id] ?? []),
             'data_from' => $range[$id][0] ?? null,
             'data_to' => $range[$id][1] ?? null,
             'sources' => $sources,
@@ -1203,12 +1260,98 @@ function allstat_mcp_tool_list_websites(PDO $pdo, array $config, array $a): arra
         $hints[] = 'Pozor, zdroje bez synchronizace déle než ' . ALLSTAT_MCP_TOOL_STALE_HOURS . ' hodin nebo nikdy nesynchronizované: ' . implode(', ', $staleNames) . '. Data z nich mohou být neúplná.';
     }
     if (!$websites) {
-        $hints[] = 'V AllStatu není žádný aktivní web.';
+        $hints[] = is_string($a['account'] ?? null) && trim($a['account']) !== ''
+            ? 'Žádný web není napojený přes Google účet s tímto názvem. Google účty v AllStatu: ' . ($byAccount['all_accounts'] ? implode(', ', array_map('allstat_mcp_tool_sanitize', $byAccount['all_accounts'])) : 'žádné') . '.'
+            : 'V AllStatu není žádný aktivní web.';
     }
 
     return allstat_mcp_tool_success([
         'today' => $today->format('Y-m-d'),
         'timezone' => date_default_timezone_get(),
+        'websites' => $websites,
+        'hints' => $hints,
+    ]);
+}
+
+/* ------------------------------------------------------------------------------------------------
+ * Tool 1b: get_websites_summary
+ * ---------------------------------------------------------------------------------------------- */
+
+function allstat_mcp_tool_get_websites_summary(PDO $pdo, array $config, array $a): array
+{
+    require_once __DIR__ . '/sites.php';
+
+    $per = allstat_mcp_tool_resolve_period($a);
+    if (!$per['ok']) {
+        return allstat_mcp_tool_error($per['error']);
+    }
+
+    $byAccount = allstat_mcp_tool_domains_by_account($pdo, $a);
+    $domains = $byAccount['domains'];
+    // Prázdné website_ids = bez omezení; neznámá ID se vypíšou v nápovědě.
+    $unknownIds = [];
+    if (isset($a['website_ids']) && is_array($a['website_ids']) && $a['website_ids'] !== []) {
+        $wanted = [];
+        foreach (array_slice(array_values($a['website_ids']), 0, 200) as $raw) {
+            $wanted[(int) $raw] = (string) $raw;
+        }
+        $known = array_flip(array_map(static fn (array $d): int => (int) $d['id'], $domains));
+        $unknownIds = array_values(array_diff_key($wanted, $known));
+        $domains = array_values(array_filter($domains, static fn (array $d): bool => isset($wanted[(int) $d['id']])));
+    }
+
+    $overview = allstat_sites_overview($pdo, $domains, $per['start'], $per['end'], false);
+    $sort = in_array($a['sort'] ?? 'visits', ['visits', 'change', 'name'], true) ? (string) ($a['sort'] ?? 'visits') : 'visits';
+    $limit = max(1, min(200, (int) ($a['limit'] ?? 50)));
+    $sites = allstat_sites_sort($overview['sites'], $sort);
+    $names = ['visits' => 'sessions', 'conversions' => 'key_events', 'revenue' => 'revenue', 'clicks' => 'search_clicks'];
+    $metrics = static function (array $current, array $previous, array $change) use ($names): array {
+        $out = [];
+        foreach ($names as $key => $name) {
+            $out[$name] = ['value' => round((float) $current[$key], 2), 'previous' => round((float) $previous[$key], 2), 'change_pct' => $change[$key]];
+        }
+
+        return $out;
+    };
+
+    $websites = [];
+    foreach (array_slice($sites, 0, $limit) as $s) {
+        $websites[] = [
+            'website_id' => $s['id'],
+            'name' => allstat_mcp_tool_sanitize($s['name']),
+            'url' => allstat_mcp_tool_sanitize($s['url']),
+            'google_accounts' => array_map('allstat_mcp_tool_sanitize', $byAccount['accounts'][$s['id']] ?? []),
+            'has_ga4' => $s['has_ga4'],
+            'has_search_console' => $s['has_gsc'],
+            'last_data_date' => $s['last_date'],
+            'metrics' => $metrics($s['current'], $s['previous'], $s['change']),
+        ];
+    }
+
+    $hints = [
+        'sessions, key_events a revenue jsou z Google Analytics (revenue v měně property), search_clicks ze Search Console, které má zpoždění 2 až 3 dny.',
+        'change_pct je změna proti předchozímu období ' . $overview['previous']['start'] . ' až ' . $overview['previous']['end'] . '; null znamená, že předchozí období nemá data.',
+        'Detail jednoho webu: get_overview nebo get_report s website_id.',
+    ];
+    if (count($sites) > $limit) {
+        $hints[] = 'Vráceno ' . $limit . ' z ' . count($sites) . ' webů (parametr limit).';
+    }
+    if ($unknownIds) {
+        $hints[] = 'Tato website_id neexistují nebo nejsou v zadaném výběru: ' . implode(', ', array_map(static fn (string $v): string => allstat_mcp_tool_sanitize(mb_substr($v, 0, 40)), array_slice($unknownIds, 0, 20)))
+            . '. Platná website_id vrací list_websites.';
+    }
+    if (!$websites) {
+        $hints[] = is_string($a['account'] ?? null) && trim($a['account']) !== ''
+            ? 'Žádný web není napojený přes Google účet s tímto názvem. Google účty v AllStatu: ' . ($byAccount['all_accounts'] ? implode(', ', array_map('allstat_mcp_tool_sanitize', $byAccount['all_accounts'])) : 'žádné') . '.'
+            : 'Žádný web neodpovídá zadání.';
+    }
+
+    return allstat_mcp_tool_success([
+        // Období, za které se opravdu počítalo (overview ho může zkrátit stejně jako resolve_period).
+        'period' => ['start' => $overview['start'], 'end' => $overview['end']] + allstat_mcp_tool_period_payload($per),
+        'previous_period' => $overview['previous'],
+        'totals' => $metrics($overview['totals']['current'], $overview['totals']['previous'], $overview['totals']['change']),
+        'websites_total' => count($sites),
         'websites' => $websites,
         'hints' => $hints,
     ]);
@@ -2562,7 +2705,8 @@ function allstat_mcp_tool_get_funnel(PDO $pdo, array $config, array $a): array
     // 11. a 12. řádek se musí přičíst do „Ostatní“ (dřív se tiše ztrácely).
     $rows = $bd['rows'];
     $rest = null;
-    if ($rows && end($rows)['label'] === 'Ostatní') {
+    // Souhrnný řádek se pozná podle značky, popisek „Ostatní“ je přeložený do jazyka uživatele.
+    if ($rows && (!empty(end($rows)['isOther']) || end($rows)['label'] === 'Ostatní')) {
         $rest = array_pop($rows);
     }
     $overflow = array_slice($rows, 10);

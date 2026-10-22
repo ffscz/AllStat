@@ -11,7 +11,7 @@ require_once __DIR__ . '/providers.php';
  * v allstat_default_providers, nové výchozí settings) ZVEDNI tuhle konstantu — jinak se změna na
  * produkci neprovede. Formát: YYYY-MM-DD.N.
  */
-const ALLSTAT_SCHEMA_VERSION = '2026-10-06.1';
+const ALLSTAT_SCHEMA_VERSION = '2026-10-22.3';
 
 function allstat_schema_is_current(PDO $pdo): bool
 {
@@ -708,6 +708,38 @@ function allstat_migrate(PDO $pdo): void
             }
         }
     } catch (Throwable) { /* nastavení nejsou kritická */ }
+
+    // Google účty (2026-10-22): jedno přihlášení Googlem pro víc webů (lib/google-accounts.php). Napojení
+    // s oauth_account_id bere token z účtu, ostatní napojení mají dál vlastní Client ID a tokeny.
+    $pdo->exec("CREATE TABLE IF NOT EXISTS allstat_oauth_accounts (
+        id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        provider VARCHAR(20) NOT NULL DEFAULT 'google',
+        label VARCHAR(120) NOT NULL,
+        account_email VARCHAR(190) NULL,
+        account_sub VARCHAR(64) NULL,
+        access_token_enc TEXT NULL,
+        refresh_token_enc TEXT NULL,
+        token_expires_at DATETIME NULL,
+        scopes TEXT NULL,
+        status ENUM('ok','warning','error') NOT NULL DEFAULT 'warning',
+        note VARCHAR(220) NULL,
+        discovery_json MEDIUMTEXT NULL,
+        discovered_at DATETIME NULL,
+        created_by INT UNSIGNED NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        KEY allstat_oauth_accounts_provider_idx (provider, account_email),
+        UNIQUE KEY allstat_oauth_accounts_sub_unique (provider, account_sub)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_czech_ci");
+    // sub = stálé ID Google účtu (2026-10-22.2), podle něj se pozná stejný účet při obnovení připojení.
+    allstat_add_column($pdo, 'allstat_oauth_accounts', 'account_sub', 'account_sub VARCHAR(64) NULL AFTER account_email');
+    allstat_add_index($pdo, 'allstat_oauth_accounts', 'allstat_oauth_accounts_sub_unique', 'UNIQUE KEY allstat_oauth_accounts_sub_unique (provider, account_sub)');
+    allstat_add_column($pdo, 'domain_sources', 'oauth_account_id', 'oauth_account_id INT UNSIGNED NULL AFTER source_id');
+
+    // Jazyk rozhraní (2026-10-22.3, lib/i18n.php): u uživatele (NULL = výchozí jazyk instalace) a výchozí pro instalaci.
+    allstat_add_column($pdo, 'allstat_users', 'locale', 'locale VARCHAR(5) NULL AFTER domain_access');
+    allstat_setting_default($pdo, 'app.locale', 'cs');
+    allstat_add_index($pdo, 'domain_sources', 'domain_sources_oauth_account_idx', 'KEY domain_sources_oauth_account_idx (oauth_account_id)');
 
     allstat_migrate_mcp($pdo); // izolované: selhání DDL MCP nesmí zastavit zbytek migrace ani aplikaci
 
