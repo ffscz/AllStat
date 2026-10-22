@@ -77,7 +77,7 @@ foreach ($sources as $sourceRow) {
 // or ?source_id= picked on sources.php). With no provider there is nothing to render → send the
 // user back to the service picker.
 if (!$id && (!$selectedSource || $selectedSourceId <= 0)) {
-    allstat_flash('info', 'Vyber službu, kterou chceš připojit.');
+    allstat_flash('info', t('Vyber službu, kterou chceš připojit.'));
     allstat_redirect($config, 'admin/sources.php' . ($domainId ? '?domain_id=' . $domainId : ''));
 }
 
@@ -114,10 +114,10 @@ $basicValue = static function (array $f) use ($connection, $existingConfig): str
 };
 $basicPlaceholder = static function (array $f) use ($connection, $existingConfig): string {
     if (!empty($f['secret']) && allstat_secret_present($connection[$f['secret']] ?? null)) {
-        return 'uloženo, nechte prázdné pro zachování';
+        return t('uloženo, nechte prázdné pro zachování');
     }
     if (!empty($f['secret_config']) && !empty($existingConfig[$f['config']])) {
-        return 'uloženo, nechte prázdné pro zachování';
+        return t('uloženo, nechte prázdné pro zachování');
     }
     return (string) ($f['placeholder'] ?? '');
 };
@@ -136,15 +136,28 @@ $advInput = static function (string $name, string $label, string $type = 'text',
             : (string) ($connection[$name] ?? '');
     }
     if ($isSecret && allstat_secret_present($connection[$secretCols[$name]] ?? null)) {
-        $placeholder = 'uloženo, nechte prázdné pro zachování';
+        $placeholder = t('uloženo, nechte prázdné pro zachování');
     }
     echo '<label><span>' . h($label) . '</span><input type="' . h($type) . '" name="' . h($name) . '" value="' . h($value) . '" placeholder="' . h($placeholder) . '" autocomplete="' . ($isSecret ? 'new-password' : 'off') . '"></label>';
 };
 
 // Dárci OAuth údajů: jeden za každý odlišný Client ID (= Google projekt). Víc tlačítek jen když jsou projekty dva.
 $oauthDonors = ($id && $connect === 'oauth') ? allstat_oauth_donors($pdo, (int) $id, $providerKey) : [];
-$title = $id ? (string) $connection['source_name'] : 'Nové napojení – ' . ($selectedSource['name'] ?? 'služba');
-allstat_admin_header($id ? 'Upravit zdroj' : 'Nové napojení', 'sources', $user, $config, allstat_help_anchor_for_provider($providerKey));
+// Google účty (admin/google-accounts.php): GA4 a Search Console se můžou přihlašovat účtem místo vlastního Client ID.
+$googleAccounts = in_array($providerKey, ['ga4', 'gsc'], true)
+    ? allstat_fetch_all($pdo, "SELECT id, label, account_email FROM allstat_oauth_accounts WHERE provider = 'google' ORDER BY label, id")
+    : [];
+$connectionAccount = null;
+foreach ($googleAccounts as $googleAccount) {
+    if ((int) $googleAccount['id'] === (int) ($connection['oauth_account_id'] ?? 0)) {
+        $connectionAccount = $googleAccount;
+    }
+}
+if ($connectionAccount) {
+    $oauthDonors = [];
+}
+$title = $id ? (string) $connection['source_name'] : t('Nové napojení – {name}', ['name' => $selectedSource['name'] ?? t('služba')]);
+allstat_admin_header($id ? t('Upravit zdroj') : t('Nové napojení'), 'sources', $user, $config, allstat_help_anchor_for_provider($providerKey));
 ?>
 <div class="admin-card">
     <div class="admin-card-header">
@@ -156,29 +169,30 @@ allstat_admin_header($id ? 'Upravit zdroj' : 'Nové napojení', 'sources', $user
     <?php if ($id): ?>
     <div class="source-toolbar">
         <div class="source-toolbar-group">
-            <span class="source-toolbar-label">Připojení</span>
-            <?php if ($connect === 'oauth'): ?><a class="button-primary" href="oauth-start.php?connection_id=<?= (int) $id ?>">Spustit OAuth</a><?php endif; ?>
-            <?php if ($connect === 'meta'): ?><a class="button-primary" href="meta-connect.php"><?= allstat_meta_button_icon() ?> Připojit přes Meta</a><?php endif; ?>
+            <span class="source-toolbar-label"><?= h(t('Připojení')) ?></span>
+            <?php if ($connectionAccount): ?><a class="button-secondary" href="google-accounts.php" title="<?= h(t('Přihlášení a tokeny se spravují u účtu')) ?>"><?= h(t('Google účet: {label}', ['label' => $connectionAccount['label']])) ?></a>
+            <?php elseif ($connect === 'oauth'): ?><a class="button-primary" href="oauth-start.php?connection_id=<?= (int) $id ?>"><?= h(t('Spustit OAuth')) ?></a><?php endif; ?>
+            <?php if ($connect === 'meta'): ?><a class="button-primary" href="meta-connect.php"><?= allstat_meta_button_icon() ?> <?= h(t('Připojit přes Meta')) ?></a><?php endif; ?>
             <?php foreach ($oauthDonors as $oauthDonor): ?>
             <form method="post" style="display:inline">
                 <?= allstat_csrf_field() ?>
                 <input type="hidden" name="action" value="inherit_oauth">
                 <input type="hidden" name="id" value="<?= (int) $id ?>">
                 <input type="hidden" name="donor_id" value="<?= (int) $oauthDonor['id'] ?>">
-                <button type="submit" class="button-secondary" title="Zkopíruje Client ID i Client secret z napojení „<?= h($oauthDonor['label']) ?>" (Client ID <?= h(substr((string) $oauthDonor['client_id'], 0, 12)) ?>…). <?= count($oauthDonors) > 1 ? 'Každé tlačítko = jiný Google projekt (OAuth aplikace); vyber ten, ve kterém má účet pro přihlášení přístup.' : 'Nemusíš je hledat ručně.' ?>">Převzít údaje z „<?= h(count($oauthDonors) > 1 ? $oauthDonor['label'] : $oauthDonor['name']) ?>"</button>
+                <button type="submit" class="button-secondary" title="<?= h(t('Zkopíruje Client ID i Client secret z napojení „{label}" (Client ID {clientId}…). {hint}', ['label' => $oauthDonor['label'], 'clientId' => substr((string) $oauthDonor['client_id'], 0, 12), 'hint' => count($oauthDonors) > 1 ? t('Každé tlačítko = jiný Google projekt (OAuth aplikace); vyber ten, ve kterém má účet pro přihlášení přístup.') : t('Nemusíš je hledat ručně.')])) ?>"><?= h(t('Převzít údaje z „{name}"', ['name' => count($oauthDonors) > 1 ? $oauthDonor['label'] : $oauthDonor['name']])) ?></button>
             </form>
             <?php endforeach; ?>
-            <button type="button" class="button-secondary" data-connection-test="<?= (int) $id ?>" data-csrf="<?= h(allstat_csrf_token()) ?>">Otestovat napojení</button>
+            <button type="button" class="button-secondary" data-connection-test="<?= (int) $id ?>" data-csrf="<?= h(allstat_csrf_token()) ?>"><?= h(t('Otestovat napojení')) ?></button>
         </div>
         <div class="source-toolbar-group">
-            <span class="source-toolbar-label">Data</span>
-            <button type="button" class="button-primary" data-connection-sync="<?= (int) $id ?>" data-csrf="<?= h(allstat_csrf_token()) ?>" title="Stáhne posledních 7 dní VČETNĚ dneška a včerejška. Bezpečné kdykoli: existující dny jen přepíše aktuálními hodnotami, nic neduplikuje.">Stáhnout aktuální data (7 dní)</button>
-            <button type="button" class="button-secondary" data-connection-backfill="<?= (int) $id ?>" data-csrf="<?= h(allstat_csrf_token()) ?>">Stáhnout historii (16 měsíců)</button>
+            <span class="source-toolbar-label"><?= h(t('Data')) ?></span>
+            <button type="button" class="button-primary" data-connection-sync="<?= (int) $id ?>" data-csrf="<?= h(allstat_csrf_token()) ?>" title="<?= h(t('Stáhne posledních 7 dní VČETNĚ dneška a včerejška. Bezpečné kdykoli: existující dny jen přepíše aktuálními hodnotami, nic neduplikuje.')) ?>"><?= h(t('Stáhnout aktuální data (7 dní)')) ?></button>
+            <button type="button" class="button-secondary" data-connection-backfill="<?= (int) $id ?>" data-csrf="<?= h(allstat_csrf_token()) ?>"><?= h(t('Stáhnout historii (16 měsíců)')) ?></button>
             <?php if ($providerKey === 'clarity'): ?>
-            <a class="button-secondary" href="clarity-import.php?domain_id=<?= (int) $connection['domain_id'] ?>">Import CSV (denní)</a>
+            <a class="button-secondary" href="clarity-import.php?domain_id=<?= (int) $connection['domain_id'] ?>"><?= h(t('Import CSV (denní)')) ?></a>
             <?php endif; ?>
             <?php if ($providerKey === 'facebook_pages' || $providerKey === 'instagram_business'): ?>
-            <a class="button-secondary" href="social-import.php?connection_id=<?= (int) $id ?>" title="Doplní z exportu Business Suite, co API nedává (dosah, organické a placené), a obnoví čísla starších příspěvků">Import obsahu z CSV</a>
+            <a class="button-secondary" href="social-import.php?connection_id=<?= (int) $id ?>" title="<?= h(t('Doplní z exportu Business Suite, co API nedává (dosah, organické a placené), a obnoví čísla starších příspěvků')) ?>"><?= h(t('Import obsahu z CSV')) ?></a>
             <?php endif; ?>
         </div>
     </div>
@@ -186,21 +200,21 @@ allstat_admin_header($id ? 'Upravit zdroj' : 'Nové napojení', 'sources', $user
     <?php if ($id): ?>
     <div class="admin-card-body">
         <?php
-        $hasToken = allstat_secret_present($connection['access_token_enc'] ?? null);
+        $hasToken = allstat_secret_present($connection['access_token_enc'] ?? null) || $connectionAccount;
         $backfillDone = !empty($connection['backfill_completed_at']);
         if ($hasToken && !$backfillDone):
         ?>
         <div class="notice notice-info backfill-cta">
-            <strong>Napojení je aktivní, ale historie zatím nebyla stažena.</strong>
-            Klikni na <em>„Stáhnout historii (16 měsíců)"</em> nahoře pro jednorázový import. Poté stačí „Stáhnout aktuální data" (nebo cron).
+            <strong><?= h(t('Napojení je aktivní, ale historie zatím nebyla stažena.')) ?></strong>
+            <?= t('Klikni na <em>„Stáhnout historii (16 měsíců)"</em> nahoře pro jednorázový import. Poté stačí „Stáhnout aktuální data" (nebo cron).') ?>
         </div>
         <?php elseif ($backfillDone): ?>
-        <div class="notice notice-ok backfill-cta">Historie stažena <?= h($connection['backfill_completed_at']) ?>. Aktuálnost udržuje „Stáhnout aktuální data" (nebo denní cron).</div>
+        <div class="notice notice-ok backfill-cta"><?= h(t('Historie stažena {date}. Aktuálnost udržuje „Stáhnout aktuální data" (nebo denní cron).', ['date' => $connection['backfill_completed_at']])) ?></div>
         <?php endif; ?>
         <p class="form-help" style="margin:0 0 6px;">
-            <strong>Ruční aktualizace</strong> (cron zatím neběží): tlačítko <em>„Stáhnout aktuální data (7 dní)"</em> stáhne posledních 7 dní <strong>včetně dneška a včerejška</strong>.
-            Klikat můžeš klidně i víckrát denně, dny se jen <strong>přepíšou aktuálními hodnotami, nic se neduplikuje</strong>.
-            Když některý den zapomeneš, příští stažení dotáhne, co chybí (do 7 dní zpět). Starší období řeš přes „Stáhnout historii".
+            <?= t('<strong>Ruční aktualizace</strong> (cron zatím neběží): tlačítko <em>„Stáhnout aktuální data (7 dní)"</em> stáhne posledních 7 dní <strong>včetně dneška a včerejška</strong>.') ?>
+            <?= t('Klikat můžeš klidně i víckrát denně, dny se jen <strong>přepíšou aktuálními hodnotami, nic se neduplikuje</strong>.') ?>
+            <?= t('Když některý den zapomeneš, příští stažení dotáhne, co chybí (do 7 dní zpět). Starší období řeš přes „Stáhnout historii".') ?>
         </p>
         <div class="connection-result" data-connection-result hidden></div>
         <?php
@@ -212,34 +226,34 @@ allstat_admin_header($id ? 'Upravit zdroj' : 'Nové napojení', 'sources', $user
         ?>
         <section class="quota-panel">
             <header>
-                <h3>Využití Meta API limitu</h3>
-                <p>Stav po posledním syncu<?= $quotaUpdated ? ' (' . h($quotaUpdated) . ')' : '' ?>. Meta jede na <strong>klouzavém 1h okně</strong>, limit se průběžně uvolňuje (hodinu po nárazu je zase skoro na nule). Při ≥ 90 % se sync sám zastaví na ochranu limitu.</p>
+                <h3><?= h(t('Využití Meta API limitu')) ?></h3>
+                <p><?= t('Stav po posledním syncu{updated}. Meta jede na <strong>klouzavém 1h okně</strong>, limit se průběžně uvolňuje (hodinu po nárazu je zase skoro na nule). Při ≥ 90 % se sync sám zastaví na ochranu limitu.', ['updated' => $quotaUpdated ? ' (' . h($quotaUpdated) . ')' : '']) ?></p>
             </header>
             <div class="quota-grid">
                 <div class="quota-item">
                     <div class="quota-item-head">
-                        <span class="quota-item-label">Spotřeba limitu</span>
-                        <span class="quota-badge quota-badge-<?= $mlevel ?>"><?= number_format($mpct, 1, ',', ' ') ?> %</span>
+                        <span class="quota-item-label"><?= h(t('Spotřeba limitu')) ?></span>
+                        <span class="quota-badge quota-badge-<?= $mlevel ?>"><?= allstat_number($mpct, 1) ?> %</span>
                     </div>
                     <div class="quota-bar"><div class="quota-bar-fill quota-bar-<?= $mlevel ?>" style="width: <?= min(100, $mpct) ?>%"></div></div>
-                    <div class="quota-item-foot">nejvyšší z volání / CPU času / celkového času</div>
+                    <div class="quota-item-foot"><?= h(t('nejvyšší z volání / CPU času / celkového času')) ?></div>
                 </div>
             </div>
         </section>
         <?php elseif (is_array($quota)):
             $quotaLabels = [
-                'tokensPerDay' => 'Tokeny / den',
-                'tokensPerHour' => 'Tokeny / hodinu',
-                'tokensPerProjectPerHour' => 'Tokeny / projekt / hodinu',
-                'concurrentRequests' => 'Souběžné requesty',
-                'serverErrorsPerProjectPerHour' => 'Server errors / projekt / hodinu',
-                'potentiallyThresholdedRequestsPerHour' => 'Thresholded requests / hodinu',
+                'tokensPerDay' => t('Tokeny / den'),
+                'tokensPerHour' => t('Tokeny / hodinu'),
+                'tokensPerProjectPerHour' => t('Tokeny / projekt / hodinu'),
+                'concurrentRequests' => t('Souběžné requesty'),
+                'serverErrorsPerProjectPerHour' => t('Server errors / projekt / hodinu'),
+                'potentiallyThresholdedRequestsPerHour' => t('Thresholded requests / hodinu'),
             ];
         ?>
         <section class="quota-panel">
             <header>
-                <h3>Využití API kvóty <?= h($connection['source_name']) ?></h3>
-                <p>Stav po posledním syncu<?= $quotaUpdated ? ' (' . h($quotaUpdated) . ')' : '' ?>. Kvóty se resetují každý den/hodinu.</p>
+                <h3><?= h(t('Využití API kvóty {name}', ['name' => $connection['source_name']])) ?></h3>
+                <p><?= t('Stav po posledním syncu{updated}. Kvóty se resetují každý den/hodinu.', ['updated' => $quotaUpdated ? ' (' . h($quotaUpdated) . ')' : '']) ?></p>
             </header>
             <div class="quota-grid">
                 <?php foreach ($quotaLabels as $key => $label):
@@ -256,14 +270,14 @@ allstat_admin_header($id ? 'Upravit zdroj' : 'Nové napojení', 'sources', $user
                         <span class="quota-badge quota-badge-<?= $level ?>"><?= $pct ?> %</span>
                     </div>
                     <div class="quota-bar"><div class="quota-bar-fill quota-bar-<?= $level ?>" style="width: <?= $pct ?>%"></div></div>
-                    <div class="quota-item-foot">spotřebováno <?= number_format($consumed, 0, ',', ' ') ?> z <?= number_format($total, 0, ',', ' ') ?></div>
+                    <div class="quota-item-foot"><?= h(t('spotřebováno {used} z {total}', ['used' => allstat_number($consumed), 'total' => allstat_number($total)])) ?></div>
                 </div>
                 <?php endforeach; ?>
             </div>
         </section>
         <?php elseif ($providerKey === 'ga4'): ?>
         <section class="quota-panel quota-panel-empty">
-            <p>API kvóty se zobrazí po prvním proběhlém syncu.</p>
+            <p><?= h(t('API kvóty se zobrazí po prvním proběhlém syncu.')) ?></p>
         </section>
         <?php endif; ?>
     </div>
@@ -276,54 +290,69 @@ allstat_admin_header($id ? 'Upravit zdroj' : 'Nové napojení', 'sources', $user
 
             <div class="form-grid">
                 <label>
-                    <span>Web</span>
+                    <span><?= h(t('Web')) ?></span>
                     <select name="domain_id" required><?php foreach ($domains as $domain): ?><option value="<?= (int) $domain['id'] ?>" <?= (int) ($connection['domain_id'] ?? 0) === (int) $domain['id'] ? 'selected' : '' ?>><?= h($domain['name']) ?> (<?= h($domain['url']) ?>)</option><?php endforeach; ?></select>
                 </label>
                 <label>
-                    <span>Název účtu <small>(volitelné)</small></span>
+                    <span><?= h(t('Název účtu')) ?> <small>(<?= h(t('volitelné')) ?>)</small></span>
                     <input type="text" name="account_label" value="<?= h($connection['account_label'] ?? '') ?>" placeholder="<?= h($selectedSource['name'] ?? '') ?>" autocomplete="off">
-                    <small class="field-help">Jak se napojení zobrazí v přehledu (např. název stránky/účtu).</small>
+                    <small class="field-help"><?= h(t('Jak se napojení zobrazí v přehledu (např. název stránky/účtu).')) ?></small>
                 </label>
             </div>
+
+            <?php if ($googleAccounts): ?>
+            <div class="form-grid">
+                <label>
+                    <span><?= h(t('Přihlášení')) ?></span>
+                    <select name="oauth_account_id">
+                        <option value="0"><?= h(t('Vlastní OAuth u tohoto napojení (Client ID a „Spustit OAuth“)')) ?></option>
+                        <?php foreach ($googleAccounts as $googleAccount): ?>
+                        <option value="<?= (int) $googleAccount['id'] ?>"<?= $connectionAccount && (int) $connectionAccount['id'] === (int) $googleAccount['id'] ? ' selected' : '' ?>><?= h(t('Google účet: {label}', ['label' => $googleAccount['label']])) ?><?= $googleAccount['account_email'] ? ' (' . h($googleAccount['account_email']) . ')' : '' ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <small class="field-help"><?= t('S Google účtem se Client ID ani tokeny u napojení nevyplňují, přihlášení se spravuje v <a href="google-accounts.php">Google účtech</a>.') ?></small>
+                </label>
+            </div>
+            <?php endif; ?>
 
             <div class="form-grid">
                 <?php foreach ($schema['fields'] as $f):
                     $type = $f['type'] ?? 'text';
                 ?>
                 <label>
-                    <span><?= h($f['label']) ?><?php if (!empty($f['required'])): ?> <small class="field-req">· nutné</small><?php else: ?> <small>(volitelné)</small><?php endif; ?></span>
+                    <span><?= h($f['label']) ?><?php if (!empty($f['required'])): ?> <small class="field-req">· <?= h(t('nutné')) ?></small><?php else: ?> <small>(<?= h(t('volitelné')) ?>)</small><?php endif; ?></span>
                     <input type="<?= h($type) ?>" name="<?= h($f['name']) ?>" value="<?= h($basicValue($f)) ?>" placeholder="<?= h($basicPlaceholder($f)) ?>" autocomplete="<?= $type === 'password' ? 'new-password' : 'off' ?>">
                     <?php if (!empty($f['help'])): ?><small class="field-help"><?= h($f['help']) ?></small><?php endif; ?>
                 </label>
                 <?php endforeach; ?>
             </div>
 
-            <?php if ($connect === 'oauth'): ?>
+            <?php if ($connect === 'oauth' && !$connectionAccount): ?>
             <div class="code-box">
-                <strong>OAuth callback URL</strong> (zkopíruj do nastavení OAuth aplikace providera, pole „Authorized redirect URLs/URIs"; přesné místo viz „Podrobný návod" níže):<br>
+                <?= t('<strong>OAuth callback URL</strong> (zkopíruj do nastavení OAuth aplikace providera, pole „Authorized redirect URLs/URIs"; přesné místo viz „Podrobný návod" níže):') ?><br>
                 <?= h($callbackUrl) ?>
             </div>
-            <?php if (!$id): ?><p class="form-help">Po uložení se nahoře objeví tlačítko <strong>„Spustit OAuth"</strong>: tím se přihlásíš a uloží se tokeny.</p><?php endif; ?>
+            <?php if (!$id): ?><p class="form-help"><?= t('Po uložení se nahoře objeví tlačítko <strong>„Spustit OAuth"</strong>: tím se přihlásíš a uloží se tokeny.') ?></p><?php endif; ?>
             <?php elseif ($connect === 'token'): ?>
-            <p class="form-help"><?= h($selectedSource['name'] ?? 'Služba') ?> nepoužívá OAuth, stačí API token výše. Po uložení dej <strong>„Otestovat napojení"</strong> a pak „Stáhnout historii".</p>
+            <p class="form-help"><?= t('{name} nepoužívá OAuth, stačí API token výše. Po uložení dej <strong>„Otestovat napojení"</strong> a pak „Stáhnout historii".', ['name' => h($selectedSource['name'] ?? t('Služba'))]) ?></p>
             <?php elseif ($connect === 'meta'): ?>
             <div class="notice notice-info">
-                Tohle napojení se připojuje a obnovuje přes <strong>„Připojit přes Meta"</strong>: jedním přihlášením přes Facebook připojíš stránky, Instagram i reklamní účty (App ID/Secret zadáváš jen jednou). Ruční vyplňování polí tady většinou není potřeba.
-                <a href="meta-connect.php">Otevřít „Připojit přes Meta" →</a>
+                <?= t('Tohle napojení se připojuje a obnovuje přes <strong>„Připojit přes Meta"</strong>: jedním přihlášením přes Facebook připojíš stránky, Instagram i reklamní účty (App ID/Secret zadáváš jen jednou). Ruční vyplňování polí tady většinou není potřeba.') ?>
+                <a href="meta-connect.php"><?= h(t('Otevřít „Připojit přes Meta" →')) ?></a>
             </div>
             <?php endif; ?>
 
             <details class="admin-card-collapsible form-advanced">
                 <summary>
                     <div>
-                        <h2>Pokročilé nastavení</h2>
-                        <p>Endpointy, scopes, tokeny a stav napojení. Většinou není potřeba sem chodit, appka to vyplní sama z OAuthu.</p>
+                        <h2><?= h(t('Pokročilé nastavení')) ?></h2>
+                        <p><?= h(t('Endpointy, scopes, tokeny a stav napojení. Většinou není potřeba sem chodit, appka to vyplní sama z OAuthu.')) ?></p>
                     </div>
                 </summary>
                 <div class="admin-card-body">
                     <div class="form-grid">
                         <?php
-                        $advInput('external_account_id', 'Externí account ID', 'text', 'act_123 / urn:li:organization:123');
+                        $advInput('external_account_id', t('Externí account ID'), 'text', 'act_123 / urn:li:organization:123');
                         $advInput('client_id', 'Client ID', 'text');
                         $advInput('client_secret', 'Client secret', 'password');
                         $advInput('access_token', $connect === 'token' ? 'API token' : 'Access token', 'password');
@@ -331,21 +360,21 @@ allstat_admin_header($id ? 'Upravit zdroj' : 'Nové napojení', 'sources', $user
                         $advInput('auth_url', 'Authorization URL', 'url');
                         $advInput('token_url', 'Token URL', 'url');
                         $advInput('api_base_url', 'API base URL', 'url');
-                        $advInput('token_expires_at', 'Token expiruje', 'datetime-local');
-                        $advInput('last_sync_at', 'Poslední sync', 'datetime-local');
+                        $advInput('token_expires_at', t('Token expiruje'), 'datetime-local');
+                        $advInput('last_sync_at', t('Poslední sync'), 'datetime-local');
                         ?>
                         <?php if (!in_array('status', $basicNames, true)): ?>
-                        <label><span>Stav</span><select name="status"><option value="ok" <?= ($connection['status'] ?? '') === 'ok' ? 'selected' : '' ?>>OK</option><option value="warning" <?= ($connection['status'] ?? 'warning') === 'warning' ? 'selected' : '' ?>>Varování</option><option value="error" <?= ($connection['status'] ?? '') === 'error' ? 'selected' : '' ?>>Chyba</option></select></label>
+                        <label><span><?= h(t('Stav')) ?></span><select name="status"><option value="ok" <?= ($connection['status'] ?? '') === 'ok' ? 'selected' : '' ?>>OK</option><option value="warning" <?= ($connection['status'] ?? 'warning') === 'warning' ? 'selected' : '' ?>><?= h(t('Varování')) ?></option><option value="error" <?= ($connection['status'] ?? '') === 'error' ? 'selected' : '' ?>><?= h(t('Chyba')) ?></option></select></label>
                         <?php endif; ?>
-                        <label><span>Zapnuto</span><select name="is_enabled"><option value="1" <?= (int) ($connection['is_enabled'] ?? 1) === 1 ? 'selected' : '' ?>>Ano</option><option value="0" <?= isset($connection['is_enabled']) && (int) $connection['is_enabled'] === 0 ? 'selected' : '' ?>>Ne</option></select></label>
+                        <label><span><?= h(t('Zapnuto')) ?></span><select name="is_enabled"><option value="1" <?= (int) ($connection['is_enabled'] ?? 1) === 1 ? 'selected' : '' ?>><?= h(t('Ano')) ?></option><option value="0" <?= isset($connection['is_enabled']) && (int) $connection['is_enabled'] === 0 ? 'selected' : '' ?>><?= h(t('Ne')) ?></option></select></label>
                     </div>
                     <?php if (!in_array('scopes', $basicNames, true)): ?>
                     <label><span>OAuth scopes</span><textarea name="scopes"><?= h($connection['scopes'] ?? '') ?></textarea></label>
                     <?php endif; ?>
                     <?php if (!$hasStructuredConfig): ?>
-                    <label><span>Doplňková konfigurace JSON</span><textarea name="config_json" placeholder='{"klic":"hodnota"}'><?= h($connection['config_json'] ?? '') ?></textarea></label>
+                    <label><span><?= h(t('Doplňková konfigurace JSON')) ?></span><textarea name="config_json" placeholder='{"klic":"hodnota"}'><?= h($connection['config_json'] ?? '') ?></textarea></label>
                     <?php endif; ?>
-                    <label><span>Poznámka / health detail</span><textarea name="note"><?= h($connection['note'] ?? '') ?></textarea></label>
+                    <label><span><?= h(t('Poznámka / health detail')) ?></span><textarea name="note"><?= h($connection['note'] ?? '') ?></textarea></label>
                 </div>
             </details>
 
@@ -353,30 +382,30 @@ allstat_admin_header($id ? 'Upravit zdroj' : 'Nové napojení', 'sources', $user
             <details class="admin-card-collapsible form-guide"<?= $providerKey === 'linkedin_company' ? ' open' : '' ?>>
                 <summary>
                     <div>
-                        <h2>Podrobný návod krok za krokem</h2>
-                        <p>Kde vzít údaje a jak projít OAuth pro „<?= h($selectedSource['name'] ?? '') ?>".</p>
+                        <h2><?= h(t('Podrobný návod krok za krokem')) ?></h2>
+                        <p><?= h(t('Kde vzít údaje a jak projít OAuth pro „{name}".', ['name' => $selectedSource['name'] ?? ''])) ?></p>
                     </div>
                 </summary>
                 <div class="admin-card-body">
                     <section class="provider-guide">
-                        <p>Postup s obrázky a řešení častých chyb najdeš i v návodu: <?= allstat_help_link(allstat_help_anchor_for_provider($providerKey), 'napojení služby krok za krokem') ?>.</p>
+                        <p><?= t('Postup s obrázky a řešení častých chyb najdeš i v návodu: {link}.', ['link' => allstat_help_link(allstat_help_anchor_for_provider($providerKey), t('napojení služby krok za krokem'))]) ?></p>
                         <?php if (!empty($guide['pricing_note'])): ?><p class="provider-guide-pricing"><?= h($guide['pricing_note']) ?></p><?php endif; ?>
                         <?php if (!empty($guide['token_note'])): ?><p class="provider-guide-token"><?= h($guide['token_note']) ?></p><?php endif; ?>
                         <dl class="provider-guide-meta">
                             <?php if (!empty($guide['console_url'])): ?>
-                            <div><dt>Konzole</dt><dd><a href="<?= h($guide['console_url']) ?>" target="_blank" rel="noopener"><?= h($guide['console_label'] ?? $guide['console_url']) ?></a></dd></div>
+                            <div><dt><?= h(t('Konzole')) ?></dt><dd><a href="<?= h($guide['console_url']) ?>" target="_blank" rel="noopener"><?= h($guide['console_label'] ?? $guide['console_url']) ?></a></dd></div>
                             <?php endif; ?>
                             <?php if (!empty($guide['enable_apis'])): ?>
-                            <div><dt>Povolit API</dt><dd><?= h(implode(', ', $guide['enable_apis'])) ?></dd></div>
+                            <div><dt><?= h(t('Povolit API')) ?></dt><dd><?= h(implode(', ', $guide['enable_apis'])) ?></dd></div>
                             <?php endif; ?>
                             <?php if (!empty($guide['property_id_format'])): ?>
-                            <div><dt>Formát ID</dt><dd><code><?= h($guide['property_id_format']) ?></code></dd></div>
+                            <div><dt><?= h(t('Formát ID')) ?></dt><dd><code><?= h($guide['property_id_format']) ?></code></dd></div>
                             <?php endif; ?>
                             <?php if (!empty($guide['property_id_where'])): ?>
-                            <div><dt>Kde ID najít</dt><dd><?= h($guide['property_id_where']) ?></dd></div>
+                            <div><dt><?= h(t('Kde ID najít')) ?></dt><dd><?= h($guide['property_id_where']) ?></dd></div>
                             <?php endif; ?>
                             <?php if (!empty($selectedSource['docs_url'])): ?>
-                            <div><dt>Dokumentace</dt><dd><a href="<?= h($selectedSource['docs_url']) ?>" target="_blank" rel="noopener"><?= h($selectedSource['docs_url']) ?></a></dd></div>
+                            <div><dt><?= h(t('Dokumentace')) ?></dt><dd><a href="<?= h($selectedSource['docs_url']) ?>" target="_blank" rel="noopener"><?= h($selectedSource['docs_url']) ?></a></dd></div>
                             <?php endif; ?>
                         </dl>
                         <?php if (!empty($guide['steps'])): ?>
@@ -385,7 +414,7 @@ allstat_admin_header($id ? 'Upravit zdroj' : 'Nové napojení', 'sources', $user
                         </ol>
                         <?php endif; ?>
                         <?php if (!empty($guide['troubleshooting'])): ?>
-                        <h3 class="provider-guide-trouble-title">Časté chyby a jak je vyřešit</h3>
+                        <h3 class="provider-guide-trouble-title"><?= h(t('Časté chyby a jak je vyřešit')) ?></h3>
                         <ul class="provider-guide-trouble">
                             <?php foreach ($guide['troubleshooting'] as $tip): ?><li><?= h($tip) ?></li><?php endforeach; ?>
                         </ul>
@@ -396,8 +425,8 @@ allstat_admin_header($id ? 'Upravit zdroj' : 'Nové napojení', 'sources', $user
             <?php endif; ?>
 
             <div class="form-actions">
-                <button class="button-primary" type="submit">Uložit napojení</button>
-                <a class="button-secondary" href="sources.php">Zpět na zdroje</a>
+                <button class="button-primary" type="submit"><?= h(t('Uložit napojení')) ?></button>
+                <a class="button-secondary" href="sources.php"><?= h(t('Zpět na zdroje')) ?></a>
             </div>
         </form>
     </div>

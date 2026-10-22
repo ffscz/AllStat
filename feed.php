@@ -11,6 +11,8 @@ $config = require __DIR__ . '/config.php';
 date_default_timezone_set($config['app']['timezone']);
 
 require_once __DIR__ . '/lib/helpers.php';
+// Data pro AI, feedy a cron jsou vždy česky (jejich podobu čtou jiné programy), bez ohledu na cookie jazyka.
+allstat_locale('cs');
 require_once __DIR__ . '/lib/database.php';
 require_once __DIR__ . '/lib/providers.php';
 require_once __DIR__ . '/lib/repository.php';

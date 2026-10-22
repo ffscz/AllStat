@@ -28,7 +28,7 @@
         btn.className = 'select-search-btn';
         btn.setAttribute('aria-haspopup', 'listbox');
         btn.setAttribute('aria-expanded', 'false');
-        btn.setAttribute('aria-label', select.getAttribute('aria-label') || 'Web');
+        btn.setAttribute('aria-label', select.getAttribute('aria-label') || window.allstatT('Web'));
         const label = document.createElement('span');
         label.className = 'select-search-label';
         btn.append(label);
@@ -40,9 +40,9 @@
         const input = document.createElement('input');
         input.type = 'search';
         input.className = 'select-search-input';
-        input.placeholder = 'Hledat web';
+        input.placeholder = window.allstatT('Hledat web');
         input.autocomplete = 'off';
-        input.setAttribute('aria-label', 'Hledat web');
+        input.setAttribute('aria-label', window.allstatT('Hledat web'));
         input.setAttribute('aria-controls', listId);
         const list = document.createElement('div');
         list.className = 'select-search-list';
@@ -50,7 +50,7 @@
         list.setAttribute('role', 'listbox');
         const empty = document.createElement('p');
         empty.className = 'select-search-empty';
-        empty.textContent = 'Žádný web neodpovídá hledání.';
+        empty.textContent = window.allstatT('Žádný web neodpovídá hledání.');
         empty.hidden = true;
 
         const items = Array.from(select.options).map((option) => {

@@ -32,19 +32,26 @@ function allstat_mcp_authz_crash_page(): void
         header('Cache-Control: no-store');
     }
 
-    $message = 'Při zpracování žádosti došlo k chybě. Zkuste připojení zopakovat, případně kontaktujte správce AllStatu.';
+    // Překlady jdou i po pádu před načtením helpers.php (jádro i18n nemá závislosti).
+    if (!function_exists('t') && is_file(__DIR__ . '/../lib/i18n.php')) {
+        require_once __DIR__ . '/../lib/i18n.php';
+    }
+    $translate = function_exists('t');
+    $message = $translate ? t('Při zpracování žádosti došlo k chybě. Zkuste připojení zopakovat, případně kontaktujte správce AllStatu.') : 'Při zpracování žádosti došlo k chybě. Zkuste připojení zopakovat, případně kontaktujte správce AllStatu.';
+    $heading = $translate ? t('Něco se nepovedlo') : 'Něco se nepovedlo';
 
     try {
         if (isset($GLOBALS['config']) && is_array($GLOBALS['config']) && function_exists('allstat_url') && function_exists('allstat_nonce') && function_exists('h')) {
-            allstat_mcp_authz_error($GLOBALS['config'], 500, 'Něco se nepovedlo', $message);
+            allstat_mcp_authz_error($GLOBALS['config'], 500, $heading, $message);
         }
     } catch (Throwable) {
         // sem se dostane jen zpráva bez stylů níže
     }
 
-    echo '<!doctype html><html lang="cs"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
-        . '<meta name="robots" content="noindex, nofollow"><title>Něco se nepovedlo | AllStat</title></head>'
-        . '<body><h1>Něco se nepovedlo</h1><p>' . $message . '</p></body></html>';
+    $lang = function_exists('allstat_locale') ? allstat_locale() : 'cs';
+    echo '<!doctype html><html lang="' . htmlspecialchars($lang, ENT_QUOTES, 'UTF-8') . '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
+        . '<meta name="robots" content="noindex, nofollow"><title>' . htmlspecialchars($heading, ENT_QUOTES, 'UTF-8') . ' | AllStat</title></head>'
+        . '<body><h1>' . htmlspecialchars($heading, ENT_QUOTES, 'UTF-8') . '</h1><p>' . htmlspecialchars($message, ENT_QUOTES, 'UTF-8') . '</p></body></html>';
 }
 
 set_exception_handler(static function (Throwable $exception): void {
@@ -84,7 +91,7 @@ function allstat_mcp_authz_page(array $config, int $status, string $title, strin
     header('Content-Type: text/html; charset=utf-8');
     $nonce = allstat_nonce();
     ?><!doctype html>
-<html lang="cs" data-theme="light">
+<html lang="<?= h(allstat_locale()) ?>" data-theme="light">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -116,7 +123,7 @@ function allstat_mcp_authz_error(array $config, int $status, string $heading, st
         $status,
         $heading,
         '<h1>' . h($heading) . '</h1><div class="notice notice-error">' . h($message) . '</div>'
-        . '<p class="form-help">Vraťte se do aplikace a připojení zkuste zopakovat.</p>'
+        . '<p class="form-help">' . h(t('Vraťte se do aplikace a připojení zkuste zopakovat.')) . '</p>'
     );
 }
 
@@ -208,49 +215,49 @@ function allstat_mcp_authz_consent_page(array $config, array $client, array $req
 
     if ($isAdmin) {
         ?>
-            <h1>Povolit přístup k AllStatu?</h1>
+            <h1><?= h(t('Povolit přístup k AllStatu?')) ?></h1>
             <?php if ($error !== null): ?>
                 <div class="notice notice-error"><?= h($error) ?></div>
             <?php endif; ?>
-            <p>Aplikace <strong><?= h($appName) ?></strong> chce číst data z AllStatu.</p>
-            <p>Po povolení se vrátíte na: <strong><?= h($redirectLabel) ?></strong></p>
+            <p><?= t('Aplikace <strong>{app}</strong> chce číst data z AllStatu.', ['app' => h($appName)]) ?></p>
+            <p><?= t('Po povolení se vrátíte na: <strong>{host}</strong>', ['host' => h($redirectLabel)]) ?></p>
             <?php if ($identityHost !== ''): ?>
-                <p>Identita aplikace ověřena z: <strong><?= h($identityHost) ?></strong></p>
+                <p><?= t('Identita aplikace ověřena z: <strong>{host}</strong>', ['host' => h($identityHost)]) ?></p>
             <?php else: ?>
-                <div class="notice notice-warn">Název aplikace si zvolila sama aplikace a nelze ho ověřit. Rozhodující je adresa, na kterou se po povolení vrátíte.</div>
+                <div class="notice notice-warn"><?= h(t('Název aplikace si zvolila sama aplikace a nelze ho ověřit. Rozhodující je adresa, na kterou se po povolení vrátíte.')) ?></div>
             <?php endif; ?>
-            <p>Bude moci číst metriky, reporty a přehledy všech webů v AllStatu. Nemůže nic měnit ani mazat.</p>
-            <p><strong>Povolte jen tehdy, když jste připojení právě sami spustili v Claude, ChatGPT nebo jiné aplikaci.</strong></p>
-            <p class="form-help">Přihlášen(a) jako <?= h($user['email']) ?></p>
+            <p><?= h(t('Bude moci číst metriky, reporty a přehledy všech webů v AllStatu. Nemůže nic měnit ani mazat.')) ?></p>
+            <p><strong><?= h(t('Povolte jen tehdy, když jste připojení právě sami spustili v Claude, ChatGPT nebo jiné aplikaci.')) ?></strong></p>
+            <p class="form-help"><?= t('Přihlášen(a) jako {email}', ['email' => h($user['email'])]) ?></p>
             <form method="post" class="form-stack">
                 <?= allstat_csrf_field() ?>
                 <input type="hidden" name="req" value="<?= h($token) ?>">
                 <?php if ($needsPassword): ?>
-                    <label><span>Pro potvrzení zadejte své heslo k AllStatu</span><input type="password" name="password" autocomplete="current-password" required></label>
+                    <label><span><?= h(t('Pro potvrzení zadejte své heslo k AllStatu')) ?></span><input type="password" name="password" autocomplete="current-password" required></label>
                 <?php endif; ?>
                 <div class="form-actions">
-                    <button class="button-primary" type="submit" name="decision" value="allow">Povolit</button>
-                    <button class="button-secondary" type="submit" name="decision" value="deny" formnovalidate>Zamítnout</button>
+                    <button class="button-primary" type="submit" name="decision" value="allow"><?= h(t('Povolit')) ?></button>
+                    <button class="button-secondary" type="submit" name="decision" value="deny" formnovalidate><?= h(t('Zamítnout')) ?></button>
                 </div>
             </form>
-            <p class="form-help">Přístup můžete kdykoli zrušit v Administrace → AI konektory.</p>
+            <p class="form-help"><?= h(t('Přístup můžete kdykoli zrušit v Administrace → AI konektory.')) ?></p>
         <?php
     } else {
         ?>
-            <h1>Povolit přístup k AllStatu?</h1>
-            <div class="notice notice-error">Připojení AI konektoru může povolit jen administrátor AllStatu.</div>
-            <p class="form-help">Přihlášen(a) jako <?= h($user['email']) ?></p>
+            <h1><?= h(t('Povolit přístup k AllStatu?')) ?></h1>
+            <div class="notice notice-error"><?= h(t('Připojení AI konektoru může povolit jen administrátor AllStatu.')) ?></div>
+            <p class="form-help"><?= t('Přihlášen(a) jako {email}', ['email' => h($user['email'])]) ?></p>
             <form method="post" class="form-stack">
                 <?= allstat_csrf_field() ?>
                 <input type="hidden" name="req" value="<?= h($token) ?>">
                 <div class="form-actions">
-                    <button class="button-secondary" type="submit" name="decision" value="deny">Zpět do aplikace</button>
+                    <button class="button-secondary" type="submit" name="decision" value="deny"><?= h(t('Zpět do aplikace')) ?></button>
                 </div>
             </form>
         <?php
     }
 
-    allstat_mcp_authz_page($config, $status, 'Povolit přístup k AllStatu', (string) ob_get_clean());
+    allstat_mcp_authz_page($config, $status, t('Povolit přístup k AllStatu'), (string) ob_get_clean());
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -258,23 +265,23 @@ function allstat_mcp_authz_consent_page(array $config, array $client, array $req
 $method = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
 if (!in_array($method, ['GET', 'HEAD', 'POST'], true)) {
     header('Allow: GET, HEAD, POST');
-    allstat_mcp_authz_error($config, 405, 'Metoda není povolená', 'Tuto stránku lze otevřít jen z aplikace, která se chce připojit.');
+    allstat_mcp_authz_error($config, 405, t('Metoda není povolená'), t('Tuto stránku lze otevřít jen z aplikace, která se chce připojit.'));
 }
 
 $pdo = allstat_db($config);
 if (!$pdo || !allstat_tables_ready($pdo)) {
-    allstat_mcp_authz_error($config, 503, 'AllStat není připravený', 'Databáze AllStatu teď není dostupná. Zkuste to za chvíli.');
+    allstat_mcp_authz_error($config, 503, t('AllStat není připravený'), t('Databáze AllStatu teď není dostupná. Zkuste to za chvíli.'));
 }
 
 allstat_migrate($pdo);
 
 if (!allstat_mcp_is_enabled($pdo)) {
-    allstat_mcp_authz_error($config, 404, 'Připojení AI je vypnuté', 'Připojení AI konektorů je v AllStatu vypnuté. Požádejte administrátora, aby ho zapnul v Administrace → AI konektory.');
+    allstat_mcp_authz_error($config, 404, t('Připojení AI je vypnuté'), t('Připojení AI konektorů je v AllStatu vypnuté. Požádejte administrátora, aby ho zapnul v Administrace → AI konektory.'));
 }
 
 // Limit hned na začátku: chrání i stahování popisu klienta (CIMD) před zneužitím.
 if (!allstat_mcp_rate_hit($pdo, 'authorize:' . allstat_mcp_client_ip(), 30, 60)) {
-    allstat_mcp_authz_error($config, 429, 'Příliš mnoho požadavků', 'Z této adresy přišlo příliš mnoho požadavků na připojení. Zkuste to za minutu.');
+    allstat_mcp_authz_error($config, 429, t('Příliš mnoho požadavků'), t('Z této adresy přišlo příliš mnoho požadavků na připojení. Zkuste to za minutu.'));
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -289,13 +296,13 @@ if ($method === 'POST') {
     $payload = allstat_mcp_oauth_consent_token_verify($config, $token);
 
     if ($payload === null || $payload['uid'] !== (int) $user['id']) {
-        allstat_mcp_authz_error($config, 400, 'Požadavek vypršel', 'Žádost o připojení vypršela nebo není platná. Vraťte se do aplikace a připojení zopakujte.');
+        allstat_mcp_authz_error($config, 400, t('Požadavek vypršel'), t('Žádost o připojení vypršela nebo není platná. Vraťte se do aplikace a připojení zopakujte.'));
     }
 
     $fingerprint = hash('sha256', $token);
     $done = is_array($_SESSION['mcp_consent_done'] ?? null) ? $_SESSION['mcp_consent_done'] : [];
     if (isset($done[$fingerprint])) {
-        allstat_mcp_authz_error($config, 400, 'Požadavek už byl vyřízen', 'Tato žádost o připojení už byla vyřízena. Vraťte se do aplikace, případně připojení zopakujte.');
+        allstat_mcp_authz_error($config, 400, t('Požadavek už byl vyřízen'), t('Tato žádost o připojení už byla vyřízena. Vraťte se do aplikace, případně připojení zopakujte.'));
     }
 
     // Znovu ověřit klienta, návratovou adresu a PKCE stejnou cestou jako u GET.
@@ -313,7 +320,7 @@ if ($method === 'POST') {
 
     if (!$check['ok']) {
         if ($check['type'] === 'page') {
-            allstat_mcp_authz_error($config, (int) $check['status'], 'Nelze pokračovat', (string) $check['message']);
+            allstat_mcp_authz_error($config, (int) $check['status'], t('Nelze pokračovat'), (string) $check['message']);
         }
 
         allstat_mcp_authz_redirect(allstat_mcp_oauth_redirect_url($pdo, $check['redirect_uri'], [
@@ -339,7 +346,7 @@ if ($method === 'POST') {
 
         if ($failure !== null) {
             if (!allstat_mcp_authz_allow_form_target($request['redirect_uri'])) {
-                allstat_mcp_authz_error($config, 400, 'Nelze pokračovat', 'Návratová adresa aplikace není povolená.');
+                allstat_mcp_authz_error($config, 400, t('Nelze pokračovat'), t('Návratová adresa aplikace není povolená.'));
             }
 
             allstat_mcp_authz_consent_page($config, $client, $request, $user, allstat_mcp_oauth_consent_token($config, $request, (int) $user['id']), true, true, $failure[0], $failure[1]);
@@ -365,7 +372,7 @@ $check = allstat_mcp_oauth_authorize_validate($pdo, $_GET);
 
 if (!$check['ok']) {
     if ($check['type'] === 'page') {
-        allstat_mcp_authz_error($config, (int) $check['status'], 'Nelze pokračovat', (string) $check['message']);
+        allstat_mcp_authz_error($config, (int) $check['status'], t('Nelze pokračovat'), (string) $check['message']);
     }
 
     allstat_mcp_authz_redirect(allstat_mcp_oauth_redirect_url($pdo, $check['redirect_uri'], [
@@ -380,7 +387,7 @@ $request = $check['request'];
 
 // Formulář odesílá zpět na tuto stránku a prohlížeč pak následuje přesměrování do aplikace.
 if (!allstat_mcp_authz_allow_form_target($request['redirect_uri'])) {
-    allstat_mcp_authz_error($config, 400, 'Nelze pokračovat', 'Návratová adresa aplikace není povolená.');
+    allstat_mcp_authz_error($config, 400, t('Nelze pokračovat'), t('Návratová adresa aplikace není povolená.'));
 }
 
 // Rozpracované přihlášení (heslo ověřeno, 2FA ne): allstat_require_user by ztratilo next=, proto ho předáme sami.

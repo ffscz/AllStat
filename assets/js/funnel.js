@@ -12,7 +12,7 @@
 
     var data = window.ALLSTAT_FUNNEL || { labels: [], longLabels: [], series: [] };
     var palette = ['#2563eb', '#16a34a', '#8b5cf6', '#f59e0b', '#06b6d4', '#f43f5e', '#14b8a6'];
-    var number = new Intl.NumberFormat('cs-CZ');
+    var number = new Intl.NumberFormat(window.allstatLocale);
     var chart = null;
 
     function cssVar(name) {
@@ -75,7 +75,7 @@
                         beginAtZero: true,
                         grid: { color: cssVar('--chart-grid') },
                         ticks: { color: muted, precision: 0 },
-                        title: { display: true, text: 'Počet událostí', color: muted }
+                        title: { display: true, text: window.allstatT('Počet událostí'), color: muted }
                     }
                 }
             }

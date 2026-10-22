@@ -66,13 +66,13 @@ function allstat_parse_clarity_csv(string $raw): array
     }
 
     if (!$start || !$end) {
-        return ['ok' => false, 'message' => 'V CSV se nenašel řádek „Date range", je to opravdu export z Clarity?'];
+        return ['ok' => false, 'message' => t('V CSV se nenašel řádek „Date range", je to opravdu export z Clarity?')];
     }
     if ($start !== $end) {
-        return ['ok' => false, 'message' => 'Tohle je agregát za období (' . $start . ' → ' . $end . '). Pro denní řadu nahraj jednodenní export (Clarity → Dnes nebo Včera). Vícedenní souhrn nelze rozpadnout na dny.'];
+        return ['ok' => false, 'message' => t('Tohle je agregát za období ({start} → {end}). Pro denní řadu nahraj jednodenní export (Clarity → Dnes nebo Včera). Vícedenní souhrn nelze rozpadnout na dny.', ['start' => $start, 'end' => $end])];
     }
     if ($sessions === null) {
-        return ['ok' => false, 'message' => 'V CSV se nenašlo „Total sessions".'];
+        return ['ok' => false, 'message' => t('V CSV se nenašlo „Total sessions".')];
     }
 
     return ['ok' => true, 'date' => $start, 'sessions' => $sessions, 'bots' => $bots ?? 0, 'scalars' => $scalars, 'breakdowns' => $breakdowns];
@@ -85,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     allstat_require_admin($user);
 
     if ($claritySourceId === 0) {
-        allstat_flash('error', 'Provider Microsoft Clarity není v katalogu zdrojů.');
+        allstat_flash('error', t('Provider Microsoft Clarity není v katalogu zdrojů.'));
         allstat_redirect($config, 'admin/clarity-import.php');
     }
 
@@ -95,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $statement->execute(array_merge([$claritySourceId], ALLSTAT_CLARITY_KEYS));
         $deleted = $statement->rowCount();
         allstat_audit($pdo, (int) $user['id'], null, 'clarity_legacy_purged', (string) $deleted);
-        allstat_flash('ok', sprintf('Smazáno %d starých (nepoužívaných) řádků Clarity dat.', $deleted));
+        allstat_flash('ok', t('Smazáno {count} starých (nepoužívaných) řádků Clarity dat.', ['count' => $deleted]));
         allstat_redirect($config, 'admin/clarity-import.php');
     }
 
@@ -104,16 +104,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // imported rows line up with the dashboard (which reads by connection_id, not the catalog source_id).
     $clarityConnId = (int) (allstat_fetch_one($pdo, 'SELECT id FROM domain_sources WHERE domain_id = ? AND source_id = ? ORDER BY is_enabled DESC, id ASC LIMIT 1', [$domainId, $claritySourceId])['id'] ?? 0);
     if ($clarityConnId === 0) {
-        allstat_flash('error', 'Pro tento web není napojená Microsoft Clarity. Přidej ji nejdřív ve Zdroje dat, pak importuj CSV.');
+        allstat_flash('error', t('Pro tento web není napojená Microsoft Clarity. Přidej ji nejdřív ve Zdroje dat, pak importuj CSV.'));
         allstat_redirect($config, 'admin/clarity-import.php');
     }
     $file = $_FILES['csv'] ?? null;
     if (!$file || ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK || ($file['size'] ?? 0) <= 0) {
-        allstat_flash('error', 'Nahraj prosím CSV soubor exportovaný z Clarity.');
+        allstat_flash('error', t('Nahraj prosím CSV soubor exportovaný z Clarity.'));
         allstat_redirect($config, 'admin/clarity-import.php');
     }
     if (($file['size'] ?? 0) > 2 * 1024 * 1024) {
-        allstat_flash('error', 'Soubor je příliš velký (max 2 MB).');
+        allstat_flash('error', t('Soubor je příliš velký (max 2 MB).'));
         allstat_redirect($config, 'admin/clarity-import.php');
     }
 
@@ -146,7 +146,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     allstat_audit($pdo, (int) $user['id'], null, 'clarity_csv_imported', $parsed['date'] . ' sessions=' . $parsed['sessions']);
-    allstat_flash('ok', sprintf('Importováno z Clarity CSV: %s, %d návštěv, %d botů, %d metrik + %d řádků rozpadů.', $parsed['date'], $parsed['sessions'], $parsed['bots'], count($parsed['scalars']), $dimRows));
+    allstat_flash('ok', t('Importováno z Clarity CSV: {date}, {sessions} návštěv, {bots} botů, {metrics} metrik + {rows} řádků rozpadů.', ['date' => $parsed['date'], 'sessions' => allstat_number($parsed['sessions']), 'bots' => allstat_number($parsed['bots']), 'metrics' => count($parsed['scalars']), 'rows' => $dimRows]));
     allstat_redirect($config, 'admin/clarity-import.php');
 }
 
@@ -166,27 +166,27 @@ $recent = $claritySourceId ? allstat_fetch_all($pdo, "
     LIMIT 40
 ", [$claritySourceId]) : [];
 
-allstat_admin_header('Import Clarity CSV', 'sources', $user, $config, 'clarity');
+allstat_admin_header(t('Import Clarity CSV'), 'sources', $user, $config, 'clarity');
 ?>
 <div class="admin-card">
     <div class="admin-card-header">
         <div>
-            <h2>Import Microsoft Clarity CSV</h2>
-            <p>Clarity API neumí historii (jen poslední 1–3 dny), proto jde data doplnit ručně z exportu. Nahraj <strong>jednodenní</strong> export (Clarity → zvol „Dnes" nebo „Včera" → Export CSV). Uloží se návštěvy, boti, průměry (aktivní čas, scroll, stránky/relace) i rozpady (referrery, stránky, prohlížeče, smart events). Vícedenní souhrny (3 dny, celé období) nelze rozpadnout na dny.</p>
+            <h2><?= h(t('Import Microsoft Clarity CSV')) ?></h2>
+            <p><?= t('Clarity API neumí historii (jen poslední 1–3 dny), proto jde data doplnit ručně z exportu. Nahraj <strong>jednodenní</strong> export (Clarity → zvol „Dnes" nebo „Včera" → Export CSV). Uloží se návštěvy, boti, průměry (aktivní čas, scroll, stránky/relace) i rozpady (referrery, stránky, prohlížeče, smart events). Vícedenní souhrny (3 dny, celé období) nelze rozpadnout na dny.') ?></p>
         </div>
     </div>
     <div class="admin-card-body">
         <form method="post" enctype="multipart/form-data" class="form-grid form-grid-3">
             <?= allstat_csrf_field() ?>
-            <label><span>Web</span>
+            <label><span><?= h(t('Web')) ?></span>
                 <select name="domain_id" required>
                     <?php foreach ($domains as $domain): ?>
                         <option value="<?= (int) $domain['id'] ?>" <?= $preselect === (int) $domain['id'] ? 'selected' : '' ?>><?= h($domain['url']) ?></option>
                     <?php endforeach; ?>
                 </select>
             </label>
-            <label><span>Clarity CSV (jeden den)</span><input type="file" name="csv" accept=".csv,text/csv" required></label>
-            <div class="form-actions"><button class="button-primary" type="submit">Importovat</button></div>
+            <label><span><?= h(t('Clarity CSV (jeden den)')) ?></span><input type="file" name="csv" accept=".csv,text/csv" required></label>
+            <div class="form-actions"><button class="button-primary" type="submit"><?= h(t('Importovat')) ?></button></div>
         </form>
     </div>
 </div>
@@ -194,22 +194,22 @@ allstat_admin_header('Import Clarity CSV', 'sources', $user, $config, 'clarity')
 <div class="admin-card">
     <div class="admin-card-header">
         <div>
-            <h2>Údržba dat</h2>
-            <p>Smaže stará nepoužívaná Clarity data (pozůstatky z dřívějšího syncu přes starý engine). Návštěvy, boti, průměry a rozpady zůstanou.</p>
+            <h2><?= h(t('Údržba dat')) ?></h2>
+            <p><?= h(t('Smaže stará nepoužívaná Clarity data (pozůstatky z dřívějšího syncu přes starý engine). Návštěvy, boti, průměry a rozpady zůstanou.')) ?></p>
         </div>
-        <form method="post" data-confirm="Smazat stará nepoužívaná Clarity data? Čisté metriky (návštěvy, boti, rozpady) zůstanou.">
+        <form method="post" data-confirm="<?= h(t('Smazat stará nepoužívaná Clarity data? Čisté metriky (návštěvy, boti, rozpady) zůstanou.')) ?>">
             <?= allstat_csrf_field() ?>
             <input type="hidden" name="action" value="cleanup">
-            <button class="button-secondary" type="submit">Vyčistit stará Clarity data</button>
+            <button class="button-secondary" type="submit"><?= h(t('Vyčistit stará Clarity data')) ?></button>
         </form>
     </div>
 </div>
 
 <div class="admin-card">
-    <div class="admin-card-header"><h2>Naimportované dny (Clarity)</h2></div>
+    <div class="admin-card-header"><h2><?= h(t('Naimportované dny (Clarity)')) ?></h2></div>
     <div class="admin-card-body table-scroll">
         <table class="admin-table">
-            <thead><tr><th>Datum</th><th>Web</th><th>Návštěvy</th><th>Boti</th><th>Metriky/rozpady (řádků)</th></tr></thead>
+            <thead><tr><th><?= h(t('Datum')) ?></th><th><?= h(t('Web')) ?></th><th><?= h(t('Návštěvy')) ?></th><th><?= h(t('Boti')) ?></th><th><?= h(t('Metriky/rozpady (řádků)')) ?></th></tr></thead>
             <tbody>
                 <?php foreach ($recent as $row): ?>
                     <tr>
@@ -221,7 +221,7 @@ allstat_admin_header('Import Clarity CSV', 'sources', $user, $config, 'clarity')
                     </tr>
                 <?php endforeach; ?>
                 <?php if (!$recent): ?>
-                    <tr><td colspan="5" class="table-muted">Zatím nic naimportováno. Nahraj jednodenní Clarity CSV výše.</td></tr>
+                    <tr><td colspan="5" class="table-muted"><?= h(t('Zatím nic naimportováno. Nahraj jednodenní Clarity CSV výše.')) ?></td></tr>
                 <?php endif; ?>
             </tbody>
         </table>

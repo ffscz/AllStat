@@ -65,8 +65,8 @@
 
         const itemHtml = (item) => {
             const badge = item.state === 'pending'
-                ? '<span class="status-badge status-warning">Běží…</span>'
-                : (item.state === 'ok' ? '<span class="status-badge status-ok">OK</span>' : '<span class="status-badge status-error">Chyba</span>');
+                ? '<span class="status-badge status-warning">' + window.allstatT('Běží…') + '</span>'
+                : (item.state === 'ok' ? '<span class="status-badge status-ok">OK</span>' : '<span class="status-badge status-error">' + window.allstatT('Chyba') + '</span>');
             return `
                 <div class="sync-result-item">
                     ${item.icon || '<span class="source-picker-ic"></span>'}
@@ -101,9 +101,9 @@
                 const id = rows[i].getAttribute('data-conn-id');
                 const label = rows[i].getAttribute('data-conn-label') || ('#' + id);
                 const icon = rows[i].querySelector('.source-picker-ic')?.outerHTML || '';
-                btn.textContent = 'Synchronizuji ' + (i + 1) + '/' + rows.length + '…';
+                btn.textContent = window.allstatT('Synchronizuji {i}/{n}…', { i: i + 1, n: rows.length });
                 items.push({ icon, label, msg: '', state: 'pending' });
-                render(items, `Synchronizuji ${i + 1}/${rows.length}…`);
+                render(items, window.allstatT('Synchronizuji {i}/{n}…', { i: i + 1, n: rows.length }));
                 const item = items[items.length - 1];
                 try {
                     const res = await fetch('connection-sync.php', {
@@ -113,25 +113,25 @@
                     });
                     const ct = res.headers.get('content-type') || '';
                     if (!ct.includes('application/json')) {
-                        throw new Error('relace vypršela, obnov stránku (F5) a přihlas se znovu');
+                        throw new Error(window.allstatT('relace vypršela, obnov stránku (F5) a přihlas se znovu'));
                     }
                     const data = await res.json();
                     if (data.ok) { okCount++; item.state = 'ok'; item.msg = data.message || 'OK'; }
-                    else { failCount++; item.state = 'error'; item.msg = data.message || 'chyba bez hlášky'; }
+                    else { failCount++; item.state = 'error'; item.msg = data.message || window.allstatT('chyba bez hlášky'); }
                 } catch (err) {
                     failCount++;
                     item.state = 'error';
                     item.msg = err.message;
                 }
-                render(items, `Synchronizuji ${Math.min(i + 2, rows.length)}/${rows.length}…`);
+                render(items, window.allstatT('Synchronizuji {i}/{n}…', { i: Math.min(i + 2, rows.length), n: rows.length }));
             }
 
             box.className = 'connection-result sync-all-result ' + (failCount ? 'connection-result-error' : 'connection-result-ok');
             // České skloňování: 1 chyba, 2-4 chyby, 5+ (a 0) chyb.
-            const chybaWord = (n) => (n === 1 ? 'chyba' : (n >= 2 && n <= 4 ? 'chyby' : 'chyb'));
+            const chybaWord = (n) => (n === 1 ? window.allstatT('chyba') : (n >= 2 && n <= 4 ? window.allstatT('chyby') : window.allstatT('chyb')));
             const headBadge = failCount
-                ? `<span class="status-badge status-error">${failCount === 1 ? 'Chyba' : 'Chyby'}</span>`
-                : '<span class="status-badge status-ok">Hotovo</span>';
+                ? `<span class="status-badge status-error">${failCount === 1 ? window.allstatT('Chyba') : window.allstatT('Chyby')}</span>`
+                : '<span class="status-badge status-ok">' + window.allstatT('Hotovo') + '</span>';
             render(items, `${headBadge} <strong>${okCount} OK</strong>${failCount ? `, ${failCount} ${chybaWord(failCount)}` : ''}`);
             btn.disabled = false;
             btn.innerHTML = originalHtml;
@@ -163,7 +163,7 @@
             if (tokenInput) {
                 const span = tokenInput.closest('label')?.querySelector('span');
                 if (span) {
-                    span.textContent = supportsOauth ? 'Access token' : 'API token';
+                    span.textContent = supportsOauth ? window.allstatT('Access token') : window.allstatT('API token');
                 }
             }
         };
@@ -206,7 +206,7 @@
             });
             const ct = res.headers.get('content-type') || '';
             if (!ct.includes('application/json')) {
-                throw new Error('Relace pravděpodobně vypršela. Obnov stránku (F5), přihlas se znovu a akci zopakuj.');
+                throw new Error(window.allstatT('Relace pravděpodobně vypršela. Obnov stránku (F5), přihlas se znovu a akci zopakuj.'));
             }
             return res.json();
         };
@@ -214,11 +214,11 @@
         const runSimple = async (endpoint, button, body) => {
             button.disabled = true;
             const original = button.textContent;
-            button.textContent = 'Pracuju…';
-            show('pending', 'Volám API…');
+            button.textContent = window.allstatT('Pracuju…');
+            show('pending', window.allstatT('Volám API…'));
             try {
                 const data = await postJson(endpoint, body);
-                show(data.ok ? 'ok' : 'error', data.message || (data.ok ? 'Hotovo.' : 'Chyba bez hlášky.'));
+                show(data.ok ? 'ok' : 'error', data.message || (data.ok ? window.allstatT('Hotovo.') : window.allstatT('Chyba bez hlášky.')));
             } catch (err) {
                 show('error', err.message);
             } finally {
@@ -231,7 +231,7 @@
         const runBackfill = async (button, id, csrf) => {
             button.disabled = true;
             const original = button.textContent;
-            button.textContent = 'Stahuji historii…';
+            button.textContent = window.allstatT('Stahuji historii…');
             let chunkStart = '';
             let totalRows = 0, totalPosts = 0, totalLanding = 0, iterations = 0;
             try {
@@ -239,9 +239,9 @@
                     iterations++;
                     const body = 'id=' + encodeURIComponent(id) + '&mode=backfill&csrf=' + encodeURIComponent(csrf) +
                         (chunkStart ? '&chunk_start=' + encodeURIComponent(chunkStart) : '');
-                    show('pending', 'Stahuji ' + (chunkStart || 'začátek') + '… (' + iterations + ' dávek hotovo)');
+                    show('pending', window.allstatT('Stahuji {from}… ({n} dávek hotovo)', { from: chunkStart || window.allstatT('začátek'), n: iterations }));
                     const data = await postJson('connection-sync.php', body);
-                    if (!data.ok) { show('error', data.message || 'Backfill selhal.'); break; }
+                    if (!data.ok) { show('error', data.message || window.allstatT('Backfill selhal.')); break; }
                     if (data.stats) {
                         // Different engines report different stat fields: GA4 = metrics_daily_rows/landing_pages_rows,
                         // Meta/IG = rows (metrics) + posts (social posts). Accumulate generically so the summary
@@ -251,10 +251,10 @@
                         totalLanding += (data.stats.landing_pages_rows || 0);
                     }
                     if (data.done || !data.next_chunk_start) {
-                        const parts = [totalRows + ' záznamů metrik'];
-                        if (totalPosts) { parts.push(totalPosts + ' příspěvků'); }
-                        if (totalLanding) { parts.push(totalLanding + ' landing řádků'); }
-                        show('ok', 'Hotovo. Staženo ' + parts.join(', ') + ' od ' + (data.backfill_start || '') + '. Obnov dashboard.');
+                        const parts = [window.allstatT('{n} záznamů metrik', { n: totalRows })];
+                        if (totalPosts) { parts.push(window.allstatT('{n} příspěvků', { n: totalPosts })); }
+                        if (totalLanding) { parts.push(window.allstatT('{n} landing řádků', { n: totalLanding })); }
+                        show('ok', window.allstatT('Hotovo. Staženo {parts} od {from}. Obnov dashboard.', { parts: parts.join(', '), from: data.backfill_start || '' }));
                         break;
                     }
                     chunkStart = data.next_chunk_start;
@@ -281,7 +281,7 @@
 
         document.querySelectorAll('[data-connection-backfill]').forEach((btn) => {
             btn.addEventListener('click', () => {
-                if (!confirm('Stáhnout celou historii (klouzavých 16 měsíců)? Může to trvat několik minut – nezavírej stránku.')) return;
+                if (!confirm(window.allstatT('Stáhnout celou historii (klouzavých 16 měsíců)? Může to trvat několik minut – nezavírej stránku.'))) return;
                 runBackfill(btn, btn.getAttribute('data-connection-backfill'), btn.getAttribute('data-csrf'));
             });
         });
@@ -353,7 +353,7 @@
                 pageCount = d.pageCount;
                 rowsEl.innerHTML = d.rows.length ? d.rows.map((r) => `
                     <tr><td>${esc(r.path)}</td><td>${esc(r.sessions)}</td><td>${esc(r.conversions)}</td></tr>
-                `).join('') : '<tr><td colspan="3" class="table-muted">Žádná data pro toto období.</td></tr>';
+                `).join('') : '<tr><td colspan="3" class="table-muted">' + window.allstatT('Žádná data pro toto období.') + '</td></tr>';
                 card.querySelectorAll('[data-lp-page]').forEach((el) => { el.textContent = String(d.page); });
                 card.querySelectorAll('[data-lp-pages]').forEach((el) => { el.textContent = String(d.pageCount); });
                 const total = card.querySelector('[data-lp-total]');
@@ -433,7 +433,7 @@
 
         const updateCount = () => {
             if (count) {
-                count.textContent = `vybráno ${checks.filter((c) => c.checked).length} z ${checks.length}`;
+                count.textContent = window.allstatT('vybráno {i} z {n}', { i: checks.filter((c) => c.checked).length, n: checks.length });
             }
         };
         const updateMode = () => {
@@ -518,10 +518,10 @@
 
             badge.className = `status-badge ${count > 0 ? 'status-ok' : 'status-warning'}`;
             if (count > 0) {
-                badge.textContent = `${count.toLocaleString('cs-CZ')} za 28 dní`;
+                badge.textContent = window.allstatT('{count} za 28 dní', { count: count.toLocaleString(window.allstatLocale) });
             } else {
-                badge.textContent = 'za 28 dní nepřišel';
-                badge.title = 'Event za posledních 28 dní nepřišel, zkontroluj měření (GTM).';
+                badge.textContent = window.allstatT('za 28 dní nepřišel');
+                badge.title = window.allstatT('Event za posledních 28 dní nepřišel, zkontroluj měření (GTM).');
             }
             box.appendChild(badge);
         }
@@ -549,7 +549,7 @@
             });
             addButton.disabled = all.length >= max;
             if (counter) {
-                counter.textContent = `${all.length} z ${max} kroků`;
+                counter.textContent = window.allstatT('{i} z {n} kroků', { i: all.length, n: max });
             }
         }
 
@@ -722,6 +722,73 @@
         refresh();
     }
 
+    // Import webů z Google účtu: hledání v tabulce, výběr všech řádků a stažení historie všech nových napojení
+    // (napojení po napojení, každé po měsících přes connection-sync.php jako tlačítko „Stáhnout historii“).
+    function bindGoogleImport() {
+        document.querySelectorAll('[data-table-filter]').forEach((input) => {
+            const table = document.getElementById(input.getAttribute('data-table-filter'));
+            if (!table) return;
+            input.addEventListener('input', () => {
+                const needle = input.value.trim().toLowerCase();
+                table.querySelectorAll('[data-filter-text]').forEach((row) => {
+                    row.hidden = needle !== '' && !row.getAttribute('data-filter-text').includes(needle);
+                });
+            });
+        });
+
+        document.querySelectorAll('[data-check-all]').forEach((master) => {
+            const form = master.closest('form');
+            const boxes = () => Array.from(form ? form.querySelectorAll('input[type="checkbox"][name="' + master.getAttribute('data-check-all') + '"]') : [])
+                .filter((box) => !box.disabled && !box.closest('tr')?.hidden);
+            master.addEventListener('change', () => boxes().forEach((box) => { box.checked = master.checked; }));
+        });
+
+        const button = document.querySelector('[data-bulk-backfill]');
+        const status = document.querySelector('[data-bulk-backfill-status]');
+        if (!button || !status) return;
+
+        const show = (cls, text) => {
+            status.hidden = false;
+            status.className = 'connection-result connection-result-' + cls;
+            status.textContent = text;
+        };
+        const post = async (body) => {
+            const res = await fetch('connection-sync.php', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body });
+            if (!(res.headers.get('content-type') || '').includes('application/json')) {
+                throw new Error(window.allstatT('Relace pravděpodobně vypršela. Obnov stránku (F5), přihlas se znovu a akci zopakuj.'));
+            }
+            return res.json();
+        };
+
+        button.addEventListener('click', async () => {
+            let ids = [];
+            try { ids = JSON.parse(button.getAttribute('data-bulk-backfill') || '[]'); } catch (e) { ids = []; }
+            const csrf = button.getAttribute('data-csrf') || '';
+            const failed = [];
+            button.disabled = true;
+            try {
+                for (let i = 0; i < ids.length; i++) {
+                    let chunkStart = '';
+                    for (let guard = 0; guard < 40; guard++) {
+                        show('pending', window.allstatT('Napojení {i} z {n}: stahuji {from}…', { i: i + 1, n: ids.length, from: chunkStart || window.allstatT('začátek historie') }));
+                        const data = await post('id=' + encodeURIComponent(ids[i]) + '&mode=backfill&csrf=' + encodeURIComponent(csrf)
+                            + (chunkStart ? '&chunk_start=' + encodeURIComponent(chunkStart) : ''));
+                        if (!data.ok) { failed.push((i + 1) + ': ' + (data.message || window.allstatT('chyba bez hlášky'))); break; }
+                        if (data.done || !data.next_chunk_start) break;
+                        chunkStart = data.next_chunk_start;
+                    }
+                }
+                show(failed.length ? 'error' : 'ok', failed.length
+                    ? window.allstatT('Hotovo s chybami u {i} z {n} napojení.', { i: failed.length, n: ids.length }) + ' ' + failed.join(' | ')
+                    : window.allstatT('Hotovo. Historie je stažená u všech {n} napojení.', { n: ids.length }));
+            } catch (err) {
+                show('error', err.message);
+            } finally {
+                button.disabled = false;
+            }
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         bindTheme();
         bindSidebar();
@@ -733,6 +800,7 @@
         bindLandingPagesAjax();
         bindDomainAccess();
         bindFunnelEditor();
+        bindGoogleImport();
         refreshIcons();
     });
 })();

@@ -5,68 +5,70 @@ require __DIR__ . '/_legal.php';
 $org = legal_e(legal_get('org'));
 $email = legal_e(legal_get('email'));
 $app = legal_e(legal_get('app'));
+$effective = legal_e(legal_get('effective'));
 
 ob_start();
 ?>
-<h1>Zásady ochrany osobních údajů</h1>
-<p class="eff">Účinné od: <?= legal_e(legal_get('effective')) ?></p>
+<h1><?= legal_e(t('Zásady ochrany osobních údajů')) ?></h1>
+<p class="eff"><?= legal_e(t('Účinné od:')) ?> <?= $effective ?></p>
 
-<p><strong><?= $app ?></strong> je <strong>interní</strong> analytický nástroj provozovaný organizací <?= $org ?> výhradně pro vlastní potřebu. Nejde o veřejnou službu, nelze se do něj veřejně registrovat a přístup mají pouze pověření zaměstnanci/správci. Nástroj na jednom místě agreguje statistiky <strong>vlastních webů a vlastních profilů na sociálních sítích</strong> organizace.</p>
+<p><?= t('<strong>{app}</strong> je <strong>interní</strong> analytický nástroj provozovaný organizací {org} výhradně pro vlastní potřebu. Nejde o veřejnou službu, nelze se do něj veřejně registrovat a přístup mají pouze pověření zaměstnanci/správci. Nástroj na jednom místě agreguje statistiky <strong>vlastních webů a vlastních profilů na sociálních sítích</strong> organizace.', ['app' => $app, 'org' => $org]) ?></p>
 
-<h2>1. Správce údajů</h2>
-<p><?= $org ?>, kontaktní e-mail <a href="mailto:<?= $email ?>"><?= $email ?></a>.</p>
+<h2><?= legal_e(t('1. Správce údajů')) ?></h2>
+<p><?= t('{org}, kontaktní e-mail <a href="mailto:{email}">{email}</a>.', ['org' => $org, 'email' => $email]) ?></p>
 
-<h2>2. Jaké údaje zpracováváme</h2>
-<h3>a) Agregované statistiky návštěvnosti webů</h3>
-<p>Z Google Analytics 4, Google Search Console a Microsoft Clarity přebíráme <strong>pouze denní souhrnné počty</strong>: návštěvy, uživatelé, zobrazení stránek, zdroje/kanály návštěvnosti, odkazující weby, návštěvy z AI nástrojů, vstupní a ostatní stránky, kategorie zařízení, země/region (agregovaně), události, konverze a vyhledávací dotazy. <strong>Nezpracováváme žádné osobní údaje jednotlivých návštěvníků</strong> ani je individuálně nesledujeme, jen denní agregáty.</p>
+<h2><?= legal_e(t('2. Jaké údaje zpracováváme')) ?></h2>
+<h3><?= legal_e(t('a) Agregované statistiky návštěvnosti webů')) ?></h3>
+<p><?= t('Z Google Analytics 4, Google Search Console a Microsoft Clarity přebíráme <strong>pouze denní souhrnné počty</strong>: návštěvy, uživatelé, zobrazení stránek, zdroje/kanály návštěvnosti, odkazující weby, návštěvy z AI nástrojů, vstupní a ostatní stránky, kategorie zařízení, země/region (agregovaně), události, konverze a vyhledávací dotazy. <strong>Nezpracováváme žádné osobní údaje jednotlivých návštěvníků</strong> ani je individuálně nesledujeme, jen denní agregáty.') ?></p>
 
-<h3>b) Statistiky vlastních profilů na sociálních sítích</h3>
-<p>Z Facebook stránek, Instagramu a LinkedIn (přes oficiální API, na základě autorizace organizace) přebíráme souhrnné metriky stránky a příspěvků (dosah, imprese, interakce, reakce, komentáře, sdílení) a veřejný obsah <strong>vlastních</strong> příspěvků (text, odkaz, čas publikace). U LinkedIn pouze <strong>agregované organické statistiky organizace</strong>. <strong>Nezpracováváme osobní data jiných uživatelů/členů</strong> sociálních sítí.</p>
+<h3><?= legal_e(t('b) Statistiky vlastních profilů na sociálních sítích')) ?></h3>
+<p><?= t('Z Facebook stránek, Instagramu a LinkedIn (přes oficiální API, na základě autorizace organizace) přebíráme souhrnné metriky stránky a příspěvků (dosah, imprese, interakce, reakce, komentáře, sdílení) a veřejný obsah <strong>vlastních</strong> příspěvků (text, odkaz, čas publikace). U LinkedIn pouze <strong>agregované organické statistiky organizace</strong>. <strong>Nezpracováváme osobní data jiných uživatelů/členů</strong> sociálních sítí.') ?></p>
 
-<h3>c) Reklamní statistiky vlastních účtů</h3>
-<p>Z Meta Ads přebíráme náklady, imprese, kliky, konverze a hodnotu konverzí vlastních reklamních účtů.</p>
+<h3><?= legal_e(t('c) Reklamní statistiky vlastních účtů')) ?></h3>
+<p><?= legal_e(t('Z Meta Ads přebíráme náklady, imprese, kliky, konverze a hodnotu konverzí vlastních reklamních účtů.')) ?></p>
 
-<h3>d) Přístupové tokeny a klíče</h3>
-<p>Přístupové tokeny a API klíče napojených účtů ukládáme <strong>šifrovaně (AES-256-GCM)</strong>.</p>
+<h3><?= legal_e(t('d) Přístupové tokeny a klíče')) ?></h3>
+<p><?= t('Přístupové tokeny a API klíče napojených účtů ukládáme <strong>šifrovaně (AES-256-GCM)</strong>.') ?></p>
 
-<h3>e) Účty správců nástroje</h3>
-<p>O interních správcích uchováváme: jméno, e-mail, <strong>bezpečný otisk hesla (bcrypt)</strong>, volitelně šifrovaný klíč pro dvoufaktorové ověření (TOTP), čas posledního přihlášení, záznam akcí s IP adresou (audit log) a záznamy přihlašovacích pokusů (ochrana proti zneužití).</p>
+<h3><?= legal_e(t('e) Účty správců nástroje')) ?></h3>
+<p><?= t('O interních správcích uchováváme: jméno, e-mail, <strong>bezpečný otisk hesla (bcrypt)</strong>, volitelně šifrovaný klíč pro dvoufaktorové ověření (TOTP), čas posledního přihlášení, záznam akcí s IP adresou (audit log) a záznamy přihlašovacích pokusů (ochrana proti zneužití).') ?></p>
 
-<h2>3. Účel a právní základ</h2>
-<p>Údaje zpracováváme <strong>výhradně pro interní reporting a analýzu vlastní webové a sociální prezentace</strong> organizace. Právním základem je oprávněný zájem správce (čl. 6 odst. 1 písm. f GDPR) na vyhodnocování vlastní prezentace; data z platforem jsou daty vlastních účtů, k nimž má organizace oprávnění.</p>
+<h2><?= legal_e(t('3. Účel a právní základ')) ?></h2>
+<p><?= t('Údaje zpracováváme <strong>výhradně pro interní reporting a analýzu vlastní webové a sociální prezentace</strong> organizace. Právním základem je oprávněný zájem správce (čl. 6 odst. 1 písm. f GDPR) na vyhodnocování vlastní prezentace; data z platforem jsou daty vlastních účtů, k nimž má organizace oprávnění.') ?></p>
 
-<h2>4. Jak údaje NEpoužíváme</h2>
+<h2><?= legal_e(t('4. Jak údaje NEpoužíváme')) ?></h2>
 <ul>
-<li>Neprodáváme je a nesdílíme s třetími stranami pro jejich vlastní účely.</li>
-<li>Nepoužíváme je k cílení reklamy na třetí osoby, k obohacování CRM ani k tvorbě databází kontaktů/leadů.</li>
-<li>Nepoužíváme je k recruitingu.</li>
-<li>Neprovádíme scraping ani crawling mimo oficiální API poskytovatelů.</li>
+<li><?= legal_e(t('Neprodáváme je a nesdílíme s třetími stranami pro jejich vlastní účely.')) ?></li>
+<li><?= legal_e(t('Nepoužíváme je k cílení reklamy na třetí osoby, k obohacování CRM ani k tvorbě databází kontaktů/leadů.')) ?></li>
+<li><?= legal_e(t('Nepoužíváme je k recruitingu.')) ?></li>
+<li><?= legal_e(t('Neprovádíme scraping ani crawling mimo oficiální API poskytovatelů.')) ?></li>
 </ul>
 
-<h2>5. Zdroje dat a zpracovatelé</h2>
-<p>Data čerpáme přes oficiální API: Google (GA4, Search Console), Microsoft (Clarity), Meta Platforms (Facebook, Instagram, Ads) a LinkedIn. Aplikace běží na webhostingu v EU. S uvedenými platformami nesdílíme zpět žádná data nad rámec autentizace nezbytné pro stažení statistik.</p>
+<h2><?= legal_e(t('5. Zdroje dat a zpracovatelé')) ?></h2>
+<p><?= legal_e(t('Data čerpáme přes oficiální API: Google (GA4, Search Console), Microsoft (Clarity), Meta Platforms (Facebook, Instagram, Ads) a LinkedIn. Aplikace běží na webhostingu v EU. S uvedenými platformami nesdílíme zpět žádná data nad rámec autentizace nezbytné pro stažení statistik.')) ?></p>
 
-<h2>6. Zabezpečení</h2>
+<h2><?= legal_e(t('6. Zabezpečení')) ?></h2>
 <ul>
-<li>Komunikace přes HTTPS.</li>
-<li>Tokeny a tajné hodnoty šifrované <strong>AES-256-GCM</strong>; hesla hashovaná <strong>bcrypt</strong>.</li>
-<li><strong>Dvoufaktorové ověření (TOTP)</strong>, volitelné a vynutitelné pro správce.</li>
-<li>Ochrana proti CSRF, automatické odhlášení při neaktivitě, evidence přihlašovacích pokusů.</li>
-<li>Rolemi omezený přístup do administrace a auditní log akcí.</li>
+<li><?= legal_e(t('Komunikace přes HTTPS.')) ?></li>
+<li><?= t('Tokeny a tajné hodnoty šifrované <strong>AES-256-GCM</strong>; hesla hashovaná <strong>bcrypt</strong>.') ?></li>
+<li><?= t('<strong>Dvoufaktorové ověření (TOTP)</strong>, volitelné a vynutitelné pro správce.') ?></li>
+<li><?= legal_e(t('Ochrana proti CSRF, automatické odhlášení při neaktivitě, evidence přihlašovacích pokusů.')) ?></li>
+<li><?= legal_e(t('Rolemi omezený přístup do administrace a auditní log akcí.')) ?></li>
 </ul>
 
-<h2>7. Doba uložení</h2>
-<p>Agregované statistiky uchováváme po dobu nezbytnou pro reporting. Přístupové tokeny uchováváme do odpojení účtu nebo do smazání na žádost. Data z LinkedIn jsou dostupná jen v rozsahu, který poskytuje jeho API (rolling 12 měsíců).</p>
+<h2><?= legal_e(t('7. Doba uložení')) ?></h2>
+<p><?= legal_e(t('Agregované statistiky uchováváme po dobu nezbytnou pro reporting. Přístupové tokeny uchováváme do odpojení účtu nebo do smazání na žádost. Data z LinkedIn jsou dostupná jen v rozsahu, který poskytuje jeho API (rolling 12 měsíců).')) ?></p>
 
-<h2>8. Vaše práva</h2>
-<p>Máte právo na přístup, opravu, výmaz, omezení zpracování a vznesení námitky. Kontaktujte nás na <a href="mailto:<?= $email ?>"><?= $email ?></a>. Postup smazání dat popisuje stránka <a href="data-deletion.php">Pokyny ke smazání dat</a>.</p>
+<h2><?= legal_e(t('8. Vaše práva')) ?></h2>
+<p><?= t('Máte právo na přístup, opravu, výmaz, omezení zpracování a vznesení námitky. Kontaktujte nás na <a href="mailto:{email}">{email}</a>. Postup smazání dat popisuje stránka <a href="data-deletion.php">Pokyny ke smazání dat</a>.', ['email' => $email]) ?></p>
 
-<h2>9. Změny</h2>
-<p>Tyto zásady můžeme aktualizovat; platí verze s nejnovějším datem účinnosti uvedeným nahoře.</p>
+<h2><?= legal_e(t('9. Změny')) ?></h2>
+<p><?= legal_e(t('Tyto zásady můžeme aktualizovat; platí verze s nejnovějším datem účinnosti uvedeným nahoře.')) ?></p>
 
+<?php if (allstat_locale() !== 'en'): ?>
 <span class="lang">English version</span>
 <h1>Privacy Policy</h1>
-<p class="eff">Effective: <?= legal_e(legal_get('effective')) ?></p>
+<p class="eff">Effective: <?= $effective ?></p>
 
 <p><strong><?= $app ?></strong> is an <strong>internal</strong> analytics tool operated by <?= $org ?> solely for its own use. It is <strong>not a public service</strong>, there is no public sign-up and access is limited to authorized staff/administrators. The tool aggregates statistics of the organization's <strong>own websites and own social-media profiles</strong> in one place.</p>
 
@@ -100,5 +102,6 @@ ob_start();
 
 <h2>9. Changes</h2>
 <p>We may update this policy; the version with the latest effective date above applies.</p>
+<?php endif; ?>
 <?php
-legal_render('Zásady ochrany osobních údajů / Privacy Policy', ob_get_clean());
+legal_render(t('Zásady ochrany osobních údajů / Privacy Policy'), ob_get_clean());

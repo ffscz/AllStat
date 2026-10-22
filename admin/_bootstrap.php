@@ -28,6 +28,9 @@ if ($pdo && allstat_tables_ready($pdo)) {
     if (is_file(__DIR__ . '/../install-token.php') && allstat_user_count($pdo) > 0) {
         @unlink(__DIR__ . '/../install-token.php');
     }
+
+    // Jazyk před přihlášením (cookie, jinak výchozí jazyk instalace); po přihlášení ho upřesní allstat_current_user.
+    allstat_locale_apply($pdo, null);
 }
 
 function allstat_admin_require_database(?PDO $pdo, array $config): PDO

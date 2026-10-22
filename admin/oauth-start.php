@@ -11,20 +11,26 @@ $id = filter_input(INPUT_GET, 'connection_id', FILTER_VALIDATE_INT) ?: 0;
 $connection = $id ? allstat_get_connection($pdo, $id) : null;
 
 if (!$connection) {
-    allstat_flash('error', 'Napojení zdroje neexistuje.');
+    allstat_flash('error', t('Napojení zdroje neexistuje.'));
     allstat_redirect($config, 'admin/sources.php');
+}
+
+// Napojení přes Google účet nemá vlastní tokeny (účet má přednost), přihlášení se obnovuje u účtu.
+if (!empty($connection['oauth_account_id'])) {
+    allstat_flash('info', t('Napojení se přihlašuje Google účtem. Připojení obnovíte v Google účtech (Obnovit připojení).'));
+    allstat_redirect($config, 'admin/google-accounts.php');
 }
 
 if (empty($connection['auth_url']) || empty($connection['client_id'])) {
     $missing = [];
     if (empty($connection['client_id'])) { $missing[] = 'Client ID'; }
     if (empty($connection['auth_url'])) { $missing[] = 'Authorization URL'; }
-    allstat_flash('error', 'Nejdřív vyplň a ulož ' . implode(' + ', $missing) . ' v sekci OAuth/API. Tip: u Google služeb použij stejný Client ID i Client secret jako u GA4.');
+    allstat_flash('error', t('Nejdřív vyplň a ulož {missing} v sekci OAuth/API. Tip: u Google služeb použij stejný Client ID i Client secret jako u GA4.', ['missing' => implode(' + ', $missing)]));
     allstat_redirect($config, 'admin/source-edit.php?id=' . $id);
 }
 
 if (!allstat_provider_url_allowed((string) $connection['provider_key'], (string) $connection['auth_url'])) {
-    allstat_flash('error', 'Authorization URL není pro tohoto providera povolená.');
+    allstat_flash('error', t('Authorization URL není pro tohoto providera povolená.'));
     allstat_redirect($config, 'admin/source-edit.php?id=' . $id);
 }
 

@@ -16,7 +16,7 @@ $connection = $id ? allstat_get_connection($pdo, $id) : null;
 
 if (!$connection) {
     http_response_code(404);
-    echo json_encode(['ok' => false, 'message' => 'Napojení neexistuje.'], JSON_UNESCAPED_UNICODE);
+    echo json_encode(['ok' => false, 'message' => t('Napojení neexistuje.')], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
@@ -83,7 +83,7 @@ if ($lastSync && (time() - strtotime((string) $lastSync)) < 60) {
     echo json_encode([
         'ok' => true,
         'mode' => 'incremental',
-        'message' => 'Přeskočeno – tohle napojení bylo synchronizováno před chvílí (cooldown 60 s, šetří API limit). Data jsou aktuální.',
+        'message' => t('Přeskočeno – tohle napojení bylo synchronizováno před chvílí (cooldown 60 s, šetří API limit). Data jsou aktuální.'),
         'stats' => null,
         'cooldown' => true,
     ], JSON_UNESCAPED_UNICODE);
@@ -97,7 +97,7 @@ $message = (string) $result['message'];
 $fresh = allstat_get_connection($pdo, $id);
 $q = !empty($fresh['quota_json']) ? json_decode((string) $fresh['quota_json'], true) : null;
 if (is_array($q) && isset($q['meta_usage_pct'])) {
-    $message .= sprintf(' · Meta API limit: %s %% využito (klouzavé 1h okno).', number_format((float) $q['meta_usage_pct'], 1, ',', ' '));
+    $message .= t(' · Meta API limit: {pct} % využito (klouzavé 1h okno).', ['pct' => allstat_number((float) $q['meta_usage_pct'], 1)]);
 }
 
 echo json_encode([

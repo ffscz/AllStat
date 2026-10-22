@@ -18,6 +18,7 @@ if (version_compare(PHP_VERSION, '8.1.0', '<')) {
         . '<p>Verzi PHP změníte v administraci hostingu, obvykle v sekci „Nastavení PHP", „Verze PHP", '
         . '„MultiPHP Manager" nebo „Select PHP Version". Přepněte složku, ve které je AllStat, na PHP 8.3 '
         . '(nebo aspoň 8.1) a tuto stránku obnovte.</p>'
+        . '<p style="color:#6b7280">AllStat requires PHP 8.1 or newer. Please switch this folder to PHP 8.3 (or at least 8.1) in your hosting control panel and reload this page.</p>'
         . '</body></html>';
     exit;
 }

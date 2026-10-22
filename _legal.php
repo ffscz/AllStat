@@ -7,8 +7,10 @@
  *
  * The org-specific values are EDITABLE from the admin (Nastavení → Právní stránky); they are stored
  * as `legal.*` rows in allstat_settings. The constants below are only the fallback defaults used when
- * a value isn't set yet or the DB is unavailable — so the pages always render something valid.
+ * a value isn't set yet or the DB is unavailable - so the pages always render something valid.
  */
+
+require_once __DIR__ . '/lib/helpers.php';
 
 const LEGAL_DEFAULTS = [
     'app'       => 'AllStat',
@@ -31,9 +33,11 @@ function legal_config(): array
         return $cfg;
     }
     $cfg = LEGAL_DEFAULTS;
+    $pdo = null;
     try {
         $config = require __DIR__ . '/config.php';
         require_once __DIR__ . '/lib/database.php';
+        require_once __DIR__ . '/lib/auth.php';
         $pdo = allstat_db($config, true);
         if ($pdo) {
             $rows = $pdo->query("SELECT setting_key, setting_value FROM allstat_settings WHERE setting_key LIKE 'legal.%'")->fetchAll();
@@ -46,6 +50,16 @@ function legal_config(): array
         }
     } catch (Throwable) {
         // keep defaults
+    }
+
+    // Jazyk veřejných stránek: cookie, jinak výchozí jazyk instalace
+    try {
+        allstat_locale_apply($pdo instanceof PDO ? $pdo : null, null);
+    } catch (Throwable) {
+        // zůstane čeština
+    }
+    if ($cfg['org'] === LEGAL_DEFAULTS['org']) {
+        $cfg['org'] = t('(doplňte název organizace v Nastavení)');
     }
 
     return $cfg;
@@ -80,7 +94,7 @@ function legal_render(string $title, string $bodyHtml): void
     if ($L['address'] !== '') { $controller .= ', ' . legal_e($L['address']); }
 
     header('Content-Type: text/html; charset=utf-8');
-    echo '<!doctype html><html lang="cs"><head><meta charset="utf-8">';
+    echo '<!doctype html><html lang="' . legal_e(allstat_locale()) . '"><head><meta charset="utf-8">';
     echo '<meta name="viewport" content="width=device-width, initial-scale=1">';
     echo '<meta name="robots" content="noindex">';
     echo '<title>' . legal_e($title) . ', ' . $app . '</title>';
@@ -107,17 +121,17 @@ function legal_render(string $title, string $bodyHtml): void
         footer b{color:var(--fg);}
     </style></head><body><div class="wrap">';
     echo '<header class="top"><div class="brand">' . $app . '</div>';
-    echo '<div class="tag">Interní analytický nástroj ' . $org . ' · Internal analytics tool (not a public service)</div></header>';
+    echo '<div class="tag">' . t('Interní analytický nástroj {org}', ['org' => $org]) . (allstat_locale() === 'en' ? '' : ' · Internal analytics tool (not a public service)') . '</div></header>';
     echo '<nav>';
-    echo '<a href="privacy.php">Zásady ochrany osobních údajů / Privacy</a>';
-    echo '<a href="terms.php">Podmínky / Terms of Service</a>';
-    echo '<a href="data-deletion.php">Smazání dat / Data deletion</a>';
+    echo '<a href="privacy.php">' . legal_e(t('Zásady ochrany osobních údajů / Privacy')) . '</a>';
+    echo '<a href="terms.php">' . legal_e(t('Podmínky / Terms of Service')) . '</a>';
+    echo '<a href="data-deletion.php">' . legal_e(t('Smazání dat / Data deletion')) . '</a>';
     echo '<a href="' . $web . '" target="_blank" rel="noopener">' . $webHost . '</a>';
     echo '</nav>';
     echo '<main>' . $bodyHtml . '</main>';
     echo '<footer><b>' . $controller . '</b><br>';
-    echo 'Správce / Data controller · ' . $org . '<br>';
-    echo 'Kontakt / Contact: <a href="mailto:' . $email . '">' . $email . '</a> · Web: <a href="' . $web . '">' . $webHost . '</a><br>';
-    echo 'Účinné od / Effective: ' . $eff . '</footer>';
+    echo legal_e(t('Správce / Data controller')) . ' · ' . $org . '<br>';
+    echo legal_e(t('Kontakt / Contact:')) . ' <a href="mailto:' . $email . '">' . $email . '</a> · Web: <a href="' . $web . '">' . $webHost . '</a><br>';
+    echo legal_e(t('Účinné od / Effective:')) . ' ' . $eff . '</footer>';
     echo '</div></body></html>';
 }

@@ -19,6 +19,7 @@ function allstat_admin_header(string $title, string $active, array $user, array 
     $help ??= [
         'domains' => 'weby',
         'sources' => 'sluzby',
+        'google' => 'google-ucty',
         'funnels' => 'trychtyre',
         'settings' => 'po-instalaci',
         'mcp' => 'ai',
@@ -27,36 +28,38 @@ function allstat_admin_header(string $title, string $active, array $user, array 
         'update' => 'aktualizace',
     ][$active] ?? '';
     $mainItems = [
-        ['key' => 'dashboard', 'label' => 'Přehled', 'icon' => 'home', 'href' => allstat_url($config, '')],
-        ['key' => 'domains', 'label' => 'Weby', 'icon' => 'globe-2', 'href' => allstat_url($config, 'admin/domains.php')],
-        ['key' => 'sources', 'label' => 'Zdroje dat', 'icon' => 'database', 'href' => allstat_url($config, 'admin/sources.php')],
-        ['key' => 'metrics', 'label' => 'Metriky', 'icon' => 'line-chart', 'href' => allstat_url($config, 'admin/metrics.php')],
-        ['key' => 'funnels', 'label' => 'Trychtýře', 'icon' => 'filter', 'href' => allstat_url($config, 'admin/funnels.php')],
-        ['key' => 'reports', 'label' => 'Reporty', 'icon' => 'clipboard-list', 'href' => allstat_url($config, 'admin/reports.php')],
-        ['key' => 'feeds', 'label' => 'Datový feed', 'icon' => 'sheet', 'href' => allstat_url($config, 'admin/feeds.php')],
+        ['key' => 'dashboard', 'label' => t('Přehled'), 'icon' => 'home', 'href' => allstat_url($config, '')],
+        ['key' => 'sites', 'label' => t('Všechny weby'), 'icon' => 'layout-grid', 'href' => allstat_url($config, 'admin/sites.php')],
+        ['key' => 'domains', 'label' => t('Weby'), 'icon' => 'globe-2', 'href' => allstat_url($config, 'admin/domains.php')],
+        ['key' => 'sources', 'label' => t('Zdroje dat'), 'icon' => 'database', 'href' => allstat_url($config, 'admin/sources.php')],
+        ['key' => 'google', 'label' => t('Google účty'), 'icon' => 'key-round', 'href' => allstat_url($config, 'admin/google-accounts.php')],
+        ['key' => 'metrics', 'label' => t('Metriky'), 'icon' => 'line-chart', 'href' => allstat_url($config, 'admin/metrics.php')],
+        ['key' => 'funnels', 'label' => t('Trychtýře'), 'icon' => 'filter', 'href' => allstat_url($config, 'admin/funnels.php')],
+        ['key' => 'reports', 'label' => t('Reporty'), 'icon' => 'clipboard-list', 'href' => allstat_url($config, 'admin/reports.php')],
+        ['key' => 'feeds', 'label' => t('Datový feed'), 'icon' => 'sheet', 'href' => allstat_url($config, 'admin/feeds.php')],
     ];
     $adminItems = [
-        ['key' => 'settings', 'label' => 'Nastavení', 'icon' => 'settings', 'href' => allstat_url($config, 'admin/settings.php')],
-        ['key' => 'users', 'label' => 'Uživatelé', 'icon' => 'users', 'href' => allstat_url($config, 'admin/users.php')],
+        ['key' => 'settings', 'label' => t('Nastavení'), 'icon' => 'settings', 'href' => allstat_url($config, 'admin/settings.php')],
+        ['key' => 'users', 'label' => t('Uživatelé'), 'icon' => 'users', 'href' => allstat_url($config, 'admin/users.php')],
         ['key' => '2fa', 'label' => '2FA', 'icon' => 'shield-check', 'href' => allstat_url($config, 'admin/setup-2fa.php')],
-        ['key' => 'logout', 'label' => 'Odhlásit', 'icon' => 'log-out', 'href' => allstat_url($config, 'admin/logout.php')],
+        ['key' => 'logout', 'label' => t('Odhlásit'), 'icon' => 'log-out', 'href' => allstat_url($config, 'admin/logout.php')],
     ];
     // AI konektory (MCP) vidí jen administrátor, stejně jako samotnou stránku.
     if (($user['role'] ?? '') === 'admin') {
-        array_splice($adminItems, 1, 0, [['key' => 'mcp', 'label' => 'AI konektory', 'icon' => 'plug-zap', 'href' => allstat_url($config, 'admin/mcp.php')]]);
+        array_splice($adminItems, 1, 0, [['key' => 'mcp', 'label' => t('AI konektory'), 'icon' => 'plug-zap', 'href' => allstat_url($config, 'admin/mcp.php')]]);
     } else {
         // Běžný uživatel má jen přehled, reporty a svůj účet; správa (weby, zdroje, metriky, feed, nastavení,
         // uživatelé) je jen pro administrátora a stránky by mu vrátily 403.
-        $userKeys = ['dashboard', 'reports', '2fa', 'logout'];
+        $userKeys = ['dashboard', 'sites', 'reports', '2fa', 'logout'];
         $mainItems = array_values(array_filter($mainItems, static fn (array $item): bool => in_array($item['key'], $userKeys, true)));
         $adminItems = array_values(array_filter($adminItems, static fn (array $item): bool => in_array($item['key'], $userKeys, true)));
     }
     ?><!doctype html>
-<html lang="cs" data-theme="light">
+<html lang="<?= h(allstat_locale()) ?>"<?= allstat_i18n_js_attribute() ?> data-theme="light">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= h($title) ?> | <?= h($config['app']['name']) ?></title>
+    <title><?= h(t($title)) ?> | <?= h($config['app']['name']) ?></title>
     <script nonce="<?= h(allstat_nonce()) ?>">document.documentElement.dataset.theme = localStorage.getItem('allstat-theme') || 'light';</script>
     <link rel="stylesheet" href="<?= h(allstat_url($config, 'assets/css/app.css')) ?>?v=<?= @filemtime(__DIR__ . '/../assets/css/app.css') ?: '1' ?>">
     <link rel="stylesheet" href="<?= h(allstat_url($config, 'assets/css/admin.css')) ?>?v=<?= @filemtime(__DIR__ . '/../assets/css/admin.css') ?: '1' ?>">
@@ -88,7 +91,7 @@ function allstat_admin_header(string $title, string $active, array $user, array 
             <?php if ($updateNotice && $active !== 'update'): ?>
             <a class="update-card" href="<?= h(allstat_url($config, 'admin/update.php')) ?>">
                 <i data-lucide="download" aria-hidden="true"></i>
-                <span><strong>Nová verze <?= h($updateNotice['version']) ?></strong><small>Máš <?= h($updateNotice['installed']) ?>, klikni pro aktualizaci</small></span>
+                <span><strong><?= h(t('Nová verze {version}', ['version' => $updateNotice['version']])) ?></strong><small><?= h(t('Máš {installed}, klikni pro aktualizaci', ['installed' => $updateNotice['installed']])) ?></small></span>
             </a>
             <?php endif; ?>
             <?php require_once __DIR__ . '/../lib/version.php'; ?>
@@ -98,27 +101,28 @@ function allstat_admin_header(string $title, string $active, array $user, array 
         <main class="admin-main">
             <header class="admin-topbar">
                 <div class="topbar-title">
-                    <button class="icon-button nav-toggle" type="button" data-sidebar-toggle title="Menu" aria-label="Menu" aria-expanded="false"><i data-lucide="menu"></i></button>
+                    <button class="icon-button nav-toggle" type="button" data-sidebar-toggle title="<?= h(t('Menu')) ?>" aria-label="<?= h(t('Menu')) ?>" aria-expanded="false"><i data-lucide="menu"></i></button>
                     <div>
-                        <h1><?= h($title) ?></h1>
+                        <h1><?= h(t($title)) ?></h1>
                         <p><?= h($user['name'] ?? $user['email'] ?? '') ?> · <?= h($user['role'] ?? '') ?></p>
                     </div>
                     <span class="title-actions">
                         <?= allstat_help_button($help) ?>
-                        <button class="avatar-button" id="themeToggle" type="button" title="Motiv" aria-label="Motiv"><i data-lucide="moon"></i></button>
+                        <button class="avatar-button" id="themeToggle" type="button" title="<?= h(t('Motiv')) ?>" aria-label="<?= h(t('Motiv')) ?>"><i data-lucide="moon"></i></button>
+                        <?= allstat_locale_switcher($config) ?>
                     </span>
                 </div>
             </header>
             <section class="admin-content">
                 <?php if (function_exists('allstat_crypto_uses_default_key') && allstat_crypto_uses_default_key($config) && ($user['role'] ?? '') === 'admin'): ?>
                     <div class="notice notice-critical">
-                        <strong>⚠ Kritické riziko bezpečnosti:</strong>
-                        Šifrovací klíč je výchozí (`allstat-local-dev-key-change-me`). Všechny tokeny v DB jsou dešifrovatelné kýmkoli s přístupem ke zdrojovému kódu.
-                        <a href="<?= h(allstat_url($config, 'admin/security.php')) ?>">Rotovat klíč hned →</a>
+                        <strong><?= h(t('⚠ Kritické riziko bezpečnosti:')) ?></strong>
+                        <?= h(t('Šifrovací klíč je výchozí (`allstat-local-dev-key-change-me`). Všechny tokeny v DB jsou dešifrovatelné kýmkoli s přístupem ke zdrojovému kódu.')) ?>
+                        <a href="<?= h(allstat_url($config, 'admin/security.php')) ?>"><?= h(t('Rotovat klíč hned →')) ?></a>
                     </div>
                 <?php endif; ?>
                 <?php foreach (allstat_take_flashes() as $flash): ?>
-                    <div class="notice <?= ['error' => 'notice-error', 'warn' => 'notice-warn'][$flash['type'] ?? ''] ?? 'notice-ok' ?>"><?= h($flash['message'] ?? '') ?></div>
+                    <div class="notice <?= ['error' => 'notice-error', 'warn' => 'notice-warn'][$flash['type'] ?? ''] ?? 'notice-ok' ?>"><?= h(t((string) ($flash['message'] ?? ''))) ?></div>
                 <?php endforeach; ?>
     <?php
 }
@@ -131,6 +135,7 @@ function allstat_admin_footer(array $config): void
     </div>
     <?php $nonce = allstat_nonce(); ?>
     <script src="<?= h(allstat_url($config, 'assets/vendor/lucide.min.js')) ?>?v=<?= @filemtime(__DIR__ . '/../assets/vendor/lucide.min.js') ?: '1' ?>" nonce="<?= h($nonce) ?>"></script>
+    <script src="<?= h(allstat_url($config, 'assets/js/i18n.js')) ?>?v=<?= @filemtime(__DIR__ . '/../assets/js/i18n.js') ?: '1' ?>" nonce="<?= h($nonce) ?>"></script>
     <script src="<?= h(allstat_url($config, 'assets/js/admin.js')) ?>?v=<?= @filemtime(__DIR__ . '/../assets/js/admin.js') ?: '1' ?>" nonce="<?= h($nonce) ?>"></script>
     <script src="<?= h(allstat_url($config, 'assets/js/select-search.js')) ?>?v=<?= @filemtime(__DIR__ . '/../assets/js/select-search.js') ?: '1' ?>" nonce="<?= h($nonce) ?>"></script>
     <script src="<?= h(allstat_url($config, 'assets/js/table-sort.js')) ?>?v=<?= @filemtime(__DIR__ . '/../assets/js/table-sort.js') ?: '1' ?>" nonce="<?= h($nonce) ?>"></script>
@@ -141,7 +146,7 @@ function allstat_admin_footer(array $config): void
 
 function allstat_status_badge(string $status): string
 {
-    $labels = ['ok' => 'OK', 'warning' => 'Varování', 'error' => 'Chyba', 'info' => 'Info'];
+    $labels = ['ok' => 'OK', 'warning' => t('Varování'), 'error' => t('Chyba'), 'info' => 'Info'];
     $safeStatus = h($status);
 
     return '<span class="status-badge status-' . $safeStatus . '">' . h($labels[$status] ?? $status) . '</span>';

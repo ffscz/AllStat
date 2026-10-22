@@ -15,7 +15,7 @@ $connection = $id ? allstat_get_connection($pdo, $id) : null;
 
 if (!$connection) {
     http_response_code(404);
-    echo json_encode(['ok' => false, 'message' => 'Napojení neexistuje.'], JSON_UNESCAPED_UNICODE);
+    echo json_encode(['ok' => false, 'message' => t('Napojení neexistuje.')], JSON_UNESCAPED_UNICODE);
     exit;
 }
 

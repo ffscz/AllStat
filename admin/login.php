@@ -39,15 +39,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    $error = $result['message'];
+    $error = t($result['message']);
 }
 
 ?><!doctype html>
-<html lang="cs" data-theme="light">
+<html lang="<?= h(allstat_locale()) ?>"<?= allstat_i18n_js_attribute() ?> data-theme="light">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Přihlášení | AllStat</title>
+    <title><?= h(t('Přihlášení')) ?> | AllStat</title>
     <script nonce="<?= h(allstat_nonce()) ?>">document.documentElement.dataset.theme = localStorage.getItem('allstat-theme') || 'light';</script>
     <link rel="stylesheet" href="<?= h(allstat_url($config, 'assets/css/app.css')) ?>">
     <link rel="stylesheet" href="<?= h(allstat_url($config, 'assets/css/admin.css')) ?>">
@@ -56,20 +56,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <main class="auth-shell">
         <section class="auth-card">
             <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
-            <h1>Přihlášení</h1>
-            <p>Administrace AllStat je chráněná účtem a případně jednorázovým 2FA kódem.</p>
+            <h1><?= h(t('Přihlášení')) ?></h1>
+            <p><?= h(t('Administrace AllStat je chráněná účtem a případně jednorázovým 2FA kódem.')) ?></p>
             <?php if ($error): ?><div class="notice notice-error"><?= h($error) ?></div><?php endif; ?>
             <form method="post" class="form-stack">
                 <?= allstat_csrf_field() ?>
                 <input type="hidden" name="next" value="<?= h($next) ?>">
-                <label><span>E-mail</span><input type="text" name="email" required inputmode="email" autocomplete="username" autofocus></label>
-                <label><span>Heslo</span><input type="password" name="password" required autocomplete="current-password"></label>
-                <button class="button-primary" type="submit">Přihlásit</button>
+                <label><span><?= h(t('E-mail')) ?></span><input type="text" name="email" required inputmode="email" autocomplete="username" autofocus></label>
+                <label><span><?= h(t('Heslo')) ?></span><input type="password" name="password" required autocomplete="current-password"></label>
+                <button class="button-primary" type="submit"><?= h(t('Přihlásit')) ?></button>
             </form>
+            <?= allstat_locale_switcher($config) ?>
         </section>
     </main>
     <?php $nonce = allstat_nonce(); ?>
     <script src="<?= h(allstat_url($config, 'assets/vendor/lucide.min.js')) ?>" nonce="<?= h($nonce) ?>"></script>
+    <script src="<?= h(allstat_url($config, 'assets/js/i18n.js')) ?>" nonce="<?= h($nonce) ?>"></script>
     <script src="<?= h(allstat_url($config, 'assets/js/admin.js')) ?>" nonce="<?= h($nonce) ?>"></script>
 </body>
 </html>

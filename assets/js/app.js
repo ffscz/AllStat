@@ -9,8 +9,8 @@ const AllStat = (() => {
         rose: '#f43f5e',
         teal: '#14b8a6'
     };
-    const statusLabels = { ok: 'OK', warning: 'Varování', error: 'Chyba' };
-    const formatter = new Intl.NumberFormat('cs-CZ');
+    const statusLabels = { ok: 'OK', warning: window.allstatT('Varování'), error: window.allstatT('Chyba') };
+    const formatter = new Intl.NumberFormat(window.allstatLocale);
 
     function cssVariable(name) {
         return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -55,7 +55,7 @@ const AllStat = (() => {
                 labels: data.charts.visits.labels,
                 datasets: [
                     {
-                        label: 'Návštěvy (GA4)',
+                        label: window.allstatT('Návštěvy (GA4)'),
                         data: data.charts.visits.visits,
                         borderColor: palette.blue,
                         backgroundColor: 'transparent',
@@ -65,7 +65,7 @@ const AllStat = (() => {
                         borderWidth: 3
                     },
                     {
-                        label: 'Uživatelé (GA4)',
+                        label: window.allstatT('Uživatelé (GA4)'),
                         data: data.charts.visits.users,
                         borderColor: palette.green,
                         backgroundColor: 'transparent',
@@ -75,7 +75,7 @@ const AllStat = (() => {
                         borderWidth: 3
                     },
                     {
-                        label: 'Konverze (GA4)',
+                        label: window.allstatT('Konverze (GA4)'),
                         data: data.charts.visits.conversions,
                         borderColor: palette.violet,
                         backgroundColor: 'transparent',
@@ -118,14 +118,14 @@ const AllStat = (() => {
                         position: 'left',
                         grid: { color: cssVariable('--chart-grid') },
                         ticks: { color: cssVariable('--muted') },
-                        title: { display: true, text: 'Návštěvy / uživatelé', color: cssVariable('--muted') }
+                        title: { display: true, text: window.allstatT('Návštěvy / uživatelé'), color: cssVariable('--muted') }
                     },
                     y1: {
                         beginAtZero: true,
                         position: 'right',
                         grid: { drawOnChartArea: false },
                         ticks: { color: cssVariable('--muted') },
-                        title: { display: true, text: 'Konverze', color: cssVariable('--muted') }
+                        title: { display: true, text: window.allstatT('Konverze'), color: cssVariable('--muted') }
                     }
                 }
             }
@@ -142,7 +142,7 @@ const AllStat = (() => {
         }
 
         if (!rows.length) {
-            holder.innerHTML = '<p class="table-muted">Zatím bez dat, spusť GA4 sync.</p>';
+            holder.innerHTML = '<p class="table-muted">' + window.allstatT('Zatím bez dat, spusť GA4 sync.') + '</p>';
             return;
         }
 
@@ -255,14 +255,14 @@ const AllStat = (() => {
 
         const landing = (data.tables && data.tables.landingPages) || [];
         const all = (data.tables && data.tables.allPages) || [];
-        const emptyRow = '<tr><td colspan="3" class="table-muted">Zatím bez dat o stránkách, spusť GA4 sync.</td></tr>';
+        const emptyRow = '<tr><td colspan="3" class="table-muted">' + window.allstatT('Zatím bez dat o stránkách, spusť GA4 sync.') + '</td></tr>';
 
         if (pagesMode === 'vsechny') {
             if (head) {
-                head.innerHTML = '<th>Stránka</th><th>Zobrazení</th><th>Podíl</th>';
+                head.innerHTML = '<th>' + window.allstatT('Stránka') + '</th><th>' + window.allstatT('Zobrazení') + '</th><th>' + window.allstatT('Podíl') + '</th>';
             }
             if (help) {
-                help.innerHTML = 'Nejnavštěvovanější stránky podle počtu zobrazení (GA4 dimenze <code>pagePath</code> / <code>screenPageViews</code>) za zvolené období.';
+                help.innerHTML = window.allstatT('Nejnavštěvovanější stránky podle počtu zobrazení (GA4 dimenze <code>pagePath</code> / <code>screenPageViews</code>) za zvolené období.');
             }
             body.innerHTML = all.length ? all.map((p) => `
                 <tr>
@@ -273,10 +273,10 @@ const AllStat = (() => {
             `).join('') : emptyRow;
         } else {
             if (head) {
-                head.innerHTML = '<th>Stránka</th><th>Návštěvy</th><th>Změna</th>';
+                head.innerHTML = '<th>' + window.allstatT('Stránka') + '</th><th>' + window.allstatT('Návštěvy') + '</th><th>' + window.allstatT('Změna') + '</th>';
             }
             if (help) {
-                help.innerHTML = 'Top vstupní stránky, kde návštěva začala. GA4 dimenze <code>landingPage</code>. „Změna" = rozdíl proti předchozímu období (u celého měsíce proti předchozímu měsíci, jinak proti stejně dlouhému období těsně před).';
+                help.innerHTML = window.allstatT('Top vstupní stránky, kde návštěva začala. GA4 dimenze <code>landingPage</code>. „Změna" = rozdíl proti předchozímu období (u celého měsíce proti předchozímu měsíci, jinak proti stejně dlouhému období těsně před).');
             }
             body.innerHTML = landing.length ? landing.map((p) => `
                 <tr>
@@ -403,7 +403,7 @@ const AllStat = (() => {
                 change.classList.toggle('trend-down', kpi.trend === 'down');
                 change.classList.toggle('trend-none', kpi.trend === 'none');
                 if (kpi.trend === 'none') {
-                    change.innerHTML = 'bez srovnání';
+                    change.innerHTML = window.allstatT('bez srovnání');
                 } else {
                     change.innerHTML = `${kpi.trend === 'up' ? '&uarr;' : '&darr;'} ${escapeHtml(kpi.changeLabel)}`;
                 }
@@ -415,7 +415,7 @@ const AllStat = (() => {
         const fmtDate = (iso) => { const d = new Date(iso + 'T00:00:00'); return `${d.getDate()}. ${d.getMonth() + 1}. ${d.getFullYear()}`; };
         const prevLabel = (prev && prev.start && prev.end) ? ` (${fmtDate(prev.start)} – ${fmtDate(prev.end)})` : '';
         document.querySelectorAll('[data-prev-range]').forEach((el) => {
-            el.textContent = 'vs. předchozí období' + prevLabel;
+            el.textContent = window.allstatT('vs. předchozí období') + prevLabel;
         });
     }
 
@@ -436,7 +436,7 @@ const AllStat = (() => {
                     <td>${escapeHtml(e.countLabel)}</td>
                     <td>${escapeHtml(e.keyEventsLabel)}</td>
                 </tr>
-            `).join('') : '<tr><td colspan="3" class="table-muted">Zatím bez event dat, spusť sync.</td></tr>';
+            `).join('') : '<tr><td colspan="3" class="table-muted">' + window.allstatT('Zatím bez event dat, spusť sync.') + '</td></tr>';
         }
 
         if (referrerRows) {
@@ -447,7 +447,7 @@ const AllStat = (() => {
                     <td>${escapeHtml(r.sessionsLabel)}</td>
                     <td>${escapeHtml(r.shareLabel)}</td>
                 </tr>
-            `).join('') : '<tr><td colspan="3" class="table-muted">Zatím bez referral dat, spusť GA4 sync.</td></tr>';
+            `).join('') : '<tr><td colspan="3" class="table-muted">' + window.allstatT('Zatím bez referral dat, spusť GA4 sync.') + '</td></tr>';
         }
 
         if (geoRows) {
@@ -459,7 +459,7 @@ const AllStat = (() => {
                     <td>${escapeHtml(g.sessionsLabel)}</td>
                     <td>${escapeHtml(g.shareLabel)}</td>
                 </tr>
-            `).join('') : '<tr><td colspan="4" class="table-muted">Zatím bez geo dat, spusť sync.</td></tr>';
+            `).join('') : '<tr><td colspan="4" class="table-muted">' + window.allstatT('Zatím bez geo dat, spusť sync.') + '</td></tr>';
         }
 
         if (landingRows) {
@@ -491,17 +491,17 @@ const AllStat = (() => {
                 <div class="utm-item">
                     <div class="utm-item-top">
                         <span class="utm-name" title="utm_campaign">${escapeHtml(c.campaignLabel)}</span>
-                        <span class="utm-value"><strong>${escapeHtml(c.sessionsLabel)}</strong> <small>návštěv · ${escapeHtml(c.shareLabel)}</small></span>
+                        <span class="utm-value"><strong>${escapeHtml(c.sessionsLabel)}</strong> <small>${window.allstatT('návštěv')} · ${escapeHtml(c.shareLabel)}</small></span>
                     </div>
                     <div class="utm-track"><div class="utm-fill" style="width: ${Math.round(Math.max(3, c.share || 0) * 10) / 10}%;"></div></div>
                     <div class="utm-tags">
                         <span class="utm-chip" title="utm_source / utm_medium">${escapeHtml(c.channelLabel)}</span>
-                        ${c.contentLabel !== '—' ? `<span class="utm-chip" title="utm_content, A/B varianta">varianta: ${escapeHtml(c.contentLabel)}</span>` : ''}
-                        <span class="utm-chip${c.conversions > 0 ? ' utm-chip-ok' : ''}" title="Konverze z této kampaně (a podíl z jejích návštěv)">konverze: ${escapeHtml(c.conversionsLabel)}${c.convRate !== '—' ? ` (${escapeHtml(c.convRate)})` : ''}</span>
+                        ${c.contentLabel !== '—' ? `<span class="utm-chip" title="utm_content, A/B ${window.allstatT('varianta')}">${window.allstatT('varianta')}: ${escapeHtml(c.contentLabel)}</span>` : ''}
+                        <span class="utm-chip${c.conversions > 0 ? ' utm-chip-ok' : ''}" title="${window.allstatT('Konverze z této kampaně (a podíl z jejích návštěv)')}">${window.allstatT('konverze')}: ${escapeHtml(c.conversionsLabel)}${c.convRate !== '—' ? ` (${escapeHtml(c.convRate)})` : ''}</span>
                     </div>
-                    ${(c.pages || []).length ? `<div class="utm-pages">Kam přišli: ${c.pages.map((p) => `${escapeHtml(p.path)} <span class="table-muted">(${escapeHtml(p.sessionsLabel)})</span>`).join(' · ')}</div>` : ''}
+                    ${(c.pages || []).length ? `<div class="utm-pages">${window.allstatT('Kam přišli')}: ${c.pages.map((p) => `${escapeHtml(p.path)} <span class="table-muted">(${escapeHtml(p.sessionsLabel)})</span>`).join(' · ')}</div>` : ''}
                 </div>
-            `).join('') : '<p class="table-muted">Zatím žádná návštěvnost s UTM parametry za zvolené období. Otaguj odkazy (např. <code>?utm_campaign=jaro&amp;utm_source=facebook&amp;utm_medium=cpc&amp;utm_content=banner1</code>) a po dalším GA4 syncu se kampaně objeví zde.</p>';
+            `).join('') : '<p class="table-muted">' + window.allstatT('Zatím žádná návštěvnost s UTM parametry za zvolené období. Otaguj odkazy (např. <code>?utm_campaign=jaro&amp;utm_source=facebook&amp;utm_medium=cpc&amp;utm_content=banner1</code>) a po dalším GA4 syncu se kampaně objeví zde.') + '</p>';
         }
 
         if (sourceRows) {
@@ -510,9 +510,9 @@ const AllStat = (() => {
                     <td>${escapeHtml(source.source)}</td>
                     <td><span class="status-badge status-${escapeHtml(source.status)}">${escapeHtml(statusLabels[source.status] || source.status)}</span></td>
                     <td>${escapeHtml(source.lastSync)}</td>
-                    <td><button class="table-icon-button" type="button" title="Obnovit" aria-label="Obnovit" data-refresh-dashboard>${iconRefresh()}</button></td>
+                    <td><button class="table-icon-button" type="button" title="${window.allstatT('Obnovit')}" aria-label="${window.allstatT('Obnovit')}" data-refresh-dashboard>${iconRefresh()}</button></td>
                 </tr>
-            `).join('') : '<tr><td colspan="4" class="table-muted">Zatím není napojený žádný zdroj dat.</td></tr>';
+            `).join('') : '<tr><td colspan="4" class="table-muted">' + window.allstatT('Zatím není napojený žádný zdroj dat.') + '</td></tr>';
         }
     }
 
@@ -523,8 +523,8 @@ const AllStat = (() => {
 
         if (mode) {
             mode.textContent = data.meta.databaseMode
-                ? (data.meta.sourceCount > 0 ? 'Všechny zdroje jsou synchronizované' : 'Zdroje zatím nejsou napojené')
-                : 'Demo data jsou aktivní';
+                ? (data.meta.sourceCount > 0 ? window.allstatT('Všechny zdroje jsou synchronizované') : window.allstatT('Zdroje zatím nejsou napojené'))
+                : window.allstatT('Demo data jsou aktivní');
         }
 
         if (lastSync) {
@@ -807,15 +807,18 @@ const AllStat = (() => {
         const endInput = wrap.querySelector('[data-date-end]');
         if (!trigger || !pop || !labelEl || !startInput || !endInput) { return; }
 
-        const MONTHS = ['leden', 'únor', 'březen', 'duben', 'květen', 'červen', 'červenec', 'srpen', 'září', 'říjen', 'listopad', 'prosinec'];
-        const WD = ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'];
+        const MONTHS = [window.allstatT('leden'), window.allstatT('únor'), window.allstatT('březen'), window.allstatT('duben'), window.allstatT('květen'), window.allstatT('červen'), window.allstatT('červenec'), window.allstatT('srpen'), window.allstatT('září'), window.allstatT('říjen'), window.allstatT('listopad'), window.allstatT('prosinec')];
+        const WD = [window.allstatT('Po'), window.allstatT('Út'), window.allstatT('St'), window.allstatT('Čt'), window.allstatT('Pá'), window.allstatT('So'), window.allstatT('Ne')];
         const pad = (n) => String(n).padStart(2, '0');
         const fmt = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
         const parse = (s) => { const p = String(s).split('-').map(Number); return new Date(p[0], (p[1] || 1) - 1, p[2] || 1); };
         const today = (() => { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); })();
         const same = (a, b) => !!a && !!b && a.getTime() === b.getTime();
         const czRange = (a, b) => {
-            const dm = (x) => x.getDate() + '. ' + (x.getMonth() + 1) + '.';
+            // Angličtina: 16 Oct; čeština a slovenština: 16. 10.
+            const dm = (x) => (window.allstatLocale || 'cs-CZ').startsWith('en')
+                ? x.getDate() + ' ' + x.toLocaleString('en-GB', { month: 'short' })
+                : x.getDate() + '. ' + (x.getMonth() + 1) + '.';
             if (!b || same(a, b)) { return dm(a) + ' ' + a.getFullYear(); }
             if (a.getFullYear() === b.getFullYear()) { return dm(a) + ' – ' + dm(b) + ' ' + b.getFullYear(); }
             return dm(a) + ' ' + a.getFullYear() + ' – ' + dm(b) + ' ' + b.getFullYear();
@@ -852,15 +855,15 @@ const AllStat = (() => {
             }
             pop.innerHTML = `
                 <div class="dp-head">
-                    <button type="button" class="dp-nav" data-prev aria-label="Předchozí měsíc">‹</button>
+                    <button type="button" class="dp-nav" data-prev aria-label="${window.allstatT('Předchozí měsíc')}">‹</button>
                     <span class="dp-title">${MONTHS[m]} ${y}</span>
-                    <button type="button" class="dp-nav" data-next aria-label="Další měsíc">›</button>
+                    <button type="button" class="dp-nav" data-next aria-label="${window.allstatT('Další měsíc')}">›</button>
                 </div>
                 <div class="dp-grid dp-weekdays">${WD.map((w) => `<span>${w}</span>`).join('')}</div>
                 <div class="dp-grid dp-days">${cells}</div>
                 <div class="dp-foot">
-                    <span class="dp-hint">${picking ? 'Vyber konec období' : 'Klikni na začátek a konec'}</span>
-                    <button type="button" class="dp-clear" data-jump>Dnešní měsíc</button>
+                    <span class="dp-hint">${picking ? window.allstatT('Vyber konec období') : window.allstatT('Klikni na začátek a konec')}</span>
+                    <button type="button" class="dp-clear" data-jump>${window.allstatT('Dnešní měsíc')}</button>
                 </div>`;
             pop.querySelector('[data-prev]').addEventListener('click', () => { view = new Date(y, m - 1, 1); render(); });
             pop.querySelector('[data-next]').addEventListener('click', () => { view = new Date(y, m + 1, 1); render(); });

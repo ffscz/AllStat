@@ -10,7 +10,7 @@ allstat_require_admin($user);
 
 $disc = $_SESSION['meta_discovery'] ?? null;
 if (!$disc || (time() - (int) ($disc['created_at'] ?? 0)) > 1800) {
-    allstat_flash('error', 'Připojení Meta vypršelo nebo chybí. Spusť to znovu.');
+    allstat_flash('error', t('Připojení Meta vypršelo nebo chybí. Spusť to znovu.'));
     allstat_redirect($config, 'admin/meta-connect.php');
 }
 
@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $domainId = (int) $disc['domain_id'];
     unset($_SESSION['meta_discovery']);
     allstat_audit($pdo, (int) $user['id'], null, 'meta_connections_created', (string) ($res['created'] ?? 0));
-    allstat_flash('ok', 'Připojeno ' . (int) ($res['created'] ?? 0) . ' napojení. Otevři jejich detail a klikni „Stáhnout historii (16 měsíců)".');
+    allstat_flash('ok', t('Připojeno {count} napojení. Otevři jejich detail a klikni „Stáhnout historii (16 měsíců)".', ['count' => (int) ($res['created'] ?? 0)]));
     allstat_redirect($config, 'admin/sources.php?domain_id=' . $domainId);
 }
 
@@ -36,14 +36,14 @@ $dbg = $disc['debug'] ?? [];
 $igCount = 0;
 foreach ($pages as $p) { if (!empty($p['instagram_business_account']['id'])) { $igCount++; } }
 
-allstat_admin_header('Vyber účty Meta', 'sources', $user, $config, 'meta');
+allstat_admin_header(t('Vyber účty Meta'), 'sources', $user, $config, 'meta');
 ?>
 <?php if (!empty($dbg)): ?>
 <div class="admin-card">
-    <div class="admin-card-header"><div><h2>Diagnostika připojení</h2><p>Co vrátilo Meta Graph API, pomáhá zjistit, proč se případně stránka nenačetla.</p></div></div>
+    <div class="admin-card-header"><div><h2><?= h(t('Diagnostika připojení')) ?></h2><p><?= h(t('Co vrátilo Meta Graph API, pomáhá zjistit, proč se případně stránka nenačetla.')) ?></p></div></div>
     <div class="admin-card-body table-scroll">
         <table class="admin-table">
-            <thead><tr><th>Volání</th><th>HTTP</th><th>Počet</th><th>Detail / chyba</th></tr></thead>
+            <thead><tr><th><?= h(t('Volání')) ?></th><th>HTTP</th><th><?= h(t('Počet')) ?></th><th><?= h(t('Detail / chyba')) ?></th></tr></thead>
             <tbody>
             <?php foreach ($dbg as $key => $info): ?>
                 <tr>
@@ -55,7 +55,7 @@ allstat_admin_header('Vyber účty Meta', 'sources', $user, $config, 'meta');
                             $bits = [];
                             if (!empty($info['name'])) { $bits[] = 'me=' . $info['name']; }
                             if (!empty($info['id'])) { $bits[] = 'id=' . $info['id']; }
-                            if (!empty($info['error'])) { $bits[] = 'CHYBA: ' . $info['error']; }
+                            if (!empty($info['error'])) { $bits[] = t('CHYBA: {error}', ['error' => $info['error']]); }
                             echo h(implode(' · ', $bits));
                         }
                     ?></td>
@@ -69,19 +69,19 @@ allstat_admin_header('Vyber účty Meta', 'sources', $user, $config, 'meta');
 <div class="admin-card">
     <div class="admin-card-header">
         <div>
-            <h2>Vyber, co připojit</h2>
-            <p>Našli jsme <strong><?= count($pages) ?></strong> FB stránek, <strong><?= $igCount ?></strong> Instagram účtů a <strong><?= count($adaccounts) ?></strong> reklamních účtů. Zaškrtni, co chceš na webu sledovat.</p>
+            <h2><?= h(t('Vyber, co připojit')) ?></h2>
+            <p><?= t('Našli jsme <strong>{pages}</strong> FB stránek, <strong>{ig}</strong> Instagram účtů a <strong>{ads}</strong> reklamních účtů. Zaškrtni, co chceš na webu sledovat.', ['pages' => count($pages), 'ig' => $igCount, 'ads' => count($adaccounts)]) ?></p>
         </div>
-        <a class="button-secondary" href="meta-connect.php">Zrušit</a>
+        <a class="button-secondary" href="meta-connect.php"><?= h(t('Zrušit')) ?></a>
     </div>
     <div class="admin-card-body">
         <form method="post" class="form-stack">
             <?= allstat_csrf_field() ?>
 
-            <h3 style="margin:6px 0;font-size:14px;">Facebook stránky</h3>
+            <h3 style="margin:6px 0;font-size:14px;"><?= h(t('Facebook stránky')) ?></h3>
             <div class="table-scroll">
                 <table class="admin-table">
-                    <thead><tr><th></th><th>Stránka</th><th>Page ID</th><th>Instagram</th></tr></thead>
+                    <thead><tr><th></th><th><?= h(t('Stránka')) ?></th><th>Page ID</th><th>Instagram</th></tr></thead>
                     <tbody>
                         <?php foreach ($pages as $p):
                             $pid = (string) ($p['id'] ?? '');
@@ -98,20 +98,20 @@ allstat_admin_header('Vyber účty Meta', 'sources', $user, $config, 'meta');
                                         @<?= h((string) ($ig['username'] ?? $ig['id'])) ?>
                                     </label>
                                 <?php else: ?>
-                                    <span class="table-muted">—</span>
+                                    <span class="table-muted">–</span>
                                 <?php endif; ?>
                             </td>
                         </tr>
                         <?php endforeach; ?>
-                        <?php if (!$pages): ?><tr><td colspan="4" class="table-muted">Žádné FB stránky pod tímto účtem (nebo chybí oprávnění/role).</td></tr><?php endif; ?>
+                        <?php if (!$pages): ?><tr><td colspan="4" class="table-muted"><?= h(t('Žádné FB stránky pod tímto účtem (nebo chybí oprávnění/role).')) ?></td></tr><?php endif; ?>
                     </tbody>
                 </table>
             </div>
 
-            <h3 style="margin:16px 0 6px;font-size:14px;">Reklamní účty (Meta Ads)</h3>
+            <h3 style="margin:16px 0 6px;font-size:14px;"><?= h(t('Reklamní účty (Meta Ads)')) ?></h3>
             <div class="table-scroll">
                 <table class="admin-table">
-                    <thead><tr><th></th><th>Účet</th><th>ID</th></tr></thead>
+                    <thead><tr><th></th><th><?= h(t('Účet')) ?></th><th>ID</th></tr></thead>
                     <tbody>
                         <?php foreach ($adaccounts as $a):
                             $aid = (string) ($a['id'] ?? '');
@@ -122,14 +122,14 @@ allstat_admin_header('Vyber účty Meta', 'sources', $user, $config, 'meta');
                             <td class="table-muted"><?= h($aid) ?></td>
                         </tr>
                         <?php endforeach; ?>
-                        <?php if (!$adaccounts): ?><tr><td colspan="3" class="table-muted">Žádné reklamní účty (nebo chybí scope ads_read / role).</td></tr><?php endif; ?>
+                        <?php if (!$adaccounts): ?><tr><td colspan="3" class="table-muted"><?= h(t('Žádné reklamní účty (nebo chybí scope ads_read / role).')) ?></td></tr><?php endif; ?>
                     </tbody>
                 </table>
             </div>
 
             <div class="form-actions" style="margin-top:16px;">
-                <button class="button-primary" type="submit">Připojit vybrané</button>
-                <a class="button-secondary" href="meta-connect.php">Zrušit</a>
+                <button class="button-primary" type="submit"><?= h(t('Připojit vybrané')) ?></button>
+                <a class="button-secondary" href="meta-connect.php"><?= h(t('Zrušit')) ?></a>
             </div>
         </form>
     </div>

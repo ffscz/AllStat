@@ -24,6 +24,6 @@ function allstat_csrf_check(): void
 
     if (!is_string($token) || !hash_equals(allstat_csrf_token(), $token)) {
         http_response_code(419);
-        exit('Neplatný bezpečnostní token. Zkuste formulář odeslat znovu.');
+        exit(t('Neplatný bezpečnostní token. Zkuste formulář odeslat znovu.'));
     }
 }

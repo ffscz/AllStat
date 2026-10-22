@@ -53,7 +53,7 @@ function allstat_reject_path_info(): void
     if (preg_match('~\.php/~i', $path) === 1) {
         http_response_code(404);
         header('Content-Type: text/plain; charset=utf-8');
-        exit('Stránka neexistuje.');
+        exit(t('Stránka neexistuje.'));
     }
 }
 
@@ -147,6 +147,7 @@ function allstat_current_user(PDO $pdo): ?array
     $user['id'] = (int) $user['id'];
     $user['is_active'] = (int) $user['is_active'];
     allstat_set_domain_scope(allstat_user_domain_ids($pdo, $user));
+    allstat_locale_apply($pdo, $user);
 
     return $user;
 }
@@ -258,7 +259,7 @@ function allstat_require_admin(array $user): void
 {
     if (($user['role'] ?? '') !== 'admin') {
         http_response_code(403);
-        exit('K této stránce nemáte oprávnění.');
+        exit(t('K této stránce nemáte oprávnění.'));
     }
 }
 
@@ -285,7 +286,7 @@ function allstat_login(PDO $pdo, array $config, string $email, string $password)
     $ip = allstat_request_ip();
 
     if (allstat_login_is_throttled($pdo, $ip)) {
-        return ['ok' => false, 'message' => 'Příliš mnoho pokusů. Zkuste to znovu za 15 minut.'];
+        return ['ok' => false, 'message' => t('Příliš mnoho pokusů. Zkuste to znovu za 15 minut.')];
     }
 
     $user = allstat_fetch_one($pdo, 'SELECT * FROM allstat_users WHERE email = ? AND is_active = 1', [$email]);
@@ -296,7 +297,7 @@ function allstat_login(PDO $pdo, array $config, string $email, string $password)
 
     if (!$valid || !$user) {
         allstat_audit($pdo, null, null, 'login_failed', $email);
-        return ['ok' => false, 'message' => 'E-mail nebo heslo nesedí.'];
+        return ['ok' => false, 'message' => t('E-mail nebo heslo nesedí.')];
     }
 
     session_regenerate_id(true);
@@ -330,12 +331,12 @@ function allstat_complete_totp_login(PDO $pdo, array $config, string $code): arr
     $user = allstat_current_user($pdo);
 
     if (!$user || empty($user['totp_secret_enc'])) {
-        return ['ok' => false, 'message' => '2FA ověření teď není dostupné.'];
+        return ['ok' => false, 'message' => t('2FA ověření teď není dostupné.')];
     }
 
     // Limit platí pro účet, ne pro session ani IP: nové přihlášení heslem ho nevynuluje. Po vyčerpání se
     // session odhlásí, takže další pokus znamená znovu heslo (a to hlídá allstat_login_is_throttled).
-    $throttled = ['ok' => false, 'throttled' => true, 'message' => 'Příliš mnoho chybných kódů. Přihlaste se znovu za 15 minut.'];
+    $throttled = ['ok' => false, 'throttled' => true, 'message' => t('Příliš mnoho chybných kódů. Přihlaste se znovu za 15 minut.')];
 
     if (allstat_totp_recent_failures($pdo, (int) $user['id']) >= ALLSTAT_TOTP_MAX_FAILURES) {
         allstat_audit($pdo, (int) $user['id'], (int) $user['id'], 'login_2fa_throttled');
@@ -356,7 +357,7 @@ function allstat_complete_totp_login(PDO $pdo, array $config, string $code): arr
             return $throttled;
         }
 
-        return ['ok' => false, 'message' => 'Kód není platný nebo už byl použitý.'];
+        return ['ok' => false, 'message' => t('Kód není platný nebo už byl použitý.')];
     }
 
     $statement = $pdo->prepare('UPDATE allstat_users SET totp_last_window = ?, last_login_at = NOW() WHERE id = ?');

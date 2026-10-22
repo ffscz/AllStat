@@ -5,42 +5,44 @@ require __DIR__ . '/_legal.php';
 $org = legal_e(legal_get('org'));
 $email = legal_e(legal_get('email'));
 $app = legal_e(legal_get('app'));
+$effective = legal_e(legal_get('effective'));
 
 ob_start();
 ?>
-<h1>Podmínky používání</h1>
-<p class="eff">Účinné od: <?= legal_e(legal_get('effective')) ?></p>
+<h1><?= legal_e(t('Podmínky používání')) ?></h1>
+<p class="eff"><?= legal_e(t('Účinné od:')) ?> <?= $effective ?></p>
 
-<p><strong><?= $app ?></strong> je interní nástroj organizace <?= $org ?>. Není to veřejná služba; používat ho smí pouze pověřené osoby organizace.</p>
+<p><?= t('<strong>{app}</strong> je interní nástroj organizace {org}. Není to veřejná služba; používat ho smí pouze pověřené osoby organizace.', ['app' => $app, 'org' => $org]) ?></p>
 
-<h2>1. Účel</h2>
-<p>Nástroj slouží k agregaci a zobrazení statistik vlastních webů a vlastních profilů organizace na sociálních sítích (Google, Microsoft Clarity, Meta, LinkedIn) pro interní reporting.</p>
+<h2><?= legal_e(t('1. Účel')) ?></h2>
+<p><?= legal_e(t('Nástroj slouží k agregaci a zobrazení statistik vlastních webů a vlastních profilů organizace na sociálních sítích (Google, Microsoft Clarity, Meta, LinkedIn) pro interní reporting.')) ?></p>
 
-<h2>2. Přijatelné používání</h2>
+<h2><?= legal_e(t('2. Přijatelné používání')) ?></h2>
 <ul>
-<li>Přístup je osobní a nepřenosný; přihlašovací údaje se nesdílí.</li>
-<li>Data se používají výhradně pro interní reporting organizace.</li>
-<li>Uživatel nesmí používat nástroj ani získaná data v rozporu s podmínkami zdrojových platforem ani k účelům zakázaným v <a href="privacy.php">Zásadách ochrany osobních údajů</a> (prodej dat, cílení reklamy na třetí osoby, leady, recruiting, scraping mimo API).</li>
+<li><?= legal_e(t('Přístup je osobní a nepřenosný; přihlašovací údaje se nesdílí.')) ?></li>
+<li><?= legal_e(t('Data se používají výhradně pro interní reporting organizace.')) ?></li>
+<li><?= t('Uživatel nesmí používat nástroj ani získaná data v rozporu s podmínkami zdrojových platforem ani k účelům zakázaným v <a href="privacy.php">Zásadách ochrany osobních údajů</a> (prodej dat, cílení reklamy na třetí osoby, leady, recruiting, scraping mimo API).') ?></li>
 </ul>
 
-<h2>3. Data třetích platforem</h2>
-<p>Používání dat získaných z Meta, LinkedIn a Google podléhá také podmínkám těchto platforem (mj. Meta Platform Terms, LinkedIn API Terms of Use, Google API Services User Data Policy). V případě rozporu mají pro příslušná data přednost podmínky dané platformy.</p>
+<h2><?= legal_e(t('3. Data třetích platforem')) ?></h2>
+<p><?= legal_e(t('Používání dat získaných z Meta, LinkedIn a Google podléhá také podmínkám těchto platforem (mj. Meta Platform Terms, LinkedIn API Terms of Use, Google API Services User Data Policy). V případě rozporu mají pro příslušná data přednost podmínky dané platformy.')) ?></p>
 
-<h2>4. Bez záruky</h2>
-<p>Nástroj je poskytován „tak, jak je". Zobrazená data jsou orientační a mohou se lišit od nativních rozhraní platforem (zpoždění, zaokrouhlení, změny API).</p>
+<h2><?= legal_e(t('4. Bez záruky')) ?></h2>
+<p><?= legal_e(t('Nástroj je poskytován „tak, jak je". Zobrazená data jsou orientační a mohou se lišit od nativních rozhraní platforem (zpoždění, zaokrouhlení, změny API).')) ?></p>
 
-<h2>5. Omezení odpovědnosti</h2>
-<p>Provozovatel neodpovídá za nepřímé škody vzniklé používáním nástroje ani za výpadky či změny API třetích stran.</p>
+<h2><?= legal_e(t('5. Omezení odpovědnosti')) ?></h2>
+<p><?= legal_e(t('Provozovatel neodpovídá za nepřímé škody vzniklé používáním nástroje ani za výpadky či změny API třetích stran.')) ?></p>
 
-<h2>6. Ukončení a odpojení</h2>
-<p>Správce může kdykoli odebrat přístup uživateli a odpojit kterýkoli napojený účet; tím dojde i ke smazání příslušných přístupových tokenů (viz <a href="data-deletion.php">Pokyny ke smazání dat</a>).</p>
+<h2><?= legal_e(t('6. Ukončení a odpojení')) ?></h2>
+<p><?= t('Správce může kdykoli odebrat přístup uživateli a odpojit kterýkoli napojený účet; tím dojde i ke smazání příslušných přístupových tokenů (viz <a href="data-deletion.php">Pokyny ke smazání dat</a>).') ?></p>
 
-<h2>7. Kontakt</h2>
+<h2><?= legal_e(t('7. Kontakt')) ?></h2>
 <p><a href="mailto:<?= $email ?>"><?= $email ?></a></p>
 
+<?php if (allstat_locale() !== 'en'): ?>
 <span class="lang">English version</span>
 <h1>Terms of Service</h1>
-<p class="eff">Effective: <?= legal_e(legal_get('effective')) ?></p>
+<p class="eff">Effective: <?= $effective ?></p>
 
 <p><strong><?= $app ?></strong> is an internal tool of <?= $org ?>. It is not a public service and may be used only by the organization's authorized staff.</p>
 
@@ -64,5 +66,6 @@ ob_start();
 
 <h2>7. Contact</h2>
 <p><a href="mailto:<?= $email ?>"><?= $email ?></a></p>
+<?php endif; ?>
 <?php
-legal_render('Podmínky používání / Terms of Service', ob_get_clean());
+legal_render(t('Podmínky používání / Terms of Service'), ob_get_clean());

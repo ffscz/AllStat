@@ -62,7 +62,7 @@ function allstat_refresh_access_token(PDO $pdo, array $config, array $connection
     $clientSecret = allstat_decrypt_secret($connection['client_secret_enc'] ?? null, $config);
 
     if (!$refreshToken || empty($connection['client_id']) || !$clientSecret || empty($connection['token_url'])) {
-        return ['ok' => false, 'message' => 'Pro refresh tokenu chybí refresh_token, client_id, client_secret nebo token_url.'];
+        return ['ok' => false, 'message' => t('Pro refresh tokenu chybí refresh_token, client_id, client_secret nebo token_url.')];
     }
 
     $urlError = allstat_connection_urls_error($connection);
@@ -89,7 +89,7 @@ function allstat_refresh_access_token(PDO $pdo, array $config, array $connection
 
     if (!is_array($payload) || empty($payload['access_token'])) {
         $detail = is_array($payload) ? ($payload['error_description'] ?? $payload['error'] ?? '') : substr($response['body'], 0, 200);
-        return ['ok' => false, 'message' => 'Refresh selhal (HTTP ' . $response['status'] . '): ' . $detail];
+        return ['ok' => false, 'message' => t('Refresh selhal (HTTP {status}): {detail}', ['status' => $response['status'], 'detail' => $detail])];
     }
 
     $newAccess = (string) $payload['access_token'];
@@ -105,10 +105,18 @@ function allstat_refresh_access_token(PDO $pdo, array $config, array $connection
 
 function allstat_get_valid_access_token(PDO $pdo, array $config, array $connection): array
 {
+    // Napojení z Google účtu (Google účty, import webů) nemá vlastní tokeny, bere je z účtu.
+    if (!empty($connection['oauth_account_id'])) {
+        require_once __DIR__ . '/google-accounts.php';
+        $result = allstat_google_account_token($pdo, $config, (int) $connection['oauth_account_id']);
+
+        return $result['ok'] ? ['ok' => true, 'access_token' => (string) $result['access_token']] : ['ok' => false, 'message' => (string) $result['message']];
+    }
+
     $token = allstat_decrypt_secret($connection['access_token_enc'] ?? null, $config);
 
     if (!$token) {
-        return ['ok' => false, 'message' => 'Není uložen access_token. Spusťte OAuth flow.'];
+        return ['ok' => false, 'message' => t('Není uložen access_token. Spusťte OAuth flow.')];
     }
 
     $expiresAt = $connection['token_expires_at'] ?? null;
@@ -152,7 +160,7 @@ function allstat_test_connection(PDO $pdo, array $config, array $connection): ar
     if ($providerKey === 'clarity') {
         $token = allstat_decrypt_secret($connection['access_token_enc'] ?? null, $config);
         if (!$token) {
-            return ['ok' => false, 'message' => 'Vyplňte Clarity API token do pole Access token.'];
+            return ['ok' => false, 'message' => t('Vyplňte Clarity API token do pole Access token.')];
         }
         $response = allstat_http_request(
             'GET',
@@ -160,9 +168,9 @@ function allstat_test_connection(PDO $pdo, array $config, array $connection): ar
             ['Authorization' => 'Bearer ' . $token, 'Accept' => 'application/json']
         );
         if ($response['status'] === 200) {
-            return ['ok' => true, 'message' => 'Clarity API odpovídá.', 'http' => 200];
+            return ['ok' => true, 'message' => t('Clarity API odpovídá.'), 'http' => 200];
         }
-        return ['ok' => false, 'http' => $response['status'], 'message' => 'Clarity API: ' . substr($response['body'], 0, 200)];
+        return ['ok' => false, 'http' => $response['status'], 'message' => t('Clarity API: {detail}', ['detail' => substr($response['body'], 0, 200)])];
     }
 
     $tokenResult = allstat_get_valid_access_token($pdo, $config, $connection);
@@ -176,7 +184,7 @@ function allstat_test_connection(PDO $pdo, array $config, array $connection): ar
         case 'ga4':
             $property = allstat_normalize_ga4_property((string) ($connection['property_id'] ?? ''));
             if (!str_starts_with($property, 'properties/')) {
-                return ['ok' => false, 'message' => 'Property ID musí být ve formátu "properties/123456789".'];
+                return ['ok' => false, 'message' => t('Property ID musí být ve formátu "properties/123456789".')];
             }
             $url = 'https://analyticsdata.googleapis.com/v1beta/' . rawurlencode($property) . '/metadata';
             $url = str_replace('properties%2F', 'properties/', $url);
@@ -187,7 +195,7 @@ function allstat_test_connection(PDO $pdo, array $config, array $connection): ar
                 return [
                     'ok' => true,
                     'http' => 200,
-                    'message' => sprintf('GA4 property "%s" odpovídá. Dostupné dimenze: %d, metriky: %d.', $property, $dims, $metrics),
+                    'message' => t('GA4 property "{property}" odpovídá. Dostupné dimenze: {dims}, metriky: {metrics}.', ['property' => $property, 'dims' => $dims, 'metrics' => $metrics]),
                 ];
             }
             return [
@@ -209,8 +217,8 @@ function allstat_test_connection(PDO $pdo, array $config, array $connection): ar
                     'ok' => $match,
                     'http' => 200,
                     'message' => $match
-                        ? 'Search Console: účet má přístup k property "' . $property . '".'
-                        : 'Search Console odpovídá, ale property "' . $property . '" v účtu není. Dostupné: ' . implode(', ', array_map(fn($s) => $s['siteUrl'] ?? '?', $sites)),
+                        ? t('Search Console: účet má přístup k property "{property}".', ['property' => $property])
+                        : t('Search Console odpovídá, ale property "{property}" v účtu není. Dostupné: {available}', ['property' => $property, 'available' => implode(', ', array_map(fn($s) => $s['siteUrl'] ?? '?', $sites))]),
                 ];
             }
             return ['ok' => false, 'http' => $response['status'], 'message' => allstat_explain_google_error($response, $connection['property_id'] ?? '')];
@@ -218,7 +226,7 @@ function allstat_test_connection(PDO $pdo, array $config, array $connection): ar
         case 'google_ads':
             $customerId = preg_replace('/[^0-9]/', '', (string) ($connection['property_id'] ?? ''));
             if ($customerId === '') {
-                return ['ok' => false, 'message' => 'Property ID (Customer ID bez pomlček) chybí.'];
+                return ['ok' => false, 'message' => t('Property ID (Customer ID bez pomlček) chybí.')];
             }
             // Stejná cesta jako sync (GAQL searchStream nad zdrojem customer); samostatné GET na zdroj API už nemá.
             $response = allstat_http_request(
@@ -234,8 +242,10 @@ function allstat_test_connection(PDO $pdo, array $config, array $connection): ar
             return [
                 'ok' => true,
                 'http' => 200,
-                'message' => 'Google Ads odpovídá: účet „' . ($customer['descriptiveName'] ?? $customerId) . '"'
-                    . (!empty($customer['currencyCode']) ? ', měna ' . $customer['currencyCode'] : '') . '.',
+                'message' => t('Google Ads odpovídá: účet „{name}"{currency}.', [
+                    'name' => $customer['descriptiveName'] ?? $customerId,
+                    'currency' => !empty($customer['currencyCode']) ? t(', měna {currency}', ['currency' => $customer['currencyCode']]) : '',
+                ]),
             ];
 
         case 'youtube':
@@ -248,13 +258,14 @@ function allstat_test_connection(PDO $pdo, array $config, array $connection): ar
                 $item = $response['json']['items'][0] ?? null;
                 if (!$item) {
                     return ['ok' => false, 'http' => 200, 'message' => $channelId !== ''
-                        ? 'YouTube: kanál s ID "' . $channelId . '" neexistuje nebo k němu účet nemá přístup.'
-                        : 'YouTube: autorizovaný Google účet nemá žádný kanál. Spusť OAuth znovu a vyber účet značky (Brand Account) s kanálem, nebo vyplň ID kanálu.'];
+                        ? t('YouTube: kanál s ID "{id}" neexistuje nebo k němu účet nemá přístup.', ['id' => $channelId])
+                        : t('YouTube: autorizovaný Google účet nemá žádný kanál. Spusť OAuth znovu a vyber účet značky (Brand Account) s kanálem, nebo vyplň ID kanálu.')];
                 }
                 $stats = $item['statistics'] ?? [];
-                return ['ok' => true, 'http' => 200, 'message' => sprintf('YouTube: kanál „%s" (%s), odběratelů: %s, videí: %s, zhlédnutí celkem: %s.',
-                    (string) ($item['snippet']['title'] ?? '?'), (string) ($item['id'] ?? '?'),
-                    allstat_number((int) ($stats['subscriberCount'] ?? 0)), allstat_number((int) ($stats['videoCount'] ?? 0)), allstat_number((int) ($stats['viewCount'] ?? 0)))];
+                return ['ok' => true, 'http' => 200, 'message' => t('YouTube: kanál „{title}" ({id}), odběratelů: {subscribers}, videí: {videos}, zhlédnutí celkem: {views}.', [
+                    'title' => (string) ($item['snippet']['title'] ?? '?'), 'id' => (string) ($item['id'] ?? '?'),
+                    'subscribers' => allstat_number((int) ($stats['subscriberCount'] ?? 0)), 'videos' => allstat_number((int) ($stats['videoCount'] ?? 0)), 'views' => allstat_number((int) ($stats['viewCount'] ?? 0)),
+                ])];
             }
             return ['ok' => false, 'http' => $response['status'], 'message' => allstat_explain_youtube_error($response)];
 
@@ -265,7 +276,7 @@ function allstat_test_connection(PDO $pdo, array $config, array $connection): ar
             return [
                 'ok' => $response['status'] === 200,
                 'http' => $response['status'],
-                'message' => $response['status'] === 200 ? 'Meta Graph API odpovídá (me=' . ($response['json']['id'] ?? '?') . ').' : substr($response['body'], 0, 240),
+                'message' => $response['status'] === 200 ? t('Meta Graph API odpovídá (me={id}).', ['id' => $response['json']['id'] ?? '?']) : substr($response['body'], 0, 240),
             ];
 
         case 'linkedin_company':
@@ -276,7 +287,7 @@ function allstat_test_connection(PDO $pdo, array $config, array $connection): ar
             $base = rtrim((string) ($connection['api_base_url'] ?: 'https://api.linkedin.com/v2'), '/');
             $urn = trim((string) ($connection['property_id'] ?? ''));
             if ($urn === '') {
-                return ['ok' => false, 'message' => 'Vyplň Property ID = URN organizace (urn:li:organization:ČÍSLO) a ulož napojení; teprve pak jde test spustit.'];
+                return ['ok' => false, 'message' => t('Vyplň Property ID = URN organizace (urn:li:organization:ČÍSLO) a ulož napojení; teprve pak jde test spustit.')];
             }
             // Accept a bare numeric id or a urn:li:company: URN and normalise to urn:li:organization:ID — jinak
             // LinkedIn vrátí "Data Processing Exception … [/organizationalEntity]" (validace hodnoty, ne práva).
@@ -288,12 +299,12 @@ function allstat_test_connection(PDO $pdo, array $config, array $connection): ar
             $url = $base . '/organizationalEntityShareStatistics?q=organizationalEntity&organizationalEntity=' . rawurlencode($urn);
             $response = allstat_http_request('GET', $url, array_merge($authHeader, ['X-Restli-Protocol-Version' => '2.0.0']));
             if ($response['status'] === 200) {
-                return ['ok' => true, 'http' => 200, 'message' => 'LinkedIn: token má přístup ke statistikám organizace ' . $urn . '. Napojení funguje.'];
+                return ['ok' => true, 'http' => 200, 'message' => t('LinkedIn: token má přístup ke statistikám organizace {urn}. Napojení funguje.', ['urn' => $urn])];
             }
             return ['ok' => false, 'http' => $response['status'], 'message' => allstat_explain_linkedin_error($response, $urn)];
     }
 
-    return ['ok' => false, 'message' => 'Pro providera "' . $providerKey . '" zatím není test definovaný.'];
+    return ['ok' => false, 'message' => t('Pro providera "{provider}" zatím není test definovaný.', ['provider' => $providerKey])];
 }
 
 /**
@@ -306,28 +317,28 @@ function allstat_explain_linkedin_error(array $response, string $urn): string
     $body = (string) ($response['body'] ?? '');
     $code = (string) ($response['json']['code'] ?? '');
     $apiMsg = (string) ($response['json']['message'] ?? '');
-    $detail = $apiMsg !== '' ? ' Detail z LinkedIn: ' . $apiMsg : ($body !== '' ? ' Detail: ' . substr($body, 0, 160) : '');
+    $detail = $apiMsg !== '' ? ' ' . t('Detail z LinkedIn: {detail}', ['detail' => $apiMsg]) : ($body !== '' ? ' ' . t('Detail: {detail}', ['detail' => substr($body, 0, 160)]) : '');
     $hay = $apiMsg . ' ' . $body;
 
     // LinkedIn vrací 403 i pro NEPLATNÉ Property ID (problém s hodnotou, ne s oprávněním):
     // "Field Value validation failed … Data Processing Exception while processing fields [/organizationalEntity]".
     if (stripos($hay, 'Field Value validation') !== false || stripos($hay, 'Data Processing Exception') !== false || stripos($hay, '[/organizationalEntity]') !== false) {
-        return 'Property ID „' . $urn . '" LinkedIn nepřijal, není to platné URN organizace. Musí být přesně ve tvaru urn:li:organization:ČÍSLO (číselné ID stránky, ne název ani odkaz). Číslo najdeš v LinkedIn Developers → tvoje app → Settings (u propojené stránky) nebo v adrese stránky jako správce (.../company/ČÍSLO/). Stačí zadat i samotné číslo, AllStat ho na URN doplní sám.' . $detail;
+        return t('Property ID „{urn}" LinkedIn nepřijal, není to platné URN organizace. Musí být přesně ve tvaru urn:li:organization:ČÍSLO (číselné ID stránky, ne název ani odkaz). Číslo najdeš v LinkedIn Developers → tvoje app → Settings (u propojené stránky) nebo v adrese stránky jako správce (.../company/ČÍSLO/). Stačí zadat i samotné číslo, AllStat ho na URN doplní sám.', ['urn' => $urn]) . $detail;
     }
     if ($status === 403 || $code === 'ACCESS_DENIED' || stripos($hay, 'Not enough permissions') !== false) {
-        return 'HTTP 403 – token nemá oprávnění ke statistikám organizace. Nejčastější příčina: LinkedIn ještě neschválil produkt „Community Management API" (po podání žádosti to trvá řádově dny; do schválení je 403 normální, počkej). Další možnosti: nejsi správce (admin) této LinkedIn stránky, nebo OAuth proběhl bez scope r_organization_social – zkontroluj pole „OAuth scopes" a spusť OAuth znovu.' . $detail;
+        return t('HTTP 403 – token nemá oprávnění ke statistikám organizace. Nejčastější příčina: LinkedIn ještě neschválil produkt „Community Management API" (po podání žádosti to trvá řádově dny; do schválení je 403 normální, počkej). Další možnosti: nejsi správce (admin) této LinkedIn stránky, nebo OAuth proběhl bez scope r_organization_social – zkontroluj pole „OAuth scopes" a spusť OAuth znovu.') . $detail;
     }
     if ($status === 401) {
-        return 'HTTP 401 – přihlášení k LinkedIn vypršelo nebo je neplatné (token platí 60 dní a bez schváleného produktu se sám neobnovuje). Dej „Spustit OAuth" znovu.' . $detail;
+        return t('HTTP 401 – přihlášení k LinkedIn vypršelo nebo je neplatné (token platí 60 dní a bez schváleného produktu se sám neobnovuje). Dej „Spustit OAuth" znovu.') . $detail;
     }
     if ($status === 400) {
-        return 'HTTP 400 – nejspíš špatné Property ID. Musí být přesně ve tvaru urn:li:organization:ČÍSLO (číselné ID stránky, ne název).' . $detail;
+        return t('HTTP 400 – nejspíš špatné Property ID. Musí být přesně ve tvaru urn:li:organization:ČÍSLO (číselné ID stránky, ne název).') . $detail;
     }
     if ($status === 429) {
-        return 'HTTP 429 – vyčerpán denní limit LinkedIn API (Development tier 500/app/den, 100/člen/den, reset o půlnoci UTC). Zkus to zítra.';
+        return t('HTTP 429 – vyčerpán denní limit LinkedIn API (Development tier 500/app/den, 100/člen/den, reset o půlnoci UTC). Zkus to zítra.');
     }
 
-    return 'HTTP ' . $status . ' z LinkedIn API.' . $detail;
+    return t('HTTP {status} z LinkedIn API.', ['status' => $status]) . $detail;
 }
 
 /**
@@ -345,29 +356,29 @@ function allstat_explain_youtube_error(array $response): string
         $reason = (string) ($err['errors'][0]['reason'] ?? $err['details'][0]['reason'] ?? $err['status'] ?? '');
         $msg = (string) ($err['message'] ?? '');
     }
-    $detail = $msg !== '' ? ' Detail: ' . mb_substr($msg, 0, 200) : ' ' . mb_substr((string) ($response['body'] ?? ''), 0, 160);
+    $detail = $msg !== '' ? ' ' . t('Detail: {detail}', ['detail' => mb_substr($msg, 0, 200)]) : ' ' . mb_substr((string) ($response['body'] ?? ''), 0, 160);
     $hay = $reason . ' ' . $msg;
 
     if (stripos($hay, 'accessNotConfigured') !== false || stripos($hay, 'has not been used in project') !== false || stripos($hay, 'is disabled') !== false) {
-        return 'HTTP ' . $status . ' [accessNotConfigured]: v Google Cloud projektu není povolené YouTube API. Povol „YouTube Data API v3" i „YouTube Analytics API" (APIs & Services → Library) a zkus to znovu.' . $detail;
+        return t('HTTP {status} [accessNotConfigured]: v Google Cloud projektu není povolené YouTube API. Povol „YouTube Data API v3" i „YouTube Analytics API" (APIs & Services → Library) a zkus to znovu.', ['status' => $status]) . $detail;
     }
     if (stripos($hay, 'insufficientPermissions') !== false || stripos($hay, 'ACCESS_TOKEN_SCOPE_INSUFFICIENT') !== false || stripos($hay, 'insufficient authentication scopes') !== false) {
-        return 'HTTP ' . $status . ': token nemá oprávnění k YouTube (chybí scope youtube.readonly / yt-analytics.readonly). Dej „Spustit OAuth" znovu a potvrď obě oprávnění.' . $detail;
+        return t('HTTP {status}: token nemá oprávnění k YouTube (chybí scope youtube.readonly / yt-analytics.readonly). Dej „Spustit OAuth" znovu a potvrď obě oprávnění.', ['status' => $status]) . $detail;
     }
     if (stripos($hay, 'quotaExceeded') !== false || stripos($hay, 'RATE_LIMIT') !== false || $status === 429) {
-        return 'HTTP ' . $status . ': vyčerpaná denní kvóta YouTube API (resetuje se o půlnoci pacifického času). Zkus to později.' . $detail;
+        return t('HTTP {status}: vyčerpaná denní kvóta YouTube API (resetuje se o půlnoci pacifického času). Zkus to později.', ['status' => $status]) . $detail;
     }
     if ($status === 403) {
-        return 'HTTP 403 [' . $reason . ']: autorizovaný Google účet nemá ke kanálu oprávnění (YouTube Analytics vyžaduje vlastníka nebo správce kanálu). Spusť OAuth znovu správným účtem, u účtu značky vyber při přihlášení účet s názvem kanálu.' . $detail;
+        return t('HTTP 403 [{reason}]: autorizovaný Google účet nemá ke kanálu oprávnění (YouTube Analytics vyžaduje vlastníka nebo správce kanálu). Spusť OAuth znovu správným účtem, u účtu značky vyber při přihlášení účet s názvem kanálu.', ['reason' => $reason]) . $detail;
     }
     if ($status === 401) {
-        return 'HTTP 401: přihlášení ke Googlu vypršelo nebo bylo odvoláno. Dej „Spustit OAuth" znovu.' . $detail;
+        return t('HTTP 401: přihlášení ke Googlu vypršelo nebo bylo odvoláno. Dej „Spustit OAuth" znovu.') . $detail;
     }
     if ($status === 400) {
-        return 'HTTP 400 [' . $reason . ']: YouTube API odmítlo dotaz (neplatné ID kanálu nebo parametry).' . $detail;
+        return t('HTTP 400 [{reason}]: YouTube API odmítlo dotaz (neplatné ID kanálu nebo parametry).', ['reason' => $reason]) . $detail;
     }
 
-    return 'HTTP ' . $status . ($reason !== '' ? ' [' . $reason . ']' : '') . ' z YouTube API.' . $detail;
+    return t('HTTP {status}{reason} z YouTube API.', ['status' => $status, 'reason' => $reason !== '' ? ' [' . $reason . ']' : '']) . $detail;
 }
 
 function allstat_explain_google_error(array $response, string $property): string
@@ -380,15 +391,15 @@ function allstat_explain_google_error(array $response, string $property): string
         }
         $msg = (string) ($err['message'] ?? '');
         if ($response['status'] === 403) {
-            return 'HTTP 403' . $reason . ': uživatel nemá v této property oprávnění. Přidej Google účet do GA4 (Admin → Property access management) jako Viewer. Detail: ' . $msg;
+            return t('HTTP 403{reason}: uživatel nemá v této property oprávnění. Přidej Google účet do GA4 (Admin → Property access management) jako Viewer. Detail: {detail}', ['reason' => $reason, 'detail' => $msg]);
         }
         if ($response['status'] === 404) {
-            return 'HTTP 404: property "' . $property . '" neexistuje. Zkontroluj Property ID. Detail: ' . $msg;
+            return t('HTTP 404: property "{property}" neexistuje. Zkontroluj Property ID. Detail: {detail}', ['property' => $property, 'detail' => $msg]);
         }
         if ($response['status'] === 401) {
-            return 'HTTP 401: access token vypršel nebo je neplatný. Spusť OAuth znovu. Detail: ' . $msg;
+            return t('HTTP 401: access token vypršel nebo je neplatný. Spusť OAuth znovu. Detail: {detail}', ['detail' => $msg]);
         }
-        return 'HTTP ' . $response['status'] . ': ' . $msg;
+        return t('HTTP {status}: {detail}', ['status' => $response['status'], 'detail' => $msg]);
     }
     return 'HTTP ' . $response['status'] . ': ' . substr($response['body'], 0, 240);
 }
@@ -436,7 +447,7 @@ function allstat_explain_google_ads_error(array $response): string
     $err = is_array($json) ? ($json['error'] ?? null) : null;
     if (!is_array($err)) {
         if ($status === 404) {
-            return 'HTTP 404: Google Ads API ' . ALLSTAT_GOOGLE_ADS_API_VERSION . ' není dostupná (Google tuto verzi nejspíš vypnul). AllStat je potřeba aktualizovat.';
+            return t('HTTP 404: Google Ads API {version} není dostupná (Google tuto verzi nejspíš vypnul). AllStat je potřeba aktualizovat.', ['version' => ALLSTAT_GOOGLE_ADS_API_VERSION]);
         }
         return 'Google Ads API HTTP ' . $status . ': ' . substr(trim(strip_tags($response['body'])), 0, 180);
     }
@@ -460,19 +471,19 @@ function allstat_explain_google_ads_error(array $response): string
     $has = static fn (string ...$c): bool => (bool) array_intersect($c, $codes);
 
     if ($has('CLOUD_PROJECT_NOT_APPROVED_FOR_PRODUCTION', 'DEVELOPER_TOKEN_NOT_APPROVED')) {
-        return 'HTTP ' . $status . ': Google Cloud projekt OAuth klienta má jen testovací přístup a na skutečné účty nesmí. Cloud Console → Google Ads API → Overview → „Upgrade access level" → požádej o Explorer (schválení obvykle do 10 pracovních dnů).';
+        return t('HTTP {status}: Google Cloud projekt OAuth klienta má jen testovací přístup a na skutečné účty nesmí. Cloud Console → Google Ads API → Overview → „Upgrade access level" → požádej o Explorer (schválení obvykle do 10 pracovních dnů).', ['status' => $status]);
     }
     if ($has('SERVICE_DISABLED') || str_contains($msg, 'has not been used in project')) {
-        return 'HTTP ' . $status . ': v Google Cloud projektu není povolené Google Ads API. Cloud Console → APIs & Services → Library → Google Ads API → Enable.';
+        return t('HTTP {status}: v Google Cloud projektu není povolené Google Ads API. Cloud Console → APIs & Services → Library → Google Ads API → Enable.', ['status' => $status]);
     }
     if ($has('USER_PERMISSION_DENIED')) {
-        return 'HTTP ' . $status . ': Google účet, kterým jsi prošel OAuth, nemá k tomuto Customer ID přístup. Když účet spravuješ přes manažerský (MCC) účet, vyplň MCC / Login customer ID.';
+        return t('HTTP {status}: Google účet, kterým jsi prošel OAuth, nemá k tomuto Customer ID přístup. Když účet spravuješ přes manažerský (MCC) účet, vyplň MCC / Login customer ID.', ['status' => $status]);
     }
     if ($has('CUSTOMER_NOT_ENABLED')) {
-        return 'HTTP ' . $status . ': účet Google Ads není aktivní (zrušený nebo nedokončený).';
+        return t('HTTP {status}: účet Google Ads není aktivní (zrušený nebo nedokončený).', ['status' => $status]);
     }
     if ($status === 401) {
-        return 'HTTP 401: přihlášení vypršelo nebo je neplatné. Spusť OAuth znovu.';
+        return t('HTTP 401: přihlášení vypršelo nebo je neplatné. Spusť OAuth znovu.');
     }
     return 'Google Ads API HTTP ' . $status . ($codes ? ' [' . implode(', ', array_unique($codes)) . ']' : '') . ': ' . substr($msg, 0, 200);
 }

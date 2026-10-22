@@ -106,7 +106,7 @@
                             label: function (item) {
                                 var s = data.series[item.datasetIndex];
                                 var raw = (s.raw && s.raw[item.dataIndex]) || '';
-                                return ' ' + s.name + (s.account ? ' · ' + s.account : '') + ': index ' + Math.round(item.parsed.y) + (raw ? ' (' + raw + ')' : '');
+                                return ' ' + s.name + (s.account ? ' · ' + s.account : '') + ': ' + window.allstatT('index') + ' ' + Math.round(item.parsed.y) + (raw ? ' (' + raw + ')' : '');
                             }
                         }
                     }
@@ -116,7 +116,7 @@
                     y: {
                         grid: { color: grid },
                         ticks: { color: muted },
-                        title: { display: true, text: 'Index (100 = začátek období)', color: muted }
+                        title: { display: true, text: window.allstatT('Index (100 = začátek období)'), color: muted }
                     }
                 }
             },

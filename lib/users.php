@@ -3,11 +3,11 @@
 function allstat_validate_password(string $password): ?string
 {
     if (strlen($password) < 12) {
-        return 'Heslo musí mít alespoň 12 znaků.';
+        return t('Heslo musí mít alespoň 12 znaků.');
     }
 
     if (strlen($password) > 200) {
-        return 'Heslo je příliš dlouhé.';
+        return t('Heslo je příliš dlouhé.');
     }
 
     return null;
@@ -82,11 +82,11 @@ function allstat_create_user(PDO $pdo, ?int $actorId, array $data): array
     $passwordError = allstat_validate_password($password);
 
     if (!allstat_is_valid_email($email)) {
-        return ['ok' => false, 'message' => 'Zadejte platný e-mail.'];
+        return ['ok' => false, 'message' => t('Zadejte platný e-mail.')];
     }
 
     if ($name === '') {
-        return ['ok' => false, 'message' => 'Zadejte jméno uživatele.'];
+        return ['ok' => false, 'message' => t('Zadejte jméno uživatele.')];
     }
 
     if ($passwordError) {
@@ -102,9 +102,9 @@ function allstat_create_user(PDO $pdo, ?int $actorId, array $data): array
             allstat_save_user_domains($pdo, $actorId, $userId, $data);
         }
 
-        return ['ok' => true, 'id' => $userId, 'message' => 'Uživatel byl vytvořen.'];
+        return ['ok' => true, 'id' => $userId, 'message' => t('Uživatel byl vytvořen.')];
     } catch (Throwable $exception) {
-        return ['ok' => false, 'message' => str_contains($exception->getMessage(), 'Duplicate') ? 'Uživatel s tímto e-mailem už existuje.' : 'Uživatele se nepodařilo vytvořit.'];
+        return ['ok' => false, 'message' => str_contains($exception->getMessage(), 'Duplicate') ? t('Uživatel s tímto e-mailem už existuje.') : t('Uživatele se nepodařilo vytvořit.')];
     }
 }
 
@@ -113,7 +113,7 @@ function allstat_update_user(PDO $pdo, ?int $actorId, int $id, array $data): arr
     $user = allstat_get_user($pdo, $id);
 
     if (!$user) {
-        return ['ok' => false, 'message' => 'Uživatel neexistuje.'];
+        return ['ok' => false, 'message' => t('Uživatel neexistuje.')];
     }
 
     $email = allstat_normalize_email((string) ($data['email'] ?? ''));
@@ -121,11 +121,11 @@ function allstat_update_user(PDO $pdo, ?int $actorId, int $id, array $data): arr
     $role = in_array(($data['role'] ?? 'user'), ['admin', 'user'], true) ? $data['role'] : 'user';
 
     if (!allstat_is_valid_email($email)) {
-        return ['ok' => false, 'message' => 'Zadejte platný e-mail.'];
+        return ['ok' => false, 'message' => t('Zadejte platný e-mail.')];
     }
 
     if ($name === '') {
-        return ['ok' => false, 'message' => 'Zadejte jméno uživatele.'];
+        return ['ok' => false, 'message' => t('Zadejte jméno uživatele.')];
     }
 
     $statement = $pdo->prepare('UPDATE allstat_users SET email = ?, name = ?, role = ?, is_active = ? WHERE id = ?');
@@ -148,7 +148,7 @@ function allstat_update_user(PDO $pdo, ?int $actorId, int $id, array $data): arr
 
     allstat_audit($pdo, $actorId, $id, 'user_updated', $email);
 
-    return ['ok' => true, 'message' => 'Uživatel byl uložen.'];
+    return ['ok' => true, 'message' => t('Uživatel byl uložen.')];
 }
 
 function allstat_reset_user_totp(PDO $pdo, ?int $actorId, int $id): array
@@ -157,7 +157,7 @@ function allstat_reset_user_totp(PDO $pdo, ?int $actorId, int $id): array
     $statement->execute([$id]);
     allstat_audit($pdo, $actorId, $id, 'user_2fa_reset');
 
-    return ['ok' => true, 'message' => '2FA bylo uživateli resetováno.'];
+    return ['ok' => true, 'message' => t('2FA bylo uživateli resetováno.')];
 }
 
 function allstat_setup_user_totp(PDO $pdo, array $config, int $id, string $secret, string $code): array
@@ -165,7 +165,7 @@ function allstat_setup_user_totp(PDO $pdo, array $config, int $id, string $secre
     $matchedWindow = null;
 
     if (!allstat_totp_verify($secret, $code, -1, $matchedWindow)) {
-        return ['ok' => false, 'message' => 'Ověřovací kód nesedí.'];
+        return ['ok' => false, 'message' => t('Ověřovací kód nesedí.')];
     }
 
     $statement = $pdo->prepare('UPDATE allstat_users SET totp_secret_enc = ?, totp_last_window = ? WHERE id = ?');
@@ -174,13 +174,13 @@ function allstat_setup_user_totp(PDO $pdo, array $config, int $id, string $secre
     $_SESSION['totp_action_verified_at'] = time();
     allstat_audit($pdo, $id, $id, 'totp_setup');
 
-    return ['ok' => true, 'message' => '2FA je zapnuté.'];
+    return ['ok' => true, 'message' => t('2FA je zapnuté.')];
 }
 
 function allstat_delete_user(PDO $pdo, ?int $actorId, int $id): array
 {
     if ($actorId === $id) {
-        return ['ok' => false, 'message' => 'Vlastní účet nejde smazat.'];
+        return ['ok' => false, 'message' => t('Vlastní účet nejde smazat.')];
     }
 
     $statement = $pdo->prepare('DELETE FROM allstat_users WHERE id = ?');
@@ -188,5 +188,5 @@ function allstat_delete_user(PDO $pdo, ?int $actorId, int $id): array
     $pdo->prepare('DELETE FROM allstat_user_domains WHERE user_id = ?')->execute([$id]);
     allstat_audit($pdo, $actorId, $id, 'user_deleted');
 
-    return ['ok' => true, 'message' => 'Uživatel byl odstraněn.'];
+    return ['ok' => true, 'message' => t('Uživatel byl odstraněn.')];
 }
