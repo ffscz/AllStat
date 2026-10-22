@@ -1,5 +1,5 @@
 {
-    "version": "1.2.9",
+    "version": "1.2.10",
     "files": {
         "LICENSE": {
             "s": 35823,
@@ -10,8 +10,8 @@
             "h": "1b97f0e01ee06c9d92ea5c36a4a9360bcb2b831ea7aa817ab548c5fbc64aa9e9"
         },
         "admin/_bootstrap.php": {
-            "s": 1107,
-            "h": "197d993c9b171119b526eb886ce832b074d029940d7a3b67c1297761e486c99c"
+            "s": 1456,
+            "h": "482f8574da2d9fc67acd61f999c955658913c3163e0fd6aad35ceee7e85ae50e"
         },
         "admin/_layout.php": {
             "s": 9345,
@@ -46,8 +46,8 @@
             "h": "17545923e92bff4658ee842b360f43a090a3403e935d41166e3c0940a7d9548a"
         },
         "admin/login-2fa.php": {
-            "s": 2372,
-            "h": "d157bbffb3a6391004afab4519640df90e897d12f9bb556454f697ae8c394f2f"
+            "s": 2753,
+            "h": "8c05846a9f755721bf97245df924bb91243fdc96f984c7b6106016ad5d0a9009"
         },
         "admin/login.php": {
             "s": 2905,
@@ -98,8 +98,8 @@
             "h": "151dab99099cd9e63d780dccf48f57959a5dca3531635c5d34278db544c416df"
         },
         "admin/setup-2fa.php": {
-            "s": 4503,
-            "h": "e2f08959823649b69de2334572155d2d880a7d74e226fa1ac4a9ffcf95338499"
+            "s": 4509,
+            "h": "84c92aa0d9a9ff6d266a8e27468c184b53d9c62d06a1e06e0498b720064ca839"
         },
         "admin/share-create.php": {
             "s": 3273,
@@ -226,16 +226,16 @@
             "h": "58350a5d7d1f476a2209ced5b338693946c24cc047b915f4d2bbefa859669b3c"
         },
         "lib/admin-repository.php": {
-            "s": 17701,
-            "h": "fb4568b8a66e9aff4a537b6a92a428f800ea21d206ab91d0edde4d3871841a08"
+            "s": 18026,
+            "h": "2ad762e814eece0176010cdd6b8007662d95c326558b5a7a9fb59343750d62a9"
         },
         "lib/ai-sources.php": {
             "s": 2157,
             "h": "13d62cf1aa8a431f1f909a9a16885b33a1a293729cda43b184dc8e64447fe29b"
         },
         "lib/auth.php": {
-            "s": 14868,
-            "h": "55886ea54907d01b9d08ef348797b2375baca58dafa83203ca68db89879708af"
+            "s": 17388,
+            "h": "6e21cd31d619de8837cf26f15aa5ab76965c78d76c6500304d816e87af505bbd"
         },
         "lib/crypto.php": {
             "s": 2473,
@@ -270,8 +270,8 @@
             "h": "7ef393aeeca1ba7ba6edd232783cbc1d8a7aa1a30aa243786178467d1f677e73"
         },
         "lib/install-wizard.php": {
-            "s": 81010,
-            "h": "e61fa7c5ea0a43e6900ec0a00be1fad737b651f54469c18c6bdbb1d9fd7ca1e9"
+            "s": 87106,
+            "h": "74059c210af2619dfc0eaba2c705beb6391d55c9272023e923a5ab0ff0d452bd"
         },
         "lib/mcp-oauth.php": {
             "s": 113052,
@@ -298,12 +298,12 @@
             "h": "544c9532b57b62ca937a1bded69178ece9b145a2cce5cffd5d04f1d039651475"
         },
         "lib/oauth.php": {
-            "s": 24964,
-            "h": "97a2633d528606ac75f5551b0f7365571e346b2a97c67d679d75adb9dc389c20"
+            "s": 25270,
+            "h": "0c0659ba3c3f9f2fe615bf215e28512f3bf71bd4fcbe7dbd368995b2c2898ca4"
         },
         "lib/providers.php": {
-            "s": 45714,
-            "h": "4255c5fbbee02e0e1be3370b4ae498488f0641d7972ac3c82afdadd31acfad34"
+            "s": 46583,
+            "h": "c9bb45a6f536d4c04e72522f51b63ca4d87dddb8bb84687c9bd4d161b1f09f62"
         },
         "lib/repository.php": {
             "s": 225806,
@@ -318,12 +318,12 @@
             "h": "278b100ebf859329c8f8e8902038ec77f076b93195e6f4b69160f5140c93088e"
         },
         "lib/sync-engines.php": {
-            "s": 141041,
-            "h": "8ee89e48563c26e26b4d3c939108874d85eb16c5d257f657c08aa51b758dfa31"
+            "s": 141625,
+            "h": "b33ddbe508a98d41c9cb230ee79eee2e3a54eed0e88e7c1d5f498fc862d09ce1"
         },
         "lib/sync.php": {
-            "s": 43262,
-            "h": "7d22d17ce3bf12fbeb0c63611ac6e7f5245d4daf7c7534b18031d16e18b8d9db"
+            "s": 43521,
+            "h": "4691a70743c533cb85b625ad6674d162ca46c69f289331653d0f72107ee1884b"
         },
         "lib/totp.php": {
             "s": 2713,
@@ -338,8 +338,8 @@
             "h": "72c42bc02eca99f6168fddb8f540a8a3f64938907d31cea14ece029b2ef2b4f1"
         },
         "lib/version.php": {
-            "s": 542,
-            "h": "e0265104bd9a6892d0f0ee26a38b451e77847a043ae8cadf81c750cfb9755009"
+            "s": 543,
+            "h": "40223bd598053bcc7a8290c62bd41997dcadfcb483c74229feb122ded5335755"
         },
         "oauth/authorize.php": {
             "s": 19173,

@@ -150,6 +150,82 @@ function installer_csrf_valid(): bool
     return is_string($cookie) && is_string($posted) && $cookie !== '' && hash_equals($cookie, $posted);
 }
 
+// --- Instalační kód ----------------------------------------------------------------------------
+// Instalátor nemá koho ověřit (účty ještě neexistují), takže by instalaci mohl dokončit kdokoli, kdo
+// stránku otevře dřív než majitel. Kód proto leží v souboru na serveru: majitel ho přečte přes FTP nebo
+// správce souborů, útočník přes web ne (soubor je PHP a vypíše prázdnou stránku).
+
+/** Minimální délka kódu (písmena a číslice); platí i pro kód, který si majitel napíše do souboru sám. */
+const INSTALLER_TOKEN_MIN_LENGTH = 12;
+
+function installer_token_path(string $root): string
+{
+    return $root . '/install-token.php';
+}
+
+function installer_token_normalize(string $value): string
+{
+    return strtoupper((string) preg_replace('/[^A-Za-z0-9]/', '', $value));
+}
+
+/** Kód ze souboru install-token.php, prázdný řetězec když soubor chybí nebo kód nemá potřebnou délku. */
+function installer_token_read(string $root): string
+{
+    $path = installer_token_path($root);
+    if (!is_file($path)) {
+        return '';
+    }
+
+    $content = (string) @file_get_contents($path);
+    if (preg_match('/KOD:\s*([A-Za-z0-9-]+)/', $content, $m) !== 1) {
+        return '';
+    }
+
+    $code = installer_token_normalize($m[1]);
+
+    return strlen($code) >= INSTALLER_TOKEN_MIN_LENGTH ? $code : '';
+}
+
+/** 'ok' = kód je použitelný, 'missing' = soubor není, 'invalid' = soubor je, ale kód chybí nebo je krátký. */
+function installer_token_status(string $root): string
+{
+    if (!is_file(installer_token_path($root))) {
+        return 'missing';
+    }
+
+    return installer_token_read($root) !== '' ? 'ok' : 'invalid';
+}
+
+/** Zajistí soubor s kódem (vytvoří nový, když chybí nebo je nepoužitelný). Vrací false, když ho nejde zapsat. */
+function installer_token_ensure(string $root): bool
+{
+    if (installer_token_read($root) !== '') {
+        return true;
+    }
+
+    // Bez I, O, 0 a 1, ať se kód dá bezpečně opsat. 16 znaků z 32 = 80 bitů, hádání nepřichází v úvahu.
+    $alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    $code = '';
+    for ($i = 0; $i < 16; $i++) {
+        $code .= $alphabet[random_int(0, strlen($alphabet) - 1)];
+    }
+
+    $content = "<?php\n"
+        . "// AllStat: instalační kód. Instalátor ho chce při instalaci, aby ji nemohl dokončit nikdo bez přístupu\n"
+        . "// k souborům na serveru. Po dokončení instalace se soubor sám smaže (jinak ho smažte ručně).\n"
+        . '// KOD: ' . implode('-', str_split($code, 4)) . "\n";
+
+    return installer_write_file(installer_token_path($root), $content, 0640) && installer_token_read($root) !== '';
+}
+
+function installer_token_valid(string $root, string $input): bool
+{
+    $expected = installer_token_read($root);
+    $given = installer_token_normalize($input);
+
+    return $expected !== '' && $given !== '' && hash_equals($expected, $given);
+}
+
 // ---------------------------------------------------------------------------------------------
 // Kontrola serveru
 // ---------------------------------------------------------------------------------------------
@@ -655,6 +731,7 @@ function installer_form(): array
         'admin_password2' => $raw('admin_password2'),
         'mcp_mode' => $text('mcp_mode', 'same'),
         'mcp_host_url' => $text('mcp_host_url'),
+        'install_token' => $text('install_token'),
     ];
 }
 
@@ -1124,9 +1201,11 @@ function installer_install(array $f, array $state, string $root): array
     }
     $steps[] = 'Založen administrátor ' . allstat_normalize_email($f['admin_email']) . '.';
 
-    // 8) Instalátor se po dokončení smaže (když to jde), jinak zůstane uzamčený
+    // 8) Instalátor se po dokončení smaže (když to jde), jinak zůstane uzamčený. Instalační kód je od teď
+    //    zbytečný; když config.php nahrává uživatel ručně, zůstane do té doby (instalace ještě není zamčená).
     $selfDelete = false;
     if ($manual === []) {
+        @unlink(installer_token_path($root));
         $selfDelete = is_writable($root) && is_writable($root . '/lib');
         if ($selfDelete) {
             register_shutdown_function(static function () use ($root): void {
@@ -1325,6 +1404,24 @@ function installer_render_form(array $ctx): void
     echo '<form method="post" autocomplete="off" id="install-form">';
     echo '<input type="hidden" name="csrf" value="' . h(installer_csrf_token()) . '">';
 
+    // Instalační kód: bez něj průvodce nic neotestuje ani nenainstaluje
+    echo '<div class="card" id="token"><h2>Instalační kód</h2>';
+    if ($ctx['token_ready']) {
+        echo '<p class="help">Aby instalaci nemohl dokončit nikdo cizí, kdo by na tuto stránku narazil dřív než vy, průvodce vytvořil ve složce AllStatu '
+            . 'na serveru soubor <code>install-token.php</code>. Otevřete ho přes FTP nebo správce souborů hostingu (v prohlížeči je prázdný) '
+            . 'a opište kód z řádku <code>KOD:</code>. Po instalaci se soubor sám smaže.</p>';
+    } else {
+        // Vzor schválně neobsahuje použitelný kód: kdo ho nahraje beze změny, dostane hlášku, ne kód, který vidí každý.
+        echo '<div class="notice notice-warn">' . ($ctx['token_status'] === 'invalid'
+                ? 'Soubor install-token.php na serveru je, ale na řádku KOD: chybí použitelný kód.'
+                : 'Průvodce nemohl na server zapsat soubor s instalačním kódem.') . '</div>'
+            . '<p class="help">Vytvořte ve složce AllStatu soubor <code>install-token.php</code> podle vzoru níže a místo textu v závorce '
+            . 'napište vlastní kód: aspoň ' . INSTALLER_TOKEN_MIN_LENGTH . ' písmen a číslic bez diakritiky, pomlčky můžete použít. '
+            . 'Stránku pak obnovte a kód zadejte sem. Po instalaci soubor smažte.</p>'
+            . '<pre class="code">' . h("<?php\n// KOD: (sem napište vlastní kód)") . '</pre>';
+    }
+    echo '<div class="grid"><label class="full">Kód ze souboru install-token.php<input type="text" name="install_token" value="' . h($f['install_token']) . '" required autocomplete="off" autocapitalize="characters" spellcheck="false"></label></div></div>';
+
     // 1) Databáze
     if ($fresh) {
         echo '<div class="card" id="db"><h2><span class="num">1</span> Databáze</h2>'
@@ -1459,7 +1556,8 @@ function installer_render_success(array $r, string $version): void
                 . '<textarea readonly rows="12" class="code" id="' . h($id) . '" style="width:100%;user-select:all">' . h($content) . '</textarea>'
                 . '<div class="actions"><a class="btn secondary small" download="' . h($name) . '" href="data:text/plain;charset=utf-8;base64,' . base64_encode($content) . '">Stáhnout ' . h($name) . '</a></div>';
         }
-        echo '<div class="actions"><a class="btn" href="' . h($loginUrl) . '">Po nahrání souborů přejít na přihlášení</a></div>';
+        echo '<p class="help" style="margin-top:14px">Po nahrání smažte ze serveru i soubor <code>install-token.php</code> s instalačním kódem, už ho nebudete potřebovat.</p>'
+            . '<div class="actions"><a class="btn" href="' . h($loginUrl) . '">Po nahrání souborů přejít na přihlášení</a></div>';
     }
     echo '</div>';
 
@@ -1530,6 +1628,10 @@ installer_csrf_token(); // nastaví cookie před jakýmkoli výstupem
 installer_send_headers();
 
 if ($state['mode'] === 'locked') {
+    // Zbytek po instalaci, kdy se soubor nepodařilo smazat (nebo se config.php nahrával ručně).
+    if (is_file(installer_token_path($installRoot))) {
+        @unlink(installer_token_path($installRoot));
+    }
     http_response_code(410);
     installer_page_message(
         'AllStat je již nainstalovaný',
@@ -1557,10 +1659,18 @@ $form = installer_form();
 $errors = [];
 $dbReport = null;
 $result = null;
+$tokenReady = installer_token_ensure($installRoot);
+$tokenStatus = installer_token_status($installRoot);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!installer_csrf_valid()) {
         $errors[] = 'Odeslání formuláře se nepodařilo ověřit. Zkontrolujte, že má prohlížeč povolené cookies, a zkuste to znovu.';
+    } elseif (!installer_token_valid($installRoot, $form['install_token'])) {
+        $errors[] = match ($tokenStatus) {
+            'ok' => 'Instalační kód nesedí. Opište ho ze souboru install-token.php ve složce AllStatu na serveru.',
+            'invalid' => 'Soubor install-token.php neobsahuje použitelný kód: na řádku KOD: musí být aspoň ' . INSTALLER_TOKEN_MIN_LENGTH . ' písmen a číslic bez diakritiky.',
+            default => 'Na serveru chybí soubor install-token.php s instalačním kódem. Postup je u pole Instalační kód.',
+        };
     } else {
         $action = (string) ($_POST['action'] ?? '');
 
@@ -1609,4 +1719,6 @@ installer_render_form([
     'blocked' => installer_has_failure($checks),
     'db_report' => $dbReport,
     'version' => $installVersion,
+    'token_ready' => $tokenReady,
+    'token_status' => $tokenStatus,
 ]);

@@ -539,6 +539,24 @@ function allstat_provider_url_allowed(string $providerKey, ?string $url): bool
 }
 
 /**
+ * Znovu ověří adresy uložené u napojení (auth_url, token_url, api_base_url) těsně před tím, než se na ně
+ * pošle token nebo client secret. Formulář je kontroluje při uložení, ale v DB mohou být i ze starší verze
+ * nebo z importu. Vrací null, když je vše v pořádku, jinak text chyby pro uživatele.
+ */
+function allstat_connection_urls_error(array $connection): ?string
+{
+    $providerKey = (string) ($connection['provider_key'] ?? '');
+
+    foreach (['auth_url' => 'Authorization URL', 'token_url' => 'Token URL', 'api_base_url' => 'API Base URL'] as $field => $label) {
+        if (!allstat_provider_url_allowed($providerKey, (string) ($connection[$field] ?? ''))) {
+            return $label . ' u napojení nemíří přes HTTPS na povolenou doménu providera. Opravte ji v úpravě napojení.';
+        }
+    }
+
+    return null;
+}
+
+/**
  * Compact inline SVG brand mark for the dashboard source picker (native <option> can't render SVG,
  * so the picker is a custom listbox). 16×16 rendering of a 24-grid, brand colours, aria-hidden.
  * Key 'overview' = the GA4+GSC overview entry; unknown provider keys get a neutral chart glyph.

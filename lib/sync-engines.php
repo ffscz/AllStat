@@ -178,6 +178,23 @@ function allstat_run_engine(string $engine, PDO $pdo, array $config, array $conn
 }
 
 /**
+ * Další stránka z `paging.next` odpovědi Graph API, jen když míří přes HTTPS na stejný host jako $base.
+ * Adresa nese access_token v query, takže ji nepouštíme jinam. Prázdný řetězec = konec stránkování.
+ */
+function allstat_meta_paging_next(array $resp, string $base): string
+{
+    $next = (string) ($resp['json']['paging']['next'] ?? '');
+    $baseHost = strtolower((string) parse_url($base, PHP_URL_HOST));
+
+    if ($next === '' || strtolower((string) parse_url($next, PHP_URL_SCHEME)) !== 'https'
+        || $baseHost === '' || strtolower((string) parse_url($next, PHP_URL_HOST)) !== $baseHost) {
+        return '';
+    }
+
+    return $next;
+}
+
+/**
  * Sum a Meta insights `actions` / `action_values` array down to (conversions, conversion_value):
  * conversions = Σ values whose action_type is a configured conversion, value = Σ purchase-type values.
  * The arrays look like [['action_type' => 'purchase', 'value' => '3'], ...]; missing/garbage is ignored.
@@ -268,7 +285,7 @@ function allstat_meta_ads_sync_totals(PDO $pdo, string $base, string $accountId,
                 ]);
                 $written++;
             }
-            $url = (string) ($resp['json']['paging']['next'] ?? '');
+            $url = allstat_meta_paging_next($resp, $base);
             $guard++;
         }
     }
@@ -437,7 +454,7 @@ function allstat_engine_meta_graph(PDO $pdo, array $config, array $connection, s
                     if ($dim === '' || $imp <= 0 || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) { continue; }
                     if (allstat_pm_put($stmt, $domainId, $sourceId, $connectionId, $date, $key, $imp, $dim)) { $w++; }
                 }
-                $url = (string) ($resp['json']['paging']['next'] ?? '');
+                $url = allstat_meta_paging_next($resp, $base);
                 $guard++;
             }
             return $w;
@@ -749,7 +766,7 @@ function allstat_engine_meta_graph(PDO $pdo, array $config, array $connection, s
                     if ($pid === '' || $day === '' || $day < $startDate || $day > $endDate) { continue; }
                     $rows[$pid] = ['day' => $day, 'dt' => $t['dt'], 'p' => $p];
                 }
-                $url = (string) ($resp['json']['paging']['next'] ?? '');
+                $url = allstat_meta_paging_next($resp, $base);
                 $guard++;
             }
         }
@@ -1926,9 +1943,9 @@ function allstat_engine_seznam_wmt(PDO $pdo, array $config, array $connection, s
 function allstat_engine_youtube(PDO $pdo, array $config, array $connection, string $token, string $startDate, string $endDate, array $recipe): array
 {
     $analyticsBase = rtrim((string) ($connection['api_base_url'] ?: 'https://youtubeanalytics.googleapis.com'), '/');
-    // Data API base jde přebít v config_json {"data_api_base": "…"} (testy proti mocku); jinak Google.
-    $cfg = json_decode((string) ($connection['config_json'] ?? ''), true);
-    $dataBase = rtrim((string) ((is_array($cfg) ? ($cfg['data_api_base'] ?? '') : '') ?: 'https://www.googleapis.com/youtube/v3'), '/');
+    // Data API má pevnou adresu. Dřív šla přebít v config_json (data_api_base) bez kontroly hostu, takže
+    // administrátor mohl poslat Bearer token kamkoli, i na http:// do vnitřní sítě.
+    $dataBase = 'https://www.googleapis.com/youtube/v3';
     $headers = ['Authorization' => 'Bearer ' . $token, 'Accept' => 'application/json'];
     $tz = new DateTimeZone('Europe/Prague');
     $today = (new DateTimeImmutable('today', $tz))->format('Y-m-d');

@@ -22,6 +22,12 @@ $pdo = allstat_db($config);
 
 if ($pdo && allstat_tables_ready($pdo)) {
     allstat_migrate($pdo);
+
+    // Instalační kód (lib/install-wizard.php) je po založení prvního účtu k ničemu. Zůstane po instalaci
+    // s ručně nahraným config.php nebo když se ho instalátoru nepodařilo smazat.
+    if (is_file(__DIR__ . '/../install-token.php') && allstat_user_count($pdo) > 0) {
+        @unlink(__DIR__ . '/../install-token.php');
+    }
 }
 
 function allstat_admin_require_database(?PDO $pdo, array $config): PDO

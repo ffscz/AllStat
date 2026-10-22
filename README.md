@@ -37,6 +37,8 @@ in your own database, with a read-only AI connector (MCP) for Claude and ChatGPT
    `allstat-X.Y.Z.zip`, ne „Source code“ (a ověřte ho podle `.sha256`).
 2. Rozbalte ho a složku `allstat` nahrajte přes FTP na hosting.
 3. Otevřete adresu složky v prohlížeči, spustí se instalační průvodce.
+4. Průvodce vytvoří ve složce soubor `install-token.php`. Otevřete ho přes FTP nebo správce souborů
+   a kód z řádku `KOD:` zadejte do pole Instalační kód. Bez něj instalaci nikdo cizí nedokončí.
 
 Podrobný návod s obrázky je na [ffscz.github.io/AllStat](https://ffscz.github.io/AllStat/), vždy pro nejnovější
 verzi. Celou instalaci na jedné stránce shrnuje [kontrolní karta](https://ffscz.github.io/AllStat/#karta),
