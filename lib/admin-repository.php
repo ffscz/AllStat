@@ -268,6 +268,11 @@ function allstat_save_connection(PDO $pdo, array $config, ?int $actorId, array $
         return ['ok' => false, 'message' => 'Vyberte web i zdroj dat.'];
     }
 
+    // Uložené tokeny patří k providerovi, pro kterého vznikly. Přepnutím zdroje by šly poslat jinému API.
+    if ($existing && (int) $existing['source_id'] !== $sourceId) {
+        return ['ok' => false, 'message' => 'Zdroj dat u existujícího napojení nejde změnit. Založte pro něj nové napojení.'];
+    }
+
     $source = allstat_fetch_one($pdo, 'SELECT provider_key FROM data_sources WHERE id = ?', [$sourceId]);
     $providerKey = (string) ($source['provider_key'] ?? '');
 

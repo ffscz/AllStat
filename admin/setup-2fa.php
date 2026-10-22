@@ -13,7 +13,7 @@ if (is_file(__DIR__ . '/../lib/mcp-oauth.php')) {
 }
 
 $pdo = allstat_admin_require_database($pdo, $config);
-$user = allstat_require_user($pdo, $config);
+$user = allstat_require_user($pdo, $config, true);
 $error = null;
 $success = null;
 

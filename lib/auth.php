@@ -4,8 +4,14 @@ require_once __DIR__ . '/csrf.php';
 require_once __DIR__ . '/crypto.php';
 require_once __DIR__ . '/totp.php';
 
+/** Kolik chybných 2FA kódů smí účet zadat za 15 minut, než se ověření zablokuje. */
+const ALLSTAT_TOTP_MAX_FAILURES = 5;
+
 function allstat_session_start(array $config): void
 {
+    // Před kontrolou session: při session.auto_start=1 je session aktivní hned a funkce by skončila dřív.
+    allstat_reject_path_info();
+
     if (session_status() === PHP_SESSION_ACTIVE) {
         return;
     }
@@ -34,6 +40,21 @@ function allstat_session_start(array $config): void
     $_SESSION['user_last_seen'] = time();
 
     allstat_send_security_headers();
+}
+
+/**
+ * Adresy s cestou za skriptem (PATH_INFO, např. /admin/users.php/admin/login-2fa.php) aplikace nepoužívá.
+ * Server by pod nimi spustil users.php a URL by přitom vypadala jako jiná stránka, proto je rovnou odmítneme.
+ */
+function allstat_reject_path_info(): void
+{
+    $path = rawurldecode((string) parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH));
+
+    if (preg_match('~\.php/~i', $path) === 1) {
+        http_response_code(404);
+        header('Content-Type: text/plain; charset=utf-8');
+        exit('Stránka neexistuje.');
+    }
 }
 
 /**
@@ -201,14 +222,19 @@ function allstat_is_authenticated(PDO $pdo): bool
     return true;
 }
 
-function allstat_require_user(PDO $pdo, array $config): array
+/**
+ * Přihlášený uživatel, jinak přesměrování na přihlášení / 2FA. Výjimku pro vynucené 2FA dostane jen stránka,
+ * která to sama řekne parametrem ($totpSetupPage = admin/setup-2fa.php). Dřív se výjimka poznala podle konce
+ * REQUEST_URI, a ten jde podvrhnout přes PATH_INFO (/admin/users.php/admin/setup-2fa.php spustí users.php).
+ * Stránka 2FA ověření (admin/login-2fa.php) tuhle funkci nevolá, takže pro ni výjimka není potřeba.
+ */
+function allstat_require_user(PDO $pdo, array $config, bool $totpSetupPage = false): array
 {
     if (allstat_user_count($pdo) === 0) {
         allstat_redirect($config, 'install.php');
     }
 
     $user = allstat_current_user($pdo);
-    $path = (string) parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
 
     if (!$user) {
         $next = urlencode((string) ($_SERVER['REQUEST_URI'] ?? allstat_url($config, '')));
@@ -217,11 +243,11 @@ function allstat_require_user(PDO $pdo, array $config): array
 
     $enforce2fa = allstat_setting($pdo, 'security.enforce_2fa', '0') === '1';
 
-    if (!allstat_user_has_totp($user) && $enforce2fa && !str_ends_with($path, '/admin/setup-2fa.php')) {
+    if (!allstat_user_has_totp($user) && $enforce2fa && !$totpSetupPage) {
         allstat_redirect($config, 'admin/setup-2fa.php');
     }
 
-    if (allstat_user_has_totp($user) && empty($_SESSION['totp_verified']) && !str_ends_with($path, '/admin/login-2fa.php')) {
+    if (allstat_user_has_totp($user) && empty($_SESSION['totp_verified'])) {
         allstat_redirect($config, 'admin/login-2fa.php');
     }
 
@@ -291,6 +317,14 @@ function allstat_login(PDO $pdo, array $config, string $email, string $password)
     return ['ok' => true, 'user' => $user, 'requires_totp' => !empty($user['totp_secret_enc'])];
 }
 
+/** Chybné 2FA kódy účtu za posledních 15 minut (počítají se ze záznamů login_2fa_failed v auditu). */
+function allstat_totp_recent_failures(PDO $pdo, int $userId): int
+{
+    $row = allstat_fetch_one($pdo, "SELECT COUNT(*) AS attempts FROM allstat_user_audit_log WHERE target_user_id = ? AND action = 'login_2fa_failed' AND created_at >= DATE_SUB(NOW(), INTERVAL 15 MINUTE)", [$userId]);
+
+    return (int) ($row['attempts'] ?? 0);
+}
+
 function allstat_complete_totp_login(PDO $pdo, array $config, string $code): array
 {
     $user = allstat_current_user($pdo);
@@ -299,12 +333,29 @@ function allstat_complete_totp_login(PDO $pdo, array $config, string $code): arr
         return ['ok' => false, 'message' => '2FA ověření teď není dostupné.'];
     }
 
+    // Limit platí pro účet, ne pro session ani IP: nové přihlášení heslem ho nevynuluje. Po vyčerpání se
+    // session odhlásí, takže další pokus znamená znovu heslo (a to hlídá allstat_login_is_throttled).
+    $throttled = ['ok' => false, 'throttled' => true, 'message' => 'Příliš mnoho chybných kódů. Přihlaste se znovu za 15 minut.'];
+
+    if (allstat_totp_recent_failures($pdo, (int) $user['id']) >= ALLSTAT_TOTP_MAX_FAILURES) {
+        allstat_audit($pdo, (int) $user['id'], (int) $user['id'], 'login_2fa_throttled');
+        allstat_logout(false);
+        return $throttled;
+    }
+
     $secret = allstat_decrypt_secret($user['totp_secret_enc'], $config);
     $matchedWindow = null;
     $lastWindow = isset($user['totp_last_window']) ? (int) $user['totp_last_window'] : -1;
 
     if (!$secret || !allstat_totp_verify($secret, $code, $lastWindow, $matchedWindow)) {
         allstat_audit($pdo, (int) $user['id'], (int) $user['id'], 'login_2fa_failed');
+
+        if (allstat_totp_recent_failures($pdo, (int) $user['id']) >= ALLSTAT_TOTP_MAX_FAILURES) {
+            allstat_audit($pdo, (int) $user['id'], (int) $user['id'], 'login_2fa_throttled');
+            allstat_logout(false);
+            return $throttled;
+        }
+
         return ['ok' => false, 'message' => 'Kód není platný nebo už byl použitý.'];
     }
 

@@ -87,6 +87,12 @@ function allstat_sync_connection(PDO $pdo, array $config, array $connection, str
         ];
     }
 
+    $urlError = allstat_connection_urls_error($connection);
+    if ($urlError !== null) {
+        allstat_sync_mark($pdo, $connection, 'error', $label . ': ' . $urlError, false);
+        return ['ok' => false, 'message' => $urlError, 'stats' => null];
+    }
+
     // OAuth providers use a refreshable access token; API-key providers (Clarity) use the stored token directly.
     if ((int) ($connection['supports_oauth'] ?? 1) === 1) {
         $tokenResult = allstat_get_valid_access_token($pdo, $config, $connection);

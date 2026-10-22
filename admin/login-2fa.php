@@ -19,6 +19,7 @@ if (!str_starts_with($next, allstat_base_path($config))) {
 }
 
 $error = null;
+$locked = false;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     allstat_csrf_check();
@@ -35,6 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $error = $result['message'];
+    // Po vyčerpání pokusů je session odhlášená, formulář by jen poslal na přihlášení.
+    $locked = !empty($result['throttled']);
 }
 
 ?><!doctype html>
@@ -54,12 +57,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <h1>2FA ověření</h1>
             <p>Zadejte šestimístný kód z autentizační aplikace pro účet <?= h($user['email']) ?>.</p>
             <?php if ($error): ?><div class="notice notice-error"><?= h($error) ?></div><?php endif; ?>
+            <?php if ($locked): ?>
+            <p><a class="button-primary" href="<?= h(allstat_url($config, 'admin/login.php')) ?>">Zpět na přihlášení</a></p>
+            <?php else: ?>
             <form method="post" class="form-stack">
                 <?= allstat_csrf_field() ?>
                 <input type="hidden" name="next" value="<?= h($next) ?>">
                 <label><span>Ověřovací kód</span><input type="text" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required autofocus autocomplete="one-time-code"></label>
                 <button class="button-primary" type="submit">Ověřit</button>
             </form>
+            <?php endif; ?>
         </section>
     </main>
 </body>

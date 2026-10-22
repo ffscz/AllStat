@@ -65,6 +65,11 @@ function allstat_refresh_access_token(PDO $pdo, array $config, array $connection
         return ['ok' => false, 'message' => 'Pro refresh tokenu chybí refresh_token, client_id, client_secret nebo token_url.'];
     }
 
+    $urlError = allstat_connection_urls_error($connection);
+    if ($urlError !== null) {
+        return ['ok' => false, 'message' => $urlError];
+    }
+
     $response = allstat_http_request(
         'POST',
         (string) $connection['token_url'],
@@ -138,6 +143,11 @@ function allstat_normalize_ga4_property(string $raw): string
 function allstat_test_connection(PDO $pdo, array $config, array $connection): array
 {
     $providerKey = (string) ($connection['provider_key'] ?? '');
+
+    $urlError = allstat_connection_urls_error($connection);
+    if ($urlError !== null) {
+        return ['ok' => false, 'message' => $urlError];
+    }
 
     if ($providerKey === 'clarity') {
         $token = allstat_decrypt_secret($connection['access_token_enc'] ?? null, $config);

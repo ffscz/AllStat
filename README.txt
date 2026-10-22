@@ -24,13 +24,16 @@ Instalace ve zkratce
  3. V prohlížeči otevřete adresu složky, například https://www.vase-domena.cz/allstat/
     (nebo adresu subdomény, když jste AllStat nahráli do její složky).
     Zobrazí se instalační průvodce.
- 4. Vyplňte údaje o databázi, organizaci a administrátorovi, zvolte umístění připojení AI
+ 4. Průvodce vytvoří ve složce AllStatu soubor install-token.php. Otevřete ho přes FTP nebo
+    správce souborů hostingu (v prohlížeči je prázdný) a kód z řádku "KOD:" opište do pole
+    "Instalační kód".
+ 5. Vyplňte údaje o databázi, organizaci a administrátorovi, zvolte umístění připojení AI
     a klikněte na "Nainstalovat".
- 5. Zálohujte soubory config.php a config-keys.php a nastavte denní cron podle pokynů na
+ 6. Zálohujte soubory config.php a config-keys.php a nastavte denní cron podle pokynů na
     poslední stránce průvodce.
 
-Instalaci dokončete hned po nahrání souborů. Dokud není hotová, může průvodce spustit každý,
-kdo zná adresu webu.
+Instalaci dokončete hned po nahrání souborů. Bez instalačního kódu ji nikdo cizí dokončit
+nemůže, ale dokud není hotová, průvodce zůstává otevřený.
 
 
 Podrobný návod
@@ -39,6 +42,19 @@ Návod s obrázky, nastavením cronu, napojením služeb, aktualizací a řešen
 https://ffscz.github.io/AllStat/
 Je vždy pro nejnovější verzi a jde vytisknout nebo uložit jako PDF. Tento soubor můžete
 po instalaci ze serveru smazat.
+
+
+Změny ve verzi 1.2.10
+---------------------
+ * Bezpečnost: opravena chyba, kvůli které šlo dvoufázové ověření (2FA) za určitých podmínek obejít,
+   a to i vynucené. Doporučujeme aktualizovat co nejdřív. Adresy s cestou za názvem skriptu
+   (například .../users.php/cokoli) teď vracejí chybu 404.
+ * Bezpečnost: po 5 chybných kódech 2FA během 15 minut se ověření účtu na 15 minut zablokuje
+   a přihlášení se zruší.
+ * Bezpečnost: instalační průvodce chce instalační kód ze souboru install-token.php, který vytvoří
+   ve složce AllStatu. Rozpracovanou instalaci tak nedokončí nikdo bez přístupu k souborům na serveru.
+ * Bezpečnost: přístupové tokeny služeb se posílají jen na ověřené adresy poskytovatelů, a to při
+   každé synchronizaci. Zdroj dat u existujícího napojení už nejde přepnout na jiný.
 
 
 Změny ve verzi 1.2.9
