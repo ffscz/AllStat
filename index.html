@@ -110,7 +110,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
   <div class="brand"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span> AllStat</div>
   <h1>Instalační příručka</h1>
   <p class="lead">AllStat sbírá na jednom místě statistiky vašeho webu a sociálních sítí a ukládá je do vaší vlastní databáze. Tahle příručka vás provede instalací na běžný webhosting, krok za krokem. Počítejte s 30 minutami.</p>
-  <p class="meta">Návod k verzi 1.2.9 · <a href="https://github.com/ffscz/AllStat/releases/latest">Stáhnout AllStat</a> · <a href="https://github.com/ffscz/AllStat">Zdrojový kód na GitHubu</a><span class="no-print"> · <button type="button" class="print-btn" data-print>Vytisknout nebo uložit jako PDF</button></span></p>
+  <p class="meta">Návod k verzi 1.2.10 · <a href="https://github.com/ffscz/AllStat/releases/latest">Stáhnout AllStat</a> · <a href="https://github.com/ffscz/AllStat">Zdrojový kód na GitHubu</a><span class="no-print"> · <button type="button" class="print-btn" data-print>Vytisknout nebo uložit jako PDF</button></span></p>
 </header>
 
 <nav class="toc" aria-label="Obsah">
@@ -148,6 +148,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
 <ul class="check">
   <li>Složku <code>allstat</code> jsem nahrál(a) přes FTP, „Neúspěšné přenosy“ jsou prázdné.</li>
   <li>Otevřel(a) jsem adresu složky a zobrazil se průvodce.</li>
+  <li>Kód ze souboru <code>install-token.php</code> jsem opsal(a) do pole „Instalační kód“.</li>
   <li>Kontrola serveru je zelená, test databáze prošel.</li>
   <li>Vyplnil(a) jsem organizaci, web a administrátora a klikl(a) na „Nainstalovat AllStat“.</li>
   <li>Heslo administrátora mám uložené ve správci hesel.</li>
@@ -237,7 +238,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
 
 <ol class="steps">
   <li><h4>Rozbalte balíček v počítači</h4>
-    <p>Balíček <code>allstat-1.2.9.zip</code> rozbalte (ve Windows: pravé tlačítko, „Extrahovat vše“). Vznikne složka <code>allstat</code>.</p></li>
+    <p>Balíček <code>allstat-1.2.10.zip</code> rozbalte (ve Windows: pravé tlačítko, „Extrahovat vše“). Vznikne složka <code>allstat</code>.</p></li>
   <li><h4>Připojte se k hostingu</h4>
     <p>V programu FileZilla (nebo jiném FTP klientu) zadejte server, uživatele, heslo a port, které jste dostali od poskytovatele hostingu. Když hosting nabízí šifrované spojení (FTPS nebo SFTP), zvolte ho.</p></li>
   <li><h4>Otevřete složku webu</h4>
@@ -259,7 +260,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
 <p>Nemáte FTP? Balíček můžete nahrát jako jeden ZIP soubor přes správce souborů v administraci hostingu (cPanel: „File Manager“, tlačítko „Upload“) a tam ho rozbalit (tlačítko „Extract“).</p></div>
 
 <div class="warn callout"><span class="label">Pozor</span>
-<p>Instalaci dokončete hned po nahrání souborů. Dokud není hotová, může průvodce spustit každý, kdo zná adresu vašeho webu. Po dokončení se průvodce uzamkne a sám smaže.</p></div>
+<p>Instalaci dokončete hned po nahrání souborů. Bez instalačního kódu ze souboru na serveru ji nikdo cizí nedokončí, průvodce ale zůstává otevřený, dokud instalaci nedokončíte. Po dokončení se průvodce uzamkne a sám smaže.</p></div>
 
 
 <h2 id="pruvodce"><span class="n">4</span>Instalace v prohlížeči</h2>
@@ -268,6 +269,15 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
 <h3>Kontrola serveru</h3>
 <p>Průvodce nejdřív zkontroluje verzi PHP, rozšíření, práva zápisu, HTTPS, přístup na internet a úplnost nahraných souborů. Když je vše v pořádku, ukáže jednu zelenou větu. Kdyby něco chybělo, zobrazí konkrétní položku s vysvětlením, co udělat (viz kapitola <a href="#problemy">Když se něco nepovede</a>).</p>
 <figure class="narrow"><a class="zoom" href="img/01-kontrola-serveru.webp" title="Otevřít v plné velikosti"><img src="img/01-kontrola-serveru.webp" alt="Kontrola serveru: zelená věta o splněných požadavcích" width="748" height="199" loading="lazy" decoding="async"></a><figcaption>Kontrola serveru bez problémů. Tlačítkem „Zobrazit všechny kontroly“ rozbalíte podrobnosti.</figcaption></figure>
+
+<h3>Instalační kód</h3>
+<p>Aby rozpracovanou instalaci nemohl dokončit nikdo cizí, kdo by na průvodce narazil dřív než vy, průvodce při prvním otevření vytvoří ve složce AllStatu soubor <code>install-token.php</code>. Otevřete ho přes FTP nebo správce souborů hostingu (v prohlížeči je prázdný) a kód z řádku <code>KOD:</code> opište do pole „Instalační kód“. Malá písmena a pomlčky nevadí. Bez kódu průvodce neotestuje databázi ani nic nenainstaluje.</p>
+<pre><code>&lt;?php
+// AllStat: instalační kód. ...
+// KOD: K7QM-2XPA-9WFD-HT4C</code></pre>
+<p>Kód v ukázce je vymyšlený, váš je v souboru na serveru. Po dokončení instalace se soubor sám smaže.</p>
+<div class="tip callout"><span class="label">Když průvodce soubor nevytvoří</span>
+<p>Pokud hosting nedovolí PHP zapisovat do složky, průvodce to napíše a ukáže vzor. Vytvořte pak soubor <code>install-token.php</code> sami: na první řádek napište <code>&lt;?php</code>, na druhý <code>// KOD:</code> a za něj vlastní kód, aspoň 12 písmen a číslic bez diakritiky. Stránku obnovte a kód zadejte. Po instalaci soubor smažte.</p></div>
 
 <h3>Krok 1: Databáze</h3>
 <p>Opište údaje o databázi, které jste si poznamenali v kapitole 2, a klikněte na „Otestovat připojení“. Průvodce zkusí připojení a zkontroluje verzi databáze, práva a úložiště. Když je vše v pořádku, ukáže zelenou hlášku.</p>
@@ -324,7 +334,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
 <figure><a class="zoom" href="img/05-hotovo.webp" title="Otevřít v plné velikosti"><img src="img/05-hotovo.webp" alt="Závěrečná stránka instalace" width="1100" height="1965" loading="lazy" decoding="async"></a><figcaption>Závěrečná stránka. Adresy a klíč v příkladu jsou vymyšlené, vy uvidíte své.</figcaption></figure>
 
 <div class="tip callout"><span class="label">Když server zakáže zápis souborů</span>
-<p>Na některých hostinzích nesmí PHP zapisovat do složky. Průvodce to pozná, databázi přesto připraví a na konci vám zobrazí obsah souborů <code>config.php</code> a <code>config-keys.php</code>. Uložte je do složky s <code>install.php</code> (přes FTP nebo správce souborů). Stránku přitom nezavírejte, klíč z ní už podruhé neuvidíte.</p></div>
+<p>Na některých hostinzích nesmí PHP zapisovat do složky. Průvodce to pozná, databázi přesto připraví a na konci vám zobrazí obsah souborů <code>config.php</code> a <code>config-keys.php</code>. Uložte je do složky s <code>install.php</code> (přes FTP nebo správce souborů). Stránku přitom nezavírejte, klíč z ní už podruhé neuvidíte. Potom ze složky smažte i soubor <code>install-token.php</code> s instalačním kódem.</p></div>
 <figure class="narrow"><a class="zoom" href="img/16-rucni-nahrani.webp" title="Otevřít v plné velikosti"><img src="img/16-rucni-nahrani.webp" alt="Ruční nahrání souborů config.php a config-keys.php" width="748" height="1059" loading="lazy" decoding="async"></a><figcaption>Ruční nahrání souborů. Místo hodnot v okně uvidíte skutečný obsah svých souborů.</figcaption></figure>
 
 
@@ -675,7 +685,7 @@ location ~ ^/allstat/(lib|views|docs)/ { deny all; }</code></pre>
   <li>Administrátoři mají zapnuté dvoufázové ověření, případně je povinné pro všechny.</li>
   <li>Soubory <code>config.php</code> a <code>config-keys.php</code> jsou zálohované mimo web a nikam se nesdílejí.</li>
   <li>Adresa cronu s tajným klíčem se nikomu neposílá. Při podezření na únik ji v Nastavení vygenerujte znovu a opravte úlohu na hostingu.</li>
-  <li>Soubor <code>install.php</code> na serveru není (smaže se sám, jinak ho odstraňte ručně).</li>
+  <li>Soubory <code>install.php</code> a <code>install-token.php</code> na serveru nejsou (smažou se samy, jinak je odstraňte ručně).</li>
   <li>Přístupy k službám má jen ten, kdo je potřebuje. Nepoužívané uživatele v menu „Uživatelé“ vypněte.</li>
   <li>Připojení AI je zapnuté jen tehdy, když ho používáte. Seznam připojených aplikací a poslední aktivitu v menu „AI konektory“ občas zkontrolujte.</li>
   <li>Novou verzi AllStatu nainstalujete, jakmile ji dostanete (kapitola 8).</li>
@@ -696,7 +706,7 @@ location ~ ^/allstat/(lib|views|docs)/ { deny all; }</code></pre>
 <table>
   <thead><tr><th>Údaj</th><th>Hodnota</th></tr></thead>
   <tbody>
-    <tr><td>Verze balíčku</td><td>1.2.9</td></tr>
+    <tr><td>Verze balíčku</td><td>1.2.10</td></tr>
     <tr><td>Licence</td><td>GNU GPL verze 3 (soubor <code>LICENSE</code>), zdrojový kód a aktualizace na github.com/ffscz/AllStat</td></tr>
     <tr><td>Jazyk aplikace</td><td>čeština</td></tr>
     <tr><td>Požadavky na server</td><td>PHP 8.1 a novější (doporučeno 8.3), MySQL 5.7.8 a novější nebo MariaDB 10.3 a novější, Apache nebo LiteSpeed (nginx s vlastními pravidly, viz kapitola 10)</td></tr>
@@ -721,6 +731,7 @@ location ~ ^/allstat/(lib|views|docs)/ { deny all; }</code></pre>
     <tr><td><code>schema.sql</code></td><td>struktura databáze pro instalaci</td></tr>
     <tr><td><code>.htaccess</code></td><td>ochrana citlivých souborů a bezpečnostní hlavičky</td></tr>
     <tr><td><code>install.php</code></td><td>instalační průvodce, po instalaci se sám smaže</td></tr>
+    <tr><td><code>install-token.php</code></td><td>instalační kód, vzniká jen během instalace a potom se sám smaže</td></tr>
     <tr><td><code>config.php</code>, <code>config-keys.php</code></td><td>vytvoří průvodce: přístup k databázi a šifrovací klíč</td></tr>
     <tr><td><code>docs/</code>, <code>README.txt</code></td><td>tato příručka a stručný návod, po instalaci je můžete ze serveru smazat</td></tr>
   </tbody>
@@ -730,7 +741,7 @@ location ~ ^/allstat/(lib|views|docs)/ { deny all; }</code></pre>
 </main>
 
 <footer>
-  AllStat, verze 1.2.9 · Instalační příručka. Obrázky ukazují ukázková data.
+  AllStat, verze 1.2.10 · Instalační příručka. Obrázky ukazují ukázková data.
 </footer>
 
 </div>
