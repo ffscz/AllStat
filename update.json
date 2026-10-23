@@ -1,10 +1,10 @@
 {
-    "version": "1.2.9",
-    "published": "2026-10-13T10:36:15Z",
-    "zip_url": "https://github.com/ffscz/AllStat/releases/download/v1.2.9/allstat-1.2.9.zip",
-    "sha256": "cdb8f99570f67a2cf9f370cfa725b26ff495b8573cbee114457b415ca7794643",
-    "signature": "MEYCIQC6JdzNcqayet2wcsicZgNtTeyBV/2n7b3yHQEvpRcNTAIhAOqXpkpXNUrQJlKlEE/i8x8kqJQuRJWmVVV4wrnTaHy6",
+    "version": "1.2.10",
+    "published": "2026-10-23T06:48:23Z",
+    "zip_url": "https://github.com/ffscz/AllStat/releases/download/v1.2.10/allstat-1.2.10.zip",
+    "sha256": "c10bc5a3ddcc66e129459e134658a222bfeeceb3a4a1166b3a2c6c6dcf12ec9a",
+    "signature": "MEYCIQCn7mGuIn5rOzR7TvnS8xoUEPJ1TyU4EXpSSdaK/V6/hAIhAM/2UALOnzLUKRIClEYIQ57VAJaO60w50xd7njKOErGI",
     "min_php": "8.1",
-    "html_url": "https://github.com/ffscz/AllStat/releases/tag/v1.2.9",
-    "notes": "* Aktualizace: nový kód se použije hned po výměně souborů, i když hosting drží PHP v mezipaměti\n   (OPcache). Dřív mohla stránka hned po aktualizaci ještě pár sekund běžet ve staré verzi.\n * Doplnění pravidel do upraveného .htaccess po aktualizaci ze starší verze se spustí na kterékoli\n   stránce administrátora (přehled, administrace), ne jen na stránce Aktualizace."
+    "html_url": "https://github.com/ffscz/AllStat/releases/tag/v1.2.10",
+    "notes": "* Bezpečnost: opravena chyba, kvůli které šlo dvoufázové ověření (2FA) za určitých podmínek obejít,\n   a to i vynucené. Doporučujeme aktualizovat co nejdřív. Adresy s cestou za názvem skriptu\n   (například .../users.php/cokoli) teď vracejí chybu 404.\n * Bezpečnost: po 5 chybných kódech 2FA během 15 minut se ověření účtu na 15 minut zablokuje\n   a přihlášení se zruší.\n * Bezpečnost: instalační průvodce chce instalační kód ze souboru install-token.php, který vytvoří\n   ve složce AllStatu. Rozpracovanou instalaci tak nedokončí nikdo bez přístupu k souborům na serveru.\n * Bezpečnost: přístupové tokeny služeb se posílají jen na ověřené adresy poskytovatelů, a to při\n   každé synchronizaci. Zdroj dat u existujícího napojení už nejde přepnout na jiný."
 }
