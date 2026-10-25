@@ -2,6 +2,23 @@
 
 // Anglické překlady: sources (soubory: lib/providers.php, admin/source-edit.php, admin/sources.php, admin/meta-connect.php, admin/meta-select.php, admin/clarity-import.php, admin/connection-sync.php, admin/connection-test.php, admin/oauth-callback.php, admin/oauth-start.php, lib/oauth.php, lib/meta-connect.php, admin/google-accounts.php, admin/google-import.php, lib/google-accounts.php). Klíč = český originál z kódu.
 return [
+    'Číselné Account ID' => 'Numeric Account ID',
+    'Microsoft Advertising → nastavení účtu → číslo účtu (Account ID). Customer ID je samostatné číslo zákazníka.' => 'Microsoft Advertising → account settings → Account ID. Customer ID is a separate customer identifier.',
+    'Reporting API vyžaduje Developer Token. Dostupnost a limity závisejí na schváleném přístupu.' => 'The Reporting API requires a Developer Token. Availability and limits depend on the approved access level.',
+    'V Microsoft Entra zaregistruj webovou aplikaci. Redirect URI je callback AllStatu. OAuth používá oprávnění msads.manage a offline_access; pro čtení musí mít přihlášený uživatel přístup k reklamnímu účtu.' => 'Register a web application in Microsoft Entra. Set the redirect URI to the AllStat callback. OAuth uses msads.manage and offline_access; the signed-in user needs access to the ad account.',
+    'Zaregistruj webovou aplikaci v Microsoft Entra a nastav přesnou adresu callbacku z AllStatu jako Redirect URI.' => 'Register a web application in Microsoft Entra and set the exact AllStat callback URL as its redirect URI.',
+    'Vytvoř Client secret a zkopíruj Client ID. Developer Token vyžádej v Microsoft Advertising API Center.' => 'Create a Client secret and copy the Client ID. Request a Developer Token in Microsoft Advertising API Center.',
+    'Vyplň Account ID, Customer ID, Client ID, Client secret a Developer Token. Ulož napojení a spusť OAuth.' => 'Enter the Account ID, Customer ID, Client ID, Client secret and Developer Token. Save the connection and start OAuth.',
+    'Otestuj napojení a potom stáhni historii. Údaje se ukládají v měně reklamního účtu.' => 'Test the connection and then download the history. Data is stored in the ad account currency.',
+    'Denní výkon účtu a kampaní Microsoft Ads.' => 'Daily account and campaign performance from Microsoft Ads.',
+    'Číselné ID reklamního účtu.' => 'Numeric ad account ID.',
+    'Číselné ID zákazníka, pod kterým je účet dostupný.' => 'Numeric customer ID under which the account is available.',
+    'Ukládá se šifrovaně. Prázdné pole při úpravě zachová uloženou hodnotu.' => 'Stored encrypted. Leave blank when editing to keep the saved value.',
+    'Microsoft Ads odpovídá: účet „{name}"{currency}.' => 'Microsoft Ads responds: account “{name}”{currency}.',
+    'Microsoft Ads: token se nepodařilo získat. Zkontroluj přístup a spusť OAuth znovu.' => 'Microsoft Ads: token exchange failed. Check access and start OAuth again.',
+    'Microsoft Ads: přihlášení vypršelo, připojte účet znovu přes OAuth.' => 'Microsoft Ads: sign-in expired. Reconnect the account via OAuth.',
+    'Microsoft Ads: obnovení přístupu selhalo (HTTP {status}).' => 'Microsoft Ads: access refresh failed (HTTP {status}).',
+    'Microsoft Ads: token právě obnovuje jiný běh. Zkuste to za chvíli.' => 'Microsoft Ads: another process is refreshing the token. Try again shortly.',
     'properties/123456789 (samotné číslo služby, prefix appka doplní)' => 'properties/123456789 (just the property number, the app adds the prefix)',
     'GA4 (analytics.google.com) → „Administrátor" (ozubené kolo vlevo dole) → „Nastavení služby" → úplně nahoře „ID služby" (číslo). POZOR: NEPLEŤ si s „ID měření" (G-XXXX) ani s „ID streamu".' => 'GA4 (analytics.google.com) → “Admin” (gear icon at the bottom left) → “Property settings” → “Property ID” at the very top (a number). CAUTION: do NOT confuse it with the “Measurement ID” (G-XXXX) or the “Stream ID”.',
     'Zdarma do 200k tokenů na službu za den a 50k requestů na projekt za den.' => 'Free up to 200k tokens per property per day and 50k requests per project per day.',

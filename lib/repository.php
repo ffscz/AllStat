@@ -2665,7 +2665,7 @@ function allstat_get_meta_ads_kpis(PDO $pdo, int $domainId, int $connectionId, s
  * reach/frequency). Like Meta Ads, when the account reports no conversions AND no conversion value the
  * ROAS/PNO/CPA/Konverze/Hodnota tiles are hidden (they'd be all zeros — not a bug).
  */
-function allstat_get_google_ads_kpis(PDO $pdo, int $domainId, int $connectionId, string $start, string $end, string $granularity = 'day'): array
+function allstat_get_google_ads_kpis(PDO $pdo, int $domainId, int $connectionId, string $start, string $end, string $granularity = 'day', string $providerName = 'Google Ads'): array
 {
     [$start, $end] = allstat_limited_range($start, $end);
     $baseKeys = ['cost', 'impressions', 'clicks', 'conversions', 'conversion_value'];
@@ -2713,8 +2713,18 @@ function allstat_get_google_ads_kpis(PDO $pdo, int $domainId, int $connectionId,
         ['key' => 'impressions', 'label' => t('Zobrazení'), 'icon' => 'eye', 'color' => 'blue', 'value' => $sum['impressions'], 'format' => 'number', 'series' => $countSeries('impressions'), 'tooltip' => t('Kolikrát se reklamy zobrazily celkem.')],
     ];
 
-    $metrics = array_map(static function (array $d): array {
+    $metrics = array_map(static function (array $d) use ($providerName): array {
         $v = (float) $d['value'];
+        $tooltip = $d['tooltip'];
+        if ($providerName === 'Microsoft Ads') {
+            $tooltip = match ($d['key']) {
+                'cost' => t('Útrata Microsoft Ads za období v měně reklamního účtu.'),
+                'roas' => t('Návratnost výdajů = hodnota konverzí ÷ útrata. Výsledek je násobek v měně účtu.'),
+                'conversions' => t('Počet konverzí přiřazených Microsoft Ads (ConversionsQualified). Může být desetinný.'),
+                'conversion_value' => t('Hodnota konverzí přiřazených Microsoft Ads v měně účtu.'),
+                default => $tooltip,
+            };
+        }
         $displayValue = match ($d['format']) {
             'percent' => allstat_percent($v, 2),
             'money0' => allstat_number($v, 0),
@@ -2726,7 +2736,7 @@ function allstat_get_google_ads_kpis(PDO $pdo, int $domainId, int $connectionId,
 
         return [
             'key' => $d['key'], 'label' => $d['label'], 'icon' => $d['icon'], 'color' => $d['color'],
-            'value' => $v, 'displayValue' => $displayValue, 'series' => $d['series'], 'tooltip' => $d['tooltip'],
+            'value' => $v, 'displayValue' => $displayValue, 'series' => $d['series'], 'tooltip' => $tooltip,
         ];
     }, $defs);
 
