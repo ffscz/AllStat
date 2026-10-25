@@ -88,7 +88,9 @@ function allstat_refresh_access_token(PDO $pdo, array $config, array $connection
             'refresh_token' => $refreshToken,
             'client_id' => $connection['client_id'],
             'client_secret' => $clientSecret,
-        ], ($connection['provider_key'] ?? '') === 'microsoft_ads' ? ['scope' => 'https://ads.microsoft.com/msads.manage offline_access'] : [])),
+        ], ($connection['provider_key'] ?? '') === 'microsoft_ads'
+            && allstat_microsoft_ads_identity_provider($connection) === 'Microsoft'
+            ? ['scope' => 'https://ads.microsoft.com/msads.manage offline_access'] : [])),
         20,
         ($connection['provider_key'] ?? '') !== 'microsoft_ads'
     );

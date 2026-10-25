@@ -52,10 +52,18 @@ $params = [
 ];
 
 if ($connection['provider_key'] === 'microsoft_ads') {
-    $params['scope'] = 'https://ads.microsoft.com/msads.manage offline_access openid profile';
+    $identity = allstat_microsoft_ads_identity_provider($connection);
+    if ($identity === null) {
+        allstat_flash('error', t('Microsoft Ads: Authorization URL a Token URL musí být odpovídající oficiální dvojice Google nebo Microsoft OAuth.'));
+        allstat_redirect($config, 'admin/source-edit.php?id=' . $id);
+    }
+    $params['scope'] = $identity === 'Google'
+        ? 'profile email'
+        : 'https://ads.microsoft.com/msads.manage offline_access openid profile';
 }
 
-if (in_array($connection['provider_key'], ['ga4', 'gsc', 'google_ads', 'youtube'], true)) {
+if (in_array($connection['provider_key'], ['ga4', 'gsc', 'google_ads', 'youtube'], true)
+    || ($connection['provider_key'] === 'microsoft_ads' && ($identity ?? null) === 'Google')) {
     $params['access_type'] = 'offline';
     $params['prompt'] = 'consent';
 }

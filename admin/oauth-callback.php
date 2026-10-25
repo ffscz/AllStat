@@ -106,7 +106,7 @@ $tokenParams = [
     'client_id' => $connection['client_id'],
     'client_secret' => $clientSecret,
 ];
-if ($connection['provider_key'] === 'microsoft_ads') {
+if ($connection['provider_key'] === 'microsoft_ads' && allstat_microsoft_ads_identity_provider($connection) === 'Microsoft') {
     $tokenParams['scope'] = 'https://ads.microsoft.com/msads.manage offline_access';
 }
 $body = http_build_query($tokenParams);

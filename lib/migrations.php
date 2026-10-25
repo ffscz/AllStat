@@ -11,7 +11,7 @@ require_once __DIR__ . '/providers.php';
  * v allstat_default_providers, nové výchozí settings) ZVEDNI tuhle konstantu — jinak se změna na
  * produkci neprovede. Formát: YYYY-MM-DD.N.
  */
-const ALLSTAT_SCHEMA_VERSION = '2026-10-25.1';
+const ALLSTAT_SCHEMA_VERSION = '2026-10-25.2';
 
 function allstat_schema_is_current(PDO $pdo): bool
 {
