@@ -282,6 +282,16 @@ function allstat_save_connection(PDO $pdo, array $config, ?int $actorId, array $
         }
     }
 
+    if ($providerKey === 'microsoft_ads' && allstat_microsoft_ads_identity_provider($data) === null) {
+        return ['ok' => false, 'message' => t('Microsoft Ads: Authorization URL a Token URL musí být odpovídající oficiální dvojice Google nebo Microsoft OAuth.')];
+    }
+
+    $identityChanged = $providerKey === 'microsoft_ads' && $existing
+        && allstat_microsoft_ads_identity_provider($existing) !== allstat_microsoft_ads_identity_provider($data);
+    if ($identityChanged && (trim((string) ($data['client_id'] ?? '')) === '' || trim((string) ($data['client_secret'] ?? '')) === '')) {
+        return ['ok' => false, 'message' => t('Microsoft Ads: při změně způsobu přihlášení vyplň nový Client ID a Client secret.')];
+    }
+
     $configJson = trim((string) ($data['config_json'] ?? ''));
     if ($configJson !== '') {
         json_decode($configJson, true);
@@ -296,6 +306,11 @@ function allstat_save_connection(PDO $pdo, array $config, ?int $actorId, array $
     foreach ($secretFields as $input => $column) {
         $newValue = trim((string) ($data[$input] ?? ''));
         $encrypted[$column] = $newValue !== '' ? allstat_encrypt_secret($newValue, $config) : ($existing[$column] ?? null);
+    }
+
+    if ($identityChanged) {
+        $encrypted['access_token_enc'] = null;
+        $encrypted['refresh_token_enc'] = null;
     }
 
     $propertyId = trim((string) ($data['property_id'] ?? ''));
@@ -324,7 +339,7 @@ function allstat_save_connection(PDO $pdo, array $config, ?int $actorId, array $
         'config_json_enc' => $configJson !== '' ? allstat_encrypt_secret($configJson, $config) : null,
         'status' => $status,
         'last_sync_at' => str_replace('T', ' ', trim((string) ($data['last_sync_at'] ?? ''))) ?: null,
-        'token_expires_at' => str_replace('T', ' ', trim((string) ($data['token_expires_at'] ?? ''))) ?: null,
+        'token_expires_at' => $identityChanged ? null : (str_replace('T', ' ', trim((string) ($data['token_expires_at'] ?? ''))) ?: null),
         'note' => trim((string) ($data['note'] ?? '')) ?: null,
         'is_enabled' => !empty($data['is_enabled']) ? 1 : 0,
     ];

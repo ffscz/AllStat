@@ -17,7 +17,11 @@ function allstat_microsoft_ads_headers(array $connection, string $token): array
     if (!ctype_digit($accountId) || !ctype_digit($customerId) || $developerToken === '' || preg_match('/[\r\n]/', $developerToken)) {
         throw new RuntimeException('Microsoft Ads: vyplň Account ID, Customer ID a Developer Token.');
     }
-    return [
+    $identity = allstat_microsoft_ads_identity_provider($connection);
+    if ($identity === null) {
+        throw new RuntimeException('Microsoft Ads: neplatná dvojice OAuth endpointů.');
+    }
+    $headers = [
         'Authorization' => 'Bearer ' . $token,
         'DeveloperToken' => $developerToken,
         'CustomerId' => $customerId,
@@ -25,6 +29,10 @@ function allstat_microsoft_ads_headers(array $connection, string $token): array
         'Content-Type' => 'application/json',
         'Accept' => 'application/json',
     ];
+    if ($identity === 'Google') {
+        $headers['IdentityProvider'] = 'Google';
+    }
+    return $headers;
 }
 
 function allstat_explain_microsoft_ads_error(array $response): string
