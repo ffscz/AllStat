@@ -299,6 +299,9 @@ function allstat_save_connection(PDO $pdo, array $config, ?int $actorId, array $
     }
 
     $propertyId = trim((string) ($data['property_id'] ?? ''));
+    if ($providerKey === 'microsoft_ads' && $propertyId !== '' && !ctype_digit($propertyId)) {
+        return ['ok' => false, 'message' => t('Microsoft Ads: Account ID musí obsahovat jen číslice.')];
+    }
     if ($providerKey === 'ga4' && $propertyId !== '' && !str_starts_with($propertyId, 'properties/') && ctype_digit($propertyId)) {
         $propertyId = 'properties/' . $propertyId;
     }

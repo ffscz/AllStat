@@ -2,6 +2,23 @@
 
 // Slovenské překlady: sources (soubory: lib/providers.php, admin/source-edit.php, admin/sources.php, admin/meta-connect.php, admin/meta-select.php, admin/clarity-import.php, admin/connection-sync.php, admin/connection-test.php, admin/oauth-callback.php, admin/oauth-start.php, lib/oauth.php, lib/meta-connect.php, admin/google-accounts.php, admin/google-import.php, lib/google-accounts.php). Klíč = český originál z kódu.
 return [
+    'Číselné Account ID' => 'Číselné Account ID',
+    'Microsoft Advertising → nastavení účtu → číslo účtu (Account ID). Customer ID je samostatné číslo zákazníka.' => 'Microsoft Advertising → nastavenia účtu → číslo účtu (Account ID). Customer ID je samostatné číslo zákazníka.',
+    'Reporting API vyžaduje Developer Token. Dostupnost a limity závisejí na schváleném přístupu.' => 'Reporting API vyžaduje Developer Token. Dostupnosť a limity závisia od schváleného prístupu.',
+    'V Microsoft Entra zaregistruj webovou aplikaci. Redirect URI je callback AllStatu. OAuth používá oprávnění msads.manage a offline_access; pro čtení musí mít přihlášený uživatel přístup k reklamnímu účtu.' => 'V Microsoft Entra zaregistruj webovú aplikáciu. Redirect URI je callback AllStatu. OAuth používa oprávnenia msads.manage a offline_access; prihlásený používateľ musí mať prístup k reklamnému účtu.',
+    'Zaregistruj webovou aplikaci v Microsoft Entra a nastav přesnou adresu callbacku z AllStatu jako Redirect URI.' => 'Zaregistruj webovú aplikáciu v Microsoft Entra a nastav presnú adresu callbacku z AllStatu ako Redirect URI.',
+    'Vytvoř Client secret a zkopíruj Client ID. Developer Token vyžádej v Microsoft Advertising API Center.' => 'Vytvor Client secret a skopíruj Client ID. Developer Token si vyžiadaj v Microsoft Advertising API Center.',
+    'Vyplň Account ID, Customer ID, Client ID, Client secret a Developer Token. Ulož napojení a spusť OAuth.' => 'Vyplň Account ID, Customer ID, Client ID, Client secret a Developer Token. Ulož napojenie a spusti OAuth.',
+    'Otestuj napojení a potom stáhni historii. Údaje se ukládají v měně reklamního účtu.' => 'Otestuj napojenie a potom stiahni históriu. Údaje sa ukladajú v mene reklamného účtu.',
+    'Denní výkon účtu a kampaní Microsoft Ads.' => 'Denný výkon účtu a kampaní Microsoft Ads.',
+    'Číselné ID reklamního účtu.' => 'Číselné ID reklamného účtu.',
+    'Číselné ID zákazníka, pod kterým je účet dostupný.' => 'Číselné ID zákazníka, pod ktorým je účet dostupný.',
+    'Ukládá se šifrovaně. Prázdné pole při úpravě zachová uloženou hodnotu.' => 'Ukladá sa šifrovane. Prázdne pole pri úprave zachová uloženú hodnotu.',
+    'Microsoft Ads odpovídá: účet „{name}"{currency}.' => 'Microsoft Ads odpovedá: účet „{name}“{currency}.',
+    'Microsoft Ads: token se nepodařilo získat. Zkontroluj přístup a spusť OAuth znovu.' => 'Microsoft Ads: token sa nepodarilo získať. Skontroluj prístup a spusti OAuth znova.',
+    'Microsoft Ads: přihlášení vypršelo, připojte účet znovu přes OAuth.' => 'Microsoft Ads: prihlásenie vypršalo, pripojte účet znova cez OAuth.',
+    'Microsoft Ads: obnovení přístupu selhalo (HTTP {status}).' => 'Microsoft Ads: obnovenie prístupu zlyhalo (HTTP {status}).',
+    'Microsoft Ads: token právě obnovuje jiný běh. Zkuste to za chvíli.' => 'Microsoft Ads: token práve obnovuje iný proces. Skúste to o chvíľu.',
     'properties/123456789 (samotné číslo služby, prefix appka doplní)' => 'properties/123456789 (iba číslo služby, prefix aplikácia doplní)',
     'GA4 (analytics.google.com) → „Administrátor" (ozubené kolo vlevo dole) → „Nastavení služby" → úplně nahoře „ID služby" (číslo). POZOR: NEPLEŤ si s „ID měření" (G-XXXX) ani s „ID streamu".' => 'GA4 (analytics.google.com) → „Administrátor“ (ozubené koliesko vľavo dole) → „Nastavenia služby“ → celkom hore „ID služby“ (číslo). POZOR: NEMIEŇAJ si ho s „ID merania“ (G-XXXX) ani s „ID streamu“.',
     'Zdarma do 200k tokenů na službu za den a 50k requestů na projekt za den.' => 'Zadarmo do 200 tis. tokenov na službu za deň a 50 tis. požiadaviek na projekt za deň.',

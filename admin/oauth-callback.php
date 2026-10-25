@@ -99,16 +99,21 @@ if (!allstat_provider_url_allowed((string) $connection['provider_key'], (string)
     allstat_redirect($config, 'admin/source-edit.php?id=' . $id);
 }
 
-$body = http_build_query([
+$tokenParams = [
     'grant_type' => 'authorization_code',
     'code' => $code,
     'redirect_uri' => $stored['redirect_uri'],
     'client_id' => $connection['client_id'],
     'client_secret' => $clientSecret,
-]);
+];
+if ($connection['provider_key'] === 'microsoft_ads') {
+    $tokenParams['scope'] = 'https://ads.microsoft.com/msads.manage offline_access';
+}
+$body = http_build_query($tokenParams);
 $context = stream_context_create([
     'http' => [
         'method' => 'POST',
+        'follow_location' => $connection['provider_key'] === 'microsoft_ads' ? 0 : 1,
         'header' => "Content-Type: application/x-www-form-urlencoded\r\nAccept: application/json\r\n",
         'content' => $body,
         'ignore_errors' => true,
@@ -119,6 +124,11 @@ $response = @file_get_contents($connection['token_url'], false, $context);
 $payload = is_string($response) ? json_decode($response, true) : null;
 
 if (!is_array($payload) || isset($payload['error'])) {
+    if ($connection['provider_key'] === 'microsoft_ads') {
+        allstat_add_sync_log($pdo, (int) $connection['domain_id'], (int) $connection['source_id'], 'error', 'Microsoft Ads OAuth token exchange failed.');
+        allstat_flash('error', t('Microsoft Ads: token se nepodařilo získat. Zkontroluj přístup a spusť OAuth znovu.'));
+        allstat_redirect($config, 'admin/source-edit.php?id=' . $id);
+    }
     $detail = is_array($payload) ? json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : 'Token endpoint nevrátil validní JSON.';
     allstat_add_sync_log($pdo, (int) $connection['domain_id'], (int) $connection['source_id'], 'error', 'OAuth token exchange failed: ' . substr($detail, 0, 190));
     allstat_flash('error', t('Token se nepodařilo získat. Detail je v sync logu.'));

@@ -5,11 +5,12 @@
  * Presentation only — the shared KPI grid (Útrata/ROAS/PNO/CPA/CPC/CTR/CPM…) + trend are rendered by index.php.
  */
 ?>
+<?php $adsProviderName = ($selectedProvider['provider_key'] ?? '') === 'microsoft_ads' ? 'Microsoft Ads' : 'Google Ads'; ?>
 <?php if (!empty($googleAdsCampaigns)): ?>
-<section class="tables-grid" aria-label="<?= h(t('Google Ads kampaně')) ?>">
+<section class="tables-grid" aria-label="<?= h($adsProviderName === 'Google Ads' ? t('Google Ads kampaně') : t('Microsoft Ads kampaně')) ?>">
     <article class="panel table-panel table-panel-wide">
-        <div class="panel-header"><h2><?= h(t('Kampaně')) ?> <span>(Google Ads)</span></h2></div>
-        <p class="panel-help"><?= h(t('Kampaně za zvolené období seřazené podle útraty, součet dní s útratou. Částky v měně účtu Google Ads.')) ?><?= empty($googleAdsNoConversions) ? ' ' . h(t('ROAS a CPA dávají smysl jen u kampaní s měřením konverzí.')) : '' ?></p>
+        <div class="panel-header"><h2><?= h(t('Kampaně')) ?> <span>(<?= h($adsProviderName) ?>)</span></h2></div>
+        <p class="panel-help"><?= h(str_replace('Google Ads', $adsProviderName, t('Kampaně za zvolené období seřazené podle útraty, součet dní s útratou. Částky v měně účtu Google Ads.'))) ?><?= empty($googleAdsNoConversions) ? ' ' . h(t('ROAS a CPA dávají smysl jen u kampaní s měřením konverzí.')) : '' ?></p>
         <div class="table-scroll">
             <table>
                 <thead><tr><th><?= h(t('Kampaň')) ?></th><th><?= h(t('Útrata')) ?></th><th><?= h(t('Zobrazení')) ?></th><th><?= h(t('Kliknutí')) ?></th><th>CTR</th><th>CPC</th><?php if (empty($googleAdsNoConversions)): ?><th><?= h(t('Konverze')) ?></th><th>CPA</th><th>ROAS</th><?php endif; ?></tr></thead>
@@ -40,7 +41,7 @@
     <article class="panel panel-wide">
         <div class="panel-header"><h2><?= h(t('Pozn.: tenhle účet nehlásí hodnotu konverzí')) ?></h2></div>
         <p class="panel-help">
-            <?= t('Google Ads účet za toto období <strong>nehlásí konverze ani jejich hodnotu</strong> (chybí konverzní sledování / hodnota konverzí, nebo účet jede jen na provoz). Proto jsme dlaždice <strong>ROAS, PNO, Konverze, CPA a Hodnotu konverzí skryli</strong>, nemělo by smysl ukazovat samé nuly, <strong>není to chyba</strong>. Sleduj místo toho <strong>CTR, CPC, CPM</strong> a Kliknutí. Jakmile v Google Ads nastavíš sledování hodnoty konverzí, dopočítají se i ROAS / PNO / CPA.') ?>
+            <?= str_replace('Google Ads', h($adsProviderName), t('Google Ads účet za toto období <strong>nehlásí konverze ani jejich hodnotu</strong> (chybí konverzní sledování / hodnota konverzí, nebo účet jede jen na provoz). Proto jsme dlaždice <strong>ROAS, PNO, Konverze, CPA a Hodnotu konverzí skryli</strong>, nemělo by smysl ukazovat samé nuly, <strong>není to chyba</strong>. Sleduj místo toho <strong>CTR, CPC, CPM</strong> a Kliknutí. Jakmile v Google Ads nastavíš sledování hodnoty konverzí, dopočítají se i ROAS / PNO / CPA.')) ?>
         </p>
     </article>
 </section>

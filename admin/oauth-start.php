@@ -51,6 +51,10 @@ $params = [
     'state' => $state,
 ];
 
+if ($connection['provider_key'] === 'microsoft_ads') {
+    $params['scope'] = 'https://ads.microsoft.com/msads.manage offline_access openid profile';
+}
+
 if (in_array($connection['provider_key'], ['ga4', 'gsc', 'google_ads', 'youtube'], true)) {
     $params['access_type'] = 'offline';
     $params['prompt'] = 'consent';

@@ -3,7 +3,7 @@
 require_once __DIR__ . '/crypto.php';
 require_once __DIR__ . '/providers.php';
 
-function allstat_http_request(string $method, string $url, array $headers = [], ?string $body = null, int $timeout = 20): array
+function allstat_http_request(string $method, string $url, array $headers = [], ?string $body = null, int $timeout = 20, bool $followRedirects = true, ?int $maxResponseBytes = null): array
 {
     // Testovací háček: testy synchronizace podstrčí odpovědi API bez sítě (v provozu proměnná nikdy neexistuje).
     if (PHP_SAPI === 'cli' && isset($GLOBALS['allstat_http_mock']) && is_callable($GLOBALS['allstat_http_mock'])) {
@@ -22,10 +22,16 @@ function allstat_http_request(string $method, string $url, array $headers = [], 
             'content' => $body,
             'ignore_errors' => true,
             'timeout' => $timeout,
+            'follow_location' => $followRedirects ? 1 : 0,
         ],
     ]);
 
-    $response = @file_get_contents($url, false, $context);
+    $response = $maxResponseBytes === null
+        ? @file_get_contents($url, false, $context)
+        : @file_get_contents($url, false, $context, 0, $maxResponseBytes + 1);
+    if (is_string($response) && $maxResponseBytes !== null && strlen($response) > $maxResponseBytes) {
+        throw new RuntimeException('Odpověď API přesahuje povolenou velikost.');
+    }
     $statusLine = $http_response_header[0] ?? '';
     $status = 0;
     if (preg_match('#HTTP/\S+\s+(\d{3})#', $statusLine, $match)) {
@@ -77,17 +83,25 @@ function allstat_refresh_access_token(PDO $pdo, array $config, array $connection
             'Content-Type' => 'application/x-www-form-urlencoded',
             'Accept' => 'application/json',
         ],
-        http_build_query([
+        http_build_query(array_merge([
             'grant_type' => 'refresh_token',
             'refresh_token' => $refreshToken,
             'client_id' => $connection['client_id'],
             'client_secret' => $clientSecret,
-        ])
+        ], ($connection['provider_key'] ?? '') === 'microsoft_ads' ? ['scope' => 'https://ads.microsoft.com/msads.manage offline_access'] : [])),
+        20,
+        ($connection['provider_key'] ?? '') !== 'microsoft_ads'
     );
 
     $payload = $response['json'];
 
     if (!is_array($payload) || empty($payload['access_token'])) {
+        if (($connection['provider_key'] ?? '') === 'microsoft_ads') {
+            $message = ($payload['error'] ?? '') === 'invalid_grant'
+                ? t('Microsoft Ads: přihlášení vypršelo, připojte účet znovu přes OAuth.')
+                : t('Microsoft Ads: obnovení přístupu selhalo (HTTP {status}).', ['status' => $response['status']]);
+            return ['ok' => false, 'message' => $message];
+        }
         $detail = is_array($payload) ? ($payload['error_description'] ?? $payload['error'] ?? '') : substr($response['body'], 0, 200);
         return ['ok' => false, 'message' => t('Refresh selhal (HTTP {status}): {detail}', ['status' => $response['status'], 'detail' => $detail])];
     }
@@ -97,8 +111,13 @@ function allstat_refresh_access_token(PDO $pdo, array $config, array $connection
         ? (new DateTimeImmutable('now'))->modify('+' . (int) $payload['expires_in'] . ' seconds')->format('Y-m-d H:i:s')
         : null;
 
-    $statement = $pdo->prepare('UPDATE domain_sources SET access_token_enc = ?, token_expires_at = ?, updated_at = NOW() WHERE id = ?');
-    $statement->execute([allstat_encrypt_secret($newAccess, $config), $expiresAt, (int) $connection['id']]);
+    if (($connection['provider_key'] ?? '') === 'microsoft_ads' && !empty($payload['refresh_token'])) {
+        $statement = $pdo->prepare('UPDATE domain_sources SET access_token_enc = ?, refresh_token_enc = ?, token_expires_at = ?, updated_at = NOW() WHERE id = ?');
+        $statement->execute([allstat_encrypt_secret($newAccess, $config), allstat_encrypt_secret((string) $payload['refresh_token'], $config), $expiresAt, (int) $connection['id']]);
+    } else {
+        $statement = $pdo->prepare('UPDATE domain_sources SET access_token_enc = ?, token_expires_at = ?, updated_at = NOW() WHERE id = ?');
+        $statement->execute([allstat_encrypt_secret($newAccess, $config), $expiresAt, (int) $connection['id']]);
+    }
 
     return ['ok' => true, 'access_token' => $newAccess, 'expires_at' => $expiresAt];
 }
@@ -123,6 +142,29 @@ function allstat_get_valid_access_token(PDO $pdo, array $config, array $connecti
     $needsRefresh = $expiresAt && strtotime((string) $expiresAt) - time() < 60;
 
     if ($needsRefresh) {
+        if (($connection['provider_key'] ?? '') === 'microsoft_ads') {
+            // Rotující refresh token se nesmí použít dvakrát. Zámek je oddělený pro každou databázi a napojení.
+            $dbName = (string) $pdo->query('SELECT DATABASE()')->fetchColumn();
+            $lock = 'allstat_msads_' . substr(hash('sha256', $dbName . ':' . (int) $connection['id']), 0, 40);
+            $lockStmt = $pdo->prepare('SELECT GET_LOCK(?, 10)');
+            $lockStmt->execute([$lock]);
+            if ((int) $lockStmt->fetchColumn() !== 1) {
+                return ['ok' => false, 'message' => t('Microsoft Ads: token právě obnovuje jiný běh. Zkuste to za chvíli.')];
+            }
+            try {
+                $freshStmt = $pdo->prepare('SELECT access_token_enc, refresh_token_enc, token_expires_at FROM domain_sources WHERE id = ?');
+                $freshStmt->execute([(int) $connection['id']]);
+                $fresh = $freshStmt->fetch(PDO::FETCH_ASSOC) ?: [];
+                if (!empty($fresh['token_expires_at']) && strtotime((string) $fresh['token_expires_at']) - time() >= 60) {
+                    return ['ok' => true, 'access_token' => (string) allstat_decrypt_secret($fresh['access_token_enc'] ?? null, $config)];
+                }
+                $refresh = allstat_refresh_access_token($pdo, $config, array_merge($connection, $fresh));
+                return $refresh['ok'] ? ['ok' => true, 'access_token' => $refresh['access_token']] : $refresh;
+            } finally {
+                $unlock = $pdo->prepare('SELECT RELEASE_LOCK(?)');
+                $unlock->execute([$lock]);
+            }
+        }
         $refresh = allstat_refresh_access_token($pdo, $config, $connection);
         if (!$refresh['ok']) {
             return $refresh;
@@ -247,6 +289,21 @@ function allstat_test_connection(PDO $pdo, array $config, array $connection): ar
                     'currency' => !empty($customer['currencyCode']) ? t(', měna {currency}', ['currency' => $customer['currencyCode']]) : '',
                 ]),
             ];
+
+        case 'microsoft_ads':
+            require_once __DIR__ . '/microsoft-ads.php';
+            try {
+                $day = (new DateTimeImmutable('yesterday'))->format('Y-m-d');
+                $rows = allstat_microsoft_ads_report($connection, $token, $day, $day, false);
+                $currency = (string) ($rows[0]['CurrencyCode'] ?? '');
+                $name = (string) ($rows[0]['AccountName'] ?? $connection['property_id'] ?? '');
+                return ['ok' => true, 'http' => 200, 'message' => t('Microsoft Ads odpovídá: účet „{name}"{currency}.', [
+                    'name' => $name,
+                    'currency' => $currency !== '' ? t(', měna {currency}', ['currency' => $currency]) : '',
+                ])];
+            } catch (Throwable $error) {
+                return ['ok' => false, 'message' => mb_substr($error->getMessage(), 0, 190)];
+            }
 
         case 'youtube':
             // Stejný dotaz, jakým začíná sync: kanál autorizovaného účtu (mine=true), nebo zadané ID kanálu.

@@ -121,6 +121,7 @@ function allstat_growth_defs(): array
         'instagram_business' => ['name' => 'Instagram', 'metric' => t('Dosah účtu'), 'short' => t('dosah'), 'color' => 'instagram', 'key' => 'reach', 'followers' => t('Sledující')],
         'meta_ads' => ['name' => 'Meta Ads', 'metric' => t('Kliknutí na reklamy'), 'short' => t('kliknutí'), 'color' => 'ads', 'key' => 'clicks', 'spend' => 'spend', 'zeroFill' => true],
         'google_ads' => ['name' => 'Google Ads', 'metric' => t('Kliknutí na reklamy'), 'short' => t('kliknutí'), 'color' => 'ads', 'key' => 'clicks', 'spend' => 'cost', 'zeroFill' => true],
+        'microsoft_ads' => ['name' => 'Microsoft Ads', 'metric' => t('Kliknutí na reklamy'), 'short' => t('kliknutí'), 'color' => 'ads', 'key' => 'clicks', 'spend' => 'cost', 'zeroFill' => true],
     ];
 }
 
@@ -460,7 +461,13 @@ function allstat_get_channel_growth(PDO $pdo, int $domainId, int $months, ?DateT
                 . ($fVal > 0 ? ', ' . allstat_growth_pct($diff / $fVal) : '') . ' ' . $since . ')';
         } elseif (!empty($def['spend'])) {
             [$spend] = $byConn[$cid][$def['spend']][$last['ym']] ?? [0.0, 0];
-            $spendText = t('Útrata za {month} {amount} Kč', ['month' => preg_replace('/ \d{4}$/', '', $last['longLabel']), 'amount' => allstat_number($spend)]);
+            if ($pk === 'microsoft_ads') {
+                $currency = preg_match('/\(([A-Z]{3})\)$/', (string) ($o['label'] ?? ''), $matches) ? $matches[1] : '';
+                $spendText = t('Útrata za {month} {amount}', ['month' => preg_replace('/ \d{4}$/', '', $last['longLabel']), 'amount' => allstat_number($spend)])
+                    . ($currency !== '' ? ' ' . $currency : '');
+            } else {
+                $spendText = t('Útrata za {month} {amount} Kč', ['month' => preg_replace('/ \d{4}$/', '', $last['longLabel']), 'amount' => allstat_number($spend)]);
+            }
             $extra = $spendText;
         } else {
             $extra = $range;

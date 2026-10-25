@@ -2051,7 +2051,9 @@ function allstat_mcp_tool_get_source_metrics(PDO $pdo, array $config, array $a):
             break;
 
         case 'google_ads':
-            $kpis = allstat_get_google_ads_kpis($pdo, $id, $cid, $start, $end, $granularity);
+        case 'microsoft_ads':
+            $adsProviderName = $pk === 'microsoft_ads' ? 'Microsoft Ads' : 'Google Ads';
+            $kpis = allstat_get_google_ads_kpis($pdo, $id, $cid, $start, $end, $granularity, $adsProviderName);
             $data['has_data'] = (bool) $kpis['hasData'];
             $data['labels'] = $kpis['labels'] ?? [];
             $data['metrics'] = allstat_mcp_tool_metrics($kpis['metrics'] ?? [], ['gaps_are_zero' => true]);
@@ -2064,9 +2066,11 @@ function allstat_mcp_tool_get_source_metrics(PDO $pdo, array $config, array $a):
                     'conversions' => round($c['conversions'], 2), 'conversion_value' => round($c['value'], 2), 'cpa' => allstat_mcp_tool_round($c['cpa'], 2),
                     'roas' => allstat_mcp_tool_round($c['roas'], 2), 'active_from' => $c['from'], 'active_to' => $c['to'], 'active_days' => (int) $c['days'],
                 ], $campaigns);
-                $data['note'] = 'campaigns: kampaně za období seřazené podle útraty (součty dní s útratou). Částky v měně účtu Google Ads.';
+                $data['note'] = 'campaigns: kampaně za období seřazené podle útraty (součty dní s útratou). Částky v měně účtu ' . $adsProviderName . '.';
             } else {
-                $data['note'] = 'Rozpad podle kampaní zatím není (plní se od verze 1.2.4 při další synchronizaci).';
+                $data['note'] = $pk === 'microsoft_ads'
+                    ? 'Rozpad podle kampaní pro zvolené období není k dispozici; účet může být prázdný nebo stažení kampaní selhalo.'
+                    : 'Rozpad podle kampaní zatím není (plní se od verze 1.2.4 při další synchronizaci).';
             }
             break;
 
