@@ -18,7 +18,7 @@
                     <?php foreach ($googleAdsCampaigns as $campaign): ?>
                         <tr>
                             <td><?= h($campaign['name']) ?><br><small class="table-muted"><?= h($campaign['runLabel']) ?></small></td>
-                            <td><?= h(allstat_number($campaign['cost'], 0)) ?></td>
+                            <td><?= h(allstat_number($campaign['cost'], $adsProviderName === 'Microsoft Ads' ? 2 : 0)) ?></td>
                             <td><?= h(allstat_number($campaign['impressions'], 0)) ?></td>
                             <td><?= h(allstat_number($campaign['clicks'], 0)) ?></td>
                             <td><?= h($campaign['ctr'] !== null ? allstat_percent($campaign['ctr'], 2) : '—') ?></td>

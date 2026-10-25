@@ -127,6 +127,8 @@ function allstat_microsoft_ads_number($value): ?float
 
 function allstat_microsoft_ads_csv_rows(string $csv, array $expectedColumns = []): array
 {
+    // Reporting API před první uvozovky CSV hlavičky přidává UTF-8 BOM.
+    if (str_starts_with($csv, "\xef\xbb\xbf")) { $csv = substr($csv, 3); }
     $stream = fopen('php://memory', 'w+');
     fwrite($stream, $csv);
     rewind($stream);

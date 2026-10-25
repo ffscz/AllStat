@@ -2725,7 +2725,7 @@ function allstat_get_google_ads_kpis(PDO $pdo, int $domainId, int $connectionId,
                 default => $tooltip,
             };
         }
-        $displayValue = match ($d['format']) {
+        $displayValue = match ($providerName === 'Microsoft Ads' && in_array($d['key'], ['cost', 'conversion_value'], true) ? 'money2' : $d['format']) {
             'percent' => allstat_percent($v, 2),
             'money0' => allstat_number($v, 0),
             'money2' => allstat_number($v, 2),
