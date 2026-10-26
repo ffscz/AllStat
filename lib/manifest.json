@@ -226,8 +226,8 @@
             "h": "18ae399f81182bc9de916e9c77b195df20cc58d6f2d55a62b085a299f1bf1780"
         },
         "cron/sync.php": {
-            "s": 7150,
-            "h": "4539805f15e9982061927b927325869466e5b8dff126c7759a53868093f367ae"
+            "s": 7356,
+            "h": "83f6d55fc419d7da8817b37af70e0d34aae991ec7cd803cea34965943dd35065"
         },
         "data-deletion.php": {
             "s": 4829,
@@ -512,8 +512,8 @@
     },
     "protected": {
         ".htaccess": {
-            "s": 2569,
-            "h": "e252e7fffd6793636e144e9c5a36260788776e89d53b49444ceca63702dec863"
+            "s": 2826,
+            "h": "edb957f4e609ad6f2d493aed02bf00f4b41dc92a1e9c8fd7382828b14915c6a3"
         },
         "allstat-mcp/.htaccess": {
             "s": 427,

@@ -119,8 +119,10 @@ foreach ($connections as $row) {
         continue;
     }
 
-    $result = allstat_sync_connection($pdo, $config, $connection, $start, $end, 'cron');
+    // Označit už před syncem: když sync jednoho napojení skončí fatální chybou (paměť, časový limit), napojení
+    // se tím posune na konec fronty a další běhy cronu na něm neuváznou.
     $markCron->execute([(new DateTimeImmutable('now'))->format('Y-m-d H:i:s'), (int) $connection['id']]);
+    $result = allstat_sync_connection($pdo, $config, $connection, $start, $end, 'cron');
     $results[] = [
         'id' => (int) $connection['id'],
         'domain' => $connection['domain_url'],

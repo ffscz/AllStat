@@ -44,6 +44,13 @@ Options -Indexes
     Require all denied
 </FilesMatch>
 
+# Testy (složka tests) jsou jen pro příkazovou řádku a do instalačního balíčku nepatří. Kdyby se na server
+# přesto dostaly, z webu nejdou spustit.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^tests(?:/|$) - [F,L]
+</IfModule>
+
 # Připojení AI (MCP): adresy MCP serveru a přihlašování (OAuth) obsluhuje front controller ve složce
 # allstat-mcp. Pravidla jsou trvale zapnutá, ale dokud není připojení AI zapnuté v menu "AI konektory",
 # odpovídá server na tyto adresy chybou 404. Hlavička Authorization se musí dostat až do PHP.
