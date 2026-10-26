@@ -154,7 +154,7 @@ function allstat_get_valid_access_token(PDO $pdo, array $config, array $connecti
                 return ['ok' => false, 'message' => t('Microsoft Ads: token právě obnovuje jiný běh. Zkuste to za chvíli.')];
             }
             try {
-                $freshStmt = $pdo->prepare('SELECT access_token_enc, refresh_token_enc, token_expires_at FROM domain_sources WHERE id = ?');
+                $freshStmt = $pdo->prepare('SELECT access_token_enc, refresh_token_enc, token_expires_at, token_url, auth_url, api_base_url, client_id, client_secret_enc FROM domain_sources WHERE id = ?');
                 $freshStmt->execute([(int) $connection['id']]);
                 $fresh = $freshStmt->fetch(PDO::FETCH_ASSOC) ?: [];
                 if (!empty($fresh['token_expires_at']) && strtotime((string) $fresh['token_expires_at']) - time() >= 60) {
@@ -286,7 +286,7 @@ function allstat_test_connection(PDO $pdo, array $config, array $connection): ar
             return [
                 'ok' => true,
                 'http' => 200,
-                'message' => t('Google Ads odpovídá: účet „{name}"{currency}.', [
+                'message' => t('Google Ads odpovídá: účet „{name}“{currency}.', [
                     'name' => $customer['descriptiveName'] ?? $customerId,
                     'currency' => !empty($customer['currencyCode']) ? t(', měna {currency}', ['currency' => $customer['currencyCode']]) : '',
                 ]),
@@ -296,13 +296,8 @@ function allstat_test_connection(PDO $pdo, array $config, array $connection): ar
             require_once __DIR__ . '/microsoft-ads.php';
             try {
                 $day = (new DateTimeImmutable('yesterday'))->format('Y-m-d');
-                $rows = allstat_microsoft_ads_report($connection, $token, $day, $day, false);
-                $currency = (string) ($rows[0]['CurrencyCode'] ?? '');
-                $name = (string) ($rows[0]['AccountName'] ?? $connection['property_id'] ?? '');
-                return ['ok' => true, 'http' => 200, 'message' => t('Microsoft Ads odpovídá: účet „{name}"{currency}.', [
-                    'name' => $name,
-                    'currency' => $currency !== '' ? t(', měna {currency}', ['currency' => $currency]) : '',
-                ])];
+                allstat_microsoft_ads_submit($connection, $token, $day, $day, false);
+                return ['ok' => true, 'http' => 200, 'message' => t('Microsoft Ads přijalo požadavek na report. Spusťte synchronizaci pro načtení dat.')];
             } catch (Throwable $error) {
                 return ['ok' => false, 'message' => mb_substr($error->getMessage(), 0, 190)];
             }
