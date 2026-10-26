@@ -1147,7 +1147,7 @@ function allstat_share_section_google_ads(PDO $pdo, int $domainId, int $viewSour
                 'rows' => array_map(static fn (array $c): array => [
                     $c['name'], allstat_number($c['cost'], 2), allstat_number($c['clicks']),
                     allstat_number($c['impressions']), allstat_number($c['conversions'], 2),
-                    $c['roas'] !== null ? allstat_number($c['roas'], 2) . '×' : '—',
+                    $c['roas'] !== null ? allstat_number($c['roas'], 2) . '×' : '–',
                 ], $campaigns),
             ];
         }

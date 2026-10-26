@@ -286,8 +286,15 @@ function allstat_save_connection(PDO $pdo, array $config, ?int $actorId, array $
         return ['ok' => false, 'message' => t('Microsoft Ads: Authorization URL a Token URL musí být odpovídající oficiální dvojice Google nebo Microsoft OAuth.')];
     }
 
+    if ($providerKey === 'microsoft_ads' && !allstat_microsoft_ads_api_base_allowed((string) ($data['api_base_url'] ?? ''))) {
+        return ['ok' => false, 'message' => t('Microsoft Ads: API Base URL musí být oficiální Reporting API host.')];
+    }
+
     $identityChanged = $providerKey === 'microsoft_ads' && $existing
         && allstat_microsoft_ads_identity_provider($existing) !== allstat_microsoft_ads_identity_provider($data);
+    $oauthEndpointsChanged = $providerKey === 'microsoft_ads' && $existing
+        && ((string) ($existing['auth_url'] ?? '') !== (string) ($data['auth_url'] ?? '')
+            || (string) ($existing['token_url'] ?? '') !== (string) ($data['token_url'] ?? ''));
     if ($identityChanged && (trim((string) ($data['client_id'] ?? '')) === '' || trim((string) ($data['client_secret'] ?? '')) === '')) {
         return ['ok' => false, 'message' => t('Microsoft Ads: při změně způsobu přihlášení vyplň nový Client ID a Client secret.')];
     }
@@ -308,7 +315,7 @@ function allstat_save_connection(PDO $pdo, array $config, ?int $actorId, array $
         $encrypted[$column] = $newValue !== '' ? allstat_encrypt_secret($newValue, $config) : ($existing[$column] ?? null);
     }
 
-    if ($identityChanged) {
+    if ($identityChanged || $oauthEndpointsChanged) {
         $encrypted['access_token_enc'] = null;
         $encrypted['refresh_token_enc'] = null;
     }
@@ -339,7 +346,7 @@ function allstat_save_connection(PDO $pdo, array $config, ?int $actorId, array $
         'config_json_enc' => $configJson !== '' ? allstat_encrypt_secret($configJson, $config) : null,
         'status' => $status,
         'last_sync_at' => str_replace('T', ' ', trim((string) ($data['last_sync_at'] ?? ''))) ?: null,
-        'token_expires_at' => $identityChanged ? null : (str_replace('T', ' ', trim((string) ($data['token_expires_at'] ?? ''))) ?: null),
+        'token_expires_at' => ($identityChanged || $oauthEndpointsChanged) ? null : (str_replace('T', ' ', trim((string) ($data['token_expires_at'] ?? ''))) ?: null),
         'note' => trim((string) ($data['note'] ?? '')) ?: null,
         'is_enabled' => !empty($data['is_enabled']) ? 1 : 0,
     ];
@@ -358,6 +365,9 @@ function allstat_save_connection(PDO $pdo, array $config, ?int $actorId, array $
         $values['id'] = $id;
         $statement = $pdo->prepare($sql);
         $statement->execute($values);
+        if ($providerKey === 'microsoft_ads') {
+            $pdo->prepare('DELETE FROM microsoft_ads_report_jobs WHERE connection_id = ?')->execute([$id]);
+        }
         allstat_audit($pdo, $actorId, null, 'source_connection_updated', (string) $id);
 
         return ['ok' => true, 'id' => $id, 'message' => t('Napojení zdroje bylo uloženo.')];
@@ -393,6 +403,7 @@ function allstat_delete_connection(PDO $pdo, ?int $actorId, int $id): array
 
         $statement = $pdo->prepare('DELETE FROM domain_sources WHERE id = ?');
         $statement->execute([$id]);
+        $pdo->prepare('DELETE FROM microsoft_ads_report_jobs WHERE connection_id = ?')->execute([$id]);
 
         allstat_audit($pdo, $actorId, null, 'source_connection_deleted', (string) $id);
         $pdo->commit();

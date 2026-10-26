@@ -125,36 +125,41 @@ function allstat_microsoft_ads_number($value): ?float
     return is_numeric($value) ? (float) $value : null;
 }
 
-function allstat_microsoft_ads_csv_rows(string $csv, array $expectedColumns = []): array
+/** Parse a CSV one row at a time; php://temp spills to disk instead of retaining a second large copy. */
+function allstat_microsoft_ads_csv_rows(string $csv, array $expectedColumns = []): Generator
 {
-    // Reporting API před první uvozovky CSV hlavičky přidává UTF-8 BOM.
-    if (str_starts_with($csv, "\xef\xbb\xbf")) { $csv = substr($csv, 3); }
-    $stream = fopen('php://memory', 'w+');
-    fwrite($stream, $csv);
-    rewind($stream);
-    $head = fgetcsv($stream);
-    if (!is_array($head) || !$head) { fclose($stream); return []; }
-    $head = array_map(static fn ($s) => trim((string) $s, "\xef\xbb\xbf \r\n"), $head);
-    if (array_diff($expectedColumns, $head)) {
+    $stream = fopen('php://temp/maxmemory:1048576', 'w+');
+    if ($stream === false) { throw new RuntimeException('Microsoft Ads: CSV nelze otevřít.'); }
+    try {
+        if (fwrite($stream, $csv) !== strlen($csv)) { throw new RuntimeException('Microsoft Ads: CSV nelze načíst.'); }
+        unset($csv);
+        rewind($stream);
+        $head = fgetcsv($stream);
+        if (!is_array($head) || !$head) { return; }
+        // Reporting API sometimes puts a UTF-8 BOM before the first heading.
+        $head = array_map(static fn ($s) => trim((string) $s, "\xef\xbb\xbf \r\n"), $head);
+        if (array_diff($expectedColumns, $head)) {
+            throw new RuntimeException('Microsoft Ads: CSV report neobsahuje očekávané sloupce.');
+        }
+        $count = 0;
+        while (($line = fgetcsv($stream)) !== false) {
+            if (count($line) !== count($head)) { continue; }
+            $row = array_combine($head, $line);
+            if (empty($row['TimePeriod'])) { continue; }
+            if (++$count > 200_000) { throw new RuntimeException('Microsoft Ads: CSV report přesahuje limit řádků.'); }
+            yield $row;
+        }
+    } finally {
         fclose($stream);
-        throw new RuntimeException('Microsoft Ads: CSV report neobsahuje očekávané sloupce.');
     }
-    $rows = [];
-    while (($line = fgetcsv($stream)) !== false) {
-        if (count($line) !== count($head)) { continue; }
-        $row = array_combine($head, $line);
-        if (!empty($row['TimePeriod'])) { $rows[] = $row; }
-        if (count($rows) > 200_000) { break; }
-    }
-    fclose($stream);
-    return $rows;
 }
 
-function allstat_microsoft_ads_report(array $connection, string $token, string $startDate, string $endDate, bool $campaigns): array
+/** Send a report request and return its ID; the connection test uses this without waiting. */
+function allstat_microsoft_ads_submit(array $connection, string $token, string $startDate, string $endDate, bool $campaigns): string
 {
     $headers = allstat_microsoft_ads_headers($connection, $token);
-    $base = rtrim((string) ($connection['api_base_url'] ?: 'https://reporting.api.bingads.microsoft.com'), '/');
-    if (!allstat_provider_url_allowed('microsoft_ads', $base)) { throw new RuntimeException('Microsoft Ads: nepovolená adresa API.'); }
+    $base = (string) ($connection['api_base_url'] ?? '');
+    if (!allstat_microsoft_ads_api_base_allowed($base)) { throw new RuntimeException('Microsoft Ads: nepovolená adresa API.'); }
     $url = $base . '/Reporting/v13/GenerateReport/';
     $config = allstat_microsoft_ads_config($connection);
     $timezone = (string) ($config['report_timezone'] ?? 'BelgradeBratislavaBudapestLjubljanaPrague');
@@ -165,75 +170,141 @@ function allstat_microsoft_ads_report(array $connection, string $token, string $
         throw new RuntimeException(allstat_explain_microsoft_ads_error($submit));
     }
     $id = (string) $submit['json']['ReportRequestId'];
+    if (strlen($id) > 40) { throw new RuntimeException('Microsoft Ads: neplatné ID reportu.'); }
+    return $id;
+}
+
+/** Reuse a pending ID on the next run; Microsoft keeps it for at most one day. */
+function allstat_microsoft_ads_report(array $connection, string $token, string $startDate, string $endDate, bool $campaigns, callable $onRow, ?PDO $pdo = null): int
+{
+    $headers = allstat_microsoft_ads_headers($connection, $token);
+    $base = (string) ($connection['api_base_url'] ?? '');
+    if (!allstat_microsoft_ads_api_base_allowed($base)) { throw new RuntimeException('Microsoft Ads: nepovolená adresa API.'); }
+    $url = $base . '/Reporting/v13/GenerateReport/';
+    $config = allstat_microsoft_ads_config($connection);
+    $timezone = (string) ($config['report_timezone'] ?? 'BelgradeBratislavaBudapestLjubljanaPrague');
+    if (!preg_match('/^[A-Za-z]{3,80}$/D', $timezone)) { throw new RuntimeException('Microsoft Ads: neplatná časová zóna reportu.'); }
+    $request = allstat_microsoft_ads_report_request((string) $connection['property_id'], $startDate, $endDate, $campaigns, $timezone);
+    $job = [(int) ($connection['id'] ?? 0), $campaigns ? 'campaign' : 'account', $startDate, $endDate];
+    $id = '';
+    if ($pdo !== null) {
+        $find = $pdo->prepare('SELECT report_request_id FROM microsoft_ads_report_jobs WHERE connection_id = ? AND report_type = ? AND start_date = ? AND end_date = ? AND created_at >= NOW() - INTERVAL 23 HOUR');
+        $find->execute($job);
+        $id = (string) ($find->fetchColumn() ?: '');
+    }
+    if ($id === '') {
+        $id = allstat_microsoft_ads_submit($connection, $token, $startDate, $endDate, $campaigns);
+        if ($pdo !== null) {
+            $pdo->prepare('INSERT INTO microsoft_ads_report_jobs (connection_id, report_type, start_date, end_date, report_request_id, created_at) VALUES (?, ?, ?, ?, ?, NOW()) ON DUPLICATE KEY UPDATE report_request_id = VALUES(report_request_id), created_at = NOW()')
+                ->execute([...$job, $id]);
+        }
+    }
+    $clear = static function () use ($pdo, $job, $id): void {
+        if ($pdo !== null) {
+            $pdo->prepare('DELETE FROM microsoft_ads_report_jobs WHERE connection_id = ? AND report_type = ? AND start_date = ? AND end_date = ? AND report_request_id = ?')
+                ->execute([...$job, $id]);
+        }
+    };
     for ($attempt = 0; $attempt < 5; $attempt++) {
         if ($attempt > 0) { sleep(min(2 ** $attempt, 12)); }
         $poll = allstat_http_request('POST', $url . 'Poll', $headers, json_encode(['ReportRequestId' => $id]), 30, false);
         if ($poll['status'] !== 200) { throw new RuntimeException(allstat_explain_microsoft_ads_error($poll)); }
         $status = (string) ($poll['json']['ReportRequestStatus']['Status'] ?? '');
         if ($status === 'Pending') { continue; }
-        if ($status !== 'Success') { throw new RuntimeException('Microsoft Ads: generování reportu selhalo.'); }
+        if ($status !== 'Success') { $clear(); throw new RuntimeException('Microsoft Ads: generování reportu selhalo.'); }
         $downloadUrl = (string) ($poll['json']['ReportRequestStatus']['ReportDownloadUrl'] ?? '');
-        if ($downloadUrl === '') { return []; }
+        if ($downloadUrl === '') { $clear(); return 0; }
         if (!allstat_microsoft_ads_download_allowed($downloadUrl)) {
             throw new RuntimeException('Microsoft Ads: report má nepovolenou adresu ke stažení.');
         }
         $download = allstat_http_request('GET', $downloadUrl, [], null, 30, false, 12_000_000);
         if ($download['status'] !== 200) { throw new RuntimeException('Microsoft Ads: stažení reportu selhalo (HTTP ' . $download['status'] . ').'); }
-        return allstat_microsoft_ads_csv_rows(allstat_microsoft_ads_unzip_csv((string) $download['body']), $request['ReportRequest']['Columns']);
+        $count = 0;
+        foreach (allstat_microsoft_ads_csv_rows(allstat_microsoft_ads_unzip_csv((string) $download['body']), $request['ReportRequest']['Columns']) as $row) {
+            $onRow($row);
+            $count++;
+        }
+        $clear();
+        return $count;
     }
     throw new RuntimeException('Microsoft Ads: report ještě není připravený. Zkus synchronizaci později.');
 }
 
 function allstat_engine_microsoft_ads(PDO $pdo, array $config, array $connection, string $token, string $startDate, string $endDate, array $recipe): array
 {
-    $rows = allstat_microsoft_ads_report($connection, $token, $startDate, $endDate, false);
     $stmt = allstat_pm_statement($pdo);
     $domainId = (int) $connection['domain_id'];
     $sourceId = (int) $connection['source_id'];
     $connectionId = (int) $connection['id'];
     $written = 0;
     $currency = '';
-    foreach ($rows as $row) {
-        $date = (string) ($row['TimePeriod'] ?? '');
-        if ($date < $startDate || $date > $endDate) { continue; }
-        $currency = $currency ?: (string) ($row['CurrencyCode'] ?? '');
-        foreach (['Impressions' => 'impressions', 'Clicks' => 'clicks', 'Spend' => 'cost', 'ConversionsQualified' => 'conversions', 'Revenue' => 'conversion_value'] as $column => $key) {
-            $value = allstat_microsoft_ads_number($row[$column] ?? null);
-            if ($value !== null && allstat_pm_put($stmt, $domainId, $sourceId, $connectionId, $date, $key, $value)) { $written++; }
-        }
+    $accountName = '';
+    $accountStarted = false;
+    $startAccount = static function () use ($pdo, $domainId, $connectionId, $startDate, $endDate, &$accountStarted): void {
+        if ($accountStarted) { return; }
+        $pdo->beginTransaction();
+        $accountStarted = true;
+        $pdo->prepare("DELETE FROM provider_metrics_daily WHERE domain_id = ? AND connection_id = ? AND metric_date BETWEEN ? AND ? AND metric_key IN ('impressions','clicks','cost','conversions','conversion_value')")
+            ->execute([$domainId, $connectionId, $startDate, $endDate]);
+    };
+    try {
+        allstat_microsoft_ads_report($connection, $token, $startDate, $endDate, false, static function (array $row) use ($stmt, $domainId, $sourceId, $connectionId, $startDate, $endDate, $startAccount, &$written, &$currency, &$accountName): void {
+            $date = (string) ($row['TimePeriod'] ?? '');
+            if ($date < $startDate || $date > $endDate || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) { return; }
+            $startAccount();
+            $currency = $currency ?: (string) ($row['CurrencyCode'] ?? '');
+            $accountName = $accountName ?: trim((string) ($row['AccountName'] ?? ''));
+            foreach (['Impressions' => 'impressions', 'Clicks' => 'clicks', 'Spend' => 'cost', 'ConversionsQualified' => 'conversions', 'Revenue' => 'conversion_value'] as $column => $key) {
+                $value = allstat_microsoft_ads_number($row[$column] ?? null);
+                if ($value !== null && allstat_pm_put($stmt, $domainId, $sourceId, $connectionId, $date, $key, $value)) { $written++; }
+            }
+        }, $pdo);
+        $startAccount(); // An empty successful report also removes stale values in this range.
+        $pdo->commit();
+    } catch (Throwable $error) {
+        if ($accountStarted && $pdo->inTransaction()) { $pdo->rollBack(); }
+        throw $error;
     }
     if (preg_match('/^[A-Z]{3}$/', $currency)) {
+        $connectionConfig = allstat_microsoft_ads_config($connection);
+        $connectionConfig['currency'] = $currency;
         $label = trim((string) ($connection['account_label'] ?? ''));
-        $label = preg_replace('/ \([A-Z]{3}\)$/', '', $label);
-        if ($label === '' || $label === 'Microsoft Ads účet') {
-            $label = trim((string) ($rows[0]['AccountName'] ?? 'Microsoft Ads'));
-        }
-        $pdo->prepare('UPDATE domain_sources SET account_label = ?, updated_at = NOW() WHERE id = ?')
-            ->execute([$label . ' (' . $currency . ')', $connectionId]);
+        if ($label === '' || $label === 'Microsoft Ads účet') { $label = $accountName ?: 'Microsoft Ads'; }
+        $pdo->prepare('UPDATE domain_sources SET account_label = ?, config_json_enc = ?, updated_at = NOW() WHERE id = ?')
+            ->execute([$label, allstat_encrypt_secret(json_encode($connectionConfig, JSON_UNESCAPED_UNICODE), $config), $connectionId]);
     }
     $campaignCount = 0;
     $campaignNote = '';
+    $campaignStarted = false;
     try {
-        $campaigns = allstat_microsoft_ads_report($connection, $token, $startDate, $endDate, true);
-        $agg = [];
-        foreach ($campaigns as $row) {
+        $campaignStmt = $pdo->prepare('INSERT INTO provider_metrics_daily (domain_id, source_id, connection_id, metric_date, metric_key, dimension, metric_value) VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE metric_value = metric_value + VALUES(metric_value)');
+        $startCampaign = static function () use ($pdo, $domainId, $connectionId, $startDate, $endDate, &$campaignStarted): void {
+            if ($campaignStarted) { return; }
+            $pdo->beginTransaction();
+            $campaignStarted = true;
+            $pdo->prepare("DELETE FROM provider_metrics_daily WHERE domain_id = ? AND connection_id = ? AND metric_date BETWEEN ? AND ? AND metric_key IN ('campaign_impressions','campaign_clicks','campaign_cost','campaign_conversions','campaign_value')")
+                ->execute([$domainId, $connectionId, $startDate, $endDate]);
+        };
+        allstat_microsoft_ads_report($connection, $token, $startDate, $endDate, true, static function (array $row) use ($campaignStmt, $domainId, $sourceId, $connectionId, $startDate, $endDate, $startCampaign): void {
             $date = (string) ($row['TimePeriod'] ?? '');
             $name = mb_substr(trim((string) ($row['CampaignName'] ?? '')), 0, 120);
-            if ($date < $startDate || $date > $endDate || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) || $name === '') { continue; }
-            if ((allstat_microsoft_ads_number($row['Impressions'] ?? null) ?? 0) <= 0) { continue; }
+            if ($date < $startDate || $date > $endDate || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) || $name === '') { return; }
+            if ((allstat_microsoft_ads_number($row['Impressions'] ?? null) ?? 0) <= 0) { return; }
+            $startCampaign();
             foreach (['Impressions' => 'campaign_impressions', 'Clicks' => 'campaign_clicks', 'Spend' => 'campaign_cost', 'ConversionsQualified' => 'campaign_conversions', 'Revenue' => 'campaign_value'] as $column => $key) {
                 $value = allstat_microsoft_ads_number($row[$column] ?? null);
-                if ($value !== null) { $agg[$date][$name][$key] = ($agg[$date][$name][$key] ?? 0) + $value; }
-            }
-        }
-        foreach ($agg as $date => $names) {
-            foreach ($names as $name => $values) {
-                foreach ($values as $key => $value) {
-                    if (allstat_pm_put($stmt, $domainId, $sourceId, $connectionId, (string) $date, $key, $value, (string) $name)) { $campaignCount++; }
+                if ($value !== null) {
+                    $campaignStmt->execute([$domainId, $sourceId, $connectionId, $date, $key, $name, $value]);
                 }
             }
-        }
+        }, $pdo);
+        $startCampaign();
+        $pdo->commit();
+        $countStmt = $pdo->prepare("SELECT COUNT(*) FROM provider_metrics_daily WHERE domain_id = ? AND connection_id = ? AND metric_date BETWEEN ? AND ? AND metric_key IN ('campaign_impressions','campaign_clicks','campaign_cost','campaign_conversions','campaign_value')");
+        $countStmt->execute([$domainId, $connectionId, $startDate, $endDate]);
+        $campaignCount = (int) $countStmt->fetchColumn();
     } catch (Throwable $error) {
+        if ($campaignStarted && $pdo->inTransaction()) { $pdo->rollBack(); }
         $campaignNote = '; kampaně: ' . mb_substr($error->getMessage(), 0, 60);
     }
     return ['rows' => $written + $campaignCount, 'summary' => sprintf('%d metrik, %d řádků kampaní%s (%s → %s)', $written, $campaignCount, $campaignNote, $startDate, $endDate)];

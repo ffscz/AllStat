@@ -323,6 +323,7 @@ function allstat_provider_setup_guide(string $providerKey): array
             'steps' => [
                 t('V Google Cloud Console vytvoř OAuth client typu Web application a nastav přesnou adresu callbacku z AllStatu jako Authorized redirect URI.'),
                 t('Vytvoř Client secret a zkopíruj Client ID. Developer Token vyžádej v Microsoft Advertising API Center.'),
+                t('Pro Microsoft Entra nastav Authorization URL https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize a Token URL https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token. V obou použij stejný tenant: common, organizations, consumers, GUID nebo doménu.'),
                 t('Vyplň Account ID, Customer ID, Client ID, Client secret a Developer Token. Ulož napojení a spusť OAuth.'),
                 t('Otestuj napojení a potom stáhni historii. Údaje se ukládají v měně reklamního účtu.'),
             ],
@@ -597,11 +598,25 @@ function allstat_microsoft_ads_identity_provider(array $connection): ?string
     if ($auth === 'https://accounts.google.com/o/oauth2/v2/auth' && $token === 'https://oauth2.googleapis.com/token') {
         return 'Google';
     }
-    if ($auth === 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize'
-        && $token === 'https://login.microsoftonline.com/common/oauth2/v2.0/token') {
+    $prefix = 'https://login.microsoftonline.com/';
+    if (str_starts_with($auth, $prefix)
+        && preg_match('#^https://login\.microsoftonline\.com/([A-Za-z0-9.-]+)/oauth2/v2\.0/authorize$#D', $auth, $matches) === 1
+        && $token === $prefix . $matches[1] . '/oauth2/v2.0/token'
+        && (in_array(strtolower($matches[1]), ['common', 'organizations', 'consumers'], true)
+            || preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iD', $matches[1]) === 1
+            || (filter_var($matches[1], FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME) !== false && str_contains($matches[1], '.')))) {
         return 'Microsoft';
     }
     return null;
+}
+
+/** Reporting host must never be an OAuth host, even though both are allowed provider URLs. */
+function allstat_microsoft_ads_api_base_allowed(?string $url): bool
+{
+    return in_array($url, [
+        'https://reporting.api.bingads.microsoft.com',
+        'https://reporting.api.sandbox.bingads.microsoft.com',
+    ], true);
 }
 
 /**
@@ -621,6 +636,10 @@ function allstat_connection_urls_error(array $connection): ?string
 
     if ($providerKey === 'microsoft_ads' && allstat_microsoft_ads_identity_provider($connection) === null) {
         return t('Microsoft Ads: Authorization URL a Token URL musí být odpovídající oficiální dvojice Google nebo Microsoft OAuth.');
+    }
+
+    if ($providerKey === 'microsoft_ads' && !allstat_microsoft_ads_api_base_allowed((string) ($connection['api_base_url'] ?? ''))) {
+        return t('Microsoft Ads: API Base URL musí být oficiální Reporting API host.');
     }
 
     return null;
