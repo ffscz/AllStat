@@ -334,4 +334,5 @@ return [
     'napojení a všechny uložené přístupové tokeny daného účtu,' => 'the connection and all stored access tokens of the account,',
     'uložené statistiky a obsah příspěvků daného účtu,' => 'the account\'s stored statistics and post content,',
     'na žádost i účet interního správce.' => 'and, on request, the internal administrator account.',
+    'https://mcp.vase-firma.cz' => 'https://mcp.your-company.com',
 ];

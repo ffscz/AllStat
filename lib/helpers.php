@@ -230,14 +230,15 @@ function allstat_icon(string $name, string $class = ''): string
 }
 
 /**
- * Návod k AllStatu: web na GitHub Pages, stejný pro všechny instalace (zdroj allstat-balicek/manual/INSTALACE.src.html).
- * Kotvy jsou id kapitol a podkapitol návodu; při přejmenování nadpisu tam id zůstává.
+ * Návod k AllStatu: web na GitHub Pages, stejný pro všechny instalace (zdroj je větev gh-pages).
+ * Kotvy jsou id kapitol a podkapitol návodu; při přejmenování nadpisu tam id zůstává. Anglická verze je v en/
+ * se stejnými kotvami; slovenské rozhraní vede na český návod (je Slovákům bližší než anglický).
  */
 const ALLSTAT_DOCS_URL = 'https://ffscz.github.io/AllStat/';
 
 function allstat_docs_url(string $anchor = ''): string
 {
-    return ALLSTAT_DOCS_URL . ($anchor !== '' ? '#' . rawurlencode($anchor) : '');
+    return ALLSTAT_DOCS_URL . (allstat_locale() === 'en' ? 'en/' : '') . ($anchor !== '' ? '#' . rawurlencode($anchor) : '');
 }
 
 /** Textový odkaz na kapitolu návodu (nová karta). */

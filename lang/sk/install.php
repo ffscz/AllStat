@@ -334,4 +334,5 @@ return [
     'napojení a všechny uložené přístupové tokeny daného účtu,' => 'napojenie a všetky uložené prístupové tokeny daného účtu,',
     'uložené statistiky a obsah příspěvků daného účtu,' => 'uložené štatistiky a obsah príspevkov daného účtu,',
     'na žádost i účet interního správce.' => 'na žiadosť aj účet interného správcu.',
+    'https://mcp.vase-firma.cz' => 'https://mcp.vasa-firma.sk',
 ];

@@ -1349,7 +1349,7 @@ CSS;
 /** Odkaz na kapitolu webového návodu (nová karta); adresa stejná jako odkazy Nápověda v aplikaci. */
 function installer_doc_link(string $anchor, string $label): string
 {
-    $base = defined('ALLSTAT_DOCS_URL') ? ALLSTAT_DOCS_URL : 'https://ffscz.github.io/AllStat/';
+    $base = (defined('ALLSTAT_DOCS_URL') ? ALLSTAT_DOCS_URL : 'https://ffscz.github.io/AllStat/') . (allstat_locale() === 'en' ? 'en/' : '');
 
     return '<a class="doc-link" href="' . h($base . ($anchor !== '' ? '#' . $anchor : '')) . '" target="_blank" rel="noopener">' . h($label) . '</a>';
 }
@@ -1558,7 +1558,7 @@ function installer_render_form(array $ctx): void
         . '<label class="choice"><input type="radio" name="mcp_mode" value="custom"' . ($mode === 'custom' ? ' checked' : '') . '><span>'
         . '<strong>' . h(t('Na vlastní subdoméně')) . '</strong>'
         . '<span class="help">' . h(t('V hostingu vytvořte subdoménu a jako její složku nastavte složku, ve které je AllStat. Pravidlo v kořeni domény pak není potřeba.')) . '</span>'
-        . '<input type="text" name="mcp_host_url" value="' . h($f['mcp_host_url']) . '" placeholder="https://mcp.vase-firma.cz" inputmode="url" autocapitalize="off" spellcheck="false">'
+        . '<input type="text" name="mcp_host_url" value="' . h($f['mcp_host_url']) . '" placeholder="' . h(t('https://mcp.vase-firma.cz')) . '" inputmode="url" autocapitalize="off" spellcheck="false">'
         . '</span></label>'
         . '<label class="choice"><input type="radio" name="mcp_mode" value="later"' . ($mode === 'later' ? ' checked' : '') . '><span>'
         . '<strong>' . h(t('Nastavit později')) . '</strong><span class="help">' . h(t('Adresy vyplníte sami v menu „AI konektory“.')) . '</span></span></label>'
