@@ -181,13 +181,14 @@ function allstat_layout_sync_status(PDO $pdo, int $domainId): array
 }
 
 /**
- * Adresa stejné stránky pro jiný web. Parametry vázané na konkrétní web (zdroj, trychtýř, stránkování)
- * se zahodí, období a pohled zůstanou.
+ * Adresa stejné stránky pro jiný web. Parametry vázané na konkrétní záznam webu (zdroj, trychtýř,
+ * upravovaná položka, napojení, účet, stránkování) se zahodí, období a pohled zůstanou.
  */
 function allstat_layout_site_url(int $domainId): string
 {
     $query = $_GET;
-    unset($query['source_id'], $query['funnel_id'], $query['posts_page'], $query['breakdown']);
+    unset($query['source_id'], $query['funnel_id'], $query['posts_page'], $query['breakdown'],
+        $query['edit'], $query['id'], $query['connection_id'], $query['account_id']);
     if (($query['view'] ?? '') === 'funnel') {
         unset($query['view']);
     }

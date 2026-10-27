@@ -17,7 +17,7 @@ $adsProviderName = ($selectedProvider['provider_key'] ?? '') === 'microsoft_ads'
     <?= allstat_ui_card_head(t('Kampaně'), $adsProviderName, h(str_replace('Google Ads', $adsProviderName, t('Kampaně za zvolené období seřazené podle útraty, součet dní s útratou. Částky v měně účtu Google Ads.'))) . (empty($googleAdsNoConversions) ? ' ' . h(t('ROAS a CPA dávají smysl jen u kampaní s měřením konverzí.')) : '')) ?>
     <div class="table-wrap">
         <table class="table table-wide">
-            <thead><tr><th scope="col"><?= h(t('Kampaň')) ?></th><th scope="col" style="width: 104px"><?= h(t('Útrata')) ?></th><th scope="col" style="width: 104px"><?= h(t('Zobrazení')) ?></th><th scope="col" style="width: 88px"><?= h(t('Kliknutí')) ?></th><th scope="col" style="width: 72px">CTR</th><th scope="col" style="width: 72px">CPC</th><?php if (empty($googleAdsNoConversions)): ?><th scope="col" style="width: 88px"><?= h(t('Konverze')) ?></th><th scope="col" style="width: 72px">CPA</th><th scope="col" style="width: 72px">ROAS</th><?php endif; ?></tr></thead>
+            <thead><tr><th scope="col"><?= h(t('Kampaň')) ?></th><th class="col-sm" scope="col"><?= h(t('Útrata')) ?></th><th class="col-sm" scope="col"><?= h(t('Zobrazení')) ?></th><th class="col-num" scope="col"><?= h(t('Kliknutí')) ?></th><th class="col-xs" scope="col">CTR</th><th class="col-xs" scope="col">CPC</th><?php if (empty($googleAdsNoConversions)): ?><th class="col-num" scope="col"><?= h(t('Konverze')) ?></th><th class="col-xs" scope="col">CPA</th><th class="col-xs" scope="col">ROAS</th><?php endif; ?></tr></thead>
             <tbody>
                 <?php foreach ($googleAdsCampaigns as $campaign): ?>
                     <tr>

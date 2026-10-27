@@ -32,10 +32,10 @@
         data.series.forEach(function (s, i) { if (s.color === 'ads') { hidden[i] = true; } });
     }
 
-    // Barva čáry kanálu: token --ch-<barva> (paleta grafu), jinak token z legendy (data-color-token, např. --src-fb-fg).
+    // Barva čáry kanálu: token z legendy (data-color-token, barva služby, např. --src-fb-fg).
     function seriesColor(i) {
         var item = root.querySelector('[data-growth-series="' + i + '"]');
-        return token('--ch-' + data.series[i].color) || (item && token(item.getAttribute('data-color-token'))) || token('--muted');
+        return (item && token(item.getAttribute('data-color-token'))) || token('--muted');
     }
 
     // Čára na indexu 100 (= úroveň začátku období), přerušovaná a tlumená, pod křivkami.

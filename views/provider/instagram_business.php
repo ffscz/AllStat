@@ -125,7 +125,7 @@ $igReactions = static function (array $post): string {
     <div class="card-body">
         <div class="table-wrap">
             <table class="table table-plain">
-                <thead><tr><th scope="col"><?= h(t('Příspěvek')) ?></th><th scope="col" style="width: 104px"><?= h(t('Datum')) ?></th><th scope="col" style="width: 88px"><?= h(t('Uložení')) ?></th><th scope="col" style="width: 104px"><?= h(t('Zobrazení')) ?></th><th scope="col" style="width: 168px"><?= h(t('Reakce')) ?></th><th scope="col" style="width: 96px">Engagement</th></tr></thead>
+                <thead><tr><th scope="col"><?= h(t('Příspěvek')) ?></th><th class="col-sm" scope="col"><?= h(t('Datum')) ?></th><th class="col-num" scope="col"><?= h(t('Uložení')) ?></th><th class="col-sm" scope="col"><?= h(t('Zobrazení')) ?></th><th class="col-md" scope="col"><?= h(t('Reakce')) ?></th><th class="col-num" scope="col">Engagement</th></tr></thead>
                 <tbody>
                     <?php foreach ($socialPosts['topSaved'] as $post): ?>
                         <tr>

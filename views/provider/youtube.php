@@ -27,14 +27,14 @@ $ytRow = static function (array $v): string {
         . '</tr>';
 };
 $ytHead = '<thead><tr><th scope="col">' . h(t('Video')) . '</th>'
-    . '<th scope="col" style="width: 104px">' . h(t('Zhlédnutí')) . '</th>'
-    . '<th scope="col" style="width: 120px">' . h(t('Sledovaný čas')) . '</th>'
-    . '<th scope="col" style="width: 152px">' . h(t('Ø doba (% videa)')) . '</th>'
-    . '<th scope="col" style="width: 88px">' . h(t('Líbí se')) . '</th>'
-    . '<th scope="col" style="width: 104px">' . h(t('Komentáře')) . '</th>'
-    . '<th scope="col" style="width: 80px">' . h(t('Sdílení')) . '</th>'
-    . '<th scope="col" style="width: 80px">' . h(t('Odběry')) . '</th>'
-    . '<th scope="col" style="width: 104px">' . h(t('Zapojení %')) . '</th></tr></thead>';
+    . '<th class="col-sm" scope="col">' . h(t('Zhlédnutí')) . '</th>'
+    . '<th class="col-sm" scope="col">' . h(t('Sledovaný čas')) . '</th>'
+    . '<th class="col-md" scope="col">' . h(t('Ø doba (% videa)')) . '</th>'
+    . '<th class="col-num" scope="col">' . h(t('Líbí se')) . '</th>'
+    . '<th class="col-sm" scope="col">' . h(t('Komentáře')) . '</th>'
+    . '<th class="col-num" scope="col">' . h(t('Sdílení')) . '</th>'
+    . '<th class="col-num" scope="col">' . h(t('Odběry')) . '</th>'
+    . '<th class="col-sm" scope="col">' . h(t('Zapojení %')) . '</th></tr></thead>';
 // Podíl v %: pruh = poměr k největší položce, číslo = podíl.
 $ytPercentMeters = static fn (array $rows): array => array_map(static fn (array $r, float $w): array => ['label' => (string) $r['label'], 'value' => allstat_percent((float) $r['value'], 1), 'width' => $w], $rows, allstat_ui_widths(array_column($rows, 'value')));
 ?>
@@ -122,7 +122,7 @@ $ytPercentMeters = static fn (array $rows): array => array_map(static fn (array 
         . ((int) $ytC['unassignedCount'] > 0 ? ' · ' . t('Videa mimo playlisty jsou ve skupině „Nezařazená".') : ''))) ?>
     <div class="table-wrap">
         <table class="table table-wide">
-            <thead><tr><th scope="col"><?= h(t('Playlist (kategorie)')) ?></th><th scope="col" style="width: 80px"><?= h(t('Videí')) ?></th><th scope="col" style="width: 128px"><?= h(t('Zhlédnutí celkem')) ?></th><th scope="col" style="width: 136px"><?= h(t('Ø zhlédnutí / video')) ?></th><th scope="col" style="width: 120px"><?= h(t('Sledovaný čas')) ?></th><th scope="col" style="width: 152px"><?= h(t('Ø doba (% videa)')) ?></th><th scope="col" style="width: 104px"><?= h(t('Zapojení %')) ?></th><th scope="col" style="width: 136px"><?= h(t('Nejnovější video')) ?></th></tr></thead>
+            <thead><tr><th scope="col"><?= h(t('Playlist (kategorie)')) ?></th><th class="col-num" scope="col"><?= h(t('Videí')) ?></th><th class="col-md" scope="col"><?= h(t('Zhlédnutí celkem')) ?></th><th class="col-md" scope="col"><?= h(t('Ø zhlédnutí / video')) ?></th><th class="col-sm" scope="col"><?= h(t('Sledovaný čas')) ?></th><th class="col-md" scope="col"><?= h(t('Ø doba (% videa)')) ?></th><th class="col-sm" scope="col"><?= h(t('Zapojení %')) ?></th><th class="col-md" scope="col"><?= h(t('Nejnovější video')) ?></th></tr></thead>
             <tbody>
             <?php foreach ($ytC['groups'] as $g): ?>
                 <tr>

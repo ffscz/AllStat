@@ -110,8 +110,7 @@ foreach ($growth['channels'] as $c) {
 }
 $groups = array_filter($groups, static fn (array $g): bool => $g['items'] !== []);
 
-// Barva čáry kanálu v grafu Vývoj v čase: token --ch-<barva> (paleta grafu), dokud v tokens.css není,
-// barva popředí dlaždice služby (--src-*-fg). Stejně barvu volí assets/js/growth.js.
+// Barva čáry kanálu v grafu Vývoj v čase: barva popředí dlaždice služby (--src-*-fg), stejně ji bere assets/js/growth.js.
 $lineToken = static fn (string $color): string => '--src-' . match ($color) {
     'ga4' => 'ga', 'gsc' => 'sc', 'clarity' => 'cl', 'youtube' => 'yt', 'facebook' => 'fb',
     'linkedin' => 'li', 'instagram' => 'ig', default => 'ma',
@@ -329,7 +328,7 @@ $spendCurrencies = array_keys($spendBy);
                 <div class="legend" aria-label="<?= h(t('Kanály v grafu')) ?>">
                     <?php foreach ($growthChart['series'] as $i => $s): $token = $lineToken($s['color']); ?>
                         <button type="button" class="legend-item" aria-pressed="<?= $s['color'] === 'ads' ? 'false' : 'true' ?>" data-growth-series="<?= (int) $i ?>" data-color-token="<?= h($token) ?>">
-                            <span class="<?= $s['dashed'] ? 'swatch-dash' : 'swatch-line' ?>" style="<?= $s['dashed'] ? 'border-top-color' : 'background' ?>: var(--ch-<?= h(preg_replace('/[^a-z0-9]/', '', $s['color'])) ?>, var(<?= h($token) ?>))" aria-hidden="true"></span><?= h($s['name']) ?><?php if ($s['account'] !== ''): ?> <span class="name-sub"><?= h($s['account']) ?></span><?php endif; ?>
+                            <span class="<?= $s['dashed'] ? 'swatch-dash' : 'swatch-line' ?>" style="<?= $s['dashed'] ? 'border-top-color' : 'background' ?>: var(<?= h($token) ?>)" aria-hidden="true"></span><?= h($s['name']) ?><?php if ($s['account'] !== ''): ?> <span class="name-sub"><?= h($s['account']) ?></span><?php endif; ?>
                         </button>
                     <?php endforeach; ?>
                 </div>

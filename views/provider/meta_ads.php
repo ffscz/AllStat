@@ -110,15 +110,15 @@ $freqCell = static fn (array $row): string => ($row['frequencyScope'] ?? '') ===
         <table class="table table-wide">
             <thead><tr>
                 <th scope="col"><?= h(t('Kampaň')) ?></th>
-                <th scope="col" style="width: 96px"><?= h(t('Útrata')) ?></th>
-                <th scope="col" style="width: 104px"><?= h(t('Zobrazení')) ?></th>
-                <th scope="col" style="width: 80px" title="<?= h(t('Cena za 1 000 zobrazení (CPM)')) ?>">CPM</th>
-                <th scope="col" style="width: 88px" title="<?= h(t('Prokliky na odkaz')) ?>"><?= h(t('Prokliky')) ?></th>
-                <th scope="col" style="width: 96px" title="<?= h(t('Za proklik na odkaz')) ?>"><?= h(t('Za proklik')) ?></th>
-                <th scope="col" style="width: 96px" title="<?= h(t('Prokliky na odkaz ÷ zobrazení')) ?>"><?= h(t('CTR odkazu')) ?></th>
-                <th scope="col" style="width: 96px" title="<?= h(t('Všechna kliknutí ÷ zobrazení, i lajky a rozbalení textu')) ?>"><?= h(t('CTR (vše)')) ?></th>
-                <th scope="col" style="width: 96px" title="<?= h(t('Kolikrát průměrně viděl reklamu tentýž člověk za celou dobu kampaně')) ?>"><?= h(t('Frekvence')) ?></th>
-                <?php if ($showConv): ?><th scope="col" style="width: 96px"><?= h(t('Konverze')) ?></th><th scope="col" style="width: 80px">ROAS</th><th scope="col" style="width: 80px">CPA</th><?php endif; ?>
+                <th class="col-num" scope="col"><?= h(t('Útrata')) ?></th>
+                <th class="col-sm" scope="col"><?= h(t('Zobrazení')) ?></th>
+                <th class="col-num" scope="col" title="<?= h(t('Cena za 1 000 zobrazení (CPM)')) ?>">CPM</th>
+                <th class="col-num" scope="col" title="<?= h(t('Prokliky na odkaz')) ?>"><?= h(t('Prokliky')) ?></th>
+                <th class="col-num" scope="col" title="<?= h(t('Za proklik na odkaz')) ?>"><?= h(t('Za proklik')) ?></th>
+                <th class="col-num" scope="col" title="<?= h(t('Prokliky na odkaz ÷ zobrazení')) ?>"><?= h(t('CTR odkazu')) ?></th>
+                <th class="col-num" scope="col" title="<?= h(t('Všechna kliknutí ÷ zobrazení, i lajky a rozbalení textu')) ?>"><?= h(t('CTR (vše)')) ?></th>
+                <th class="col-num" scope="col" title="<?= h(t('Kolikrát průměrně viděl reklamu tentýž člověk za celou dobu kampaně')) ?>"><?= h(t('Frekvence')) ?></th>
+                <?php if ($showConv): ?><th class="col-num" scope="col"><?= h(t('Konverze')) ?></th><th class="col-num" scope="col">ROAS</th><th class="col-num" scope="col">CPA</th><?php endif; ?>
             </tr></thead>
             <tbody>
                 <?php foreach ($metaAdsBreakdown as $campaign):
@@ -153,13 +153,13 @@ $freqCell = static fn (array $row): string => ($row['frequencyScope'] ?? '') ===
         <table class="table table-wide">
             <thead><tr>
                 <th scope="col"><?= h(t('Sestava')) ?></th>
-                <th scope="col" style="width: 96px"><?= h(t('Útrata')) ?></th>
-                <th scope="col" style="width: 104px"><?= h(t('Zobrazení')) ?></th>
-                <th scope="col" style="width: 88px" title="<?= h(t('Prokliky na odkaz')) ?>"><?= h(t('Prokliky')) ?></th>
-                <th scope="col" style="width: 96px" title="<?= h(t('Za proklik na odkaz')) ?>"><?= h(t('Za proklik')) ?></th>
-                <th scope="col" style="width: 96px" title="<?= h(t('Všechna kliknutí ÷ zobrazení, i lajky a rozbalení textu')) ?>"><?= h(t('CTR (vše)')) ?></th>
-                <?php if ($showConv): ?><th scope="col" style="width: 96px"><?= h(t('Konverze')) ?></th><th scope="col" style="width: 80px">ROAS</th><th scope="col" style="width: 80px">CPA</th><?php endif; ?>
-                <th scope="col" style="width: 96px" title="<?= h(t('Kolikrát průměrně viděl reklamu tentýž člověk za celou dobu')) ?>"><?= h(t('Frekvence')) ?></th>
+                <th class="col-num" scope="col"><?= h(t('Útrata')) ?></th>
+                <th class="col-sm" scope="col"><?= h(t('Zobrazení')) ?></th>
+                <th class="col-num" scope="col" title="<?= h(t('Prokliky na odkaz')) ?>"><?= h(t('Prokliky')) ?></th>
+                <th class="col-num" scope="col" title="<?= h(t('Za proklik na odkaz')) ?>"><?= h(t('Za proklik')) ?></th>
+                <th class="col-num" scope="col" title="<?= h(t('Všechna kliknutí ÷ zobrazení, i lajky a rozbalení textu')) ?>"><?= h(t('CTR (vše)')) ?></th>
+                <?php if ($showConv): ?><th class="col-num" scope="col"><?= h(t('Konverze')) ?></th><th class="col-num" scope="col">ROAS</th><th class="col-num" scope="col">CPA</th><?php endif; ?>
+                <th class="col-num" scope="col" title="<?= h(t('Kolikrát průměrně viděl reklamu tentýž člověk za celou dobu')) ?>"><?= h(t('Frekvence')) ?></th>
             </tr></thead>
             <tbody>
                 <?php foreach ($metaAdsAdsets as $row): ?>
@@ -191,13 +191,13 @@ $freqCell = static fn (array $row): string => ($row['frequencyScope'] ?? '') ===
         <table class="table table-wide">
             <thead><tr>
                 <th scope="col"><?= h(t('Kreativa')) ?></th>
-                <th scope="col" style="width: 96px"><?= h(t('Útrata')) ?></th>
-                <th scope="col" style="width: 88px" title="<?= h(t('Kliknutí na odkaz')) ?>"><?= h(t('Prokliky')) ?></th>
-                <th scope="col" style="width: 96px"><?= h(t('Za proklik')) ?></th>
-                <?php if ($showConv): ?><th scope="col" style="width: 80px">ROAS</th><?php endif; ?>
-                <th scope="col" style="width: 96px"><?= h(t('CTR (vše)')) ?></th>
-                <th scope="col" style="width: 96px" title="<?= h(t('Kolikrát průměrně viděl reklamu tentýž člověk za celou dobu')) ?>"><?= h(t('Frekvence')) ?></th>
-                <th scope="col" style="width: 136px"><?= h(t('Hodnocení')) ?></th>
+                <th class="col-num" scope="col"><?= h(t('Útrata')) ?></th>
+                <th class="col-num" scope="col" title="<?= h(t('Kliknutí na odkaz')) ?>"><?= h(t('Prokliky')) ?></th>
+                <th class="col-num" scope="col"><?= h(t('Za proklik')) ?></th>
+                <?php if ($showConv): ?><th class="col-num" scope="col">ROAS</th><?php endif; ?>
+                <th class="col-num" scope="col"><?= h(t('CTR (vše)')) ?></th>
+                <th class="col-num" scope="col" title="<?= h(t('Kolikrát průměrně viděl reklamu tentýž člověk za celou dobu')) ?>"><?= h(t('Frekvence')) ?></th>
+                <th class="col-md" scope="col"><?= h(t('Hodnocení')) ?></th>
             </tr></thead>
             <tbody>
                 <?php foreach ($metaAdsCreatives as $row): $v = $row['verdict'] ?? null; ?>

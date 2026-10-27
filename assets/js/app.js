@@ -336,7 +336,7 @@ const AllStat = (() => {
             aiTop.querySelector('.row-value').textContent = top ? top.source : '–';
             const count = aiTop.querySelector('.row-delta');
             if (count) {
-                count.textContent = top ? window.allstatT('{count} návštěv', { count: formatter.format(top.sessions) }) : '';
+                count.textContent = top ? visitsLabel(top.sessions, formatter.format(top.sessions)) : '';
             }
         }
     }
@@ -354,12 +354,12 @@ const AllStat = (() => {
 
         const landing = (data.tables && data.tables.landingPages) || [];
         const all = (data.tables && data.tables.allPages) || [];
-        const th = (text, width) => `<th scope="col"${width ? ` style="width: ${width}px"` : ''}>${escapeHtml(text)}</th>`;
+        const th = (text, cls) => `<th scope="col"${cls ? ` class="${cls}"` : ''}>${escapeHtml(text)}</th>`;
         const empty = (cols) => `<tr><td colspan="${cols}" class="is-muted">${window.allstatT('Zatím bez dat o stránkách, spusť GA4 sync.')}</td></tr>`;
 
         if (pagesMode === 'vsechny') {
             if (head) {
-                head.innerHTML = th(window.allstatT('Stránka')) + th(window.allstatT('Zobrazení'), 96) + th(window.allstatT('Podíl'), 84);
+                head.innerHTML = th(window.allstatT('Stránka')) + th(window.allstatT('Zobrazení'), 'col-num') + th(window.allstatT('Podíl'), 'col-num');
             }
             if (help) {
                 help.textContent = window.allstatT('Nejnavštěvovanější stránky podle počtu zobrazení za zvolené období.');
@@ -373,7 +373,7 @@ const AllStat = (() => {
             `).join('') : empty(3);
         } else {
             if (head) {
-                head.innerHTML = th(window.allstatT('Stránka')) + th(window.allstatT('Návštěvy'), 84) + th(window.allstatT('Konverze'), 84) + th(window.allstatT('Změna'), 84);
+                head.innerHTML = th(window.allstatT('Stránka')) + th(window.allstatT('Návštěvy'), 'col-num') + th(window.allstatT('Konverze'), 'col-num') + th(window.allstatT('Změna'), 'col-num');
             }
             if (help) {
                 help.textContent = window.allstatT('Kde návštěva začala. Změna proti předchozímu období.');
@@ -508,6 +508,12 @@ const AllStat = (() => {
         }
     }
 
+    // Počet návštěv s českým skloňováním jako tn() na serveru: 1 návštěva, 2-4 návštěvy, 5+ (a 0) návštěv.
+    function visitsLabel(n, label) {
+        const key = n === 1 ? '{count} návštěva' : (n >= 2 && n <= 4 ? '{count} návštěvy' : '{count} návštěv');
+        return window.allstatT(key, { count: label });
+    }
+
     function updateDashboard(data) {
         window.ALLSTAT_DATA = data;
         updateKpis(data);
@@ -574,12 +580,6 @@ const AllStat = (() => {
             // Manuální rozsah = žádné rychlé období není aktivní (rozsah nemusí odpovídat žádnému rychlému výběru).
             clearQuickRanges();
             refreshDashboard(new URLSearchParams(new FormData(form)));
-        });
-
-        document.querySelectorAll('[data-auto-refresh]').forEach((control) => {
-            control.addEventListener('change', () => {
-                refreshDashboard(new URLSearchParams(new FormData(form)));
-            });
         });
 
         document.addEventListener('click', (event) => {

@@ -107,7 +107,7 @@ function allstat_growth_compare(array $entries, array $baseYms, array $recentYms
 
 /**
  * Hlavní metrika podle typu kanálu. Pořadí = pořadí karet, řádků tabulky i legendy grafu (neměnit bez
- * nového ověření palety). 'color' = klíč barvy kanálu; čára grafu bere token --ch-<color>, jinak --src-*-fg (views/growth.php).
+ * nového ověření palety). 'color' = klíč barvy kanálu (graf bere barvu služby --src-*-fg, views/growth.php).
  */
 function allstat_growth_defs(): array
 {

@@ -44,6 +44,19 @@ Je vždy pro nejnovější verzi a jde vytisknout nebo uložit jako PDF. Tento s
 po instalaci ze serveru smazat.
 
 
+Změny ve verzi 1.5.0
+--------------------
+ * Nový vzhled celé administrace: postranní panel s přepínačem webu, horní lišta s drobečkovou
+   navigací, stavem dat a uživatelskou nabídkou, světlý i tmavý motiv a písmo Geist (z vlastního
+   serveru, bez externích služeb).
+ * Přehled (Růst kanálů): souhrnné dlaždice, karty kanálů ve skupinách Web, Sociální sítě a Reklama,
+   tabulka Měsíc po měsíci a vysvětlení výpočtu růstu.
+ * Detaily zdrojů, Trychtýř a stránky správy jsou postavené ze stejných prvků; grafy berou barvy
+   z motivu a po jeho přepnutí se překreslí.
+ * Přihlášení, dvoufázové ověření, souhlas pro připojení AI a instalační průvodce mají nový vzhled.
+ * Na mobilu se navigace posouvá vodorovně a široké tabulky se posouvají uvnitř karty.
+
+
 Změny ve verzi 1.4.0
 --------------------
  * Nový zdroj Microsoft Ads: denní výkon účtu a kampaní (zobrazení, kliknutí, útrata, konverze,

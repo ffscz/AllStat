@@ -40,7 +40,7 @@
         a.addEventListener('click', function (e) { e.preventDefault(); gen(a.dataset.shareFmt); });
     });
     function flash(el, msg, orig, ms) { el.textContent = msg; setTimeout(function () { el.textContent = orig; }, ms || 1600); }
-    // "Kopírovat text pro AI" — stáhne obsah reportu (same-origin) a dá ho do schránky; funguje v každé AI.
+    // "Kopírovat text pro AI": stáhne obsah reportu (same-origin) a dá ho do schránky; funguje v každé AI.
     var copyTextBtn = box.querySelector('[data-share-copy-text]');
     if (copyTextBtn) {
         copyTextBtn.addEventListener('click', function () {
