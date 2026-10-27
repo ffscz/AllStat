@@ -15,16 +15,16 @@ $domains = allstat_admin_domains($pdo, false);
 if (!$domains && allstat_domain_scope() !== null) {
     http_response_code(403);
     allstat_admin_header(t('Reporty'), 'reports', $user, $config);
-    echo '<div class="admin-card"><div class="admin-card-header"><div><h2>' . h(t('Zatím nemáte přidělený web')) . '</h2>'
-        . '<p>' . h(t('Účet je aktivní, ale administrátor vám zatím nepřidělil žádný web, nebo jsou přidělené weby vypnuté. Požádejte ho o přístup.')) . '</p>'
-        . '</div></div></div>';
+    echo '<section class="card"><div class="empty"><span class="empty-title">' . h(t('Zatím nemáte přidělený web')) . '</span>'
+        . '<span class="empty-desc">' . h(t('Účet je aktivní, ale administrátor vám zatím nepřidělil žádný web, nebo jsou přidělené weby vypnuté. Požádejte ho o přístup.')) . '</span>'
+        . '</div></section>';
     allstat_admin_footer($config);
     exit;
 }
 // Web z URL se zapamatuje, bez parametru platí web zvolený jinde v administraci (přehled, zdroje…).
 $domainId = allstat_current_domain_id($pdo, $domains, filter_input(INPUT_GET, 'domain_id', FILTER_VALIDATE_INT) ?: null) ?: 1;
 
-// Vstupní stránky (count + jedna stránka výsledků) — sdílí to HTML render i AJAX partial níže.
+// Vstupní stránky (count + jedna stránka výsledků) - sdílí to HTML render i AJAX partial níže.
 function allstat_report_landing_pages(PDO $pdo, int $domainId, string $start, string $end, int $perPage, int $page): array
 {
     $totalRow = allstat_fetch_one($pdo, "
@@ -50,7 +50,7 @@ function allstat_report_landing_pages(PDO $pdo, int $domainId, string $start, st
     return ['rows' => $statement->fetchAll(), 'total' => $total, 'page' => $page, 'pageCount' => $pageCount];
 }
 
-// Lehký AJAX partial pro stránkování vstupních stránek: jen 2 dotazy a exit — nerenderuje se zbytek
+// Lehký AJAX partial pro stránkování vstupních stránek: jen 2 dotazy a exit - nerenderuje se zbytek
 // reportu (šetří DB) a stránka se nerefreshuje (nepřebije se tak zvolená záložka).
 if (($_GET['partial'] ?? '') === 'landing_pages') {
     $perPage = max(10, min(200, (int) ($_GET['per_page'] ?? 50)));
@@ -88,12 +88,12 @@ $quickRanges = [
     t('posledních 30 dní') => 29,
     t('posledních 90 dní') => 89,
 ];
-// Metriky napojených služeb mimo GA4/GSC (Meta, LinkedIn, Clarity, Meta Ads…) — počítá se už tady,
+// Metriky napojených služeb mimo GA4/GSC (Meta, LinkedIn, Clarity, Meta Ads…) - počítá se už tady,
 // protože každá kategorie služeb (sociální sítě / analytika / PPC…) má VLASTNÍ kartu i záložku
 // a záložky se kreslí hned v hlavičce reportu.
 $pmRows = [];
 if (allstat_table_exists($pdo, 'provider_metrics_daily')) {
-    // Jen účtové (nedimenzované) řádky — per-kampaň/per-stránka rozpady by tu součty zdvojily.
+    // Jen účtové (nedimenzované) řádky - per-kampaň/per-stránka rozpady by tu součty zdvojily.
     $pmRows = allstat_fetch_all($pdo, "
         SELECT pm.connection_id, COALESCE(NULLIF(conn.account_label, ''), s.name) AS source_name,
                s.provider_key, s.name AS provider_name, s.category, pm.metric_key, SUM(pm.metric_value) AS total
@@ -142,7 +142,7 @@ foreach (array_keys($pmCatMeta) as $pmCatKey) {
 
 // Záložky: každá sekce (karta) nese data-report-tab; přepínání řeší admin.js bez reloadu,
 // volba se drží v URL hashi (#tab-…). „Vše" = výchozí, nic není schované.
-// MS Clarity patří mezi webové statistiky (hned za GSC) — je to třetí analytika webu vedle GA4/GSC;
+// MS Clarity patří mezi webové statistiky (hned za GSC) - je to třetí analytika webu vedle GA4/GSC;
 // sociální sítě, PPC a spol. až za obsahové záložky.
 $reportTabs = [
     'all' => t('Vše'),
@@ -161,77 +161,81 @@ foreach ($pmByCategory as $pmCatKey => $pmTiles) {
     }
 }
 
-// Karta jedné kategorie služeb (dlaždice po účtech) — volá se na dvou místech: MS Clarity hned
+// Karta jedné kategorie služeb (dlaždice po účtech) - volá se na dvou místech: MS Clarity hned
 // za GSC dotazy (uvnitř .report-grid, přes celou šířku), ostatní kategorie na konci reportu.
 function allstat_report_service_card(string $catKey, array $tiles, array $meta, string $rangeLabel, string $cardClass = ''): void
 {
     ?>
-    <div class="admin-card<?= $cardClass !== '' ? ' ' . h($cardClass) : '' ?>" id="services-<?= h($catKey) ?>" data-report-tab="<?= h($catKey) ?>">
-        <div class="admin-card-header">
+    <section class="card<?= $cardClass !== '' ? ' ' . h($cardClass) : '' ?>" id="services-<?= h($catKey) ?>" data-report-tab="<?= h($catKey) ?>">
+        <div class="card-head">
             <div>
-                <h2><?= h($meta['title']) ?></h2>
-                <p><?= h($meta['desc']) ?> <?= h(t('Za {range}. Souhrn za období, detailní pohled najdeš na dashboardu v přepínači „Zdroj dat".', ['range' => $rangeLabel])) ?></p>
+                <h2 class="card-title"><?= h($meta['title']) ?></h2>
+                <p class="card-desc"><?= h($meta['desc']) ?> <?= h(t('Za {range}. Souhrn za období, detailní pohled najdeš na dashboardu v přepínači „Zdroj dat".', ['range' => $rangeLabel])) ?></p>
             </div>
         </div>
-        <div class="admin-card-body">
-            <div class="pm-grid">
+        <div class="card-body">
+            <div class="grid grid-tiles">
                 <?php foreach ($tiles as $sourceName => $rows): $pmProvider = (string) $rows[0]['provider_key']; $pmProviderName = (string) $rows[0]['provider_name']; ?>
-                    <section class="pm-tile">
-                        <header class="pm-tile-head">
-                            <span class="source-picker-ic"><?= allstat_provider_icon_svg($pmProvider) ?></span>
-                            <div>
-                                <strong><?= h($sourceName) ?></strong>
-                                <?php if ($pmProviderName !== '' && $pmProviderName !== $sourceName): ?><small><?= h($pmProviderName) ?></small><?php endif; ?>
+                    <div class="card service">
+                        <div class="service-head">
+                            <?= allstat_source_tile($pmProvider, 'md') ?>
+                            <div class="name-stack">
+                                <span class="name-main ellipsis"><?= h($sourceName) ?></span>
+                                <?php if ($pmProviderName !== '' && $pmProviderName !== $sourceName): ?><span class="name-sub ellipsis"><?= h($pmProviderName) ?></span><?php endif; ?>
                             </div>
-                        </header>
-                        <div class="pm-rows">
+                        </div>
+                        <div class="rows">
                             <?php foreach ($rows as $r): ?>
-                                <div class="pm-row" title="<?= h($r['metric_key']) ?>">
-                                    <span><?= $r['metric_label'] !== null ? h($r['metric_label']) : h($r['metric_key']) ?></span>
-                                    <strong><?= h(allstat_number((float) $r['total'], 0)) ?></strong>
+                                <div class="row" title="<?= h($r['metric_key']) ?>">
+                                    <span class="row-label"><?= $r['metric_label'] !== null ? h($r['metric_label']) : h($r['metric_key']) ?></span>
+                                    <span class="row-value"><?= h(allstat_number((float) $r['total'], 0)) ?></span>
                                 </div>
                             <?php endforeach; ?>
                         </div>
-                    </section>
+                    </div>
                 <?php endforeach; ?>
             </div>
         </div>
-    </div>
+    </section>
     <?php
 }
 ?>
-<div class="admin-card">
-    <div class="admin-card-header">
+<section class="card">
+    <div class="card-head">
         <div>
-            <h2><?= h(t('Rychlý report')) ?></h2>
-            <p><?= t('Souhrnné KPI za zvolený web a období (<strong>{range}</strong>) s možností stažení jako CSV. Záložkami níže si přepneš, kterou oblast chceš vidět, „Vše" zobrazí kompletní report.', ['range' => h($rangeLabel)]) ?></p>
+            <h2 class="card-title"><?= h(t('Rychlý report')) ?></h2>
+            <p class="card-desc"><?= t('Souhrnné KPI za zvolený web a období (<strong>{range}</strong>) s možností stažení jako CSV. Záložkami níže si přepneš, kterou oblast chceš vidět, „Vše" zobrazí kompletní report.', ['range' => h($rangeLabel)]) ?></p>
         </div>
-        <a class="button-primary" href="reports.php?domain_id=<?= (int) $domainId ?>&start=<?= h($start) ?>&end=<?= h($end) ?>&download=csv"><?= h(t('Stáhnout CSV')) ?></a>
+        <a class="btn btn-primary" href="reports.php?domain_id=<?= (int) $domainId ?>&start=<?= h($start) ?>&end=<?= h($end) ?>&download=csv"><?= allstat_icon('download', 'icon-sm') ?><span><?= h(t('Stáhnout CSV')) ?></span></a>
     </div>
-    <div class="admin-card-body">
-        <form method="get" class="form-grid form-grid-3">
-            <label><span><?= h(t('Web')) ?></span><select name="domain_id" data-autosubmit><?php foreach ($domains as $domain): ?><option value="<?= (int) $domain['id'] ?>" <?= $domainId === (int) $domain['id'] ? 'selected' : '' ?>><?= h($domain['url']) ?></option><?php endforeach; ?></select></label>
-            <label><span><?= h(t('Od')) ?></span><input type="date" name="start" value="<?= h($start) ?>"></label>
-            <label><span><?= h(t('Do')) ?></span><input type="date" name="end" value="<?= h($end) ?>"></label>
-            <div class="form-actions"><button class="button-primary" type="submit"><?= h(t('Načíst report')) ?></button></div>
+    <div class="card-body section">
+        <form method="get" class="form-grid">
+            <label class="field"><span class="field-label"><?= h(t('Web')) ?></span><select class="input" name="domain_id" data-autosubmit><?php foreach ($domains as $domain): ?><option value="<?= (int) $domain['id'] ?>" <?= $domainId === (int) $domain['id'] ? 'selected' : '' ?>><?= h($domain['url']) ?></option><?php endforeach; ?></select></label>
+            <label class="field"><span class="field-label"><?= h(t('Od')) ?></span><input class="input" type="date" name="start" value="<?= h($start) ?>"></label>
+            <label class="field"><span class="field-label"><?= h(t('Do')) ?></span><input class="input" type="date" name="end" value="<?= h($end) ?>"></label>
+            <div class="form-actions field-full"><button class="btn btn-primary" type="submit"><?= h(t('Načíst report')) ?></button></div>
         </form>
-        <div class="report-quick-ranges">
-            <span class="table-muted"><?= h(t('Rychlá volba:')) ?></span>
-            <?php foreach ($quickRanges as $qrLabel => $qrDays): $qrStart = (new DateTimeImmutable('today'))->modify('-' . $qrDays . ' days')->format('Y-m-d'); $qrEnd = (new DateTimeImmutable('today'))->format('Y-m-d'); ?>
-                <a class="anchor-chip<?= $start === $qrStart && $end === $qrEnd ? ' is-active' : '' ?>" href="reports.php?domain_id=<?= (int) $domainId ?>&start=<?= h($qrStart) ?>&end=<?= h($qrEnd) ?>"><?= h($qrLabel) ?></a>
-            <?php endforeach; ?>
+        <div class="form-actions">
+            <span class="is-muted"><?= h(t('Rychlá volba:')) ?></span>
+            <div class="seg" role="group" aria-label="<?= h(t('Rychlá volba:')) ?>">
+                <?php foreach ($quickRanges as $qrLabel => $qrDays): $qrStart = (new DateTimeImmutable('today'))->modify('-' . $qrDays . ' days')->format('Y-m-d'); $qrEnd = (new DateTimeImmutable('today'))->format('Y-m-d'); ?>
+                    <a class="seg-item"<?= $start === $qrStart && $end === $qrEnd ? ' aria-current="true"' : '' ?> href="reports.php?domain_id=<?= (int) $domainId ?>&start=<?= h($qrStart) ?>&end=<?= h($qrEnd) ?>"><?= h($qrLabel) ?></a>
+                <?php endforeach; ?>
+            </div>
         </div>
-        <nav class="report-tabs" aria-label="<?= h(t('Sekce reportu')) ?>" data-report-tabs>
-            <?php foreach ($reportTabs as $tabKey => $tabLabel): ?>
-                <button type="button" class="report-tab<?= $tabKey === 'all' ? ' is-active' : '' ?>" data-report-tab-btn="<?= h($tabKey) ?>"><?= h($tabLabel) ?></button>
-            <?php endforeach; ?>
-        </nav>
+        <div class="table-wrap">
+            <nav class="seg" role="group" aria-label="<?= h(t('Sekce reportu')) ?>" data-report-tabs>
+                <?php foreach ($reportTabs as $tabKey => $tabLabel): ?>
+                    <button type="button" class="seg-item" aria-pressed="<?= $tabKey === 'all' ? 'true' : 'false' ?>" data-report-tab-btn="<?= h($tabKey) ?>"><?= h($tabLabel) ?></button>
+                <?php endforeach; ?>
+            </nav>
+        </div>
     </div>
-</div>
+</section>
 
-<div class="admin-stats">
+<div class="grid grid-kpis">
     <?php foreach ($data['kpis'] as $kpi): ?>
-        <div class="stat-tile"><span><?= h($kpi['label']) ?></span><strong><?= h($kpi['displayValue']) ?></strong><p class="form-help"><?= h($kpi['changeLabel']) ?> <?= h(t('vs. předchozí období')) ?></p></div>
+        <div class="card kpi"><span class="metric-label"><?= h($kpi['label']) ?></span><span class="metric-value num"><?= h($kpi['displayValue']) ?></span><span class="metric-note"><?= h($kpi['changeLabel']) ?> <?= h(t('vs. předchozí období')) ?></span></div>
     <?php endforeach; ?>
 </div>
 
@@ -247,20 +251,20 @@ $totalPagination = $lp['pageCount'];
 $baseQuery = http_build_query(['domain_id' => $domainId, 'start' => $start, 'end' => $end, 'per_page' => $perPage]);
 $pageLink = static fn(int $n): string => 'reports.php?' . $baseQuery . '&page=' . $n . '#tab-pages';
 ?>
-<div class="admin-card" id="landing-pages" data-report-tab="pages" data-landing-pages>
-    <div class="admin-card-header">
+<section class="card" id="landing-pages" data-report-tab="pages" data-landing-pages>
+    <div class="card-head">
         <div>
-            <h2><?= h(t('Všechny vstupní stránky')) ?></h2>
-            <p><?= t('Kterou stránkou návštěva začala, první stránka, na kterou člověk z vyhledávání, odkazu či reklamy přišel. Setříděno podle návštěv za {range}. Celkem <strong data-lp-total>{total}</strong> různých cest, stránka <span data-lp-page>{page}</span>/<span data-lp-pages>{pages}</span>.', ['range' => h($rangeLabel), 'total' => $totalPages, 'page' => $page, 'pages' => $totalPagination]) ?></p>
+            <h2 class="card-title"><?= h(t('Všechny vstupní stránky')) ?></h2>
+            <p class="card-desc"><?= t('Kterou stránkou návštěva začala, první stránka, na kterou člověk z vyhledávání, odkazu či reklamy přišel. Setříděno podle návštěv za {range}. Celkem <strong data-lp-total>{total}</strong> různých cest, stránka <span data-lp-page>{page}</span>/<span data-lp-pages>{pages}</span>.', ['range' => h($rangeLabel), 'total' => $totalPages, 'page' => $page, 'pages' => $totalPagination]) ?></p>
         </div>
-        <form method="get" class="toolbar">
+        <form method="get">
             <input type="hidden" name="domain_id" value="<?= (int) $domainId ?>">
             <input type="hidden" name="start" value="<?= h($start) ?>">
             <input type="hidden" name="end" value="<?= h($end) ?>">
             <input type="hidden" name="page" value="1">
-            <label class="filter-control">
-                <span><?= h(t('Na stránku')) ?></span>
-                <select name="per_page" data-lp-perpage>
+            <label class="field">
+                <span class="field-label"><?= h(t('Na stránku')) ?></span>
+                <select class="input" name="per_page" data-lp-perpage>
                     <?php foreach ([25, 50, 100, 200] as $opt): ?>
                         <option value="<?= $opt ?>" <?= $perPage === $opt ? 'selected' : '' ?>><?= $opt ?></option>
                     <?php endforeach; ?>
@@ -268,44 +272,47 @@ $pageLink = static fn(int $n): string => 'reports.php?' . $baseQuery . '&page=' 
             </label>
         </form>
     </div>
-    <div class="admin-card-body table-scroll">
-        <table class="admin-table admin-table--num">
-            <thead><tr><th><?= h(t('Stránka')) ?></th><th><?= h(t('Návštěvy')) ?></th><th><?= h(t('Konverze')) ?></th></tr></thead>
-            <tbody data-lp-rows>
-                <?php foreach ($allPages as $row): ?>
-                    <tr>
-                        <td><?= h($row['path']) ?></td>
-                        <td><?= h(allstat_number((int) $row['sessions'])) ?></td>
-                        <td><?= h(allstat_number((int) $row['conversions'])) ?></td>
-                    </tr>
-                <?php endforeach; ?>
-                <?php if (!$allPages): ?>
-                    <tr><td colspan="3" class="table-muted"><?= t('Žádná data pro toto období. Spusť sync v <a href="sources.php">Zdroje dat</a>.') ?></td></tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
+    <div class="card-body">
+        <div class="table-wrap">
+            <table class="table table-plain">
+                <colgroup><col><col class="col-md"><col class="col-md"></colgroup>
+                <thead><tr><th scope="col"><?= h(t('Stránka')) ?></th><th scope="col"><?= h(t('Návštěvy')) ?></th><th scope="col"><?= h(t('Konverze')) ?></th></tr></thead>
+                <tbody data-lp-rows>
+                    <?php foreach ($allPages as $row): ?>
+                        <tr>
+                            <td class="ellipsis" title="<?= h($row['path']) ?>"><?= h($row['path']) ?></td>
+                            <td class="num"><?= h(allstat_number((int) $row['sessions'])) ?></td>
+                            <td class="num"><?= h(allstat_number((int) $row['conversions'])) ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                    <?php if (!$allPages): ?>
+                        <tr><td colspan="3" class="is-muted"><?= t('Žádná data pro toto období. Spusť sync v <a href="sources.php">Zdroje dat</a>.') ?></td></tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
-    <nav class="pagination" aria-label="<?= h(t('Stránkování')) ?>" data-lp-nav<?= $totalPagination <= 1 ? ' hidden' : '' ?>>
-        <a class="button-secondary <?= $page <= 1 ? 'is-disabled' : '' ?>" data-lp-prev href="<?= $page > 1 ? h($pageLink($page - 1)) : '#' ?>">← <?= h(t('Předchozí')) ?></a>
-        <span class="pagination-info"><?= t('Stránka {page} z {pages}', ['page' => '<span data-lp-page>' . $page . '</span>', 'pages' => '<span data-lp-pages>' . $totalPagination . '</span>']) ?></span>
-        <a class="button-secondary <?= $page >= $totalPagination ? 'is-disabled' : '' ?>" data-lp-next href="<?= $page < $totalPagination ? h($pageLink($page + 1)) : '#' ?>"><?= h(t('Další')) ?> →</a>
+    <nav class="card-foot" aria-label="<?= h(t('Stránkování')) ?>" data-lp-nav<?= $totalPagination <= 1 ? ' hidden' : '' ?>>
+        <a class="btn btn-secondary btn-sm"<?= $page <= 1 ? ' aria-disabled="true"' : '' ?> data-lp-prev href="<?= $page > 1 ? h($pageLink($page - 1)) : '#' ?>"><span>← <?= h(t('Předchozí')) ?></span></a>
+        <span class="is-muted"><?= t('Stránka {page} z {pages}', ['page' => '<span data-lp-page>' . $page . '</span>', 'pages' => '<span data-lp-pages>' . $totalPagination . '</span>']) ?></span>
+        <a class="btn btn-secondary btn-sm"<?= $page >= $totalPagination ? ' aria-disabled="true"' : '' ?> data-lp-next href="<?= $page < $totalPagination ? h($pageLink($page + 1)) : '#' ?>"><span><?= h(t('Další')) ?> →</span></a>
     </nav>
-</div>
+</section>
 
 <?php
 // ---- Plné reporty (mirror dashboard panelů, ne­zkrácené) ----
 $reportLimit = 100;
 $pct = static fn (int $part, int $total): string => allstat_percent($total > 0 ? $part / $total * 100 : 0, 1);
 
-// Podíl jako vizuální pruh + procento — pro laika čitelnější než holé číslo.
+// Podíl jako vizuální pruh + procento - pro laika čitelnější než holé číslo.
 $shareCell = static function (float $share): string {
-    return '<div class="share-cell"><div class="quota-bar"><div class="quota-bar-fill quota-bar-neutral" style="width: ' . round(max(2, min(100, $share))) . '%;"></div></div><span>' . h(allstat_percent($share, 1)) . '</span></div>';
+    return '<div class="meter"><span class="num">' . h(allstat_percent($share, 1)) . '</span><div class="track"><div class="track-fill" style="width: ' . round(max(2, min(100, $share))) . '%;"></div></div></div>';
 };
 
 // Dlouhé tabulky ukazují top 10; zbytek schová .row-extra + tlačítko „Zobrazit dalších X" (admin.js).
 $rowExtra = static fn (int $i): string => $i >= 10 ? ' class="row-extra"' : '';
 $showMore = static function (int $count): string {
-    return $count > 10 ? '<button type="button" class="button-secondary show-more-btn" data-show-more>' . h(tn($count - 10, 'Zobrazit další 1 řádek', 'Zobrazit další {count} řádky', 'Zobrazit dalších {count} řádků')) . '</button>' : '';
+    return $count > 10 ? '<div class="card-foot"><button type="button" class="btn btn-secondary btn-sm" data-show-more>' . h(tn($count - 10, 'Zobrazit další 1 řádek', 'Zobrazit další {count} řádky', 'Zobrazit dalších {count} řádků')) . '</button></div>' : '';
 };
 
 // Zdroje návštěv (GA4 channel groups)
@@ -369,162 +376,188 @@ $eventRows = allstat_fetch_all($pdo, "
     GROUP BY event_name ORDER BY event_count DESC LIMIT $reportLimit
 ", [$domainId, $start, $end]);
 ?>
-<div class="report-grid">
-<div class="admin-card report-half" id="traffic-sources" data-report-tab="sources">
-    <div class="admin-card-header"><div><h2><?= h(t('Zdroje návštěv (GA4)')) ?></h2><p><?= t('Odkud lidé přišli: z vyhledávačů (Organické vyhledávání), napřímo (zadali adresu nebo měli záložku), z odkazů na jiných webech, ze sociálních sítí nebo z reklamy. Za {range}. <span class="table-muted">GA4 dimenze <code>sessionDefaultChannelGroup</code>.</span>', ['range' => h($rangeLabel)]) ?></p></div></div>
-    <div class="admin-card-body table-scroll">
-        <table class="admin-table admin-table--num">
-            <thead><tr><th><?= h(t('Kanál')) ?></th><th><?= h(t('Návštěvy')) ?></th><th><?= h(t('Podíl')) ?></th><th><?= h(t('Konverze')) ?></th></tr></thead>
-            <tbody>
-                <?php foreach ($trafficRows as $r): ?>
-                    <tr><td><?= h(allstat_ga4_channel_label((string) $r['source'])) ?></td><td><?= h(allstat_number((int) $r['sessions'])) ?></td><td><?= $shareCell($trafficTotal > 0 ? (int) $r['sessions'] / $trafficTotal * 100 : 0) ?></td><td><?= h(allstat_number((int) $r['conversions'])) ?></td></tr>
-                <?php endforeach; ?>
-                <?php if (!$trafficRows): ?><tr><td colspan="4" class="table-muted"><?= h(t('Žádná data, spusť GA4 sync.')) ?></td></tr><?php endif; ?>
-            </tbody>
-        </table>
+<div class="grid grid-2 report-grid">
+<section class="card report-half" id="traffic-sources" data-report-tab="sources">
+    <div class="card-head"><div><h2 class="card-title"><?= h(t('Zdroje návštěv (GA4)')) ?></h2><p class="card-desc"><?= (t('Odkud lidé přišli: z vyhledávačů (Organické vyhledávání), napřímo (zadali adresu nebo měli záložku), z odkazů na jiných webech, ze sociálních sítí nebo z reklamy. Za {range}. <span class="is-muted">GA4 dimenze <code>sessionDefaultChannelGroup</code>.</span>', ['range' => h($rangeLabel)])) ?></p></div></div>
+    <div class="card-body">
+        <div class="table-wrap">
+            <table class="table table-plain">
+                <colgroup><col><col class="col-sm"><col class="col-sm"><col class="col-sm"></colgroup>
+                <thead><tr><th scope="col"><?= h(t('Kanál')) ?></th><th scope="col"><?= h(t('Návštěvy')) ?></th><th scope="col"><?= h(t('Podíl')) ?></th><th scope="col"><?= h(t('Konverze')) ?></th></tr></thead>
+                <tbody>
+                    <?php foreach ($trafficRows as $r): ?>
+                        <tr><td class="ellipsis"><?= h(allstat_ga4_channel_label((string) $r['source'])) ?></td><td class="num"><?= h(allstat_number((int) $r['sessions'])) ?></td><td><?= $shareCell($trafficTotal > 0 ? (int) $r['sessions'] / $trafficTotal * 100 : 0) ?></td><td class="num"><?= h(allstat_number((int) $r['conversions'])) ?></td></tr>
+                    <?php endforeach; ?>
+                    <?php if (!$trafficRows): ?><tr><td colspan="4" class="is-muted"><?= h(t('Žádná data, spusť GA4 sync.')) ?></td></tr><?php endif; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
-</div>
+</section>
 
-<div class="admin-card report-half" id="devices" data-report-tab="audience">
-    <div class="admin-card-header"><div><h2><?= h(t('Zařízení (GA4)')) ?></h2><p><?= t('Z čeho lidé web prohlížejí, mobil, počítač, tablet. Když převažuje mobil, musí web především dobře fungovat na malém displeji. Za {range}. <span class="table-muted">GA4 dimenze <code>deviceCategory</code>.</span>', ['range' => h($rangeLabel)]) ?></p></div></div>
-    <div class="admin-card-body table-scroll">
-        <table class="admin-table admin-table--num">
-            <thead><tr><th><?= h(t('Zařízení')) ?></th><th><?= h(t('Návštěvy')) ?></th><th><?= h(t('Podíl')) ?></th><th><?= h(t('Konverze')) ?></th></tr></thead>
-            <tbody>
-                <?php foreach ($deviceRows as $r): ?>
-                    <tr><td><?= h(allstat_device_label((string) $r['device'])) ?></td><td><?= h(allstat_number((int) $r['sessions'])) ?></td><td><?= $shareCell($deviceTotal > 0 ? (int) $r['sessions'] / $deviceTotal * 100 : 0) ?></td><td><?= h(allstat_number((int) $r['conversions'])) ?></td></tr>
-                <?php endforeach; ?>
-                <?php if (!$deviceRows): ?><tr><td colspan="4" class="table-muted"><?= h(t('Žádná data, spusť GA4 sync.')) ?></td></tr><?php endif; ?>
-            </tbody>
-        </table>
+<section class="card report-half" id="devices" data-report-tab="audience">
+    <div class="card-head"><div><h2 class="card-title"><?= h(t('Zařízení (GA4)')) ?></h2><p class="card-desc"><?= (t('Z čeho lidé web prohlížejí, mobil, počítač, tablet. Když převažuje mobil, musí web především dobře fungovat na malém displeji. Za {range}. <span class="is-muted">GA4 dimenze <code>deviceCategory</code>.</span>', ['range' => h($rangeLabel)])) ?></p></div></div>
+    <div class="card-body">
+        <div class="table-wrap">
+            <table class="table table-plain">
+                <colgroup><col><col class="col-sm"><col class="col-sm"><col class="col-sm"></colgroup>
+                <thead><tr><th scope="col"><?= h(t('Zařízení')) ?></th><th scope="col"><?= h(t('Návštěvy')) ?></th><th scope="col"><?= h(t('Podíl')) ?></th><th scope="col"><?= h(t('Konverze')) ?></th></tr></thead>
+                <tbody>
+                    <?php foreach ($deviceRows as $r): ?>
+                        <tr><td class="ellipsis"><?= h(allstat_device_label((string) $r['device'])) ?></td><td class="num"><?= h(allstat_number((int) $r['sessions'])) ?></td><td><?= $shareCell($deviceTotal > 0 ? (int) $r['sessions'] / $deviceTotal * 100 : 0) ?></td><td class="num"><?= h(allstat_number((int) $r['conversions'])) ?></td></tr>
+                    <?php endforeach; ?>
+                    <?php if (!$deviceRows): ?><tr><td colspan="4" class="is-muted"><?= h(t('Žádná data, spusť GA4 sync.')) ?></td></tr><?php endif; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
-</div>
+</section>
+</div><!-- /.report-grid -->
 
-<div class="admin-card report-full" id="pages" data-report-tab="pages">
-    <div class="admin-card-header"><div><h2><?= h(t('Top stránky (všechny podle zobrazení)')) ?></h2><p><?= t('Které stránky si lidé nejvíc prohlížejí. „Zobrazení" počítá i opakovaná otevření stejné stránky, „Návštěvy" jednotlivé příchody. Za {range}. <span class="table-muted">GA4 <code>pagePath</code> / <code>screenPageViews</code> · top {limit}.</span>', ['range' => h($rangeLabel), 'limit' => $reportLimit]) ?></p></div></div>
-    <div class="admin-card-body table-scroll">
-        <table class="admin-table admin-table--num">
-            <thead><tr><th><?= h(t('Stránka')) ?></th><th><?= h(t('Zobrazení')) ?></th><th><?= h(t('Podíl')) ?></th><th><?= h(t('Návštěvy')) ?></th><th><?= h(t('Konverze')) ?></th></tr></thead>
-            <tbody>
-                <?php foreach ($pageRows as $i => $r): ?>
-                    <tr<?= $rowExtra($i) ?>><td><?= h($r['path']) ?></td><td><?= h(allstat_number((int) $r['views'])) ?></td><td><?= $shareCell($pageViewsTotal > 0 ? (int) $r['views'] / $pageViewsTotal * 100 : 0) ?></td><td><?= h(allstat_number((int) $r['sessions'])) ?></td><td><?= h(allstat_number((int) $r['conversions'])) ?></td></tr>
-                <?php endforeach; ?>
-                <?php if (!$pageRows): ?><tr><td colspan="5" class="table-muted"><?= h(t('Žádná data, spusť GA4 sync.')) ?></td></tr><?php endif; ?>
-            </tbody>
-        </table>
-        <?= $showMore(count($pageRows)) ?>
+<section class="card report-full" id="pages" data-report-tab="pages">
+    <div class="card-head"><div><h2 class="card-title"><?= h(t('Top stránky (všechny podle zobrazení)')) ?></h2><p class="card-desc"><?= (t('Které stránky si lidé nejvíc prohlížejí. „Zobrazení" počítá i opakovaná otevření stejné stránky, „Návštěvy" jednotlivé příchody. Za {range}. <span class="is-muted">GA4 <code>pagePath</code> / <code>screenPageViews</code> · top {limit}.</span>', ['range' => h($rangeLabel), 'limit' => $reportLimit])) ?></p></div></div>
+    <div class="card-body">
+        <div class="table-wrap">
+            <table class="table table-plain">
+                <colgroup><col><col class="col-sm"><col class="col-md"><col class="col-sm"><col class="col-sm"></colgroup>
+                <thead><tr><th scope="col"><?= h(t('Stránka')) ?></th><th scope="col"><?= h(t('Zobrazení')) ?></th><th scope="col"><?= h(t('Podíl')) ?></th><th scope="col"><?= h(t('Návštěvy')) ?></th><th scope="col"><?= h(t('Konverze')) ?></th></tr></thead>
+                <tbody>
+                    <?php foreach ($pageRows as $i => $r): ?>
+                        <tr<?= $rowExtra($i) ?>><td class="ellipsis" title="<?= h($r['path']) ?>"><?= h($r['path']) ?></td><td class="num"><?= h(allstat_number((int) $r['views'])) ?></td><td><?= $shareCell($pageViewsTotal > 0 ? (int) $r['views'] / $pageViewsTotal * 100 : 0) ?></td><td class="num"><?= h(allstat_number((int) $r['sessions'])) ?></td><td class="num"><?= h(allstat_number((int) $r['conversions'])) ?></td></tr>
+                    <?php endforeach; ?>
+                    <?php if (!$pageRows): ?><tr><td colspan="5" class="is-muted"><?= h(t('Žádná data, spusť GA4 sync.')) ?></td></tr><?php endif; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
-</div>
+    <?= $showMore(count($pageRows)) ?>
+</section>
 
-<div class="admin-card report-full" id="queries" data-report-tab="search">
-    <div class="admin-card-header"><div><h2><?= h(t('Vyhledávací dotazy (GSC)')) ?></h2><p><?= t('Co lidé hledali v Googlu, než klikli na tvůj web. „Zobrazení" = kolikrát se web u dotazu ukázal ve výsledcích, „CTR" = jak často z toho lidé klikli, „Pozice" = průměrné pořadí ve výsledcích (menší číslo = výš). Za {range}. <span class="table-muted">Z Google Search Console · top {limit}.</span>', ['range' => h($rangeLabel), 'limit' => $reportLimit]) ?></p></div></div>
-    <div class="admin-card-body table-scroll">
-        <table class="admin-table admin-table--num">
-            <thead><tr><th><?= h(t('Dotaz')) ?></th><th><?= h(t('Kliknutí')) ?></th><th><?= h(t('Zobrazení')) ?></th><th>CTR</th><th><?= h(t('Pozice')) ?></th></tr></thead>
-            <tbody>
-                <?php foreach ($queryRows as $i => $r):
-                    $clicks = (int) $r['clicks']; $impr = (int) $r['impressions'];
-                ?>
-                    <tr<?= $rowExtra($i) ?>><td><?= h($r['query_text']) ?></td><td><?= h(allstat_number($clicks)) ?></td><td><?= h(allstat_number($impr)) ?></td><td><?= h(allstat_percent($impr > 0 ? $clicks / $impr * 100 : 0, 1)) ?></td><td><?= h(allstat_number((float) $r['position'], 1)) ?></td></tr>
-                <?php endforeach; ?>
-                <?php if (!$queryRows): ?><tr><td colspan="5" class="table-muted"><?= t('Zatím bez dat, napoj GSC ve <a href="sources.php">Zdroje dat</a>.') ?></td></tr><?php endif; ?>
-            </tbody>
-        </table>
-        <?= $showMore(count($queryRows)) ?>
+<section class="card report-full" id="queries" data-report-tab="search">
+    <div class="card-head"><div><h2 class="card-title"><?= h(t('Vyhledávací dotazy (GSC)')) ?></h2><p class="card-desc"><?= (t('Co lidé hledali v Googlu, než klikli na tvůj web. „Zobrazení" = kolikrát se web u dotazu ukázal ve výsledcích, „CTR" = jak často z toho lidé klikli, „Pozice" = průměrné pořadí ve výsledcích (menší číslo = výš). Za {range}. <span class="is-muted">Z Google Search Console · top {limit}.</span>', ['range' => h($rangeLabel), 'limit' => $reportLimit])) ?></p></div></div>
+    <div class="card-body">
+        <div class="table-wrap">
+            <table class="table table-plain">
+                <colgroup><col><col class="col-sm"><col class="col-sm"><col class="col-sm"><col class="col-sm"></colgroup>
+                <thead><tr><th scope="col"><?= h(t('Dotaz')) ?></th><th scope="col"><?= h(t('Kliknutí')) ?></th><th scope="col"><?= h(t('Zobrazení')) ?></th><th scope="col">CTR</th><th scope="col"><?= h(t('Pozice')) ?></th></tr></thead>
+                <tbody>
+                    <?php foreach ($queryRows as $i => $r):
+                        $clicks = (int) $r['clicks']; $impr = (int) $r['impressions'];
+                    ?>
+                        <tr<?= $rowExtra($i) ?>><td class="ellipsis" title="<?= h($r['query_text']) ?>"><?= h($r['query_text']) ?></td><td class="num"><?= h(allstat_number($clicks)) ?></td><td class="num"><?= h(allstat_number($impr)) ?></td><td class="num"><?= h(allstat_percent($impr > 0 ? $clicks / $impr * 100 : 0, 1)) ?></td><td class="num"><?= h(allstat_number((float) $r['position'], 1)) ?></td></tr>
+                    <?php endforeach; ?>
+                    <?php if (!$queryRows): ?><tr><td colspan="5" class="is-muted"><?= t('Zatím bez dat, napoj GSC ve <a href="sources.php">Zdroje dat</a>.') ?></td></tr><?php endif; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
-</div>
+    <?= $showMore(count($queryRows)) ?>
+</section>
 
 <?php if (isset($pmByCategory['analytics'])) { allstat_report_service_card('analytics', $pmByCategory['analytics'], $pmCatMeta['analytics'], $rangeLabel, 'report-full'); } ?>
 
-<div class="admin-card report-half" id="referrers" data-report-tab="sources">
-    <div class="admin-card-header"><div><h2><?= h(t('Konkrétní referrery (GA4)')) ?></h2><p><?= t('Konkrétní cizí weby, ze kterých lidé proklikli na tvůj web, tedy kdo na tebe odkazuje a skutečně posílá návštěvníky. Za {range}. <span class="table-muted">GA4 dimenze <code>sessionSource</code>, medium = referral · top {limit}.</span>', ['range' => h($rangeLabel), 'limit' => $reportLimit]) ?></p></div></div>
-    <div class="admin-card-body table-scroll">
-        <table class="admin-table admin-table--num">
-            <thead><tr><th><?= h(t('Referrer')) ?></th><th><?= h(t('Návštěvy')) ?></th><th><?= h(t('Podíl')) ?></th><th><?= h(t('Konverze')) ?></th></tr></thead>
-            <tbody>
-                <?php foreach ($referrerRows as $i => $r): ?>
-                    <tr<?= $rowExtra($i) ?>><td><?= h($r['source']) ?></td><td><?= h(allstat_number((int) $r['sessions'])) ?></td><td><?= $shareCell($referrerTotal > 0 ? (int) $r['sessions'] / $referrerTotal * 100 : 0) ?></td><td><?= h(allstat_number((int) $r['conversions'])) ?></td></tr>
-                <?php endforeach; ?>
-                <?php if (!$referrerRows): ?><tr><td colspan="4" class="table-muted"><?= h(t('Zatím bez referral dat, spusť GA4 sync.')) ?></td></tr><?php endif; ?>
-            </tbody>
-        </table>
-        <?= $showMore(count($referrerRows)) ?>
-    </div>
-</div>
-
-<div class="admin-card report-half" id="geo" data-report-tab="audience">
-    <div class="admin-card-header"><div><h2><?= h(t('Návštěvy podle regionu (GA4)')) ?></h2><p><?= t('Odkud návštěvníci geograficky jsou, rychlá kontrola, jestli web zasahuje správnou oblast. Za {range}. <span class="table-muted">GA4 dimenze <code>region</code> / <code>country</code> · top {limit}.</span>', ['range' => h($rangeLabel), 'limit' => $reportLimit]) ?></p></div></div>
-    <div class="admin-card-body table-scroll">
-        <table class="admin-table admin-table--num2">
-            <thead><tr><th><?= h(t('Region')) ?></th><th><?= h(t('Země')) ?></th><th><?= h(t('Návštěvy')) ?></th><th><?= h(t('Podíl')) ?></th></tr></thead>
-            <tbody>
-                <?php foreach ($geoRows as $i => $r): ?>
-                    <tr<?= $rowExtra($i) ?>><td><?= h($r['region']) ?></td><td><?= h($r['country']) ?></td><td><?= h(allstat_number((int) $r['sessions'])) ?></td><td><?= $shareCell($geoTotal > 0 ? (int) $r['sessions'] / $geoTotal * 100 : 0) ?></td></tr>
-                <?php endforeach; ?>
-                <?php if (!$geoRows): ?><tr><td colspan="4" class="table-muted"><?= h(t('Žádná data, spusť GA4 sync.')) ?></td></tr><?php endif; ?>
-            </tbody>
-        </table>
-        <?= $showMore(count($geoRows)) ?>
-    </div>
-</div>
-
-<div class="admin-card report-half" id="events" data-report-tab="actions">
-    <div class="admin-card-header"><div><h2><?= h(t('Klíčové akce (GA4)')) ?></h2><p><?= t('Co lidé na webu dělají, každý řádek je jedna akce (zobrazení stránky, scrollování, kliknutí, odeslání formuláře…). Akce se štítkem <span class="status-badge status-ok">key</span> jsou označené jako konverze, tedy to, co má pro tebe skutečnou hodnotu. Za {range}. <span class="table-muted">GA4 <code>eventName</code> · top {limit}.</span>', ['range' => h($rangeLabel), 'limit' => $reportLimit]) ?></p></div></div>
-    <div class="admin-card-body table-scroll">
-        <table class="admin-table admin-table--num">
-            <thead><tr><th><?= h(t('Akce')) ?></th><th><?= h(t('Počet')) ?></th><th><?= h(t('Z toho key events')) ?></th></tr></thead>
-            <tbody>
-                <?php foreach ($eventRows as $i => $r): ?>
-                    <tr<?= $rowExtra($i) ?>><td><?= h($r['event_name']) ?><?= (int) $r['key_events'] > 0 ? ' <span class="status-badge status-ok">key</span>' : '' ?></td><td><?= h(allstat_number((int) $r['event_count'])) ?></td><td><?= h(allstat_number((int) $r['key_events'])) ?></td></tr>
-                <?php endforeach; ?>
-                <?php if (!$eventRows): ?><tr><td colspan="3" class="table-muted"><?= h(t('Žádná data, spusť GA4 sync.')) ?></td></tr><?php endif; ?>
-            </tbody>
-        </table>
-        <?= $showMore(count($eventRows)) ?>
-    </div>
-</div>
-
-<?php $aiSources = $data['tables']['aiSources'] ?? []; ?>
-<div class="admin-card report-half" id="ai-sources" data-report-tab="sources">
-    <div class="admin-card-header">
-        <div>
-            <h2><?= h(t('AI zdroje návštěvnosti')) ?></h2>
-            <p><?= t('Návštěvy z AI asistentů (ChatGPT, Perplexity, Gemini, Copilot, Claude…) za {range}. Z GA4 dimenze <code>sessionSource</code>, měřitelné jen u nástrojů, které předají referrer.', ['range' => h($rangeLabel)]) ?></p>
+<div class="grid grid-2 report-grid">
+<section class="card report-half" id="referrers" data-report-tab="sources">
+    <div class="card-head"><div><h2 class="card-title"><?= h(t('Konkrétní referrery (GA4)')) ?></h2><p class="card-desc"><?= (t('Konkrétní cizí weby, ze kterých lidé proklikli na tvůj web, tedy kdo na tebe odkazuje a skutečně posílá návštěvníky. Za {range}. <span class="is-muted">GA4 dimenze <code>sessionSource</code>, medium = referral · top {limit}.</span>', ['range' => h($rangeLabel), 'limit' => $reportLimit])) ?></p></div></div>
+    <div class="card-body">
+        <div class="table-wrap">
+            <table class="table table-plain">
+                <colgroup><col><col class="col-sm"><col class="col-sm"><col class="col-sm"></colgroup>
+                <thead><tr><th scope="col"><?= h(t('Referrer')) ?></th><th scope="col"><?= h(t('Návštěvy')) ?></th><th scope="col"><?= h(t('Podíl')) ?></th><th scope="col"><?= h(t('Konverze')) ?></th></tr></thead>
+                <tbody>
+                    <?php foreach ($referrerRows as $i => $r): ?>
+                        <tr<?= $rowExtra($i) ?>><td class="ellipsis" title="<?= h($r['source']) ?>"><?= h($r['source']) ?></td><td class="num"><?= h(allstat_number((int) $r['sessions'])) ?></td><td><?= $shareCell($referrerTotal > 0 ? (int) $r['sessions'] / $referrerTotal * 100 : 0) ?></td><td class="num"><?= h(allstat_number((int) $r['conversions'])) ?></td></tr>
+                    <?php endforeach; ?>
+                    <?php if (!$referrerRows): ?><tr><td colspan="4" class="is-muted"><?= h(t('Zatím bez referral dat, spusť GA4 sync.')) ?></td></tr><?php endif; ?>
+                </tbody>
+            </table>
         </div>
     </div>
-    <div class="admin-card-body table-scroll">
-        <table class="admin-table admin-table--num">
-            <thead><tr><th><?= h(t('AI nástroj')) ?></th><th><?= h(t('Návštěvy')) ?></th><th><?= h(t('Podíl z AI')) ?></th><th><?= h(t('Konverze')) ?></th></tr></thead>
-            <tbody>
-                <?php foreach ($aiSources as $row): ?>
-                    <tr>
-                        <td><?= h($row['source']) ?></td>
-                        <td><?= h($row['sessionsLabel']) ?></td>
-                        <td><?= $shareCell((float) ($row['share'] ?? 0)) ?></td>
-                        <td><?= h($row['conversionsLabel']) ?></td>
-                    </tr>
-                <?php endforeach; ?>
-                <?php if (!$aiSources): ?>
-                    <tr><td colspan="4" class="table-muted"><?= h(t('Zatím žádné AI návštěvy v tomto období. Naplní se po GA4 syncu.')) ?></td></tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
+    <?= $showMore(count($referrerRows)) ?>
+</section>
+
+<section class="card report-half" id="geo" data-report-tab="audience">
+    <div class="card-head"><div><h2 class="card-title"><?= h(t('Návštěvy podle regionu (GA4)')) ?></h2><p class="card-desc"><?= (t('Odkud návštěvníci geograficky jsou, rychlá kontrola, jestli web zasahuje správnou oblast. Za {range}. <span class="is-muted">GA4 dimenze <code>region</code> / <code>country</code> · top {limit}.</span>', ['range' => h($rangeLabel), 'limit' => $reportLimit])) ?></p></div></div>
+    <div class="card-body">
+        <div class="table-wrap">
+            <table class="table table-plain">
+                <colgroup><col><col class="col-md"><col class="col-sm"><col class="col-sm"></colgroup>
+                <thead><tr><th scope="col"><?= h(t('Region')) ?></th><th scope="col"><?= h(t('Země')) ?></th><th scope="col"><?= h(t('Návštěvy')) ?></th><th scope="col"><?= h(t('Podíl')) ?></th></tr></thead>
+                <tbody>
+                    <?php foreach ($geoRows as $i => $r): ?>
+                        <tr<?= $rowExtra($i) ?>><td class="ellipsis" title="<?= h($r['region']) ?>"><?= h($r['region']) ?></td><td class="ellipsis"><?= h($r['country']) ?></td><td class="num"><?= h(allstat_number((int) $r['sessions'])) ?></td><td><?= $shareCell($geoTotal > 0 ? (int) $r['sessions'] / $geoTotal * 100 : 0) ?></td></tr>
+                    <?php endforeach; ?>
+                    <?php if (!$geoRows): ?><tr><td colspan="4" class="is-muted"><?= h(t('Žádná data, spusť GA4 sync.')) ?></td></tr><?php endif; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
-</div>
+    <?= $showMore(count($geoRows)) ?>
+</section>
+
+<section class="card report-half" id="events" data-report-tab="actions">
+    <div class="card-head"><div><h2 class="card-title"><?= h(t('Klíčové akce (GA4)')) ?></h2><p class="card-desc"><?= (t('Co lidé na webu dělají, každý řádek je jedna akce (zobrazení stránky, scrollování, kliknutí, odeslání formuláře…). Akce se štítkem <span class="status tone-up">key</span> jsou označené jako konverze, tedy to, co má pro tebe skutečnou hodnotu. Za {range}. <span class="is-muted">GA4 <code>eventName</code> · top {limit}.</span>', ['range' => h($rangeLabel), 'limit' => $reportLimit])) ?></p></div></div>
+    <div class="card-body">
+        <div class="table-wrap">
+            <table class="table table-plain">
+                <colgroup><col><col class="col-sm"><col class="col-md"></colgroup>
+                <thead><tr><th scope="col"><?= h(t('Akce')) ?></th><th scope="col"><?= h(t('Počet')) ?></th><th scope="col"><?= h(t('Z toho key events')) ?></th></tr></thead>
+                <tbody>
+                    <?php foreach ($eventRows as $i => $r): ?>
+                        <tr<?= $rowExtra($i) ?>><td class="ellipsis"><?= h($r['event_name']) ?><?= (int) $r['key_events'] > 0 ? ' <span class="status tone-up">key</span>' : '' ?></td><td class="num"><?= h(allstat_number((int) $r['event_count'])) ?></td><td class="num"><?= h(allstat_number((int) $r['key_events'])) ?></td></tr>
+                    <?php endforeach; ?>
+                    <?php if (!$eventRows): ?><tr><td colspan="3" class="is-muted"><?= h(t('Žádná data, spusť GA4 sync.')) ?></td></tr><?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <?= $showMore(count($eventRows)) ?>
+</section>
+
+<?php $aiSources = $data['tables']['aiSources'] ?? []; ?>
+<section class="card report-half" id="ai-sources" data-report-tab="sources">
+    <div class="card-head">
+        <div>
+            <h2 class="card-title"><?= h(t('AI zdroje návštěvnosti')) ?></h2>
+            <p class="card-desc"><?= t('Návštěvy z AI asistentů (ChatGPT, Perplexity, Gemini, Copilot, Claude…) za {range}. Z GA4 dimenze <code>sessionSource</code>, měřitelné jen u nástrojů, které předají referrer.', ['range' => h($rangeLabel)]) ?></p>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-wrap">
+            <table class="table table-plain">
+                <colgroup><col><col class="col-sm"><col class="col-sm"><col class="col-sm"></colgroup>
+                <thead><tr><th scope="col"><?= h(t('AI nástroj')) ?></th><th scope="col"><?= h(t('Návštěvy')) ?></th><th scope="col"><?= h(t('Podíl z AI')) ?></th><th scope="col"><?= h(t('Konverze')) ?></th></tr></thead>
+                <tbody>
+                    <?php foreach ($aiSources as $row): ?>
+                        <tr>
+                            <td class="ellipsis"><?= h($row['source']) ?></td>
+                            <td class="num"><?= h($row['sessionsLabel']) ?></td>
+                            <td><?= $shareCell((float) ($row['share'] ?? 0)) ?></td>
+                            <td class="num"><?= h($row['conversionsLabel']) ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                    <?php if (!$aiSources): ?>
+                        <tr><td colspan="4" class="is-muted"><?= h(t('Zatím žádné AI návštěvy v tomto období. Naplní se po GA4 syncu.')) ?></td></tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
 </div><!-- /.report-grid -->
 
 <?php if (!$pmByCategory): ?>
-    <div class="admin-card" id="provider-metrics">
-        <div class="admin-card-header">
+    <section class="card" id="provider-metrics">
+        <div class="card-head">
             <div>
-                <h2><?= h(t('Sociální sítě a další služby')) ?></h2>
-                <p><?= h(t('Souhrn z napojených služeb mimo GA4/GSC (sociální sítě, Clarity, reklama…).')) ?></p>
+                <h2 class="card-title"><?= h(t('Sociální sítě a další služby')) ?></h2>
+                <p class="card-desc"><?= h(t('Souhrn z napojených služeb mimo GA4/GSC (sociální sítě, Clarity, reklama…).')) ?></p>
             </div>
         </div>
-        <div class="admin-card-body">
-            <p class="table-muted"><?= t('Zatím žádné metriky z dalších služeb. Napoj službu ve <a href="sources.php">Zdroje dat</a> a spusť sync.') ?></p>
+        <div class="card-body">
+            <p class="is-muted"><?= t('Zatím žádné metriky z dalších služeb. Napoj službu ve <a href="sources.php">Zdroje dat</a> a spusť sync.') ?></p>
         </div>
-    </div>
+    </section>
 <?php endif; ?>
 
 <?php foreach ($pmByCategory as $pmCatKey => $pmTiles): ?>

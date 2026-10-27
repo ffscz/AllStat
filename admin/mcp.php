@@ -340,7 +340,7 @@ function allstat_mcp_admin_show_more(int $total, int $visible = 10): string
     }
     $label = tn($rest, 'Zobrazit další 1 řádek', 'Zobrazit další {count} řádky', 'Zobrazit dalších {count} řádků');
 
-    return '<button type="button" class="button-secondary show-more-btn" data-show-more>' . h($label) . '</button>';
+    return '<div class="card-foot"><button type="button" class="btn btn-secondary btn-sm show-more-btn" data-show-more>' . h($label) . '</button></div>';
 }
 
 function allstat_mcp_admin_bytes(mixed $bytes): string
@@ -1089,169 +1089,166 @@ if (!is_array($check) || ($check['host'] ?? '') !== $curHost || ($check['app'] ?
 }
 $checkLabels = ['ok' => 'OK', 'error' => t('Chyba'), 'warning' => t('Upozornění'), 'info' => 'Info'];
 
-allstat_admin_header(t('AI konektory (MCP)'), 'mcp', $user, $config);
+allstat_admin_header(t('AI konektory (MCP)'), 'mcp', $user, $config, null, [
+    'sub' => t('Připojení AI umožní Claude nebo ChatGPT číst data z AllStatu (jen čtení, všechny weby). Přístup povoluje a kdykoli ruší administrátor.'),
+]);
 ?>
-<div class="admin-card">
-    <div class="admin-card-header">
+<section class="card">
+    <div class="card-head">
         <div>
-            <h2><?= h(t('Stav a nastavení')) ?></h2>
-            <p><?= h(t('Připojení AI umožní Claude nebo ChatGPT číst data z AllStatu (jen čtení, všechny weby). Přístup povoluje a kdykoli ruší administrátor.')) ?></p>
+            <h2 class="card-title"><?= h(t('Stav a nastavení')) ?></h2>
         </div>
-        <span class="status-badge status-<?= h($stateBadge[0]) ?>"><?= h($stateBadge[1]) ?></span>
+        <?= allstat_status_pill($stateBadge[0], $stateBadge[1]) ?>
     </div>
-    <div class="admin-card-body">
-        <?php foreach ($mcpLoadErrors as $loadError): ?>
-            <div class="notice notice-warn"><strong><?= h(t('Soubor se nepodařilo načíst.')) ?></strong> <?= h($loadError) ?></div>
-        <?php endforeach; ?>
-        <?php if (!function_exists('allstat_mcp_connections')): ?>
-            <div class="notice notice-warn"><?= h(t('Serverová část ještě není nainstalovaná. Nastavení jde uložit, ale připojení AI začne fungovat až po nahrání souborů lib/mcp-oauth.php, lib/mcp-server.php a lib/mcp-tools.php.')) ?></div>
-        <?php endif; ?>
-        <?php foreach ($errors as $formError): ?>
-            <div class="notice notice-error"><?= h($formError) ?></div>
-        <?php endforeach; ?>
-        <?php foreach ($storedProblems as $storedProblem): ?>
-            <div class="notice notice-warn"><strong><?= h(t('Uložené nastavení nevyhovuje pravidlům.')) ?></strong> <?= h($storedProblem) ?> <?= h(t('Opravte ho a uložte znovu.')) ?></div>
-        <?php endforeach; ?>
+    <div class="card-body">
+        <div class="section">
+            <?php foreach ($mcpLoadErrors as $loadError): ?>
+                <div class="callout tone-warn"><div><strong><?= h(t('Soubor se nepodařilo načíst.')) ?></strong> <?= h($loadError) ?></div></div>
+            <?php endforeach; ?>
+            <?php if (!function_exists('allstat_mcp_connections')): ?>
+                <div class="callout tone-warn"><div><?= h(t('Serverová část ještě není nainstalovaná. Nastavení jde uložit, ale připojení AI začne fungovat až po nahrání souborů lib/mcp-oauth.php, lib/mcp-server.php a lib/mcp-tools.php.')) ?></div></div>
+            <?php endif; ?>
+            <?php foreach ($errors as $formError): ?>
+                <div class="callout tone-down"><div><?= h($formError) ?></div></div>
+            <?php endforeach; ?>
+            <?php foreach ($storedProblems as $storedProblem): ?>
+                <div class="callout tone-warn"><div><strong><?= h(t('Uložené nastavení nevyhovuje pravidlům.')) ?></strong> <?= h($storedProblem) ?> <?= h(t('Opravte ho a uložte znovu.')) ?></div></div>
+            <?php endforeach; ?>
 
-        <form method="post" class="form-stack mcp-settings-form" data-mcp-settings data-was-enabled="<?= $curEnabled ? '1' : '0' ?>">
-            <?= allstat_csrf_field() ?>
-            <input type="hidden" name="action" value="save_settings">
-            <div class="form-grid">
-                <label>
-                    <span><?= h(t('Povolit připojení AI (MCP)')) ?></span>
-                    <select name="mcp_enabled">
+            <form method="post" class="form-grid" data-mcp-settings data-was-enabled="<?= $curEnabled ? '1' : '0' ?>">
+                <?= allstat_csrf_field() ?>
+                <input type="hidden" name="action" value="save_settings">
+                <label class="field">
+                    <span class="field-label"><?= h(t('Povolit připojení AI (MCP)')) ?></span>
+                    <select class="input" name="mcp_enabled">
                         <option value="1"<?= $form['enabled'] === '1' ? ' selected' : '' ?>><?= h(t('Ano')) ?></option>
                         <option value="0"<?= $form['enabled'] !== '1' ? ' selected' : '' ?>><?= h(t('Ne')) ?></option>
                     </select>
-                    <small class="field-help"><?= h(t('Při „Ne“ všechny adresy konektoru odpovídají 404 a nikdo se nepřipojí. Vypnutí zároveň odpojí už připojené aplikace.')) ?></small>
+                    <span class="field-help"><?= h(t('Při „Ne“ všechny adresy konektoru odpovídají 404 a nikdo se nepřipojí. Vypnutí zároveň odpojí už připojené aplikace.')) ?></span>
                 </label>
-                <label>
-                    <span><?= h(t('Adresa MCP serveru')) ?></span>
-                    <input type="text" name="mcp_host_url" value="<?= h($form['host']) ?>" placeholder="https://allstat.example.cz" inputmode="url" autocomplete="off" spellcheck="false">
-                    <small class="field-help"><?= h(t('Adresa, na které běží složka allstat-mcp, nejlépe vlastní subdoména. Musí být HTTPS a bez lomítka na konci (http:// jen pro localhost).')) ?></small>
+                <label class="field">
+                    <span class="field-label"><?= h(t('Adresa MCP serveru')) ?></span>
+                    <input class="input" type="text" name="mcp_host_url" value="<?= h($form['host']) ?>" placeholder="https://allstat.example.cz" inputmode="url" autocomplete="off" spellcheck="false">
+                    <span class="field-help"><?= h(t('Adresa, na které běží složka allstat-mcp, nejlépe vlastní subdoména. Musí být HTTPS a bez lomítka na konci (http:// jen pro localhost).')) ?></span>
                 </label>
-                <label>
-                    <span><?= h(t('Adresa AllStatu')) ?></span>
-                    <input type="text" name="mcp_app_url" value="<?= h($form['app']) ?>" placeholder="https://www.example.cz/allstat" inputmode="url" autocomplete="off" spellcheck="false">
-                    <small class="field-help"><?= h(t('Kde běží tato administrace, včetně cesty. Sem se uživatel vrací k přihlášení a potvrzení přístupu.')) ?><?= $appPrefilled ? ' ' . h(t('Předvyplněno podle aktuální adresy, zkontrolujte ji.')) : '' ?></small>
+                <label class="field">
+                    <span class="field-label"><?= h(t('Adresa AllStatu')) ?></span>
+                    <input class="input" type="text" name="mcp_app_url" value="<?= h($form['app']) ?>" placeholder="https://www.example.cz/allstat" inputmode="url" autocomplete="off" spellcheck="false">
+                    <span class="field-help"><?= h(t('Kde běží tato administrace, včetně cesty. Sem se uživatel vrací k přihlášení a potvrzení přístupu.')) ?><?= $appPrefilled ? ' ' . h(t('Předvyplněno podle aktuální adresy, zkontrolujte ji.')) : '' ?></span>
                 </label>
-                <label>
-                    <span><?= h(t('Další povolené návratové adresy (volitelné)')) ?></span>
-                    <textarea name="mcp_extra_redirect_uris" rows="4" placeholder="https://aplikace.example.com/oauth/callback" spellcheck="false" autocomplete="off"><?= h($form['extra']) ?></textarea>
-                    <small class="field-help"><?= h(t('Jedna přesná adresa na řádek ve tvaru https://server/cesta (bez parametrů, server malými písmeny, http:// jen pro localhost a 127.0.0.1). Claude, ChatGPT a Claude Code jsou povolené automaticky, sem patří jen výjimky pro jiné aplikace.')) ?></small>
+                <label class="field field-full">
+                    <span class="field-label"><?= h(t('Další povolené návratové adresy (volitelné)')) ?></span>
+                    <textarea class="input" name="mcp_extra_redirect_uris" rows="4" placeholder="https://aplikace.example.com/oauth/callback" spellcheck="false" autocomplete="off"><?= h($form['extra']) ?></textarea>
+                    <span class="field-help"><?= h(t('Jedna přesná adresa na řádek ve tvaru https://server/cesta (bez parametrů, server malými písmeny, http:// jen pro localhost a 127.0.0.1). Claude, ChatGPT a Claude Code jsou povolené automaticky, sem patří jen výjimky pro jiné aplikace.')) ?></span>
                 </label>
-            </div>
-            <?php if ($curEnabled): ?>
-                <label class="mcp-check" data-mcp-confirm-off>
-                    <input type="checkbox" name="mcp_confirm_disable" value="1"<?= !empty($form['confirm']) ? ' checked' : '' ?>>
-                    <span><strong><?= h(t('Opravdu odpojit všechny aplikace.')) ?></strong> <?= h(t('Platí při přepnutí na „Ne“: vypnutí hned zneplatní všechna připojení (Claude, ChatGPT...) a aplikace se musí připojit znovu.')) ?></span>
-                </label>
+                <?php if ($curEnabled): ?>
+                    <label class="check field-full" data-mcp-confirm-off>
+                        <input type="checkbox" name="mcp_confirm_disable" value="1"<?= !empty($form['confirm']) ? ' checked' : '' ?>>
+                        <span><strong><?= h(t('Opravdu odpojit všechny aplikace.')) ?></strong> <?= h(t('Platí při přepnutí na „Ne“: vypnutí hned zneplatní všechna připojení (Claude, ChatGPT...) a aplikace se musí připojit znovu.')) ?></span>
+                    </label>
+                <?php endif; ?>
+                <div class="form-actions field-full">
+                    <button class="btn btn-primary" type="submit"><span><?= h(t('Uložit nastavení')) ?></span></button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+<section class="card">
+    <div class="card-head">
+        <div>
+            <h2 class="card-title"><?= h(t('Adresa konektoru')) ?></h2>
+            <p class="card-desc"><?= h(t('Tuto adresu vložte do Claude nebo ChatGPT jako vlastní (custom) konektor. Aplikace pak smí jen číst data všech webů v AllStatu.')) ?></p>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="section">
+            <?php if ($connectorUrl === ''): ?>
+                <div class="callout tone-warn"><div><?= h(t('Nejdřív vyplňte a uložte Adresu MCP serveru v nastavení výše, adresa konektoru se z ní odvodí.')) ?></div></div>
+            <?php else: ?>
+                <?php if (!$isOn): ?>
+                    <div class="callout tone-warn"><div><?= h($curEnabled ? t('Připojení AI je zapnuté, ale chybí Adresa AllStatu. Doplňte ji v nastavení výše, jinak se nikdo nemůže přihlásit.') : t('Připojení AI je teď vypnuté, konektor nebude fungovat, dokud ho v nastavení nezapnete.')) ?></div></div>
+                <?php endif; ?>
+                <div class="form-actions">
+                    <input class="input mono" type="text" id="mcpConnectorUrl" readonly value="<?= h($connectorUrl) ?>" data-select-all aria-label="<?= h(t('Adresa konektoru')) ?>">
+                    <button type="button" class="btn btn-secondary" data-mcp-copy="mcpConnectorUrl"><span><?= h(t('Kopírovat')) ?></span></button>
+                </div>
+                <div class="form-actions">
+                    <a class="btn btn-primary" href="<?= h($claudeAddUrl) ?>" target="_blank" rel="noopener noreferrer"><span><?= h(t('Přidat do Claude')) ?></span></a>
+                    <span class="is-muted"><?= h(t('Otevře Claude s předvyplněným konektorem. Pro ChatGPT použijte návod níže.')) ?></span>
+                </div>
             <?php endif; ?>
-            <div class="form-actions">
-                <button class="button-primary" type="submit"><?= h(t('Uložit nastavení')) ?></button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<div class="admin-card mcp-connector">
-    <div class="admin-card-header">
-        <div>
-            <h2><?= h(t('Adresa konektoru')) ?></h2>
-            <p><?= h(t('Tuto adresu vložte do Claude nebo ChatGPT jako vlastní (custom) konektor. Aplikace pak smí jen číst data všech webů v AllStatu.')) ?></p>
         </div>
     </div>
-    <div class="admin-card-body">
-        <?php if ($connectorUrl === ''): ?>
-            <div class="notice notice-warn"><?= h(t('Nejdřív vyplňte a uložte Adresu MCP serveru v nastavení výše, adresa konektoru se z ní odvodí.')) ?></div>
-        <?php else: ?>
-            <?php if (!$isOn): ?>
-                <div class="notice notice-warn"><?= h($curEnabled ? t('Připojení AI je zapnuté, ale chybí Adresa AllStatu. Doplňte ji v nastavení výše, jinak se nikdo nemůže přihlásit.') : t('Připojení AI je teď vypnuté, konektor nebude fungovat, dokud ho v nastavení nezapnete.')) ?></div>
-            <?php endif; ?>
-            <div class="share-url-row">
-                <input type="text" id="mcpConnectorUrl" readonly value="<?= h($connectorUrl) ?>" data-select-all aria-label="<?= h(t('Adresa konektoru')) ?>">
-                <button type="button" class="button-secondary" data-mcp-copy="mcpConnectorUrl"><?= h(t('Kopírovat')) ?></button>
-            </div>
-            <div class="form-actions">
-                <a class="button-primary" href="<?= h($claudeAddUrl) ?>" target="_blank" rel="noopener noreferrer"><?= h(t('Přidat do Claude')) ?></a>
-                <span class="table-muted"><?= h(t('Otevře Claude s předvyplněným konektorem. Pro ChatGPT použijte návod níže.')) ?></span>
-            </div>
-        <?php endif; ?>
-    </div>
-</div>
+</section>
 
-<div class="admin-card">
-    <div class="admin-card-header">
+<section class="section">
+    <div class="section-head">
+        <h2 class="h2"><?= h(t('Návody k připojení')) ?></h2>
+        <span class="section-desc"><?= h(t('Postup se v aplikacích občas mění, názvy položek jsou uvedené česky i anglicky.')) ?><?= $connectorUrl === '' ? ' ' . h(t('Adresa konektoru v návodech je zatím jen příklad, nahradí se po uložení Adresy MCP serveru.')) : '' ?></span>
+    </div>
+    <details class="card note">
+        <summary>
+            <?= allstat_icon('sparkles', 'icon') ?>
+            <span><?= h(t('Claude (web, desktop, mobil)')) ?> <span class="is-muted"><?= h(t('Free, Pro, Max, Team a Enterprise')) ?></span></span>
+            <?= allstat_icon('chevron-down', 'note-chev') ?>
+        </summary>
+        <div class="note-body">
+            <ol class="steps">
+                <li><?= t('V Claude otevřete <strong>Přizpůsobit (Customize) → Konektory (Connectors)</strong> a klikněte na <strong>Přidat vlastní konektor (Add custom connector)</strong>. Nebo použijte tlačítko „Přidat do Claude“ výše, které vyplní název i adresu.') ?></li>
+                <li><?= t('Jako název zadejte <code>AllStat</code>, jako URL <code>{url}</code> a potvrďte.', ['url' => h($guideUrl)]) ?></li>
+                <li><?= t('Klikněte na <strong>Připojit (Connect)</strong>. Otevře se AllStat: přihlaste se jako administrátor a klikněte na <strong>Povolit</strong>.') ?></li>
+            </ol>
+            <p class="field-help"><?= h(t('Volbu OAuth klienta nechte na výchozí („Use Claude\'s published identity“). Když přihlášení nefunguje, zkuste „Register automatically“.')) ?></p>
+            <p class="field-help"><?= t('<strong>Team a Enterprise:</strong> vlastník organizace nejdřív přidá konektor v <em>Organization settings → Connectors → Add → Custom → Web</em>. Členové pak jen kliknou na Connect.') ?></p>
+        </div>
+    </details>
+    <details class="card note">
+        <summary>
+            <?= allstat_icon('sparkles', 'icon') ?>
+            <span>ChatGPT <span class="is-muted"><?= h(t('Plus, Pro, Business, Enterprise a Edu, jen ve webové verzi')) ?></span></span>
+            <?= allstat_icon('chevron-down', 'note-chev') ?>
+        </summary>
+        <div class="note-body">
+            <ol class="steps">
+                <li><?= t('V ChatGPT otevřete <strong>Settings → Security and login</strong> a zapněte <strong>Developer mode</strong>.') ?></li>
+                <li><?= t('Otevřete <strong>Plugins</strong> (dříve Apps / Connectors), klikněte na <strong>+</strong> a vyplňte název <code>AllStat</code>, MCP URL <code>{url}</code> a Authentication <strong>OAuth</strong>.', ['url' => h($guideUrl)]) ?></li>
+                <li><?= t('Přihlaste se do AllStatu jako administrátor a klikněte na <strong>Povolit</strong>.') ?></li>
+            </ol>
+            <p class="field-help"><?= t('Po aktualizaci AllStatu (nové nebo změněné nástroje) klikněte v konektoru na <strong>Refresh</strong>. V Business a Enterprise musí vývojářský režim nejdřív povolit správce workspace.') ?></p>
+        </div>
+    </details>
+    <details class="card note">
+        <summary>
+            <?= allstat_icon('sparkles', 'icon') ?>
+            <span>Claude Code <span class="is-muted"><?= h(t('Příkazová řádka')) ?></span></span>
+            <?= allstat_icon('chevron-down', 'note-chev') ?>
+        </summary>
+        <div class="note-body">
+            <code class="code">claude mcp add --transport http allstat <?= h($guideUrl) ?></code>
+            <p class="field-help"><?= t('Potom v Claude Code spusťte <code>/mcp</code>, vyberte <strong>allstat</strong> a zvolte <strong>Authenticate</strong>.') ?></p>
+        </div>
+    </details>
+    <div class="callout"><?= allstat_icon('info', 'icon-sm') ?><div><?= t('<strong>Tip:</strong> po připojení napište například: „Udělej měsíční report webu za srpen.“') ?></div></div>
+</section>
+
+<section class="card">
+    <div class="card-head">
         <div>
-            <h2><?= h(t('Návody k připojení')) ?></h2>
-            <p><?= h(t('Postup se v aplikacích občas mění, názvy položek jsou uvedené česky i anglicky.')) ?><?= $connectorUrl === '' ? ' ' . h(t('Adresa konektoru v návodech je zatím jen příklad, nahradí se po uložení Adresy MCP serveru.')) : '' ?></p>
+            <h2 class="card-title"><?= h(t('Připojené aplikace')) ?></h2>
+            <p class="card-desc"><?= h(t('Aplikace, které smí číst data z AllStatu. Odpojením ztratí přístup okamžitě, nový přístup musí administrátor znovu povolit.')) ?></p>
         </div>
     </div>
-    <div class="admin-card-body mcp-guide-list">
-        <details class="admin-card-collapsible mcp-guide">
-            <summary>
-                <div>
-                    <h2><?= h(t('Claude (web, desktop, mobil)')) ?></h2>
-                    <p><?= h(t('Free, Pro, Max, Team a Enterprise')) ?></p>
-                </div>
-            </summary>
-            <div class="admin-card-body">
-                <ol class="setup-steps">
-                    <li><?= t('V Claude otevřete <strong>Přizpůsobit (Customize) → Konektory (Connectors)</strong> a klikněte na <strong>Přidat vlastní konektor (Add custom connector)</strong>. Nebo použijte tlačítko „Přidat do Claude“ výše, které vyplní název i adresu.') ?></li>
-                    <li><?= t('Jako název zadejte <code>AllStat</code>, jako URL <code>{url}</code> a potvrďte.', ['url' => h($guideUrl)]) ?></li>
-                    <li><?= t('Klikněte na <strong>Připojit (Connect)</strong>. Otevře se AllStat: přihlaste se jako administrátor a klikněte na <strong>Povolit</strong>.') ?></li>
-                </ol>
-                <p class="form-help"><?= h(t('Volbu OAuth klienta nechte na výchozí („Use Claude\'s published identity“). Když přihlášení nefunguje, zkuste „Register automatically“.')) ?></p>
-                <p class="form-help"><?= t('<strong>Team a Enterprise:</strong> vlastník organizace nejdřív přidá konektor v <em>Organization settings → Connectors → Add → Custom → Web</em>. Členové pak jen kliknou na Connect.') ?></p>
-            </div>
-        </details>
-        <details class="admin-card-collapsible mcp-guide">
-            <summary>
-                <div>
-                    <h2>ChatGPT</h2>
-                    <p><?= h(t('Plus, Pro, Business, Enterprise a Edu, jen ve webové verzi')) ?></p>
-                </div>
-            </summary>
-            <div class="admin-card-body">
-                <ol class="setup-steps">
-                    <li><?= t('V ChatGPT otevřete <strong>Settings → Security and login</strong> a zapněte <strong>Developer mode</strong>.') ?></li>
-                    <li><?= t('Otevřete <strong>Plugins</strong> (dříve Apps / Connectors), klikněte na <strong>+</strong> a vyplňte název <code>AllStat</code>, MCP URL <code>{url}</code> a Authentication <strong>OAuth</strong>.', ['url' => h($guideUrl)]) ?></li>
-                    <li><?= t('Přihlaste se do AllStatu jako administrátor a klikněte na <strong>Povolit</strong>.') ?></li>
-                </ol>
-                <p class="form-help"><?= t('Po aktualizaci AllStatu (nové nebo změněné nástroje) klikněte v konektoru na <strong>Refresh</strong>. V Business a Enterprise musí vývojářský režim nejdřív povolit správce workspace.') ?></p>
-            </div>
-        </details>
-        <details class="admin-card-collapsible mcp-guide">
-            <summary>
-                <div>
-                    <h2>Claude Code</h2>
-                    <p><?= h(t('Příkazová řádka')) ?></p>
-                </div>
-            </summary>
-            <div class="admin-card-body">
-                <div class="code-box">claude mcp add --transport http allstat <?= h($guideUrl) ?></div>
-                <p class="form-help"><?= t('Potom v Claude Code spusťte <code>/mcp</code>, vyberte <strong>allstat</strong> a zvolte <strong>Authenticate</strong>.') ?></p>
-            </div>
-        </details>
-        <div class="notice notice-info"><?= t('<strong>Tip:</strong> po připojení napište například: „Udělej měsíční report webu za srpen.“') ?></div>
-    </div>
-</div>
-
-<div class="admin-card">
-    <div class="admin-card-header">
-        <div>
-            <h2><?= h(t('Připojené aplikace')) ?></h2>
-            <p><?= h(t('Aplikace, které smí číst data z AllStatu. Odpojením ztratí přístup okamžitě, nový přístup musí administrátor znovu povolit.')) ?></p>
-        </div>
-    </div>
-    <div class="admin-card-body table-scroll">
-        <?php if (!function_exists('allstat_mcp_connections')): ?>
-            <div class="notice notice-warn"><?= h(t('Serverová část ještě není nainstalovaná.')) ?></div>
-        <?php elseif ($connectionsError !== ''): ?>
-            <div class="notice notice-error"><?= h($connectionsError) ?></div>
-        <?php else: ?>
-            <table class="admin-table mcp-stack">
-                <thead><tr><th><?= h(t('Uživatel')) ?></th><th><?= h(t('Aplikace')) ?></th><th><?= h(t('Návrat na')) ?></th><th><?= h(t('Připojeno')) ?></th><th><?= h(t('Naposledy použito')) ?></th><th></th></tr></thead>
+    <?php if (!function_exists('allstat_mcp_connections')): ?>
+        <div class="card-body"><div class="callout tone-warn"><div><?= h(t('Serverová část ještě není nainstalovaná.')) ?></div></div></div>
+    <?php elseif ($connectionsError !== ''): ?>
+        <div class="card-body"><div class="callout tone-down"><div><?= h($connectionsError) ?></div></div></div>
+    <?php else: ?>
+        <div class="table-wrap">
+            <table class="table table-data">
+                <colgroup><col><col><col><col class="col-md"><col class="col-md"><col class="col-md"></colgroup>
+                <thead><tr><th scope="col"><?= h(t('Uživatel')) ?></th><th scope="col"><?= h(t('Aplikace')) ?></th><th scope="col"><?= h(t('Návrat na')) ?></th><th scope="col"><?= h(t('Připojeno')) ?></th><th scope="col"><?= h(t('Naposledy použito')) ?></th><th scope="col" data-no-sort><span class="sr-only"><?= h(t('Akce')) ?></span></th></tr></thead>
                 <tbody>
                 <?php foreach ($connections as $connectionIndex => $connection): ?>
                     <?php
@@ -1265,48 +1262,49 @@ allstat_admin_header(t('AI konektory (MCP)'), 'mcp', $user, $config);
                         $userLabel = $userName !== '' ? $userName : ($userEmail !== '' ? $userEmail : t('Smazaný uživatel #{id}', ['id' => (int) ($connection['user_id'] ?? 0)]));
                     ?>
                     <tr<?= $connectionIndex >= 10 ? ' class="row-extra"' : '' ?>>
-                        <td data-label="<?= h(t('Uživatel')) ?>"><div class="mcp-cell"><strong><?= h($userLabel) ?></strong><?php if ($userName !== '' && $userEmail !== ''): ?><div class="table-muted"><?= h($userEmail) ?></div><?php endif; ?></div></td>
-                        <td data-label="<?= h(t('Aplikace')) ?>"><div class="mcp-cell"><strong><?= h($appLabel) ?></strong><div class="table-muted"><?= h($identity) ?></div></div></td>
-                        <td data-label="<?= h(t('Návrat na')) ?>"><div class="mcp-cell"><?= h($redirectHost !== '' ? $redirectHost : '–') ?></div></td>
-                        <td data-label="<?= h(t('Připojeno')) ?>" data-sort="<?= h((string) ($connection['created_at'] ?? '')) ?>"><div class="mcp-cell"><?= h(allstat_mcp_admin_time($connection['created_at'] ?? null) ?: '–') ?></div></td>
-                        <td data-label="<?= h(t('Naposledy použito')) ?>" data-sort="<?= h((string) ($connection['last_used_at'] ?? '')) ?>"><div class="mcp-cell"><?= ($lastUsed = allstat_mcp_admin_time($connection['last_used_at'] ?? null)) !== '' ? h($lastUsed) : '<span class="table-muted">' . h(t('zatím nepoužito')) . '</span>' ?></div></td>
-                        <td class="mcp-actions">
-                            <div class="table-actions">
+                        <td data-label="<?= h(t('Uživatel')) ?>"><div class="name-stack"><span class="name-main ellipsis"><?= h($userLabel) ?></span><?php if ($userName !== '' && $userEmail !== ''): ?><span class="name-sub ellipsis"><?= h($userEmail) ?></span><?php endif; ?></div></td>
+                        <td data-label="<?= h(t('Aplikace')) ?>"><div class="name-stack"><span class="name-main ellipsis"><?= h($appLabel) ?></span><span class="name-sub ellipsis"><?= h($identity) ?></span></div></td>
+                        <td data-label="<?= h(t('Návrat na')) ?>"><span class="ellipsis"><?= h($redirectHost !== '' ? $redirectHost : '–') ?></span></td>
+                        <td data-label="<?= h(t('Připojeno')) ?>" data-sort="<?= h((string) ($connection['created_at'] ?? '')) ?>"><?= h(allstat_mcp_admin_time($connection['created_at'] ?? null) ?: '–') ?></td>
+                        <td data-label="<?= h(t('Naposledy použito')) ?>" data-sort="<?= h((string) ($connection['last_used_at'] ?? '')) ?>"><?= ($lastUsed = allstat_mcp_admin_time($connection['last_used_at'] ?? null)) !== '' ? h($lastUsed) : '<span class="is-muted">' . h(t('zatím nepoužito')) . '</span>' ?></td>
+                        <td>
+                            <div class="cell-actions">
                                 <form method="post" data-confirm="<?= h($userEmail !== '' ? t('Odpojit aplikaci „{app}“ uživatele {email}? Přestane číst data z AllStatu.', ['app' => $appLabel, 'email' => $userEmail]) : t('Odpojit aplikaci „{app}“? Přestane číst data z AllStatu.', ['app' => $appLabel])) ?>">
                                     <?= allstat_csrf_field() ?>
                                     <input type="hidden" name="action" value="revoke_grant">
                                     <input type="hidden" name="grant_id" value="<?= h((string) ($connection['grant_id'] ?? '')) ?>">
-                                    <button class="button-danger" type="submit"><?= h(t('Odpojit')) ?></button>
+                                    <button class="btn btn-danger btn-sm" type="submit"><span><?= h(t('Odpojit')) ?></span></button>
                                 </form>
                             </div>
                         </td>
                     </tr>
                 <?php endforeach; ?>
-                <?php if (!$connections): ?>
-                    <tr><td colspan="6" class="table-muted"><?= h(t('Zatím není připojená žádná aplikace. Po přidání konektoru v Claude nebo ChatGPT se zde objeví.')) ?></td></tr>
-                <?php endif; ?>
                 </tbody>
             </table>
-            <?= allstat_mcp_admin_show_more(count($connections)) ?>
+        </div>
+        <?php if (!$connections): ?>
+            <div class="empty"><span class="empty-desc"><?= h(t('Zatím není připojená žádná aplikace. Po přidání konektoru v Claude nebo ChatGPT se zde objeví.')) ?></span></div>
         <?php endif; ?>
-    </div>
-</div>
+        <?= allstat_mcp_admin_show_more(count($connections)) ?>
+    <?php endif; ?>
+</section>
 
-<div class="admin-card">
-    <div class="admin-card-header">
+<section class="card">
+    <div class="card-head">
         <div>
-            <h2><?= h(t('Poslední aktivita')) ?></h2>
-            <p><?= h(t('Posledních 50 volání z připojených aplikací, nejnovější nahoře. Zaznamenává se metoda, nástroj a parametry, ne obsah odpovědí. Záznamy se po 90 dnech mažou.')) ?></p>
+            <h2 class="card-title"><?= h(t('Poslední aktivita')) ?></h2>
+            <p class="card-desc"><?= h(t('Posledních 50 volání z připojených aplikací, nejnovější nahoře. Zaznamenává se metoda, nástroj a parametry, ne obsah odpovědí. Záznamy se po 90 dnech mažou.')) ?></p>
         </div>
     </div>
-    <div class="admin-card-body table-scroll">
-        <?php if (!function_exists('allstat_mcp_recent_log')): ?>
-            <div class="notice notice-warn"><?= h(t('Serverová část ještě není nainstalovaná.')) ?></div>
-        <?php elseif ($logError !== ''): ?>
-            <div class="notice notice-error"><?= h($logError) ?></div>
-        <?php else: ?>
-            <table class="admin-table mcp-stack">
-                <thead><tr><th><?= h(t('Čas')) ?></th><th><?= h(t('Uživatel')) ?></th><th><?= h(t('Aplikace')) ?></th><th><?= h(t('Metoda / nástroj')) ?></th><th><?= h(t('Stav')) ?></th><th class="num">ms</th><th class="num"><?= h(t('Velikost')) ?></th></tr></thead>
+    <?php if (!function_exists('allstat_mcp_recent_log')): ?>
+        <div class="card-body"><div class="callout tone-warn"><div><?= h(t('Serverová část ještě není nainstalovaná.')) ?></div></div></div>
+    <?php elseif ($logError !== ''): ?>
+        <div class="card-body"><div class="callout tone-down"><div><?= h($logError) ?></div></div></div>
+    <?php else: ?>
+        <div class="table-wrap">
+            <table class="table table-data">
+                <colgroup><col class="col-md"><col><col><col class="col-xl"><col class="col-md"><col class="col-xs"><col class="col-sm"></colgroup>
+                <thead><tr><th scope="col"><?= h(t('Čas')) ?></th><th scope="col"><?= h(t('Uživatel')) ?></th><th scope="col"><?= h(t('Aplikace')) ?></th><th scope="col"><?= h(t('Metoda / nástroj')) ?></th><th scope="col"><?= h(t('Stav')) ?></th><th scope="col" class="num">ms</th><th scope="col" class="num"><?= h(t('Velikost')) ?></th></tr></thead>
                 <tbody>
                 <?php foreach ($logRows as $logIndex => $logRow): ?>
                     <?php
@@ -1326,122 +1324,135 @@ allstat_admin_header(t('AI konektory (MCP)'), 'mcp', $user, $config);
                         $logMeta = trim('IP ' . (string) ($logRow['ip'] ?? '') . ' ' . (string) ($logRow['user_agent'] ?? ''));
                     ?>
                     <tr<?= $logIndex >= 10 ? ' class="row-extra"' : '' ?>>
-                        <td data-label="<?= h(t('Čas')) ?>" title="<?= h($logMeta) ?>" data-sort="<?= h((string) ($logRow['created_at'] ?? '')) ?>"><div class="mcp-cell"><?= h(allstat_mcp_admin_time($logRow['created_at'] ?? null, true) ?: '–') ?></div></td>
-                        <td data-label="<?= h(t('Uživatel')) ?>"<?= $logUserEmail !== '' ? ' title="' . h($logUserEmail) . '"' : '' ?>><div class="mcp-cell"><?= h($logUserLabel !== '' ? $logUserLabel : '–') ?></div></td>
-                        <td data-label="<?= h(t('Aplikace')) ?>"><div class="mcp-cell"><?= h(trim((string) ($logRow['client_name'] ?? '')) ?: '–') ?></div></td>
+                        <td data-label="<?= h(t('Čas')) ?>" title="<?= h($logMeta) ?>" data-sort="<?= h((string) ($logRow['created_at'] ?? '')) ?>"><?= h(allstat_mcp_admin_time($logRow['created_at'] ?? null, true) ?: '–') ?></td>
+                        <td data-label="<?= h(t('Uživatel')) ?>"<?= $logUserEmail !== '' ? ' title="' . h($logUserEmail) . '"' : '' ?>><span class="ellipsis"><?= h($logUserLabel !== '' ? $logUserLabel : '–') ?></span></td>
+                        <td data-label="<?= h(t('Aplikace')) ?>"><span class="ellipsis"><?= h(trim((string) ($logRow['client_name'] ?? '')) ?: '–') ?></span></td>
                         <td data-label="<?= h(t('Metoda / nástroj')) ?>">
-                            <div class="mcp-cell">
-                                <?php if ($logTool !== ''): ?><code><?= h($logTool) ?></code><?php else: ?><?= h((string) ($logRow['method'] ?? '–')) ?><?php endif; ?>
-                                <?php if ($logArgs !== ''): ?><div class="table-muted mcp-args" title="<?= h($logArgs) ?>"><?= h(mb_strimwidth($logArgs, 0, 90, '...')) ?></div><?php endif; ?>
+                            <div class="name-stack">
+                                <span class="ellipsis"><?php if ($logTool !== ''): ?><code><?= h($logTool) ?></code><?php else: ?><?= h((string) ($logRow['method'] ?? '–')) ?><?php endif; ?></span>
+                                <?php if ($logArgs !== ''): ?><span class="name-sub ellipsis" title="<?= h($logArgs) ?>"><?= h(mb_strimwidth($logArgs, 0, 90, '...')) ?></span><?php endif; ?>
                             </div>
                         </td>
                         <td data-label="<?= h(t('Stav')) ?>">
-                            <div class="mcp-cell">
-                                <span class="status-badge status-<?= h($logBadge[0]) ?>"><?= h($logBadge[1]) ?></span>
-                                <?php if ($logErrorText !== ''): ?><div class="table-muted mcp-args" title="<?= h($logErrorText) ?>"><?= h(mb_strimwidth($logErrorText, 0, 60, '...')) ?></div><?php endif; ?>
+                            <div class="name-stack">
+                                <span><?= allstat_status_pill($logBadge[0], $logBadge[1]) ?></span>
+                                <?php if ($logErrorText !== ''): ?><span class="name-sub ellipsis" title="<?= h($logErrorText) ?>"><?= h(mb_strimwidth($logErrorText, 0, 60, '...')) ?></span><?php endif; ?>
                             </div>
                         </td>
-                        <td data-label="ms" class="num"><div class="mcp-cell"><?= h(allstat_number((int) ($logRow['duration_ms'] ?? 0))) ?></div></td>
-                        <td data-label="<?= h(t('Velikost')) ?>" class="num"><div class="mcp-cell"><?= h(allstat_mcp_admin_bytes($logRow['response_bytes'] ?? 0)) ?></div></td>
+                        <td data-label="ms" class="num"><?= h(allstat_number((int) ($logRow['duration_ms'] ?? 0))) ?></td>
+                        <td data-label="<?= h(t('Velikost')) ?>" class="num"><?= h(allstat_mcp_admin_bytes($logRow['response_bytes'] ?? 0)) ?></td>
                     </tr>
                 <?php endforeach; ?>
-                <?php if (!$logRows): ?>
-                    <tr><td colspan="7" class="table-muted"><?= h(t('Zatím žádná aktivita. Zaznamená se každé volání z připojených aplikací.')) ?></td></tr>
-                <?php endif; ?>
                 </tbody>
             </table>
-            <?= allstat_mcp_admin_show_more(count($logRows)) ?>
+        </div>
+        <?php if (!$logRows): ?>
+            <div class="empty"><span class="empty-desc"><?= h(t('Zatím žádná aktivita. Zaznamená se každé volání z připojených aplikací.')) ?></span></div>
         <?php endif; ?>
-    </div>
-</div>
+        <?= allstat_mcp_admin_show_more(count($logRows)) ?>
+    <?php endif; ?>
+</section>
 
-<div class="admin-card">
-    <div class="admin-card-header">
+<section class="card">
+    <div class="card-head">
         <div>
-            <h2><?= h(t('Nástroje')) ?></h2>
-            <p><?= h(t('Co může připojená AI z AllStatu zjistit. Všechny nástroje jsou jen pro čtení a vracejí agregovaná analytická data, žádné přihlašovací údaje ani tokeny.')) ?></p>
+            <h2 class="card-title"><?= h(t('Nástroje')) ?></h2>
+            <p class="card-desc"><?= h(t('Co může připojená AI z AllStatu zjistit. Všechny nástroje jsou jen pro čtení a vracejí agregovaná analytická data, žádné přihlašovací údaje ani tokeny.')) ?></p>
         </div>
     </div>
-    <div class="admin-card-body">
+    <div class="card-body">
         <?php if (!function_exists('allstat_mcp_tool_definitions')): ?>
-            <div class="notice notice-warn"><?= h(t('Serverová část ještě není nainstalovaná.')) ?></div>
+            <div class="callout tone-warn"><div><?= h(t('Serverová část ještě není nainstalovaná.')) ?></div></div>
         <?php elseif ($toolsError !== ''): ?>
-            <div class="notice notice-error"><?= h($toolsError) ?></div>
+            <div class="callout tone-down"><div><?= h($toolsError) ?></div></div>
         <?php else: ?>
-            <div class="mcp-tool-list">
+            <div class="rows rows-spaced">
                 <?php foreach ($tools as $tool): ?>
-                    <div class="mcp-tool">
-                        <div class="mcp-tool-head"><strong><?= h((string) (($tool['title'] ?? '') !== '' ? $tool['title'] : ($tool['name'] ?? ''))) ?></strong> <code><?= h((string) ($tool['name'] ?? '')) ?></code></div>
-                        <p><?= h((string) ($tool['description'] ?? '')) ?></p>
+                    <div class="row">
+                        <div class="name-stack">
+                            <span class="name-main"><?= h((string) (($tool['title'] ?? '') !== '' ? $tool['title'] : ($tool['name'] ?? ''))) ?></span>
+                            <span class="name-sub"><?= h((string) ($tool['description'] ?? '')) ?></span>
+                        </div>
+                        <code class="chip mono"><?= h((string) ($tool['name'] ?? '')) ?></code>
                     </div>
                 <?php endforeach; ?>
-                <?php if (!$tools): ?>
-                    <p class="table-muted"><?= h(t('Žádné nástroje.')) ?></p>
-                <?php endif; ?>
             </div>
+            <?php if (!$tools): ?>
+                <p class="is-muted"><?= h(t('Žádné nástroje.')) ?></p>
+            <?php endif; ?>
         <?php endif; ?>
     </div>
-</div>
+</section>
 
-<div class="admin-card" id="kontrola">
-    <div class="admin-card-header">
+<section class="card" id="kontrola">
+    <div class="card-head">
         <div>
-            <h2><?= h(t('Kontrola nastavení')) ?></h2>
-            <p><?= h(t('Server AllStatu si sám zavolá vaše adresy tak, jak to udělá Claude nebo ChatGPT. Neposílá žádné skutečné tokeny, jen neplatný token „neplatny“.')) ?></p>
+            <h2 class="card-title"><?= h(t('Kontrola nastavení')) ?></h2>
+            <p class="card-desc"><?= h(t('Server AllStatu si sám zavolá vaše adresy tak, jak to udělá Claude nebo ChatGPT. Neposílá žádné skutečné tokeny, jen neplatný token „neplatny“.')) ?></p>
         </div>
-        <div class="card-header-actions">
-            <form method="post" data-mcp-check-form>
-                <?= allstat_csrf_field() ?>
-                <input type="hidden" name="action" value="run_check">
-                <button class="button-primary" type="submit"<?= $canCheck ? '' : ' disabled' ?>><?= h(t('Spustit kontrolu')) ?></button>
-            </form>
-        </div>
+        <form method="post" data-mcp-check-form>
+            <?= allstat_csrf_field() ?>
+            <input type="hidden" name="action" value="run_check">
+            <button class="btn btn-primary" type="submit"<?= $canCheck ? '' : ' disabled' ?>><span><?= h(t('Spustit kontrolu')) ?></span></button>
+        </form>
     </div>
-    <div class="admin-card-body">
+    <div class="card-body">
         <?php if (!$canCheck): ?>
-            <p class="table-muted"><?= h(t('Kontrolu jde spustit, až je připojení AI zapnuté a obě adresy jsou uložené (jinak server záměrně odpovídá 404).')) ?></p>
+            <p class="is-muted"><?= h(t('Kontrolu jde spustit, až je připojení AI zapnuté a obě adresy jsou uložené (jinak server záměrně odpovídá 404).')) ?></p>
         <?php elseif ($check === null): ?>
-            <p class="table-muted"><?= h(t('Kontrola zatím neproběhla. Trvá několik sekund a zkusí všechny adresy najednou.')) ?></p>
+            <p class="is-muted"><?= h(t('Kontrola zatím neproběhla. Trvá několik sekund a zkusí všechny adresy najednou.')) ?></p>
         <?php else: ?>
             <?php
                 $counts = ['ok' => 0, 'error' => 0, 'warning' => 0, 'info' => 0];
                 foreach ($check['items'] as $checkItem) {
                     $counts[$checkItem['status'] ?? 'info'] = ($counts[$checkItem['status'] ?? 'info'] ?? 0) + 1;
                 }
-                $summaryClass = $counts['error'] > 0 ? 'notice-error' : ($counts['warning'] > 0 ? 'notice-warn' : 'notice-ok');
+                $summaryClass = $counts['error'] > 0 ? 'tone-down' : ($counts['warning'] > 0 ? 'tone-warn' : 'tone-up');
             ?>
-            <div class="notice <?= h($summaryClass) ?>">
-                <?php if ($counts['error'] > 0): ?>
-                    <?= h(t('Kontrola našla chyby ({count}), konektor pravděpodobně nepůjde připojit. Postupujte podle rad u jednotlivých položek.', ['count' => (int) $counts['error']])) ?>
-                <?php elseif ($counts['warning'] > 0): ?>
-                    <?= h(t('Kontrola proběhla bez chyb, ale s upozorněním ({count}).', ['count' => (int) $counts['warning']])) ?>
-                <?php else: ?>
-                    <?= h(t('Vše v pořádku, konektor můžete přidat do Claude nebo ChatGPT.')) ?>
-                <?php endif; ?>
-                <span class="mcp-check-meta"><?= h(t('Provedeno v {time}, trvalo {duration}.', ['time' => date('H:i:s', (int) ($check['at'] ?? time())), 'duration' => (float) ($check['took'] ?? 0) < 0.1 ? t('méně než 0,1 s') : allstat_number((float) $check['took'], 1) . ' s'])) ?></span>
-            </div>
-            <div class="sync-result-list">
-                <?php foreach ($check['items'] as $checkItem): ?>
-                    <?php $checkStatus = (string) ($checkItem['status'] ?? 'info'); ?>
-                    <div class="sync-result-item">
-                        <div class="sync-result-text">
-                            <strong><?= h($checkItem['title'] ?? '') ?></strong>
-                            <small class="mcp-check-target"><code><?= h($checkItem['target'] ?? '') ?></code></small>
-                            <small><?= h($checkItem['detail'] ?? '') ?></small>
-                            <?php if (($checkItem['hint'] ?? '') !== ''): ?>
-                                <small class="mcp-hint"><strong><?= h(t('Co s tím:')) ?></strong> <?= h($checkItem['hint']) ?></small>
-                            <?php endif; ?>
-                        </div>
-                        <span class="status-badge status-<?= h($checkStatus) ?>"><?= h($checkLabels[$checkStatus] ?? $checkStatus) ?></span>
+            <div class="section">
+                <div class="callout <?= h($summaryClass) ?>">
+                    <div>
+                        <?php if ($counts['error'] > 0): ?>
+                            <?= h(t('Kontrola našla chyby ({count}), konektor pravděpodobně nepůjde připojit. Postupujte podle rad u jednotlivých položek.', ['count' => (int) $counts['error']])) ?>
+                        <?php elseif ($counts['warning'] > 0): ?>
+                            <?= h(t('Kontrola proběhla bez chyb, ale s upozorněním ({count}).', ['count' => (int) $counts['warning']])) ?>
+                        <?php else: ?>
+                            <?= h(t('Vše v pořádku, konektor můžete přidat do Claude nebo ChatGPT.')) ?>
+                        <?php endif; ?>
+                        <span class="is-muted"><?= h(t('Provedeno v {time}, trvalo {duration}.', ['time' => date('H:i:s', (int) ($check['at'] ?? time())), 'duration' => (float) ($check['took'] ?? 0) < 0.1 ? t('méně než 0,1 s') : allstat_number((float) $check['took'], 1) . ' s'])) ?></span>
                     </div>
-                <?php endforeach; ?>
+                </div>
+                <div class="table-wrap">
+                    <table class="table table-plain">
+                        <colgroup><col><col class="col-md"></colgroup>
+                        <thead><tr><th scope="col"><?= h(t('Kontrola nastavení')) ?></th><th scope="col"><?= h(t('Stav')) ?></th></tr></thead>
+                        <tbody>
+                        <?php foreach ($check['items'] as $checkItem): ?>
+                            <?php $checkStatus = (string) ($checkItem['status'] ?? 'info'); ?>
+                            <tr>
+                                <td class="is-wrap">
+                                    <div class="name-stack">
+                                        <span class="name-main"><?= h($checkItem['title'] ?? '') ?></span>
+                                        <span class="name-sub"><code><?= h($checkItem['target'] ?? '') ?></code></span>
+                                        <span class="name-sub"><?= h($checkItem['detail'] ?? '') ?></span>
+                                        <?php if (($checkItem['hint'] ?? '') !== ''): ?>
+                                            <span class="name-sub"><strong><?= h(t('Co s tím:')) ?></strong> <?= h($checkItem['hint']) ?></span>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
+                                <td><?= allstat_status_pill($checkStatus, $checkLabels[$checkStatus] ?? $checkStatus) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+                <?php if ($counts['error'] > 0): ?>
+                    <p class="field-help"><?= t('Když selhaly všechny položky, server AllStatu se možná nedokáže dovolat na vlastní veřejnou adresu (omezení hostingu). Otevřete v prohlížeči <code>{url}/.well-known/oauth-protected-resource</code>: měl by se zobrazit JSON s polem resource.', ['url' => h($curHost)]) ?></p>
+                <?php endif; ?>
             </div>
-            <?php if ($counts['error'] > 0): ?>
-                <p class="form-help"><?= t('Když selhaly všechny položky, server AllStatu se možná nedokáže dovolat na vlastní veřejnou adresu (omezení hostingu). Otevřete v prohlížeči <code>{url}/.well-known/oauth-protected-resource</code>: měl by se zobrazit JSON s polem resource.', ['url' => h($curHost)]) ?></p>
-            <?php endif; ?>
         <?php endif; ?>
     </div>
-</div>
+</section>
 
 <script nonce="<?= h(allstat_nonce()) ?>">
 (() => {

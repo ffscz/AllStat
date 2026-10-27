@@ -1835,3 +1835,458 @@ button.legend-item:hover {
 @media (max-width: 807px) {
     .card-head { flex-wrap: wrap; }
 }
+
+/* ===================== Fáze 1 C: správa ===================== */
+/* Doplňky pro stránky správy (admin/*.php) a sdílené skripty, které správa používá
+ * (table-sort.js, select-search.js). Rozdíly jsou modifikátory existujících komponent. */
+
+/* Atribut hidden má přednost před display komponent (.callout, .empty, .table-wrap … přepíná JS).
+ * Patří do resetu v base.css, do sloučení je tady. */
+[hidden] {
+    display: none !important;
+}
+
+.table-data tr.table-group > td {
+    text-align: left;
+}
+
+/* Šířky sloupců tabulky (table-layout: fixed potřebuje pevné sloupce, jinak se akce lámou) */
+.col-xs { width: 72px; }
+.col-sm { width: 104px; }
+.col-md { width: 148px; }
+.col-lg { width: 192px; }
+.col-xl { width: 272px; }
+
+/* Absolutně umístěné potomky (.sr-only v záhlaví, nabídky) ořízne obal, jinak by roztáhly stránku do šířky. */
+.table-wrap {
+    position: relative;
+}
+
+/* Na širokém displeji se .table-data vejde, takže obal nemusí ořezávat nabídky akcí v řádcích. */
+@media (min-width: 1101px) {
+    .table-wrap:has(> .table-data) {
+        overflow: visible;
+    }
+}
+
+/* Delší text v buňce se zalomí místo ořezání (popisy, chyby v logu) */
+.table td.is-wrap {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.table-data .cell-actions {
+    justify-content: flex-end;
+}
+
+/* Formulář v řádku tabulky nebo v nabídce nemá vlastní box */
+.cell-actions form,
+.menu form {
+    display: contents;
+}
+
+/* Nabídka otevřená nahoru (u spodních řádků tabulky, přepíná admin.js) */
+.menu-up {
+    top: auto;
+    bottom: calc(100% + 6px);
+}
+
+button.menu-item {
+    text-align: left;
+}
+
+/* Řazení kliknutím na záhlaví (assets/js/table-sort.js) */
+th.is-sortable {
+    cursor: pointer;
+    user-select: none;
+}
+
+th.is-sortable::after {
+    content: "\21C5";
+    display: inline-block;
+    margin-left: 5px;
+    font-size: 10px;
+    opacity: .35;
+}
+
+th.is-sortable:hover,
+th.is-sortable:focus-visible,
+th.is-sorted-asc,
+th.is-sorted-desc {
+    color: var(--text);
+}
+
+th.is-sorted-asc::after { content: "\25B2"; opacity: 1; }
+th.is-sorted-desc::after { content: "\25BC"; opacity: 1; }
+
+/* Formuláře: mřížka polí, celořádkové pole, akce, zaškrtávátko */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+    gap: 16px 20px;
+}
+
+.field-full {
+    grid-column: 1 / -1;
+}
+
+select.input {
+    padding-right: 8px;
+}
+
+.input[readonly] {
+    background: var(--subtle);
+}
+
+.form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.check {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 8px;
+    color: var(--text);
+    font-size: 14px;
+    line-height: 20px;
+}
+
+.check input {
+    width: 16px;
+    height: 16px;
+    flex: none;
+    margin-top: 2px;
+    accent-color: var(--accent);
+}
+
+/* Kód, adresa nebo klíč ke zkopírování */
+.code {
+    display: block;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--subtle);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 18px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+/* Číslovaný postup */
+.steps {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    counter-reset: step;
+    color: var(--text-2);
+    font-size: 13px;
+    line-height: 20px;
+}
+
+.steps > li {
+    position: relative;
+    padding-left: 36px;
+    counter-increment: step;
+}
+
+.steps > li::before {
+    content: counter(step);
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    color: var(--accent-text);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.steps b,
+.steps strong {
+    color: var(--text);
+}
+
+/* Výběr webu s vyhledáváním (assets/js/select-search.js); vzhled tlačítka = .input, seznam = .menu */
+.select-search-native {
+    display: none !important;
+}
+
+.select-search {
+    position: relative;
+    min-width: 0;
+}
+
+.select-search-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    height: 36px;
+    padding: 0 10px 0 12px;
+    border: 1px solid var(--ctrl);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 20px;
+    text-align: left;
+}
+
+.select-search-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.select-search-btn svg {
+    flex: none;
+    color: var(--muted);
+}
+
+.select-search-pop {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 30;
+    width: max(100%, 300px);
+    max-width: calc(100vw - 32px);
+    padding: 6px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    box-shadow: var(--shadow-lg);
+}
+
+.select-search-pop.is-right {
+    right: 0;
+    left: auto;
+}
+
+.select-search .select-search-input {
+    width: 100%;
+    height: 32px;
+    margin-bottom: 6px;
+    padding: 0 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--subtle);
+    color: var(--text);
+    font-size: 13px;
+}
+
+.select-search-list {
+    display: grid;
+    gap: 2px;
+    max-height: min(50vh, 360px);
+    overflow-y: auto;
+}
+
+.select-search-item {
+    display: block;
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 13px;
+    line-height: 18px;
+    text-align: left;
+    overflow-wrap: anywhere;
+}
+
+.select-search-item[hidden] {
+    display: none;
+}
+
+.select-search-item:hover,
+.select-search-item:focus-visible {
+    background: var(--hover);
+}
+
+.select-search-item.is-selected {
+    background: var(--accent-soft);
+    color: var(--accent-text);
+    font-weight: 600;
+}
+
+.select-search-empty {
+    padding: 8px 10px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+/* Dlouhá tabulka ukazuje top 10, zbytek odkryje tlačítko [data-show-more] (admin.js) */
+tr.row-extra {
+    display: none;
+}
+
+/* Řádky s víceřádkovým popisem (seznam nástrojů, kontroly): odsazení a zarovnání nahoru */
+.rows-spaced .row {
+    align-items: flex-start;
+    padding: 12px 0;
+}
+
+/* Pruh s tónem podle hodnoty (pokrytí dat, čerpání kvóty) */
+.track-fill.is-up { background: var(--pos); }
+.track-fill.is-warn { background: var(--warn); }
+.track-fill.is-down { background: var(--neg); }
+
+.btn-icon:disabled {
+    opacity: .35;
+    pointer-events: none;
+}
+
+/* Odrážkový seznam v textu (poznámka, krok postupu) */
+.note-body ul,
+.steps ul {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 6px;
+    padding-left: 18px;
+    list-style: disc;
+}
+
+/* Obrázek s popiskem v návodu */
+.note-body figure img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.note-body figcaption {
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 16px;
+}
+
+/* Křivka vývoje v kartě webu (lib/sites.php) */
+.site-spark {
+    display: block;
+    width: 100%;
+    height: 44px;
+    margin-top: 16px;
+}
+
+/* Editor kroků trychtýře (admin/funnels.php + admin.js bindFunnelEditor): řádek kroku = .card */
+.funnel-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.funnel-step-row {
+    display: grid;
+    grid-template-columns: 24px 28px minmax(150px, 1fr) minmax(220px, 1.5fr) minmax(120px, auto) auto;
+    align-items: end;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--subtle);
+    box-shadow: none;
+}
+
+.funnel-step-row.is-dragging { opacity: .45; }
+.funnel-step-row.is-drop-before { box-shadow: 0 -3px 0 0 var(--accent); }
+.funnel-step-row.is-drop-after { box-shadow: 0 3px 0 0 var(--accent); }
+
+.funnel-step-handle {
+    align-self: center;
+    color: var(--muted);
+    cursor: grab;
+}
+
+.funnel-step-handle:active { cursor: grabbing; }
+
+.funnel-step-no { margin-bottom: 4px; }
+
+.funnel-step-event {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.funnel-step-activity {
+    display: flex;
+    align-items: center;
+    min-height: 36px;
+}
+
+.funnel-step-controls {
+    display: flex;
+    gap: 4px;
+}
+
+.funnel-icon-btn-danger { color: var(--neg); }
+
+.funnel-editor:not(.is-enhanced) :is(.funnel-step-handle, .funnel-step-controls, [data-funnel-add]),
+.funnel-editor.is-enhanced .funnel-step-row:not(.is-custom) .funnel-step-custom {
+    display: none;
+}
+
+@media (max-width: 900px) {
+    .funnel-step-row {
+        grid-template-columns: 24px 28px 1fr auto;
+        grid-template-areas:
+            "handle no . controls"
+            "label label label label"
+            "event event event event"
+            "activity activity activity activity";
+        align-items: center;
+    }
+
+    .funnel-step-handle { grid-area: handle; }
+    .funnel-step-no { grid-area: no; margin: 0; }
+    .funnel-step-label { grid-area: label; }
+    .funnel-step-event { grid-area: event; }
+    .funnel-step-activity { grid-area: activity; }
+    .funnel-step-controls { grid-area: controls; }
+}
+
+.link-more {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+}
+
+/* Úzký displej: dlouhé segmenty se posouvají, dlouhé popisky tlačítek se zalomí */
+@media (max-width: 807px) {
+    .seg {
+        max-width: 100%;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .btn {
+        max-width: 100%;
+        height: auto;
+        min-height: 36px;
+        padding-block: 8px;
+        white-space: normal;
+        text-align: center;
+    }
+}
+
+/* Seznamy, které jsou komponentou (číslování dělá .steps samo) */
+ol.steps,
+ul.rows {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
