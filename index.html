@@ -6,6 +6,9 @@
 <title>AllStat: instalační příručka</title>
 <meta name="description" content="Jak nainstalovat AllStat na běžný webhosting, napojit služby, připojit AI a aktualizovat. Krok za krokem, s obrázky.">
 <link rel="canonical" href="https://ffscz.github.io/AllStat/">
+<link rel="alternate" hreflang="cs" href="https://ffscz.github.io/AllStat/">
+<link rel="alternate" hreflang="en" href="https://ffscz.github.io/AllStat/en/">
+<link rel="alternate" hreflang="x-default" href="https://ffscz.github.io/AllStat/en/">
 <meta property="og:title" content="AllStat: instalační příručka">
 <meta property="og:description" content="Instalace na webhosting, napojení služeb, připojení AI a aktualizace, krok za krokem.">
 <meta property="og:type" content="website">
@@ -26,6 +29,7 @@ body{margin:0;background:#fff;color:var(--text);font:16px/1.65 "Segoe UI",system
 .page{max-width:840px;margin:0 auto;padding:36px 24px 90px}
 a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}
 .cover{padding:18px 0 34px;border-bottom:1px solid var(--line);margin-bottom:28px}
+.lang{margin-left:auto;display:flex;gap:4px;font-size:14px;font-weight:600}.lang a,.lang span{padding:3px 10px;border:1px solid var(--line);border-radius:999px}.lang span{background:var(--blue-soft);border-color:var(--blue-soft);color:var(--blue-d)}.lang a:hover{text-decoration:none;border-color:var(--blue)}
 .brand{display:flex;align-items:center;gap:12px;font-weight:700;font-size:20px}
 .bars{display:inline-flex;align-items:flex-end;gap:3px;width:28px;height:28px}
 .bars i{display:block;width:6px;border-radius:2px;background:#2563eb}.bars i:nth-child(1){height:13px;background:#60a5fa}.bars i:nth-child(2){height:22px}.bars i:nth-child(3){height:28px;background:#1d4ed8}
@@ -107,7 +111,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
 <div class="page">
 
 <header class="cover">
-  <div class="brand"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span> AllStat</div>
+  <div class="brand"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span> AllStat<nav class="lang no-print" aria-label="Jazyk"><span aria-current="page" lang="cs">Čeština</span><a href="en/" hreflang="en" lang="en">English</a></nav></div>
   <h1>Instalační příručka</h1>
   <p class="lead">AllStat sbírá na jednom místě statistiky vašeho webu a sociálních sítí a ukládá je do vaší vlastní databáze. Tahle příručka vás provede instalací na běžný webhosting, krok za krokem. Počítejte s 30 minutami.</p>
   <p class="meta">Návod k verzi 1.3.0 · <a href="https://github.com/ffscz/AllStat/releases/latest">Stáhnout AllStat</a> · <a href="https://github.com/ffscz/AllStat">Zdrojový kód na GitHubu</a><span class="no-print"> · <button type="button" class="print-btn" data-print>Vytisknout nebo uložit jako PDF</button></span></p>
@@ -725,7 +729,7 @@ location ~ ^/allstat/(lib|views|docs)/ { deny all; }</code></pre>
   <tbody>
     <tr><td>Verze balíčku</td><td>1.3.0</td></tr>
     <tr><td>Licence</td><td>GNU GPL verze 3 (soubor <code>LICENSE</code>), zdrojový kód a aktualizace na github.com/ffscz/AllStat</td></tr>
-    <tr><td>Jazyk aplikace</td><td>čeština</td></tr>
+    <tr><td>Jazyk aplikace</td><td>čeština, slovenština a angličtina</td></tr>
     <tr><td>Požadavky na server</td><td>PHP 8.1 a novější (doporučeno 8.3), MySQL 5.7.8 a novější nebo MariaDB 10.3 a novější, Apache nebo LiteSpeed (nginx s vlastními pravidly, viz kapitola 10)</td></tr>
     <tr><td>Databáze</td><td>37 tabulek, InnoDB, kódování utf8mb4, kolace utf8mb4_czech_ci</td></tr>
     <tr><td>Prohlížeče</td><td>moderní prohlížeče (Chrome, Edge, Firefox, Safari), vyzkoušeno v Chrome</td></tr>
