@@ -1628,3 +1628,189 @@ textarea.input {
         display: none;
     }
 }
+
+/* ===================== Fáze 1 A: záhlaví dashboardu a Přehled ===================== */
+/* Obal bloku stránky, který se vyměňuje bez reloadu (Přehled po změně období): drží mezery .page. */
+.page-stack {
+    display: flex;
+    flex-direction: column;
+    gap: inherit;
+}
+
+/* Obsah se právě načítá (AJAX obnova) */
+.is-loading {
+    opacity: .55;
+    pointer-events: none;
+    transition: opacity .15s;
+}
+
+/* Dlouhá nabídka (výběr zdroje) se posouvá uvnitř. */
+.menu-scroll {
+    max-height: min(480px, 70vh);
+    overflow-y: auto;
+}
+
+.menu-item[aria-current] {
+    background: var(--accent-soft);
+}
+
+/* Legenda jako přepínač řad grafu (tlačítka s aria-pressed) */
+button.legend-item {
+    min-height: 28px;
+    margin: 0 -8px;
+    padding: 4px 8px;
+    text-align: left;
+    white-space: normal;
+    border-radius: var(--radius-sm);
+    color: var(--text-2);
+    transition: background-color .12s, opacity .12s;
+}
+
+button.legend-item:hover {
+    background: var(--hover);
+}
+
+.legend-item[aria-pressed="false"] {
+    opacity: .45;
+}
+
+/* Kalendář výběru rozsahu (.menu.datepicker, mřížku dnů skládá assets/js/app.js) */
+.datepicker {
+    width: 288px;
+    min-width: 0;
+    padding: 14px;
+}
+
+.dp-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.dp-title {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.dp-nav {
+    display: inline-grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--muted);
+    font-size: 17px;
+    line-height: 1;
+    transition: background-color .12s, color .12s;
+}
+
+.dp-nav:hover {
+    background: var(--hover);
+    color: var(--text);
+}
+
+.dp-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+}
+
+.dp-weekdays {
+    margin-bottom: 4px;
+}
+
+.dp-weekdays span {
+    padding: 4px 0;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 16px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.dp-days {
+    row-gap: 2px;
+}
+
+.dp-empty {
+    visibility: hidden;
+}
+
+.dp-day {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 1 / 1;
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    transition: background-color .1s;
+}
+
+.dp-day:hover:not(.dp-disabled):not(.dp-sel) {
+    background: var(--hover);
+}
+
+/* Dny v rozsahu: souvislý pruh, krajní dny plný akcent */
+.dp-in {
+    border-radius: 0;
+    background: var(--accent-soft);
+}
+
+.dp-in.dp-edge-start {
+    border-radius: var(--radius) 0 0 var(--radius);
+}
+
+.dp-in.dp-edge-end {
+    border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+.dp-sel {
+    border-radius: var(--radius);
+    background: var(--accent);
+    color: var(--on-accent);
+    font-weight: 600;
+}
+
+.dp-today:not(.dp-sel) {
+    box-shadow: inset 0 0 0 1.5px var(--accent-line);
+}
+
+.dp-disabled {
+    color: var(--muted);
+    opacity: .35;
+    cursor: not-allowed;
+}
+
+.dp-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+}
+
+.dp-hint {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 16px;
+}
+
+.dp-clear {
+    padding: 4px 6px;
+    border-radius: var(--radius-sm);
+    color: var(--accent-text);
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 600;
+}
+
+.dp-clear:hover {
+    background: var(--accent-soft);
+}

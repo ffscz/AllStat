@@ -1,8 +1,8 @@
 /*
- * Pohled „Růst kanálů" (views/growth.php): přepínač Růst kanálů / Srovnání růstu, uvnitř Srovnání
- * Žebříček růstu / Vývoj v čase (index 100 = začátek období) a skrývání kanálů v grafu. Data grafu
- * posílá index.php v window.ALLSTAT_GROWTH. Barvy kanálů se čtou z CSS proměnných --ch-* (.growth-root),
- * takže graf po přepnutí motivu převezme tmavé odstíny.
+ * Úvodní Přehled (views/growth.php): změna období bez reloadu stránky, graf Vývoj v čase (index 100 =
+ * začátek období) a skrývání kanálů v grafu přes legendu. Data grafu jsou v <script type="application/json"
+ * data-growth-json> uvnitř bloku, takže po načtení jiného období přijdou spolu s novým markupem.
+ * Barvy grafu se čtou z tokenů na :root (tokens.css), po přepnutí motivu (allstat:themechange) se graf překreslí.
  */
 (function () {
     'use strict';
@@ -10,25 +10,32 @@
     var root = document.querySelector('[data-growth]');
     if (!root) { return; }
 
-    var data = window.ALLSTAT_GROWTH || { labels: [], longLabels: [], series: [] };
+    var data = null;
     var chart = null;
-    var view = 'rank';
     var hidden = {};
-    // Reklama je ve výchozím stavu skrytá: kampaně skáčou v řádu stovek procent a zmáčkly by ostatní
-    // křivky u nuly (chip zůstává, jedním klikem se zapne). Stav chipu rendruje views/growth.php stejně.
-    data.series.forEach(function (s, i) { if (s.color === 'ads') { hidden[i] = true; } });
 
-    function cssVar(el, name) {
-        return getComputedStyle(el).getPropertyValue(name).trim();
+    function token(name) {
+        return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
     }
 
-    function selectTab(buttons, active, attr) {
-        buttons.forEach(function (b) {
-            var on = b === active;
-            b.classList.toggle('is-active', on);
-            b.setAttribute('aria-selected', on ? 'true' : 'false');
-        });
-        return active.getAttribute(attr);
+    // Data grafu z bloku; reklama je ve výchozím stavu skrytá: kampaně skáčou v řádu stovek procent
+    // a zmáčkly by ostatní křivky u nuly (legenda ji jedním klikem zapne, stav rendruje views/growth.php stejně).
+    function readData() {
+        var el = root.querySelector('[data-growth-json]');
+        try {
+            data = el ? JSON.parse(el.textContent) : null;
+        } catch (e) {
+            data = null;
+        }
+        data = data || { labels: [], longLabels: [], series: [] };
+        hidden = {};
+        data.series.forEach(function (s, i) { if (s.color === 'ads') { hidden[i] = true; } });
+    }
+
+    // Barva čáry kanálu: token --ch-<barva> (paleta grafu), jinak token z legendy (data-color-token, např. --src-fb-fg).
+    function seriesColor(i) {
+        var item = root.querySelector('[data-growth-series="' + i + '"]');
+        return token('--ch-' + data.series[i].color) || (item && token(item.getAttribute('data-color-token'))) || token('--muted');
     }
 
     // Čára na indexu 100 (= úroveň začátku období), přerušovaná a tlumená, pod křivkami.
@@ -39,7 +46,7 @@
             if (y < c.chartArea.top || y > c.chartArea.bottom) { return; }
             var ctx = c.ctx;
             ctx.save();
-            ctx.strokeStyle = cssVar(document.documentElement, '--muted');
+            ctx.strokeStyle = token('--muted');
             ctx.globalAlpha = 0.7;
             ctx.lineWidth = 1;
             ctx.setLineDash([4, 4]);
@@ -52,20 +59,20 @@
     };
 
     function renderChart() {
-        var canvas = document.getElementById('growthChart');
-        if (!canvas || !window.Chart) { return; }
         if (chart) { chart.destroy(); chart = null; }
-        var muted = cssVar(document.documentElement, '--muted');
-        var grid = cssVar(document.documentElement, '--chart-grid');
-        var text = cssVar(document.documentElement, '--text');
-        var surface = cssVar(document.documentElement, '--surface');
+        var canvas = document.getElementById('growthChart');
+        if (!canvas || !window.Chart || !data.series.length) { return; }
+        var muted = token('--muted');
+        var surface = token('--surface');
+        var tipBg = token('--tip-bg');
+        var tipFg = token('--tip-fg');
 
         chart = new Chart(canvas, {
             type: 'line',
             data: {
                 labels: data.labels,
                 datasets: data.series.map(function (s, i) {
-                    var color = cssVar(root, '--ch-' + s.color) || muted;
+                    var color = seriesColor(i);
                     return {
                         label: s.name + (s.account ? ' · ' + s.account : ''),
                         data: s.index,
@@ -89,15 +96,15 @@
                 maintainAspectRatio: false,
                 interaction: { mode: 'index', intersect: false },
                 plugins: {
-                    legend: { display: false }, // legendu tvoří vlastní chipy nad grafem (skrývání kanálů)
+                    legend: { display: false }, // legendu tvoří tlačítka nad grafem (skrývání kanálů)
                     tooltip: {
-                        backgroundColor: text,
-                        titleColor: surface,
-                        bodyColor: surface,
+                        backgroundColor: tipBg,
+                        titleColor: tipFg,
+                        bodyColor: tipFg,
                         padding: 10,
                         itemSort: function (a, b) { return b.parsed.y - a.parsed.y; },
                         callbacks: {
-                            // Plný barevný čtvereček kanálu (výchozí by vzal bílou výplň bodu).
+                            // Plný barevný čtvereček kanálu (výchozí by vzal výplň bodu).
                             labelColor: function (item) {
                                 var c = item.dataset.borderColor;
                                 return { borderColor: c, backgroundColor: c, borderWidth: 0, borderRadius: 2 };
@@ -112,9 +119,10 @@
                     }
                 },
                 scales: {
-                    x: { grid: { display: false }, ticks: { color: muted } },
+                    x: { grid: { display: false }, border: { color: token('--border') }, ticks: { color: muted } },
                     y: {
-                        grid: { color: grid },
+                        grid: { color: token('--grid') },
+                        border: { display: false },
                         ticks: { color: muted },
                         title: { display: true, text: window.allstatT('Index (100 = začátek období)'), color: muted }
                     }
@@ -124,50 +132,88 @@
         });
     }
 
-    // Růst kanálů | Srovnání růstu
-    var tabs = Array.prototype.slice.call(root.querySelectorAll('[data-growth-tab]'));
-    tabs.forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            var tab = selectTab(tabs, btn, 'data-growth-tab');
-            root.querySelectorAll('[data-growth-panel]').forEach(function (p) {
-                p.hidden = p.getAttribute('data-growth-panel') !== tab;
+    // Legenda = skrývání čar.
+    root.addEventListener('click', function (event) {
+        var item = event.target.closest('[data-growth-series]');
+        if (!item) { return; }
+        var i = Number(item.getAttribute('data-growth-series'));
+        var visible = item.getAttribute('aria-pressed') !== 'false';
+        item.setAttribute('aria-pressed', visible ? 'false' : 'true');
+        hidden[i] = visible;
+        if (chart) {
+            chart.setDatasetVisibility(i, !visible);
+            chart.update();
+        }
+    });
+
+    // Období 3 / 6 / 12 měsíců: načte stránku nového období a vymění jen tenhle blok a údaje v záhlaví.
+    // Odkazy fungují i bez JS (plný reload), při chybě se na odkaz přejde normálně.
+    var seg = document.querySelector('[data-growth-months]');
+    var loading = null;
+
+    function syncHead(doc, months) {
+        ['[data-page-sub]', '[data-growth-range]'].forEach(function (sel) {
+            var cur = document.querySelector(sel);
+            var next = doc.querySelector(sel);
+            if (cur && next) { cur.textContent = next.textContent; }
+        });
+        seg.querySelectorAll('[data-months]').forEach(function (link) {
+            if (link.getAttribute('data-months') === months) { link.setAttribute('aria-current', 'true'); } else { link.removeAttribute('aria-current'); }
+        });
+        var share = document.getElementById('shareAiBtn');
+        if (share) { share.setAttribute('data-months', months); }
+    }
+
+    function loadPeriod(url, months, push) {
+        if (loading) { loading.abort(); }
+        loading = new AbortController();
+        root.setAttribute('aria-busy', 'true');
+        root.classList.add('is-loading');
+        return fetch(url, { headers: { Accept: 'text/html' }, credentials: 'same-origin', signal: loading.signal })
+            .then(function (response) {
+                if (!response.ok) { throw new Error('HTTP ' + response.status); }
+                return response.text();
+            })
+            .then(function (html) {
+                var doc = new DOMParser().parseFromString(html, 'text/html');
+                var next = doc.querySelector('[data-growth]');
+                // Přesměrování na přihlášení apod. = jiná stránka → normální navigace.
+                if (!next) { throw new Error('missing view'); }
+                root.innerHTML = next.innerHTML;
+                syncHead(doc, months);
+                if (push) { history.pushState({ growthMonths: months }, '', url); }
+                readData();
+                renderChart();
+            })
+            .catch(function (error) {
+                if (error.name !== 'AbortError') { window.location.href = url; }
+            })
+            .finally(function () {
+                root.removeAttribute('aria-busy');
+                root.classList.remove('is-loading');
             });
-            if (tab === 'compare' && view === 'lines') { renderChart(); }
-        });
-    });
+    }
 
-    // Žebříček růstu | Vývoj v čase
-    var views = Array.prototype.slice.call(root.querySelectorAll('[data-growth-view]'));
-    views.forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            view = selectTab(views, btn, 'data-growth-view');
-            root.querySelectorAll('[data-growth-view-panel]').forEach(function (p) {
-                p.hidden = p.getAttribute('data-growth-view-panel') !== view;
-            });
-            var noteRank = root.querySelector('[data-growth-note-rank]');
-            var noteLines = root.querySelector('[data-growth-note-lines]');
-            if (noteRank) { noteRank.hidden = view !== 'rank'; }
-            if (noteLines) { noteLines.hidden = view !== 'lines'; }
-            if (view === 'lines') { renderChart(); }
+    if (seg) {
+        seg.addEventListener('click', function (event) {
+            var link = event.target.closest('a[data-months]');
+            if (!link || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) { return; }
+            event.preventDefault();
+            if (link.getAttribute('aria-current') === 'true') { return; }
+            loadPeriod(link.href, link.getAttribute('data-months'), true);
         });
-    });
-
-    // Chipy kanálů = legenda + skrývání čar.
-    root.querySelectorAll('[data-growth-series]').forEach(function (chip) {
-        chip.addEventListener('click', function () {
-            var i = Number(chip.getAttribute('data-growth-series'));
-            var visible = chip.getAttribute('aria-pressed') !== 'false';
-            chip.setAttribute('aria-pressed', visible ? 'false' : 'true');
-            hidden[i] = visible;
-            if (chart) {
-                chart.setDatasetVisibility(i, !visible);
-                chart.update();
-            }
+        // Zpět/vpřed v historii: načíst období z adresy.
+        window.addEventListener('popstate', function () {
+            var months = new URLSearchParams(window.location.search).get('months') || '12';
+            loadPeriod(window.location.href, months, false);
         });
-    });
+    }
 
-    // Přepnutí motivu (app.js mění data-theme na <html>) → graf znovu s barvami pro nový motiv.
-    new MutationObserver(function () {
+    // Přepnutí motivu (assets/js/shell.js) → graf znovu s barvami nového motivu.
+    document.addEventListener('allstat:themechange', function () {
         if (chart) { renderChart(); }
-    }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    });
+
+    readData();
+    renderChart();
 })();

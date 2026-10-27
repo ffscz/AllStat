@@ -439,6 +439,8 @@ function allstat_get_channel_growth(PDO $pdo, int $domainId, int $months, ?DateT
         $range = $values ? t('min. {min} · max. {max}', ['min' => allstat_number(min($values)), 'max' => allstat_number(max($values))]) : '';
         $followersInfo = null;
         $spendText = null;
+        $spendAmount = null;
+        $spendCurrency = '';
         if (!empty($def['followers']) && isset($followers[$cid])) {
             [$fDate, $fVal] = $followers[$cid]['first'];
             [$lDate, $lVal] = $followers[$cid]['last'];
@@ -471,9 +473,12 @@ function allstat_get_channel_growth(PDO $pdo, int $domainId, int $months, ?DateT
                 }
                 $spendText = t('Útrata za {month} {amount}', ['month' => preg_replace('/ \d{4}$/', '', $last['longLabel']), 'amount' => allstat_number($spend)])
                     . ($currency !== '' ? ' ' . $currency : '');
+                $spendCurrency = $currency;
             } else {
                 $spendText = t('Útrata za {month} {amount} Kč', ['month' => preg_replace('/ \d{4}$/', '', $last['longLabel']), 'amount' => allstat_number($spend)]);
+                $spendCurrency = 'Kč';
             }
+            $spendAmount = (float) $spend;
             $extra = $spendText;
         } else {
             $extra = $range;
@@ -523,6 +528,9 @@ function allstat_get_channel_growth(PDO $pdo, int $domainId, int $months, ?DateT
             'extra' => $extra,
             'range' => $range,
             'spendText' => $spendText,
+            // Útrata za poslední uzavřený měsíc zvlášť jako číslo a měna (karta a souhrnná dlaždice Přehledu).
+            'spend' => $spendAmount,
+            'spendCurrency' => $spendCurrency,
             'followers' => $followersInfo,
             'partialMonths' => $partialMonths,
         ];

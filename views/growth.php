@@ -1,8 +1,9 @@
 <?php
 /**
- * Pohled „Růst kanálů" (úvodní stránka dashboardu). Vkládá index.php; data z allstat_get_channel_growth()
- * ($growth) a allstat_growth_chart_payload() ($growthChart). Karty a Srovnání růstu se přepínají
- * (assets/js/growth.js), tabulka Měsíc po měsíci je pod nimi vždy.
+ * Úvodní Přehled (Růst kanálů). Vkládá index.php; data z allstat_get_channel_growth() ($growth) a
+ * allstat_growth_chart_payload() ($growthChart). Souhrnné dlaždice, karty kanálů po skupinách Web / Sociální
+ * sítě / Reklama, tabulka Měsíc po měsíci, graf Vývoj v čase a vysvětlení výpočtu. Změnu období a graf
+ * obsluhuje assets/js/growth.js (období načte znovu jen tenhle blok).
  */
 
 // Jen jako součást index.php; přímé otevření šablony z URL nemá data (vypsalo by jen chyby).
@@ -19,23 +20,33 @@ $recentLabel = $gw['k'] === 1
 $growthHow = $gw['k'] === 1
     ? t('Poslední měsíc ({recent}) proti prvnímu ({base}), přepočteno na den s daty.', ['recent' => $recentLabel, 'base' => $gw['baseLabel']])
     : t('Typický měsíc (medián) posledních 3 měsíců ({recent}) proti typickému měsíci prvních 3 ({base}), přepočteno na den s daty.', ['recent' => $recentLabel, 'base' => $gw['baseLabel']]);
-$currentLong = allstat_growth_month_label($gw['current'], true);
 $currentUntil = (new DateTimeImmutable($gw['dataEnd']))->format(allstat_locale() === 'en' ? 'j M' : 'j. n.');
 $currentHasDays = (new DateTimeImmutable($gw['today']))->format('j') !== '1';
+$monthName = static fn (string $ym): string => (string) preg_replace('/ \d{4}$/', '', allstat_growth_month_label($ym, true));
+$ucfirst = static fn (string $s): string => mb_strtoupper(mb_substr($s, 0, 1)) . mb_substr($s, 1);
+$lastYm = $gw['months'][$gw['n'] - 1];
+$lastMonth = $monthName($lastYm);
+$currentMonth = $monthName($gw['current']);
+// Web kanály (GA4, GSC, Clarity) nemají účet, pod názvem je adresa webu.
+$domainHost = (string) preg_replace('~^(https?://)?(www\.)?~i', '', rtrim((string) ($data['domain']['url'] ?? ''), '/'));
+$accountOf = static fn (array $c): string => $c['account'] !== '' ? $c['account'] : $domainHost;
 
-// Text + třída + doplňující řádek růstu podle stavu (viz allstat_get_channel_growth):
-// up/down = jednoznačná změna, stable = do ±10 %, volatile = směr otáčí jeden mimořádný měsíc,
-// new = základ byl nulový, none = málo dat pro srovnání.
-$growthView = static function (array $c) use ($periodWord): array {
-    $za = t('za {period}', ['period' => $periodWord]);
+// Procento bez znaménka do štítku s trojúhelníkem (směr nese trojúhelník a barva).
+$pctAbs = static fn (?float $f): string => (string) preg_replace('/^[+−]/u', '', allstat_growth_pct($f));
+$tone = static fn (?float $v): string => $v === null ? 'is-muted' : ($v >= 0 ? 'is-up' : 'is-down');
+$tri = static fn (string $dir): string => '<svg class="tri" viewBox="0 0 10 8" aria-hidden="true"><path d="' . ($dir === 'up' ? 'M5 0 10 8H0z' : 'M0 0h10L5 8z') . '" fill="currentColor"/></svg>';
 
+// Štítek růstu podle stavu (viz allstat_get_channel_growth): up/down = jednoznačná změna, stable = do ±10 %,
+// volatile = směr otáčí jeden mimořádný měsíc, new = základ byl nulový, none = málo dat pro srovnání.
+// Vrací [tón štítku, směr trojúhelníku, text, text pro čtečku, třída textu v tabulce, text v tabulce].
+$growthBadge = static function (array $c) use ($pctAbs): array {
     return match ($c['growthState']) {
-        'up' => ['↑ ' . allstat_growth_pct($c['growth']), 'positive', $za],
-        'down' => ['↓ ' . allstat_growth_pct($c['growth']), 'negative', $za],
-        'stable' => ['→ ' . t('stabilní'), 'trend-none', allstat_growth_pct($c['growth']) . ' ' . $za],
-        'volatile' => ['↕ ' . t('kolísá'), 'trend-none', t('výkyv: {value}', ['value' => $c['spike'] ?? t('jeden měsíc')])],
-        'new' => [t('nově'), 'trend-none', $za],
-        default => [t('málo dat'), 'trend-none', $za],
+        'up' => ['tone-up', 'up', $pctAbs($c['growth']), t('Růst o'), 'is-up', allstat_growth_pct($c['growth'])],
+        'down' => ['tone-down', 'down', $pctAbs($c['growth']), t('Pokles o'), 'is-down', allstat_growth_pct($c['growth'])],
+        'stable' => ['tone-flat', '', t('Stabilní'), '', 'is-flat', t('stabilní')],
+        'volatile' => ['tone-warn', '', t('Kolísá'), '', 'is-warn', t('kolísá')],
+        'new' => ['tone-accent', '', t('Nově'), '', 'is-muted', t('nově')],
+        default => ['tone-flat', '', t('Málo dat'), '', 'is-muted', t('málo dat')],
     };
 };
 // Tooltip k růstu: jak se počítá, u „kolísá" i proč nejde určit směr.
@@ -53,24 +64,13 @@ $growthTitle = static function (array $c) use ($growthHow): string {
 
     return $growthHow;
 };
-$chStyle = static fn (array $c): string => '--c: var(--ch-' . preg_replace('/[^a-z0-9]/', '', $c['color']) . ')';
-$momClass = static fn (?float $m): string => $m === null ? 'trend-none' : ($m >= 0 ? 'positive' : 'negative');
-// Řádek „Sledující" jen když ho má aspoň jedna karta; ostatní karty pak dostanou prázdný řádek, ať čísla v řadě lícují.
-$anyFollowers = (bool) array_filter($growth['channels'], static fn (array $c): bool => !empty($c['followers']));
-// Meziročně (stejné 3 měsíce loni) – stejná logika řádku jako u sledujících.
-$anyYoy = (bool) array_filter($growth['channels'], static fn (array $c): bool => !empty($c['yoy']));
-$yoyView = static function (array $y): array {
-    return match ($y['state']) {
-        'up' => ['↑ ' . allstat_growth_pct($y['growth']), 'positive'],
-        'down' => ['↓ ' . allstat_growth_pct($y['growth']), 'negative'],
-        'stable' => [t('stabilní {value}', ['value' => allstat_growth_pct($y['growth'])]), 'trend-none'],
-        default => [t('kolísá'), 'trend-none'],
-    };
-};
 $yoyTitle = static function (array $c) use ($gw): string {
-    $t = t('Meziročně: typický měsíc {label} (stejná sezóna), přepočteno na den s daty.', ['label' => $gw['yoyLabel']]);
     $y = $c['yoy'];
-    if ($y && $y['state'] === 'volatile') {
+    if (!$y) {
+        return $c['yoyNote'] ?? t('Meziroční srovnání se ukáže, až budou data za stejné měsíce loni ({label}).', ['label' => $gw['yoyLabel']]);
+    }
+    $t = t('Meziročně: typický měsíc {label} (stejná sezóna), přepočteno na den s daty.', ['label' => $gw['yoyLabel']]);
+    if ($y['state'] === 'volatile') {
         $t .= ' ' . t('Směr nejde spolehlivě určit: typický měsíc {typical}, průměr {mean}, výkyv {spike}.', [
             'typical' => allstat_growth_pct($y['growth']),
             'mean' => allstat_growth_pct($y['mean']),
@@ -80,261 +80,274 @@ $yoyTitle = static function (array $c) use ($gw): string {
 
     return $t;
 };
-// Meziroční číslo do věty nahoře, ať pokles/růst za celé okno nepůsobí bez kontextu sezóny.
-$insightYoy = static function (array $c) use ($yoyTitle): string {
-    $y = $c['yoy'];
+// Meziročně do karty: [text, třída].
+$yoyView = static function (?array $y) use ($tone): array {
     if (!$y) {
-        return '';
+        return ['–', 'is-muted'];
     }
-    [$text, $class] = match ($y['state']) {
-        'up' => [allstat_growth_pct($y['growth']), 'positive'],
-        'down' => [allstat_growth_pct($y['growth']), 'negative'],
-        'stable' => [t('stabilní {value}', ['value' => allstat_growth_pct($y['growth'])]), 'trend-none'],
-        default => [t('kolísá'), 'trend-none'],
-    };
 
-    return ' <span class="growth-insight-yoy" title="' . h($yoyTitle($c)) . '">' . t('(meziročně {value})', ['value' => '<b class="' . $class . '">' . h($text) . '</b>']) . '</span>';
+    return match ($y['state']) {
+        'up', 'down' => [allstat_growth_pct($y['growth']), $tone($y['growth'])],
+        'stable' => [allstat_growth_pct($y['growth']), 'is-flat'],
+        default => [t('kolísá'), 'is-warn'],
+    };
 };
 $partialTitle = static fn (array $e): string => t('Data jen za {days} z {expected} dní. Změny se počítají z průměru na den, takže srovnání neúplný měsíc nezkresluje.', ['days' => $e['days'], 'expected' => $e['expected']]);
+
+// Skupiny karet a řádků tabulky podle typu kanálu (pořadí kanálů uvnitř skupiny drží allstat_get_channel_growth).
+$groupOf = [
+    'ga4' => 'web', 'gsc' => 'web', 'clarity' => 'web',
+    'facebook_pages' => 'social', 'instagram_business' => 'social', 'linkedin_company' => 'social', 'youtube' => 'social',
+    'meta_ads' => 'ads', 'google_ads' => 'ads', 'microsoft_ads' => 'ads',
+];
+$groups = [
+    'web' => ['title' => t('Web'), 'desc' => t('Návštěvnost a vyhledávání'), 'icon' => 'globe', 'items' => []],
+    'social' => ['title' => t('Sociální sítě'), 'desc' => t('Dosah, zobrazení a sledující'), 'icon' => 'share-2', 'items' => []],
+    'ads' => ['title' => t('Reklama'), 'desc' => t('Placené kampaně v měně účtu'), 'icon' => 'megaphone', 'items' => []],
+];
+foreach ($growth['channels'] as $c) {
+    $groups[$groupOf[$c['provider']] ?? 'social']['items'][] = $c;
+}
+$groups = array_filter($groups, static fn (array $g): bool => $g['items'] !== []);
+
+// Barva čáry kanálu v grafu Vývoj v čase: token --ch-<barva> (paleta grafu), dokud v tokens.css není,
+// barva popředí dlaždice služby (--src-*-fg). Stejně barvu volí assets/js/growth.js.
+$lineToken = static fn (string $color): string => '--src-' . match ($color) {
+    'ga4' => 'ga', 'gsc' => 'sc', 'clarity' => 'cl', 'youtube' => 'yt', 'facebook' => 'fb',
+    'linkedin' => 'li', 'instagram' => 'ig', default => 'ma',
+} . '-fg';
+
+// Souhrnné dlaždice.
+$states = array_count_values(array_column($growth['channels'], 'growthState'));
+$upCount = $states['up'] ?? 0;
+$kpiParts = [];
+if (!empty($states['down'])) { $kpiParts[] = tn($states['down'], '{count} klesá', '{count} klesají', '{count} klesá'); }
+if (!empty($states['stable'])) { $kpiParts[] = t('{count} stabilní', ['count' => $states['stable']]); }
+if (!empty($states['volatile'])) { $kpiParts[] = t('{count} kolísá', ['count' => $states['volatile']]); }
+$fewData = ($states['none'] ?? 0) + ($states['new'] ?? 0);
+if ($fewData) { $kpiParts[] = tn($fewData, '{count} má málo dat', '{count} mají málo dat', '{count} má málo dat'); }
+$best = $growth['best'];
+$worst = $growth['worst'];
+$adChannels = array_values(array_filter($growth['channels'], static fn (array $c): bool => ($groupOf[$c['provider']] ?? '') === 'ads'));
+// Útrata po měnách (Microsoft Ads může mít účet v EUR); dlaždice ukáže první měnu, ostatní připíše.
+$spendBy = [];
+$adClicks = 0.0;
+foreach ($adChannels as $c) {
+    if ($c['spend'] !== null) {
+        $cur = $c['spendCurrency'] !== '' ? $c['spendCurrency'] : 'Kč';
+        $spendBy[$cur] = ($spendBy[$cur] ?? 0.0) + $c['spend'];
+    }
+    $adClicks += (float) ($c['last']['value'] ?? 0);
+}
+$spendCurrencies = array_keys($spendBy);
 ?>
-<div class="growth-root" data-growth>
+<div class="page-stack" data-growth>
+<script type="application/json" data-growth-json><?= allstat_json($growthChart) ?></script>
 <?php if (!$growth['channels']): ?>
-    <section class="panel">
-        <div class="panel-header"><h2><?= h(t('Růst kanálů')) ?></h2></div>
-        <p class="panel-help"><?= t('Tento web zatím nemá napojený žádný kanál s měsíčními daty (GA4, Search Console, sociální sítě, YouTube, reklamy). Napoj ho ve {link}.', ['link' => '<a class="text-link" href="admin/sources.php?domain_id=' . (int) $data['domain']['id'] . '">' . h(t('Zdroje dat')) . '</a>']) ?></p>
+    <section class="card empty">
+        <span class="empty-icon tone-accent"><?= allstat_icon('trending-up', 'icon') ?></span>
+        <h2 class="empty-title"><?= h(t('Zatím žádné kanály')) ?></h2>
+        <p class="empty-desc"><?= t('Tento web zatím nemá napojený žádný kanál s měsíčními daty (GA4, Search Console, sociální sítě, YouTube, reklamy). Napoj ho ve {link}.', ['link' => '<a class="link-more" href="admin/sources.php?domain_id=' . (int) $data['domain']['id'] . '">' . h(t('Zdroje dat')) . '</a>']) ?></p>
     </section>
 <?php else: ?>
-    <div class="growth-head">
-        <div class="growth-head-text">
-            <h2 class="growth-kicker"><?= h(t('Růst kanálů')) ?> · <?= h($gw['rangeLabel']) ?></h2>
-            <?php if ($growth['best'] || $growth['worst']): $b = $growth['best']; $wo = $growth['worst']; ?>
-                <p class="growth-insight">
-                    <?php if ($b): ?><span><?= t('Nejrychleji roste {name}', ['name' => '<strong>' . h($b['name']) . '</strong>']) ?><?php if ($b['account'] !== ''): ?> <small><?= h($b['account']) ?></small><?php endif; ?> <b class="positive"><?= h(allstat_growth_pct($b['growth'])) ?></b><?= $insightYoy($b) ?></span><?php endif; ?>
-                    <?php if ($wo): ?><span><?= t('Nejvíc klesá {name}', ['name' => '<strong>' . h($wo['name']) . '</strong>']) ?><?php if ($wo['account'] !== ''): ?> <small><?= h($wo['account']) ?></small><?php endif; ?> <b class="negative"><?= h(allstat_growth_pct($wo['growth'])) ?></b><?= $insightYoy($wo) ?></span><?php endif; ?>
-                </p>
-            <?php elseif (count($growth['channels']) > 1): ?>
-                <p class="growth-insight"><span><?= h(t('Žádný kanál se za období výrazně nezměnil (typický měsíc do ±10 %, nebo jen jednorázové výkyvy).')) ?></span></p>
-            <?php endif; ?>
+    <div class="grid grid-kpis">
+        <div class="card kpi">
+            <span class="metric-label"><?= h(t('Kanály v růstu')) ?></span>
+            <span class="metric-value"><?= h(allstat_number($upCount)) ?><span class="metric-unit"> <?= h(t('z {count}', ['count' => allstat_number(count($growth['channels']))])) ?></span></span>
+            <span class="metric-note ellipsis"><?= h($kpiParts ? implode(' · ', $kpiParts) : t('Všechny kanály rostou')) ?></span>
         </div>
-        <div class="seg-toggle growth-switch" role="tablist" aria-label="<?= h(t('Zobrazení růstu')) ?>">
-            <button type="button" class="seg-btn is-active" role="tab" aria-selected="true" data-growth-tab="cards"><?= h(t('Růst kanálů')) ?></button>
-            <button type="button" class="seg-btn" role="tab" aria-selected="false" data-growth-tab="compare"><?= h(t('Srovnání růstu')) ?></button>
+        <div class="card kpi"<?= $best ? ' title="' . h($growthTitle($best)) . '"' : '' ?>>
+            <span class="metric-label"><?= h(t('Nejrychleji roste')) ?></span>
+            <span class="metric-value <?= $best ? 'is-up' : 'is-muted' ?>"><?= h($best ? allstat_growth_pct($best['growth']) : '–') ?></span>
+            <span class="metric-note ellipsis"><?= h($best ? $best['name'] . ' · ' . $accountOf($best) : t('Žádný kanál výrazně neroste')) ?></span>
+        </div>
+        <div class="card kpi"<?= $worst ? ' title="' . h($growthTitle($worst)) . '"' : '' ?>>
+            <span class="metric-label"><?= h(t('Nejvíc klesá')) ?></span>
+            <span class="metric-value <?= $worst ? 'is-down' : 'is-muted' ?>"><?= h($worst ? allstat_growth_pct($worst['growth']) : '–') ?></span>
+            <span class="metric-note ellipsis"><?= h($worst ? $worst['name'] . ' · ' . $accountOf($worst) : t('Žádný kanál výrazně neklesá')) ?></span>
+        </div>
+        <div class="card kpi">
+            <span class="metric-label"><?= h(t('Útrata za reklamu za {month}', ['month' => $lastMonth])) ?></span>
+            <?php if ($spendBy): ?>
+                <span class="metric-value"><?= h(allstat_number($spendBy[$spendCurrencies[0]])) ?><span class="metric-unit"> <?= h($spendCurrencies[0]) ?></span></span>
+                <span class="metric-note ellipsis"><?php
+                    $others = array_map(static fn (string $cur): string => '+ ' . allstat_number($spendBy[$cur]) . ' ' . $cur, array_slice($spendCurrencies, 1));
+                    echo h(implode(' · ', array_merge(
+                        [count($adChannels) === 1 ? $adChannels[0]['name'] : tn(count($adChannels), '{count} účet', '{count} účty', '{count} účtů')],
+                        $others,
+                        [tn((int) $adClicks, '{count} kliknutí', '{count} kliknutí', '{count} kliknutí')]
+                    )));
+                ?></span>
+            <?php else: ?>
+                <span class="metric-value is-muted">–</span>
+                <span class="metric-note ellipsis"><?= h(t('Žádná napojená reklama')) ?></span>
+            <?php endif; ?>
         </div>
     </div>
 
-    <section class="growth-cards" data-growth-panel="cards" aria-label="<?= h(t('Růst kanálů')) ?>">
-        <?php foreach ($growth['channels'] as $c):
-            [$gText, $gClass, $gSub] = $growthView($c);
-            $last = $c['last'];
-            $max = max(1.0, (float) $c['max']);
-        ?>
-            <a class="growth-card" href="<?= h($c['href']) ?>" style="<?= h($chStyle($c)) ?>" title="<?= h(t('Otevřít detail: {name}', ['name' => $c['name'] . ($c['account'] !== '' ? ', ' . $c['account'] : '')])) ?>">
-                <span class="growth-card-head">
-                    <span class="growth-ic" aria-hidden="true"><?= allstat_provider_icon_svg($c['provider']) ?></span>
-                    <span class="growth-card-title">
-                        <strong><?= h($c['name']) ?></strong><?php if ($c['account'] !== ''): ?> <span class="growth-acct"><?= h($c['account']) ?></span><?php endif; ?>
-                        <small><?= h($c['metric']) ?></small>
-                    </span>
-                    <span class="growth-swatch<?= $c['dashed'] ? ' is-dashed' : '' ?>" aria-hidden="true"></span>
-                </span>
-                <span class="growth-card-main">
-                    <span>
-                        <span class="growth-card-value"><?= $last['value'] === null ? '–' : h(allstat_number($last['value'])) ?></span>
-                        <span class="growth-card-label"><?= h($last['longLabel']) ?><?php if ($last['partial']): ?> <span class="growth-partial" title="<?= h($partialTitle($last)) ?>">(<?= h(t('{days} z {expected} dní', ['days' => (int) $last['days'], 'expected' => (int) $last['expected']])) ?>)</span><?php endif; ?></span>
-                    </span>
-                    <span class="growth-card-growth" title="<?= h($growthTitle($c)) ?>">
-                        <span class="<?= h($gClass) ?>"><?= h($gText) ?></span>
-                        <small><?= h($gSub) ?></small>
-                    </span>
-                </span>
-                <?php if ($anyYoy): ?>
-                    <?php if ($c['yoy']): [$yText, $yClass] = $yoyView($c['yoy']); ?>
-                        <span class="growth-yoy" title="<?= h($yoyTitle($c)) ?>"><?= t('meziročně {value}', ['value' => '<strong class="' . $yClass . '">' . h($yText) . '</strong>']) ?></span>
-                    <?php else: ?>
-                        <span class="growth-yoy" title="<?= h(t('Meziroční srovnání se ukáže, až budou data za stejné měsíce loni ({label}).', ['label' => $gw['yoyLabel']])) ?>"><?= t('meziročně {value}', ['value' => '<strong class="trend-none">–</strong>']) ?></span>
-                    <?php endif; ?>
-                <?php endif; ?>
-                <?php if ($anyFollowers): ?>
-                    <?php if ($c['followers']):
-                        $f = $c['followers'];
-                        $fClass = $f['diff'] > 0 ? 'positive' : ($f['diff'] < 0 ? 'negative' : 'trend-none');
-                        $fArrow = $f['diff'] > 0 ? '↑ ' : ($f['diff'] < 0 ? '↓ ' : '');
-                        $fPct = $f['pct'] === null ? (($f['diff'] >= 0 ? '+' : '−') . allstat_number(abs($f['diff']))) : allstat_growth_pct($f['pct']);
-                        $fTitle = $f['label'] . ': ' . allstat_number($f['fromValue']) . ' (' . allstat_date_label($f['fromDate']) . ') → '
-                            . allstat_number($f['current']) . ' (' . allstat_date_label($f['toDate']) . '), ' . ($f['diff'] >= 0 ? '+' : '−') . allstat_number(abs($f['diff']))
-                            . '. ' . t('AllStat ukládá počet sledujících od 8. 7. 2026, u delšího období se proto růst počítá od prvního uloženého dne.');
-                    ?>
-                        <span class="growth-followers" title="<?= h($fTitle) ?>">
-                            <span><?= h($f['label']) ?> <strong><?= h(allstat_number($f['current'])) ?></strong></span>
-                            <span class="<?= $fClass ?>"><?= h($fArrow . $fPct) ?></span>
-                            <small><?= h($f['since']) ?></small>
-                        </span>
-                    <?php else: ?>
-                        <span class="growth-followers is-empty" aria-hidden="true"></span>
-                    <?php endif; ?>
-                <?php endif; ?>
-                <span class="growth-bars" aria-hidden="true">
-                    <?php foreach ($c['months'] as $i => $e):
-                        $hPct = $e['value'] === null ? 0 : max(4, round((float) $e['value'] / $max * 100, 1));
-                        $cls = 'growth-bar' . ($i === count($c['months']) - 1 ? ' is-last' : '') . ($e['partial'] ? ' is-partial' : '') . ($e['value'] === null ? ' is-empty' : '');
-                        $tip = $e['label'] . ': ' . ($e['value'] === null ? t('bez dat') : allstat_number($e['value'])) . ($e['partial'] ? ' (' . t('{days} z {expected} dní', ['days' => $e['days'], 'expected' => $e['expected']]) . ')' : '');
-                    ?>
-                        <span class="<?= $cls ?>" style="height: <?= $hPct ?>%" title="<?= h($tip) ?>"></span>
-                    <?php endforeach; ?>
-                </span>
-                <span class="growth-card-foot">
-                    <span>m/m <strong class="<?= $momClass($c['mom']) ?>"><?= h(allstat_growth_pct($c['mom'])) ?></strong></span>
-                    <span class="growth-card-extra"><?= h($c['spendText'] ?? $c['range']) ?></span>
-                </span>
-            </a>
-        <?php endforeach; ?>
-    </section>
-
-    <section class="panel growth-compare" data-growth-panel="compare" aria-label="<?= h(t('Srovnání růstu')) ?>" hidden>
-        <div class="growth-compare-head">
-            <div>
-                <h2><?= h(t('Srovnání růstu')) ?></h2>
-                <p class="panel-help" data-growth-note-rank><?= h(t('Kanály seřazené podle růstu hlavní metriky.')) ?> <?= h($growthHow) ?> <?= h(t('Změna do ±10 % je „stabilní" (šedě), „kolísá" = směr otáčí jeden mimořádný měsíc. Křivka vpravo ukazuje průběh po měsících.')) ?></p>
-                <p class="panel-help" data-growth-note-lines hidden><?= h(t('Index: 100 = {base_name} období ({base}), přepočteno na den s daty. Kanály s různým měřítkem jsou tak na jedné ose. Kliknutím na kanál ho skryjete nebo zobrazíte.', ['base_name' => t($gw['k'] === 1 ? 'první měsíc' : 'typický měsíc (medián) prvních 3 měsíců'), 'base' => $gw['baseLabel']])) ?><?php if (array_filter($growthChart['series'], static fn (array $s): bool => $s['color'] === 'ads')): ?> <?= h(t('Reklama je zpočátku skrytá: kampaně skáčou o stovky procent a ostatní křivky by se slily u nuly.')) ?><?php endif; ?></p>
+    <?php foreach ($groups as $gKey => $g): ?>
+        <section class="section" aria-labelledby="growth-<?= h($gKey) ?>">
+            <div class="section-head">
+                <span class="section-icon" aria-hidden="true"><?= allstat_icon($g['icon'], 'icon-sm') ?></span>
+                <h2 class="h2" id="growth-<?= h($gKey) ?>"><?= h($g['title']) ?></h2>
+                <span class="count"><?= count($g['items']) ?></span>
+                <span class="section-desc"><?= h($g['desc']) ?></span>
             </div>
-            <div class="seg-toggle" role="tablist" aria-label="<?= h(t('Typ srovnání')) ?>">
-                <button type="button" class="seg-btn is-active" role="tab" aria-selected="true" data-growth-view="rank"><?= h(t('Žebříček růstu')) ?></button>
-                <button type="button" class="seg-btn" role="tab" aria-selected="false" data-growth-view="lines"><?= h(t('Vývoj v čase')) ?></button>
-            </div>
-        </div>
-
-        <div class="growth-rank" data-growth-view-panel="rank">
-            <?php
-            // Na konec žebříčku kanály bez jednoznačného čísla: nejdřív „kolísá", pak nové a nakonec bez dat.
-            $rankRows = $growth['ranked'];
-            foreach (['volatile', 'new', 'none'] as $tailState) {
-                foreach ($growth['channels'] as $c) {
-                    if ($c['growthState'] === $tailState) { $rankRows[] = $c; }
-                }
-            }
-            $gs = array_map(static fn (array $c): float => (float) $c['growth'], $growth['ranked']);
-            $negMax = $gs ? max(0.0, -min($gs)) : 0.0;
-            $posMax = $gs ? max(0.0, max($gs)) : 0.0;
-            $tot = ($negMax + $posMax) ?: 1.0;
-            $lp = $negMax > 0 ? 16.0 : 1.0;
-            $usable = 100.0 - $lp - 16.0;
-            $zero = $lp + $negMax / $tot * $usable;
-            ?>
-            <div class="growth-rank-row growth-rank-headrow" aria-hidden="true">
-                <span><?= h(t('Kanál')) ?></span><span><?= h(t('Růst za {period}', ['period' => $periodWord])) ?></span><span class="growth-rank-spark"><?= h(t('Průběh')) ?></span><span class="growth-rank-mom">m/m</span>
-            </div>
-            <?php foreach ($rankRows as $c):
-                $last = $c['last'];
-                $ok = in_array($c['growthState'], ['up', 'stable', 'down'], true);
-                $gv = (float) $c['growth'];
-                $wPct = $ok ? abs($gv) / $tot * $usable : 0.0;
-                $left = $ok && $gv < 0 ? $zero - $wPct : $zero;
-                // Barva popisku nese směr jen u jednoznačné změny; „stabilní" je šedě.
-                $labelClass = $c['growthState'] === 'up' ? 'positive' : ($c['growthState'] === 'down' ? 'negative' : 'trend-none');
-                $naText = match ($c['growthState']) {
-                    'volatile' => t('kolísá: směr otáčí jeden mimořádný měsíc ({spike})', ['spike' => $c['spike'] ?? '?']),
-                    'new' => t('nově (na začátku období nulové)'),
-                    default => t('málo dat pro srovnání'),
-                };
-            ?>
-                <div class="growth-rank-row" style="<?= h($chStyle($c)) ?>">
-                    <span class="growth-rank-name">
-                        <span class="growth-ic growth-ic-sm" aria-hidden="true"><?= allstat_provider_icon_svg($c['provider']) ?></span>
-                        <span class="growth-card-title">
-                            <strong><?= h($c['name']) ?></strong><?php if ($c['account'] !== ''): ?> <span class="growth-acct"><?= h($c['account']) ?></span><?php endif; ?>
-                            <small><?= h($c['short']) ?> · <?= $last['value'] === null ? '–' : h(allstat_number($last['value'])) ?> (<?= h(preg_replace('/ \d{4}$/', '', $last['longLabel'])) ?>)</small>
-                        </span>
-                    </span>
-                    <span class="growth-rank-track" title="<?= h($growthTitle($c)) ?>">
-                        <?php if ($ok): ?>
-                            <span class="growth-rank-zero" style="left: <?= round($zero, 2) ?>%"></span>
-                            <span class="growth-rank-bar<?= $c['growthState'] === 'stable' ? ' is-stable' : '' ?>" style="left: <?= round($left, 2) ?>%; width: <?= round(max(0.6, $wPct), 2) ?>%"></span>
-                            <span class="growth-rank-label <?= $labelClass ?> <?= $gv >= 0 ? 'is-right' : 'is-left' ?>" style="left: <?= round($gv >= 0 ? $zero + $wPct : $zero - $wPct, 2) ?>%"><?= h($c['growthState'] === 'stable' ? t('stabilní {value}', ['value' => allstat_growth_pct($gv)]) : allstat_growth_pct($gv)) ?></span>
-                        <?php else: ?>
-                            <span class="growth-rank-na"><?= h($naText) ?></span>
-                        <?php endif; ?>
-                    </span>
-                    <span class="growth-rank-spark"><?= allstat_growth_spark_svg($c['spark']) ?></span>
-                    <span class="growth-rank-mom <?= $momClass($c['mom']) ?>"><?= h(allstat_growth_pct($c['mom'])) ?></span>
-                </div>
-            <?php endforeach; ?>
-        </div>
-
-        <div class="growth-lines" data-growth-view-panel="lines" hidden>
-            <div class="growth-chips" aria-label="<?= h(t('Kanály v grafu')) ?>">
-                <?php foreach ($growthChart['series'] as $i => $s): ?>
-                    <button type="button" class="growth-chip" aria-pressed="<?= $s['color'] === 'ads' ? 'false' : 'true' ?>" data-growth-series="<?= (int) $i ?>" style="--c: var(--ch-<?= h(preg_replace('/[^a-z0-9]/', '', $s['color'])) ?>)">
-                        <span class="growth-line-swatch<?= $s['dashed'] ? ' is-dashed' : '' ?>" aria-hidden="true"></span><?= h($s['name']) ?><?php if ($s['account'] !== ''): ?> <small><?= h($s['account']) ?></small><?php endif; ?>
-                    </button>
+            <div class="grid grid-cards">
+                <?php foreach ($g['items'] as $c):
+                    [$bTone, $bDir, $bText, $bSr] = $growthBadge($c);
+                    $last = $c['last'];
+                    $max = max(1.0, (float) $c['max']);
+                    [$yText, $yClass] = $yoyView($c['yoy']);
+                    $first = $c['months'][0];
+                ?>
+                    <article class="card channel">
+                        <div class="channel-head">
+                            <?= allstat_source_tile($c['provider']) ?>
+                            <div class="name-stack">
+                                <h3 class="channel-name ellipsis"><a class="channel-link" href="<?= h($c['href']) ?>"><?= h($c['name']) ?></a></h3>
+                                <span class="name-sub ellipsis" title="<?= h($accountOf($c)) ?>"><?= h($accountOf($c)) ?></span>
+                            </div>
+                            <?= allstat_icon('chevron-right', 'channel-chev') ?>
+                        </div>
+                        <div class="channel-meta"><span class="ellipsis"><?= h(t('{metric} za {month}', ['metric' => $c['metric'], 'month' => $lastMonth])) ?></span><span><?= h(t('Růst · {period}', ['period' => $periodWord])) ?></span></div>
+                        <div class="channel-value">
+                            <span class="metric-value"><?= $last['value'] === null ? '–' : h(allstat_number($last['value'])) ?></span>
+                            <span class="badge <?= $bTone ?>" title="<?= h($growthTitle($c)) ?>"><?= $bDir !== '' ? $tri($bDir) : '' ?><?php if ($bSr !== ''): ?><span class="sr-only"><?= h($bSr) ?></span><?php endif; ?><span><?= h($bText) ?></span></span>
+                        </div>
+                        <div class="bars" role="img" aria-label="<?= h(t('{metric}, {from} až {to}. Za {month} {value}.', ['metric' => $c['metric'], 'from' => $first['longLabel'], 'to' => $last['longLabel'], 'month' => $lastMonth, 'value' => $last['value'] === null ? t('bez dat') : allstat_number($last['value'])])) ?>">
+                            <?php foreach ($c['months'] as $i => $e):
+                                $cls = 'bar' . ($i === count($c['months']) - 1 ? ' is-last' : '') . ($e['partial'] ? ' is-partial' : '') . ($e['value'] === null ? ' is-empty' : '');
+                                $tip = $e['longLabel'] . ': ' . ($e['value'] === null ? t('bez dat') : allstat_number($e['value'])) . ($e['partial'] ? ' (' . t('{days} z {expected} dní', ['days' => $e['days'], 'expected' => $e['expected']]) . ')' : '');
+                            ?>
+                                <span class="<?= $cls ?>"<?= $e['value'] === null ? '' : ' style="height: ' . max(4, round((float) $e['value'] / $max * 100, 1)) . '%"' ?> title="<?= h($tip) ?>"></span>
+                            <?php endforeach; ?>
+                        </div>
+                        <div class="axis" aria-hidden="true"><span><?= h($first['label']) ?></span><b><?= h($last['label']) ?></b></div>
+                        <div class="stats">
+                            <div>
+                                <span class="stat-label ellipsis"><?= h(t('Měsíc/měsíc')) ?></span>
+                                <span class="stat-value <?= $tone($c['mom']) ?>"><?= h(allstat_growth_pct($c['mom'])) ?></span>
+                            </div>
+                            <div title="<?= h($yoyTitle($c)) ?>">
+                                <span class="stat-label ellipsis"><?= h(t('Meziročně')) ?></span>
+                                <span class="stat-value <?= $yClass ?>"><?= h($yText) ?></span>
+                            </div>
+                            <?php if ($c['followers']):
+                                $f = $c['followers'];
+                                $fPct = $f['pct'] === null ? (($f['diff'] >= 0 ? '+' : '−') . allstat_number(abs($f['diff']))) : allstat_growth_pct($f['pct']);
+                                $fTitle = $f['label'] . ': ' . allstat_number($f['fromValue']) . ' (' . allstat_date_label($f['fromDate']) . ') → '
+                                    . allstat_number($f['current']) . ' (' . allstat_date_label($f['toDate']) . '), ' . ($f['diff'] >= 0 ? '+' : '−') . allstat_number(abs($f['diff']))
+                                    . ' ' . $f['since'] . '. ' . t('AllStat ukládá počet sledujících od 8. 7. 2026, u delšího období se proto růst počítá od prvního uloženého dne.');
+                            ?>
+                                <div title="<?= h($fTitle) ?>">
+                                    <span class="stat-label ellipsis"><?= h($f['label']) ?></span>
+                                    <span class="stat-value"><?= h(allstat_number($f['current'])) ?><small class="<?= $f['diff'] > 0 ? 'is-up' : ($f['diff'] < 0 ? 'is-down' : 'is-muted') ?>"><?= h($fPct) ?></small></span>
+                                </div>
+                            <?php elseif ($c['spend'] !== null): ?>
+                                <div>
+                                    <span class="stat-label ellipsis"><?= h(t('Útrata za {month}', ['month' => $lastMonth])) ?></span>
+                                    <span class="stat-value"><?= h(trim(allstat_number($c['spend']) . ' ' . $c['spendCurrency'])) ?></span>
+                                </div>
+                            <?php elseif ($last['partial']): ?>
+                                <div title="<?= h($partialTitle($last)) ?>">
+                                    <span class="stat-label ellipsis"><?= h(t('Dny s daty za {month}', ['month' => $lastMonth])) ?></span>
+                                    <span class="stat-value"><?= h(t('{days} z {expected}', ['days' => (int) $last['days'], 'expected' => (int) $last['expected']])) ?></span>
+                                </div>
+                            <?php elseif ($currentHasDays): ?>
+                                <div title="<?= h(t('Rozběhnutý měsíc, data do {until}', ['until' => $currentUntil])) ?>">
+                                    <span class="stat-label ellipsis"><?= h(t('{month} zatím', ['month' => $ucfirst($currentMonth)])) ?></span>
+                                    <span class="stat-value"><?= $c['current']['value'] === null ? '–' : h(allstat_number($c['current']['value'])) ?></span>
+                                </div>
+                            <?php else: ?>
+                                <div>
+                                    <span class="stat-label ellipsis"><?= h(t('Maximum')) ?></span>
+                                    <span class="stat-value"><?= h(allstat_number($c['max'])) ?></span>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </article>
                 <?php endforeach; ?>
             </div>
-            <div class="chart-frame growth-chart-frame"><canvas id="growthChart" role="img" aria-label="<?= h(t('Vývoj hlavní metriky kanálů v čase jako index (100 = začátek období). Přesná čísla jsou v tabulce Měsíc po měsíci.')) ?>"></canvas></div>
-        </div>
-    </section>
+        </section>
+    <?php endforeach; ?>
 
-    <section class="panel growth-table-panel" aria-label="<?= h(t('Měsíc po měsíci')) ?>">
-        <div class="panel-header"><h2><?= h(t('Měsíc po měsíci')) ?></h2></div>
-        <p class="panel-help"><?= h(t('Měsíční součet hlavní metriky a změna proti předchozímu měsíci (z průměru na den). Hvězdička = měsíc s daty jen za část dní')) ?><?= $currentHasDays ? h(', ' . t('poslední sloupec je rozběhnutý měsíc ({month} do {until}), do růstu se nepočítá', ['month' => $currentLong, 'until' => $currentUntil])) : '' ?>.</p>
-        <div class="table-scroll">
-            <table class="growth-table">
+    <section class="card card-clip" aria-labelledby="growth-table">
+        <div class="card-head">
+            <div>
+                <h2 class="card-title" id="growth-table"><?= h(t('Měsíc po měsíci')) ?></h2>
+                <p class="card-desc"><?= h(t('Součet hlavní metriky v měsíci, pod ním změna proti předchozímu měsíci přepočtená na den. Hvězdička značí měsíc s daty jen za část dní.')) ?></p>
+            </div>
+            <div class="legend"><span class="legend-item"><span class="swatch swatch-current" aria-hidden="true"></span><?= h(t('Poslední uzavřený měsíc')) ?></span></div>
+        </div>
+        <div class="table-wrap">
+            <table class="table table-matrix" data-no-sort>
+                <colgroup><col style="width: 248px"><col style="width: 104px"><?php foreach ($gw['months'] as $ym): ?><col><?php endforeach; ?></colgroup>
                 <thead>
                     <tr>
-                        <th><?= h(t('Kanál')) ?></th>
-                        <th class="<?= $anyYoy ? '' : 'growth-cell-sep' ?>" title="<?= h($growthHow) ?>"><?= h(t('Růst')) ?></th>
-                        <?php if ($anyYoy): ?><th class="growth-cell-sep" title="<?= h(t('Typický měsíc {label} (stejná sezóna)', ['label' => $gw['yoyLabel']])) ?>"><?= h(t('Meziročně')) ?></th><?php endif; ?>
-                        <?php foreach ($gw['months'] as $ym): ?><th><?= h(allstat_growth_month_label($ym)) ?></th><?php endforeach; ?>
-                        <?php if ($currentHasDays): ?><th class="is-current" title="<?= h(t('Rozběhnutý měsíc, data do {until}', ['until' => $currentUntil])) ?>"><?= h(allstat_growth_month_label($gw['current'])) ?> <small><?= h(t('zatím')) ?></small></th><?php endif; ?>
+                        <th scope="col"><?= h(t('Kanál')) ?></th>
+                        <th scope="col" title="<?= h($growthHow) ?>"><?= h(t('Růst {period}', ['period' => $gw['n'] . ' m'])) ?></th>
+                        <?php foreach ($gw['months'] as $ym): ?><th scope="col"<?= $ym === $lastYm ? ' class="is-current"' : '' ?>><?= h(allstat_growth_month_label($ym)) ?></th><?php endforeach; ?>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($growth['channels'] as $c):
-                        [$gText, $gClass] = $growthView($c);
-                        $cells = $c['months'];
-                        if ($currentHasDays) { $cells[] = $c['current']; }
-                        // Sloupec Růst: u „stabilní" i číslo (≈ +4 %), u „kolísá" měsíc výkyvu; řazení podle čísla.
-                        $totalText = match ($c['growthState']) {
-                            'up', 'down' => allstat_growth_pct($c['growth']),
-                            'stable' => t('stabilní {value}', ['value' => allstat_growth_pct($c['growth'])]),
-                            'volatile' => t('kolísá'),
-                            default => str_replace(['↑ ', '↓ '], '', $gText),
-                        };
-                    ?>
-                        <tr style="<?= h($chStyle($c)) ?>">
-                            <td>
-                                <span class="growth-row-name"><span class="growth-dot<?= $c['dashed'] ? ' is-dashed' : '' ?>" aria-hidden="true"></span><strong><?= h($c['name']) ?></strong>
-                                <small><?= $c['account'] !== '' ? h($c['account']) . ' · ' : '' ?><?= h($c['short']) ?></small></span>
-                            </td>
-                            <?php // Souhrnné sloupce hned za názvem: u 12 měsíců by na konci široké tabulky zůstaly za posuvníkem. ?>
-                            <td class="growth-cell-total<?= $anyYoy ? '' : ' growth-cell-sep' ?>" data-sort="<?= $c['growth'] !== null ? h((string) round($c['growth'] * 1000)) : '' ?>" title="<?= h($growthTitle($c)) ?>"><span class="<?= h($gClass) ?>"><?= h($totalText) ?></span></td>
-                            <?php if ($anyYoy): [$yText, $yClass] = $c['yoy'] ? $yoyView($c['yoy']) : ['–', 'trend-none']; ?>
-                                <td class="growth-cell-total growth-cell-sep" data-sort="<?= $c['yoy'] && $c['yoy']['growth'] !== null ? h((string) round($c['yoy']['growth'] * 1000)) : '' ?>" title="<?= h($c['yoy'] ? $yoyTitle($c) : t('Zatím nemáme data za stejné měsíce loni.')) ?>"><span class="<?= h($yClass) ?>"><?= h(str_replace(['↑ ', '↓ '], '', $yText)) ?></span></td>
-                            <?php endif; ?>
-                            <?php foreach ($cells as $e):
-                                $mom = $e['mom'];
-                                $tint = '';
-                                if ($mom !== null) {
-                                    // Jemné podbarvení podle síly změny (max 18 %), barva nese jen směr; číslo se znaménkem ho vždy doplňuje.
-                                    $alpha = round(min(abs($mom) / 0.5, 1) * 18, 1);
-                                    $tint = 'background: color-mix(in srgb, var(' . ($mom >= 0 ? '--green' : '--rose') . ') ' . $alpha . '%, transparent);';
-                                }
-                            ?>
-                                <td class="<?= $e['isCurrent'] ? 'is-current' : '' ?>" data-sort="<?= $e['value'] === null ? '' : h((string) round((float) $e['value'])) ?>" style="<?= $tint ?>">
-                                    <span class="growth-cell-val"><?= $e['value'] === null ? '–' : h(allstat_number($e['value'])) ?><?php if ($e['partial']): ?><sup class="growth-partial" title="<?= h($partialTitle($e)) ?>">*</sup><?php endif; ?></span>
-                                    <span class="growth-cell-mom <?= $momClass($mom) ?>"><?= h(allstat_growth_pct($mom)) ?></span>
-                                </td>
-                            <?php endforeach; ?>
-                        </tr>
+                    <?php foreach ($groups as $g): ?>
+                        <tr class="table-group"><th scope="colgroup" colspan="<?= 2 + $gw['n'] ?>"><?= h($g['title']) ?></th></tr>
+                        <?php foreach ($g['items'] as $c): $b = $growthBadge($c); ?>
+                            <tr>
+                                <th scope="row">
+                                    <div class="cell">
+                                        <?= allstat_source_tile($c['provider'], 'xs') ?>
+                                        <div class="name-stack"><span class="name-main ellipsis"><?= h($c['name']) ?></span><span class="name-sub ellipsis"><?= h($accountOf($c)) ?></span></div>
+                                    </div>
+                                </th>
+                                <td class="num <?= $b[4] ?>" title="<?= h($growthTitle($c)) ?>"><?= h($b[5]) ?></td>
+                                <?php foreach ($c['months'] as $e): ?>
+                                    <td class="num<?= $e['ym'] === $lastYm ? ' is-current' : '' ?>" title="<?= h($e['longLabel'] . ($e['partial'] ? ', ' . t('data za {days} z {expected} dní', ['days' => $e['days'], 'expected' => $e['expected']]) : '')) ?>">
+                                        <span class="cell-value"><?= $e['value'] === null ? '–' : h(allstat_number($e['value'])) ?><?php if ($e['partial']): ?><sup>*</sup><?php endif; ?></span>
+                                        <?php if ($e['value'] !== null && $e['mom'] !== null): ?><span class="cell-delta <?= $tone($e['mom']) ?>"><?= h(allstat_growth_pct($e['mom'])) ?></span><?php endif; ?>
+                                    </td>
+                                <?php endforeach; ?>
+                            </tr>
+                        <?php endforeach; ?>
                     <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
+        <?php if ($currentHasDays): ?>
+            <div class="card-foot"><?= allstat_icon('clock', 'icon-sm') ?><span><?= h(t('Rozběhnutý {month} (data do {until}) se do růstu nepočítá.', ['month' => $currentMonth, 'until' => $currentUntil])) ?></span></div>
+        <?php endif; ?>
     </section>
 
-    <?php // Stejný rámeček jako „Poznámka k datům z API" v detailu FB/IG (panel + nápověda), jen přes celou šířku. ?>
-    <section class="analytics-grid growth-note" aria-label="<?= h(t('Jak se počítá růst')) ?>">
-        <article class="panel panel-wide">
-            <p class="panel-help"><strong><?= h(t('Jak se počítá růst:')) ?></strong> <?= h($growthHow) ?><?php if ($gw['k'] > 1): ?> <?= h(t('Medián znamená, že jeden mimořádný měsíc (kampaň, výpadek) výsledek neotočí; u reklamy se počítá průměr, protože dny bez kampaně jsou skutečné nuly.')) ?><?php endif; ?> <?= h(t('Změnu do ±10 % ukazujeme jako „stabilní". Když jeden mimořádný měsíc otočí směr (průměr by ukázal opak) a změna typického měsíce není výrazná (pod 50 %), kanál je „kolísá" a směr se z dat nedá spolehlivě určit.')) ?> <?= t('<strong>Meziročně</strong> = typický měsíc {label}, tedy stejná sezóna bez vlivu léta nebo Vánoc; ukazuje se jen tam, kde máme data i za loňské měsíce (měsíce s nulovými daty před startem kanálu se nepočítají).', ['label' => h($gw['yoyLabel'])]) ?> <?= h(t('Počítají se jen uzavřené měsíce. Přepočet na den s daty srovná i měsíce různé délky a měsíce, kdy zdroj nesbíral data každý den (třeba Clarity nebo první měsíc po napojení). Dosah na Facebooku a Instagramu je součet denního dosahu, stejně jako v detailu kanálu. Růst sledujících vychází z denních snímků počtu sledujících, které AllStat ukládá od 8. 7. 2026 (YouTube od 15. 9. 2026).')) ?></p>
-        </article>
-    </section>
+    <?php if ($growthChart['series']): ?>
+        <section class="card chart-wrap" aria-labelledby="growth-lines">
+            <div class="chart-head">
+                <div>
+                    <h2 class="chart-title" id="growth-lines"><?= h(t('Vývoj v čase')) ?></h2>
+                    <p class="card-desc"><?= h(t('Index: 100 = {base_name} období ({base}), přepočteno na den s daty. Kanály s různým měřítkem jsou tak na jedné ose. Kliknutím na kanál ho skryjete nebo zobrazíte.', ['base_name' => t($gw['k'] === 1 ? 'první měsíc' : 'typický měsíc (medián) prvních 3 měsíců'), 'base' => $gw['baseLabel']])) ?><?php if (array_filter($growthChart['series'], static fn (array $s): bool => $s['color'] === 'ads')): ?> <?= h(t('Reklama je zpočátku skrytá: kampaně skáčou o stovky procent a ostatní křivky by se slily u nuly.')) ?><?php endif; ?></p>
+                </div>
+                <div class="legend" aria-label="<?= h(t('Kanály v grafu')) ?>">
+                    <?php foreach ($growthChart['series'] as $i => $s): $token = $lineToken($s['color']); ?>
+                        <button type="button" class="legend-item" aria-pressed="<?= $s['color'] === 'ads' ? 'false' : 'true' ?>" data-growth-series="<?= (int) $i ?>" data-color-token="<?= h($token) ?>">
+                            <span class="<?= $s['dashed'] ? 'swatch-dash' : 'swatch-line' ?>" style="<?= $s['dashed'] ? 'border-top-color' : 'background' ?>: var(--ch-<?= h(preg_replace('/[^a-z0-9]/', '', $s['color'])) ?>, var(<?= h($token) ?>))" aria-hidden="true"></span><?= h($s['name']) ?><?php if ($s['account'] !== ''): ?> <span class="name-sub"><?= h($s['account']) ?></span><?php endif; ?>
+                        </button>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <div class="chart"><canvas id="growthChart" role="img" aria-label="<?= h(t('Vývoj hlavní metriky kanálů v čase jako index (100 = začátek období). Přesná čísla jsou v tabulce Měsíc po měsíci.')) ?>"></canvas></div>
+        </section>
+    <?php endif; ?>
+
+    <details class="card note">
+        <summary><?= allstat_icon('info', 'icon') ?><span><?= h(t('Jak se počítá růst')) ?></span><?= allstat_icon('chevron-down', 'note-chev') ?></summary>
+        <div class="note-body">
+            <p><strong><?= h(t('Růst')) ?></strong> <?= h($growthHow) ?><?php if ($gw['k'] > 1): ?> <?= h(t('Medián znamená, že jeden mimořádný měsíc (kampaň, výpadek) výsledek neotočí; u reklamy se počítá průměr, protože dny bez kampaně jsou skutečné nuly.')) ?><?php endif; ?></p>
+            <p><?= h(t('Změnu do ±10 % ukazujeme jako „stabilní". Když jeden mimořádný měsíc otočí směr (průměr by ukázal opak) a změna typického měsíce není výrazná (pod 50 %), kanál je „kolísá" a směr se z dat nedá spolehlivě určit.')) ?> <?= t('<strong>Meziročně</strong> = typický měsíc {label}, tedy stejná sezóna bez vlivu léta nebo Vánoc; ukazuje se jen tam, kde máme data i za loňské měsíce (měsíce s nulovými daty před startem kanálu se nepočítají).', ['label' => h($gw['yoyLabel'])]) ?></p>
+            <?php foreach (array_unique(array_filter(array_merge(array_column($growth['channels'], 'breakNote'), array_column($growth['channels'], 'yoyNote')))) as $note): ?>
+                <p><?= h($note) ?></p>
+            <?php endforeach; ?>
+            <p><?= h(t('Počítají se jen uzavřené měsíce. Přepočet na den s daty srovná i měsíce různé délky a měsíce, kdy zdroj nesbíral data každý den (třeba Clarity nebo první měsíc po napojení). Dosah na Facebooku a Instagramu je součet denního dosahu, stejně jako v detailu kanálu. Růst sledujících vychází z denních snímků počtu sledujících, které AllStat ukládá od 8. 7. 2026 (YouTube od 15. 9. 2026).')) ?></p>
+        </div>
+    </details>
 <?php endif; ?>
 </div>
