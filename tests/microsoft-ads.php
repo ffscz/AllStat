@@ -32,6 +32,10 @@ $rows = iterator_to_array(allstat_microsoft_ads_csv_rows($csv, ['TimePeriod', 'A
 check(count($rows) === 1 && $rows[0]['CurrencyCode'] === 'EUR', 'CSV BOM or currency failed');
 check(allstat_microsoft_ads_number($rows[0]['Spend']) === 1.25, 'Decimal comma failed');
 check(allstat_microsoft_ads_number($rows[0]['ConversionsQualified']) === null, 'Unavailable conversion became zero');
+// Real reports quote every heading and value, with the BOM right before the first quote.
+$quoted = "\xef\xbb\xbf\"TimePeriod\",\"AccountId\",\"Spend\"\r\n\"2026-10-24\",\"123\",\"1.25\"\r\n";
+$rows = iterator_to_array(allstat_microsoft_ads_csv_rows($quoted, ['TimePeriod', 'AccountId', 'Spend']));
+check(count($rows) === 1 && $rows[0]['TimePeriod'] === '2026-10-24', 'Quoted CSV heading after BOM failed');
 check(!allstat_microsoft_ads_download_allowed('https://example.org/report.zip'), 'Download host allowlist failed');
 $largeCsv = "TimePeriod,AccountId,Spend\n" . str_repeat("2026-10-24,123,1.25\n", 90_000);
 $largeCount = 0;
