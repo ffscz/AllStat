@@ -218,10 +218,6 @@
     box-shadow: var(--shadow-lg);
 }
 
-.menu[hidden] {
-    display: none;
-}
-
 .menu-end {
     right: 0;
     left: auto;
@@ -277,14 +273,16 @@
     color: var(--neg);
 }
 
-.menu-text {
+.menu-text,
+.name-stack {
     display: flex;
     flex: 1;
     flex-direction: column;
     min-width: 0;
 }
 
-.menu-sub {
+.menu-sub,
+.name-sub {
     color: var(--muted);
     font-size: 12px;
     line-height: 16px;
@@ -599,7 +597,9 @@ a.pill:hover {
     height: 36px;
 }
 
-.channel-name {
+.channel-name,
+.chart-title,
+.empty-title {
     font-size: 14px;
     line-height: 20px;
     font-weight: 600;
@@ -654,23 +654,9 @@ a.pill:hover {
 }
 
 /* Jméno + podtitul vedle dlaždice (karta kanálu, buňka tabulky, služba, nabídka webů) */
-.name-stack {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    min-width: 0;
-}
-
 .name-main {
     color: var(--text);
     font-weight: 600;
-}
-
-.name-sub {
-    color: var(--muted);
-    font-size: 12px;
-    line-height: 16px;
-    font-weight: 400;
 }
 
 /* ===================== Sloupcové grafy (HTML, bez knihovny) ===================== */
@@ -800,12 +786,6 @@ a.pill:hover {
     justify-content: space-between;
     gap: 16px;
     margin-bottom: 20px;
-}
-
-.chart-title {
-    font-size: 14px;
-    line-height: 20px;
-    font-weight: 600;
 }
 
 .chart {
@@ -1108,7 +1088,10 @@ a.pill:hover {
     gap: 14px;
 }
 
-.meter {
+.meter,
+.field,
+.funnel-step-event,
+.auth-head {
     display: flex;
     flex-direction: column;
     gap: 6px;
@@ -1167,7 +1150,9 @@ a.pill:hover {
     font-weight: 600;
 }
 
-.block-desc {
+.block-desc,
+.field-help,
+.dp-hint {
     color: var(--muted);
     font-size: 12px;
     line-height: 16px;
@@ -1390,10 +1375,14 @@ a.pill:hover {
     gap: 12px;
     padding: 16px 20px;
     border-radius: var(--radius-lg);
-    background: var(--subtle);
-    color: var(--text-2);
     font-size: 13px;
     line-height: 20px;
+}
+
+/* Výchozí barvy bez specificity, aby je přebil tón (.tone-*) definovaný dřív. */
+:where(.callout) {
+    background: var(--subtle);
+    color: var(--text-2);
 }
 
 .callout > .icon,
@@ -1418,23 +1407,11 @@ a.pill:hover {
 }
 
 /* ===================== Formuláře ===================== */
-.field {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
 .field-label {
     color: var(--text);
     font-size: 13px;
     line-height: 20px;
     font-weight: 500;
-}
-
-.field-help {
-    color: var(--muted);
-    font-size: 12px;
-    line-height: 16px;
 }
 
 .input {
@@ -1511,12 +1488,6 @@ textarea.input {
     height: 44px;
     margin-bottom: 4px;
     border-radius: 50%;
-}
-
-.empty-title {
-    font-size: 14px;
-    line-height: 20px;
-    font-weight: 600;
 }
 
 .empty-desc {
@@ -1650,8 +1621,11 @@ textarea.input {
     overflow-y: auto;
 }
 
-.menu-item[aria-current] {
+.menu-item[aria-current],
+.menu-item.is-selected {
     background: var(--accent-soft);
+    color: var(--accent-text);
+    font-weight: 600;
 }
 
 /* Legenda jako přepínač řad grafu (tlačítka s aria-pressed) */
@@ -1796,12 +1770,6 @@ button.legend-item:hover {
     border-top: 1px solid var(--border);
 }
 
-.dp-hint {
-    color: var(--muted);
-    font-size: 12px;
-    line-height: 16px;
-}
-
 .dp-clear {
     padding: 4px 6px;
     border-radius: var(--radius-sm);
@@ -1839,12 +1807,6 @@ button.legend-item:hover {
 /* ===================== Fáze 1 C: správa ===================== */
 /* Doplňky pro stránky správy (admin/*.php) a sdílené skripty, které správa používá
  * (table-sort.js, select-search.js). Rozdíly jsou modifikátory existujících komponent. */
-
-/* Atribut hidden má přednost před display komponent (.callout, .empty, .table-wrap … přepíná JS).
- * Patří do resetu v base.css, do sloučení je tady. */
-[hidden] {
-    display: none !important;
-}
 
 .table-data tr.table-group > td {
     text-align: left;
@@ -1996,12 +1958,18 @@ select.input {
     counter-increment: step;
 }
 
+/* Číslo kroku: automatické v .steps, ruční (.step-no) u nadpisu kroku průvodce */
 .steps > li::before {
     content: counter(step);
     position: absolute;
     top: 0;
     left: 0;
+}
+
+.steps > li::before,
+.step-no {
     display: grid;
+    flex: none;
     place-items: center;
     width: 24px;
     height: 24px;
@@ -2017,7 +1985,26 @@ select.input {
     color: var(--text);
 }
 
-/* Výběr webu s vyhledáváním (assets/js/select-search.js); vzhled tlačítka = .input, seznam = .menu */
+/* Kroky oddělené linkou (delší obsah v kroku, např. příkazy v průvodci) */
+.steps-divided {
+    gap: 0;
+}
+
+.steps-divided > li {
+    padding-block: 12px;
+    border-top: 1px solid var(--border);
+}
+
+.steps-divided > li:first-child {
+    border-top: 0;
+}
+
+.steps-divided > li::before {
+    top: 12px;
+}
+
+/* Výběr webu s vyhledáváním (assets/js/select-search.js): tlačítko a pole = .input, seznam = .menu,
+ * položky = .menu-item; tady jen rozdíly. */
 .select-search-native {
     display: none !important;
 }
@@ -2032,23 +2019,8 @@ select.input {
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-    width: 100%;
-    height: 36px;
-    padding: 0 10px 0 12px;
-    border: 1px solid var(--ctrl);
-    border-radius: var(--radius);
-    background: var(--surface);
-    color: var(--text);
-    font-size: 14px;
-    line-height: 20px;
+    padding-right: 10px;
     text-align: left;
-}
-
-.select-search-label {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 .select-search-btn svg {
@@ -2057,33 +2029,16 @@ select.input {
 }
 
 .select-search-pop {
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
-    z-index: 30;
     width: max(100%, 300px);
     max-width: calc(100vw - 32px);
-    padding: 6px;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    background: var(--surface);
-    box-shadow: var(--shadow-lg);
 }
 
-.select-search-pop.is-right {
-    right: 0;
-    left: auto;
-}
-
-.select-search .select-search-input {
-    width: 100%;
+.select-search-input {
     height: 32px;
     margin-bottom: 6px;
     padding: 0 10px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
+    border-color: var(--border);
     background: var(--subtle);
-    color: var(--text);
     font-size: 13px;
 }
 
@@ -2095,30 +2050,9 @@ select.input {
 }
 
 .select-search-item {
-    display: block;
-    width: 100%;
-    padding: 8px 10px;
-    border-radius: var(--radius-sm);
-    color: var(--text);
-    font-size: 13px;
-    line-height: 18px;
     text-align: left;
+    white-space: normal;
     overflow-wrap: anywhere;
-}
-
-.select-search-item[hidden] {
-    display: none;
-}
-
-.select-search-item:hover,
-.select-search-item:focus-visible {
-    background: var(--hover);
-}
-
-.select-search-item.is-selected {
-    background: var(--accent-soft);
-    color: var(--accent-text);
-    font-weight: 600;
 }
 
 .select-search-empty {
@@ -2148,7 +2082,8 @@ tr.row-extra {
     pointer-events: none;
 }
 
-/* Odrážkový seznam v textu (poznámka, krok postupu) */
+/* Odrážkový seznam v textu (samostatný, v poznámce, v kroku postupu) */
+.bullets,
 .note-body ul,
 .steps ul {
     display: flex;
@@ -2217,12 +2152,6 @@ tr.row-extra {
 
 .funnel-step-no { margin-bottom: 4px; }
 
-.funnel-step-event {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
 .funnel-step-activity {
     display: flex;
     align-items: center;
@@ -2285,18 +2214,14 @@ tr.row-extra {
 
 /* Seznamy, které jsou komponentou (číslování dělá .steps samo) */
 ol.steps,
-ul.rows {
+ul.rows,
+ul.checks {
     margin: 0;
     padding: 0;
     list-style: none;
 }
 
 /* Fáze 1 D: samostatné stránky mimo shell (přihlášení, 2FA, bez přístupu, instalátor) */
-/* .callout je definovaný až za .tone-*, a přebíjí je; s tónem musí vyhrát tón. */
-.callout.tone-up { background: var(--pos-bg); color: var(--pos); }
-.callout.tone-down { background: var(--neg-bg); color: var(--neg); }
-.callout.tone-warn { background: var(--warn-bg); color: var(--warn); }
-.callout.tone-accent { background: var(--accent-soft); color: var(--accent-text); }
 
 /* ===================== Samostatná stránka (.auth) ===================== */
 .auth {
@@ -2318,12 +2243,6 @@ ul.rows {
 .auth-card .logo {
     align-self: flex-start;
     margin-left: -8px;
-}
-
-.auth-head {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
 }
 
 .auth-desc {
@@ -2361,12 +2280,10 @@ ul.rows {
     margin: 0;
 }
 
-.locale-switch select {
+.locale-switch .input {
+    width: auto;
     height: 32px;
     padding: 0 8px;
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius);
-    background: var(--surface);
     color: var(--text-2);
     font-size: 13px;
 }
@@ -2424,36 +2341,10 @@ ul.rows {
     margin-top: 8px;
 }
 
-.wizard .num {
-    display: inline-grid;
-    width: 26px;
-    height: 26px;
-    flex: none;
-    place-items: center;
-    border-radius: 50%;
-    background: var(--accent);
-    color: var(--on-accent);
-    font-size: 13px;
-    font-weight: 700;
-}
-
-.wizard .grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px 16px;
+/* Mřížka polí a akce průvodce jsou .form-grid a .form-actions, jen s odstupem od textu nad nimi. */
+.wizard .form-grid,
+.wizard .form-actions {
     margin-top: 16px;
-}
-
-.wizard .wizard-full {
-    grid-column: 1 / -1;
-}
-
-.wizard .actions {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 10px;
-    margin-top: 18px;
 }
 
 .wizard .doc-link {
@@ -2471,18 +2362,8 @@ ul.rows {
 }
 
 .wizard .code {
-    display: block;
     margin-top: 8px;
-    padding: 10px 12px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    background: var(--subtle);
-    overflow-wrap: anywhere;
     user-select: all;
-}
-
-.wizard .code-pre {
-    white-space: pre-wrap;
 }
 
 .wizard textarea.wizard-file {
@@ -2509,11 +2390,8 @@ ul.rows {
     padding: 0 16px 16px;
 }
 
-.checks,
-.steps {
-    margin: 12px 0 0;
-    padding: 0;
-    list-style: none;
+.checks {
+    margin-top: 12px;
 }
 
 .checks li {
@@ -2545,46 +2423,6 @@ ul.rows {
     display: block;
     color: var(--muted);
     font-size: 13px;
-}
-
-.steps {
-    padding-left: 20px;
-    list-style: disc;
-    color: var(--text-2);
-    font-size: 13px;
-}
-
-.todo {
-    margin: 14px 0 0;
-    padding: 0;
-    list-style: none;
-    counter-reset: step;
-}
-
-.todo > li {
-    position: relative;
-    padding: 12px 0 12px 44px;
-    border-top: 1px solid var(--border);
-    counter-increment: step;
-}
-
-.todo > li:first-child {
-    border-top: 0;
-}
-
-.todo > li::before {
-    content: counter(step);
-    position: absolute;
-    top: 12px;
-    left: 0;
-    display: grid;
-    width: 28px;
-    height: 28px;
-    place-items: center;
-    border: 1px solid var(--border-strong);
-    border-radius: 50%;
-    background: var(--subtle);
-    font-weight: 700;
 }
 
 .choices {
@@ -2633,10 +2471,6 @@ ul.rows {
 }
 
 @media (max-width: 600px) {
-    .wizard .grid {
-        grid-template-columns: 1fr;
-    }
-
     .wizard-card {
         padding: 18px;
     }

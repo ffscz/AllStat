@@ -51,6 +51,11 @@ body {
     margin: 0;
 }
 
+/* Atribut hidden má přednost před display komponent (.callout, .menu, .table-wrap … přepíná JS). */
+[hidden] {
+    display: none !important;
+}
+
 :focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
