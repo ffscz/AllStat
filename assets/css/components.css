@@ -1,0 +1,1630 @@
+/*
+ * AllStat – komponenty. Každý prvek je tu jednou a používá se napříč celou aplikací; varianty jsou
+ * modifikátory (.btn-primary, .table-matrix …) nebo tóny (.tone-up …), ne kopie pravidel.
+ * Barvy jen z tokens.css. Obsah:
+ *   tlačítka · segmenty · přepínač · nabídka · dlaždice · štítky · karta · metriky · karta kanálu
+ *   sloupcové grafy · grafy · tabulka · řádky · měřáky · legenda · záložky · heatmapa · příspěvek
+ *   rozbalovací poznámka · výzva · formuláře · prázdný stav · služba · toast
+ */
+
+/* ===================== Tlačítka ===================== */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 36px;
+    padding: 0 14px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: background-color .12s, border-color .12s, color .12s;
+}
+
+.btn:disabled,
+.btn[aria-disabled="true"] {
+    opacity: .55;
+    pointer-events: none;
+}
+
+.btn-primary {
+    background: var(--accent);
+    color: var(--on-accent);
+}
+
+.btn-primary:hover {
+    background: var(--accent-hover);
+}
+
+.btn-secondary {
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
+    color: var(--text);
+}
+
+.btn-secondary:hover {
+    background: var(--hover);
+}
+
+.btn-secondary .icon-sm {
+    color: var(--muted);
+}
+
+.btn-ghost {
+    padding: 0 10px;
+    color: var(--text-2);
+}
+
+.btn-ghost:hover {
+    background: var(--hover);
+    color: var(--text);
+}
+
+.btn-danger {
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--neg);
+}
+
+.btn-danger:hover {
+    background: var(--neg-bg);
+}
+
+.btn-sm {
+    height: 32px;
+    padding: 0 12px;
+    font-size: 13px;
+}
+
+/* Čtvercové tlačítko jen s ikonou */
+.btn-icon {
+    display: inline-grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    flex: none;
+    border-radius: var(--radius);
+    color: var(--text-2);
+    transition: background-color .12s, color .12s;
+}
+
+.btn-icon:hover {
+    background: var(--hover);
+    color: var(--text);
+}
+
+.btn-icon[aria-pressed="true"] {
+    color: var(--accent-text);
+}
+
+.btn-icon.btn-sm {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+}
+
+/* ===================== Segmentový přepínač ===================== */
+.seg {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 3px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--subtle);
+}
+
+.seg-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 28px;
+    padding: 0 12px;
+    border-radius: var(--radius-sm);
+    color: var(--text-2);
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: background-color .12s, color .12s;
+}
+
+.seg-item:hover {
+    color: var(--text);
+}
+
+.seg-item[aria-pressed="true"],
+.seg-item[aria-current] {
+    background: var(--surface);
+    box-shadow: var(--shadow-seg), 0 0 0 1px var(--border);
+    color: var(--text);
+}
+
+.seg-count {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* ===================== Přepínač (switch) ===================== */
+.switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    height: 36px;
+    padding: 0 6px;
+    border-radius: var(--radius);
+    color: var(--text-2);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.switch:hover {
+    color: var(--text);
+}
+
+.switch-track {
+    position: relative;
+    width: 32px;
+    height: 18px;
+    flex: none;
+    border-radius: 9px;
+    background: var(--ctrl);
+    transition: background-color .15s;
+}
+
+.switch-track::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, .25);
+    transition: transform .15s;
+}
+
+.switch[aria-checked="true"] .switch-track {
+    background: var(--accent);
+}
+
+.switch[aria-checked="true"] .switch-track::after {
+    transform: translateX(14px);
+}
+
+/* ===================== Nabídka (popover) ===================== */
+/* Rodič má position:relative (.site-switch, .dropdown); otevírá assets/js/shell.js přes [data-menu]. */
+.dropdown {
+    position: relative;
+}
+
+.menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 30;
+    min-width: 240px;
+    padding: 6px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    box-shadow: var(--shadow-lg);
+}
+
+.menu[hidden] {
+    display: none;
+}
+
+.menu-end {
+    right: 0;
+    left: auto;
+}
+
+.menu-wide {
+    right: 0;
+}
+
+.menu-label {
+    padding: 6px 10px 4px;
+    font-size: 11px;
+    line-height: 16px;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.menu-head {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 10px 10px;
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 600;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 36px;
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 13px;
+    line-height: 18px;
+    white-space: nowrap;
+}
+
+.menu-item:hover {
+    background: var(--hover);
+}
+
+.menu-item > .icon-sm {
+    color: var(--muted);
+}
+
+.menu-item.is-danger,
+.menu-item.is-danger > .icon-sm {
+    color: var(--neg);
+}
+
+.menu-text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.menu-sub {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 400;
+}
+
+.menu-item > .menu-sub {
+    margin-left: auto;
+}
+
+.menu-check {
+    width: 16px;
+    height: 16px;
+    flex: none;
+    margin-left: auto;
+    color: var(--accent-text);
+}
+
+.menu-sep {
+    height: 1px;
+    margin: 6px -6px;
+    background: var(--border);
+}
+
+/* ===================== Dlaždice se zkratkou (služba, web, avatar) ===================== */
+.tile {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    flex: none;
+    border-radius: 9px;
+    background: var(--accent-soft);
+    color: var(--accent-text);
+    font-size: 12px;
+    line-height: 1;
+    font-weight: 650;
+    letter-spacing: .03em;
+}
+
+.tile-xs { width: 24px; height: 24px; border-radius: var(--radius-sm); font-size: 10px; }
+.tile-sm { width: 28px; height: 28px; border-radius: 7px; font-size: 11px; }
+.tile-md { width: 32px; height: 32px; border-radius: var(--radius); font-size: 13px; letter-spacing: 0; }
+.tile-lg { width: 48px; height: 48px; border-radius: var(--radius-lg); font-size: 15px; }
+.tile-round { border-radius: 50%; font-size: 12px; font-weight: 600; }
+
+.src-ga { background: var(--src-ga-bg); color: var(--src-ga-fg); }
+.src-sc { background: var(--src-sc-bg); color: var(--src-sc-fg); }
+.src-cl { background: var(--src-cl-bg); color: var(--src-cl-fg); }
+.src-fb { background: var(--src-fb-bg); color: var(--src-fb-fg); }
+.src-ig { background: var(--src-ig-bg); color: var(--src-ig-fg); }
+.src-li { background: var(--src-li-bg); color: var(--src-li-fg); }
+.src-yt { background: var(--src-yt-bg); color: var(--src-yt-fg); }
+.src-ma { background: var(--src-ma-bg); color: var(--src-ma-fg); }
+.src-ad { background: var(--src-ad-bg); color: var(--src-ad-fg); }
+.src-ms { background: var(--src-ms-bg); color: var(--src-ms-fg); }
+.src-sz { background: var(--src-sz-bg); color: var(--src-sz-fg); }
+
+/* ===================== Štítky ===================== */
+/* Společný základ; tvar a velikost má každý typ, barvu dává tón (.tone-*). */
+.badge,
+.chip,
+.count,
+.status,
+.pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    line-height: 16px;
+    white-space: nowrap;
+}
+
+/* Změna s trojúhelníkem (růst, pokles) */
+.badge {
+    gap: 5px;
+    height: 24px;
+    padding: 0 8px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+}
+
+/* Neutrální značka (typ příspěvku, varianta) */
+.chip {
+    height: 22px;
+    padding: 0 8px;
+    border-radius: var(--radius-sm);
+    background: var(--subtle);
+    color: var(--text-2);
+    font-weight: 500;
+}
+
+/* Počet vedle nadpisu */
+.count {
+    height: 22px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: var(--subtle);
+    color: var(--text-2);
+    font-weight: 600;
+}
+
+/* Stav napojení s tečkou */
+.status {
+    height: 24px;
+    padding: 0 9px 0 8px;
+    border-radius: 999px;
+    font-weight: 500;
+}
+
+/* Stav dat v horní liště */
+.pill {
+    gap: 8px;
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: var(--subtle);
+    color: var(--text-2);
+}
+
+a.pill:hover {
+    color: var(--text);
+}
+
+.tone-up { background: var(--pos-bg); color: var(--pos); }
+.tone-down { background: var(--neg-bg); color: var(--neg); }
+.tone-flat { background: var(--subtle); color: var(--text-2); }
+.tone-warn { background: var(--warn-bg); color: var(--warn); }
+.tone-accent { background: var(--accent-soft); color: var(--accent-text); }
+
+.dot {
+    width: 8px;
+    height: 8px;
+    flex: none;
+    border-radius: 50%;
+    background: var(--pos);
+}
+
+.dot.is-warn { background: var(--warn); }
+.dot.is-down { background: var(--neg); }
+
+.status .dot {
+    width: 6px;
+    height: 6px;
+    background: currentColor;
+}
+
+.tri {
+    width: 8px;
+    height: 7px;
+    flex: none;
+}
+
+/* ===================== Karta ===================== */
+.card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
+}
+
+.card-clip {
+    overflow: hidden;
+}
+
+.card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 24px 0;
+}
+
+.card-head:last-child {
+    padding-bottom: 20px;
+}
+
+.card-title {
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 600;
+    letter-spacing: -.01em;
+}
+
+.card-title small {
+    margin-left: 6px;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0;
+}
+
+.card-desc {
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 20px;
+    text-wrap: pretty;
+}
+
+.card-body {
+    padding: 20px 24px 24px;
+}
+
+.card-foot {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 24px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 16px;
+}
+
+/* ===================== Metriky (souhrnná dlaždice, záložka, karta kanálu) ===================== */
+.metric-label {
+    color: var(--text-2);
+    font-size: 13px;
+    line-height: 20px;
+    font-weight: 500;
+}
+
+.metric-value {
+    color: var(--text);
+    font-size: 28px;
+    line-height: 36px;
+    font-weight: 650;
+    letter-spacing: -.02em;
+    font-variant-numeric: tabular-nums;
+}
+
+.metric-unit {
+    color: var(--muted);
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: 0;
+}
+
+.metric-note {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 20px;
+}
+
+.kpi {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 20px 24px;
+}
+
+/* Trojice malých údajů pod kartou (měsíc/měsíc, meziročně …) */
+.stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+}
+
+.stat-label {
+    display: block;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 16px;
+}
+
+.stat-value {
+    display: block;
+    margin-top: 2px;
+    font-size: 13px;
+    line-height: 20px;
+    font-weight: 600;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.stat-value small {
+    margin-left: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* ===================== Karta kanálu (proklik na detail zdroje) ===================== */
+.channel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    transition: border-color .15s, box-shadow .15s;
+}
+
+.channel:hover {
+    border-color: var(--accent-line);
+    box-shadow: var(--shadow-md);
+}
+
+.channel:has(.channel-link:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.channel-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 36px;
+}
+
+.channel-name {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+}
+
+.channel-link {
+    color: var(--text);
+}
+
+.channel-link:focus-visible {
+    outline: none;
+}
+
+/* Celá karta je klikací přes pseudo-element odkazu. */
+.channel-link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-lg);
+}
+
+.channel-chev {
+    width: 16px;
+    height: 16px;
+    flex: none;
+    color: var(--muted);
+    transition: transform .15s, color .15s;
+}
+
+.channel:hover .channel-chev {
+    transform: translateX(2px);
+    color: var(--accent-text);
+}
+
+.channel-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 20px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 16px;
+}
+
+.channel-value {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    height: 36px;
+    margin-top: 4px;
+}
+
+/* Jméno + podtitul vedle dlaždice (karta kanálu, buňka tabulky, služba, nabídka webů) */
+.name-stack {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.name-main {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.name-sub {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 400;
+}
+
+/* ===================== Sloupcové grafy (HTML, bez knihovny) ===================== */
+/* .bars = malý graf v kartě kanálu, .colchart = velký s hodnotami nad sloupci. Sloupec je vždy .bar. */
+.bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 56px;
+    margin-top: 16px;
+}
+
+.bar {
+    flex: 1 1 0;
+    min-width: 0;
+    border-radius: 2px 2px 0 0;
+    background: var(--bar-weak);
+}
+
+.bar.is-last {
+    background: var(--bar);
+}
+
+/* Měsíc s daty jen za část dní */
+.bar.is-partial {
+    background: repeating-linear-gradient(135deg, var(--bar-weak) 0 2px, transparent 2px 5px);
+    box-shadow: inset 0 0 0 1px var(--bar-weak);
+}
+
+.bar.is-partial.is-last {
+    background: repeating-linear-gradient(135deg, var(--bar) 0 2px, transparent 2px 5px);
+    box-shadow: inset 0 0 0 1px var(--bar);
+}
+
+/* Měsíc bez dat */
+.bar.is-empty {
+    flex-grow: 1;
+    height: 2px;
+    border-radius: 1px;
+    background: var(--border-strong);
+}
+
+.axis {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 16px;
+}
+
+.axis b {
+    color: var(--text-2);
+    font-weight: 600;
+}
+
+.colchart {
+    position: relative;
+    height: 220px;
+    margin: 24px 0 0 56px;
+}
+
+.colchart-cols {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+.colchart-col {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    min-width: 0;
+    height: 100%;
+}
+
+.colchart-col .bar {
+    flex: none;
+    width: 100%;
+    max-width: 56px;
+    border-radius: 3px 3px 0 0;
+}
+
+.colchart-value {
+    color: var(--text-2);
+    font-size: 11px;
+    line-height: 16px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.colchart-x {
+    display: flex;
+    gap: 12px;
+    margin: 10px 0 0 56px;
+}
+
+.colchart-x span {
+    flex: 1 1 0;
+    min-width: 0;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 16px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.colchart-x span.is-current {
+    color: var(--text-2);
+    font-weight: 600;
+}
+
+/* ===================== Grafy (Chart.js canvas) ===================== */
+.chart-wrap {
+    padding: 20px 24px 24px;
+}
+
+.chart-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.chart-title {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+}
+
+.chart {
+    position: relative;
+    height: 280px;
+}
+
+.chart-sm {
+    height: 64px;
+    margin-top: 16px;
+}
+
+/* ===================== Tabulka ===================== */
+/* Jedna tabulka, varianty mění jen proměnné:
+ *   .table-matrix  měsíce v řádcích kanálů (záhlaví s pozadím, vysoké řádky)
+ *   .table-plain   jednoduchý přehled v kartě (bez pozadí záhlaví, bez krajního odsazení)
+ *   .table-data    seznam položek se správou (první sloupec vlevo, akce vpravo, hover) */
+.table-wrap {
+    overflow-x: auto;
+}
+
+.table {
+    --th-h: 40px;
+    --td-h: 56px;
+    --th-bg: var(--subtle);
+    --edge: 24px;
+    --edge-end: 24px;
+    --cell-x: 12px;
+    --group-h: 32px;
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: fixed;
+    font-size: 13px;
+    line-height: 20px;
+}
+
+.table th,
+.table td {
+    padding: 0 var(--cell-x);
+    text-align: right;
+    white-space: nowrap;
+}
+
+.table thead th {
+    height: var(--th-h);
+    border-bottom: 1px solid var(--border);
+    background: var(--th-bg);
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 600;
+}
+
+.table tbody td,
+.table tbody th {
+    height: var(--td-h);
+    border-bottom: 1px solid var(--border);
+    font-weight: 400;
+}
+
+.table tbody tr:last-child > * {
+    border-bottom: 0;
+}
+
+.table th:first-child,
+.table td:first-child {
+    padding-left: var(--edge);
+    text-align: left;
+}
+
+.table th:last-child,
+.table td:last-child {
+    padding-right: var(--edge-end);
+}
+
+.table tbody th {
+    text-align: left;
+    background: var(--surface);
+}
+
+.table tr.table-group > * {
+    height: var(--group-h);
+    background: var(--bg);
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 16px;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-align: left;
+    text-transform: uppercase;
+}
+
+.table .is-current {
+    background: var(--accent-soft);
+}
+
+.table thead th.is-current {
+    color: var(--accent-text);
+}
+
+.table td.is-strong {
+    font-weight: 600;
+}
+
+.table-matrix thead th {
+    border-top: 1px solid var(--border);
+}
+
+.table-plain {
+    --th-h: 32px;
+    --td-h: 44px;
+    --th-bg: transparent;
+    --edge: 0;
+    --edge-end: 0;
+}
+
+.table-plain thead th {
+    vertical-align: top;
+}
+
+.table-data {
+    --td-h: 68px;
+    --cell-x: 16px;
+    --edge-end: 20px;
+    --group-h: 36px;
+}
+
+.table-data th,
+.table-data td {
+    text-align: left;
+}
+
+.table-data th:last-child,
+.table-data td:last-child {
+    text-align: right;
+}
+
+.table-data tbody tr:not(.table-group):hover > td {
+    background: var(--hover);
+}
+
+/* Buňka s dlaždicí a jménem (kanál, služba) */
+.cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.table-data .cell {
+    gap: 12px;
+}
+
+/* Hodnota s malou změnou pod ní (tabulka měsíců) */
+.cell-value {
+    display: block;
+    color: var(--text);
+    font-weight: 500;
+}
+
+.cell-value sup {
+    margin-left: 1px;
+    color: var(--muted);
+    font-size: 10px;
+    line-height: 0;
+}
+
+.cell-delta {
+    display: block;
+    font-size: 11px;
+    line-height: 16px;
+}
+
+.cell-actions {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Text příspěvku ve dvou řádcích */
+.post {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 0;
+    white-space: normal;
+}
+
+.post-text {
+    display: -webkit-box;
+    overflow: hidden;
+    color: var(--text);
+    font-weight: 500;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.post-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 16px;
+}
+
+.link-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 16px;
+    border-radius: 4px;
+    color: var(--accent-text);
+    font-size: 13px;
+    line-height: 20px;
+    font-weight: 500;
+}
+
+.link-more:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+/* ===================== Řádky (popis – hodnota – změna) ===================== */
+.rows {
+    display: flex;
+    flex-direction: column;
+}
+
+.row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 44px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    line-height: 20px;
+}
+
+.row:last-child {
+    border-bottom: 0;
+}
+
+.rows-compact .row {
+    justify-content: flex-start;
+    gap: 10px;
+    min-height: 36px;
+}
+
+.rows-compact {
+    margin-top: 12px;
+}
+
+.row-label {
+    color: var(--text-2);
+}
+
+.row-end {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-left: auto;
+}
+
+.row-value {
+    font-size: 14px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.rows-compact .row-value,
+.meter .row-value {
+    font-size: 13px;
+}
+
+.row-delta {
+    min-width: 60px;
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 600;
+    text-align: right;
+}
+
+.row-share {
+    display: inline-block;
+    min-width: 52px;
+    color: var(--muted);
+    font-weight: 400;
+    text-align: right;
+}
+
+/* ===================== Měřáky (seznam s pruhem podílu) ===================== */
+.meters {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.meter {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.meter-top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 13px;
+    line-height: 20px;
+}
+
+.meter-name {
+    min-width: 0;
+    color: var(--text-2);
+}
+
+.track {
+    height: 6px;
+    overflow: hidden;
+    border-radius: 3px;
+    background: var(--subtle);
+}
+
+.track-fill {
+    height: 100%;
+    border-radius: inherit;
+    background: var(--bar);
+}
+
+/* Složený pruh (zařízení, noví a vracející se) */
+.stack {
+    display: flex;
+    gap: 2px;
+    height: 12px;
+    overflow: hidden;
+    border-radius: 6px;
+}
+
+.stack > span {
+    min-width: 2px;
+    height: 100%;
+}
+
+/* Barvy řad pro pruhy a legendu */
+.fill-1 { background: var(--bar); }
+.fill-2 { background: var(--bar-weak); }
+.fill-3 { background: var(--bar-prev); }
+
+.block-title {
+    color: var(--text);
+    font-size: 13px;
+    line-height: 20px;
+    font-weight: 600;
+}
+
+.block-desc {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 16px;
+}
+
+/* ===================== Legenda ===================== */
+.legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+    color: var(--text-2);
+    font-size: 12px;
+    line-height: 16px;
+}
+
+.legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.swatch {
+    width: 12px;
+    height: 12px;
+    flex: none;
+    border-radius: 3px;
+}
+
+.swatch-current {
+    background: var(--accent-soft);
+    box-shadow: inset 0 0 0 1px var(--accent-line);
+}
+
+.swatch-line {
+    width: 16px;
+    height: 2px;
+    flex: none;
+    border-radius: 1px;
+    background: var(--accent);
+}
+
+.swatch-dash {
+    width: 16px;
+    height: 0;
+    flex: none;
+    border-top: 2px dashed var(--bar-prev);
+}
+
+/* ===================== Záložky metrik ===================== */
+.tabs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
+    border-bottom: 1px solid var(--border);
+}
+
+.tab {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 20px 24px 18px;
+    box-shadow: inset -1px 0 0 var(--border);
+    text-align: left;
+    transition: background-color .12s;
+}
+
+.tab:last-child {
+    box-shadow: none;
+}
+
+.tab:hover {
+    background: var(--hover);
+}
+
+.tab[aria-selected="true"]::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: -1px;
+    left: 0;
+    height: 2px;
+    background: var(--accent);
+}
+
+.tab[aria-selected="true"] .metric-label {
+    color: var(--accent-text);
+}
+
+.tab .metric-note {
+    font-size: 12px;
+    line-height: 16px;
+    white-space: nowrap;
+}
+
+/* ===================== Heatmapa (den × čas) ===================== */
+.heatmap {
+    display: grid;
+    grid-template-columns: 28px repeat(6, minmax(0, 1fr));
+    gap: 4px;
+}
+
+.heatmap-head {
+    padding-bottom: 4px;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 16px;
+    text-align: center;
+}
+
+.heatmap-day {
+    display: flex;
+    align-items: center;
+    color: var(--text-2);
+    font-size: 12px;
+    line-height: 16px;
+}
+
+.heatmap-cell {
+    display: grid;
+    place-items: center;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    background: var(--subtle);
+    color: var(--text);
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 500;
+}
+
+.heatmap-cell.is-0 { color: transparent; }
+.heatmap-cell.is-1 { background: var(--hm1); }
+.heatmap-cell.is-2 { background: var(--hm2); }
+.heatmap-cell.is-3 { background: var(--hm3); }
+.heatmap-cell.is-4 { background: var(--hm4); color: var(--hm4-fg); font-weight: 600; }
+
+.slots {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.slot {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 12px 14px;
+    border-radius: var(--radius);
+    background: var(--subtle);
+}
+
+.slot-title {
+    font-size: 13px;
+    line-height: 20px;
+    font-weight: 600;
+}
+
+.slot-title span {
+    margin-right: 6px;
+    color: var(--accent-text);
+}
+
+/* ===================== Rozbalovací poznámka (<details>) ===================== */
+.note > summary {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 56px;
+    padding: 0 24px;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+    list-style: none;
+    cursor: pointer;
+}
+
+.note > summary::-webkit-details-marker {
+    display: none;
+}
+
+.note > summary .icon {
+    color: var(--muted);
+}
+
+.note-chev {
+    width: 16px;
+    height: 16px;
+    margin-left: auto;
+    color: var(--muted);
+    transition: transform .15s;
+}
+
+.note[open] .note-chev {
+    transform: rotate(180deg);
+}
+
+.note-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 860px;
+    padding: 0 24px 24px 54px;
+    color: var(--text-2);
+    font-size: 13px;
+    line-height: 21px;
+}
+
+.note-body b,
+.note-body strong {
+    color: var(--text);
+}
+
+/* ===================== Výzva a hlášky ===================== */
+/* .callout = informační blok; s tónem (.tone-up/-down/-warn) slouží jako hláška po akci. */
+.callout {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px 20px;
+    border-radius: var(--radius-lg);
+    background: var(--subtle);
+    color: var(--text-2);
+    font-size: 13px;
+    line-height: 20px;
+}
+
+.callout > .icon,
+.callout > .icon-sm {
+    margin-top: 1px;
+    color: currentColor;
+    opacity: .8;
+}
+
+.callout a {
+    color: inherit;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.callout-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+/* ===================== Formuláře ===================== */
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.field-label {
+    color: var(--text);
+    font-size: 13px;
+    line-height: 20px;
+    font-weight: 500;
+}
+
+.field-help {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 16px;
+}
+
+.input {
+    width: 100%;
+    height: 36px;
+    padding: 0 12px;
+    border: 1px solid var(--ctrl);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 20px;
+}
+
+textarea.input {
+    height: auto;
+    min-height: 96px;
+    padding: 8px 12px;
+}
+
+.input::placeholder {
+    color: var(--muted);
+}
+
+.input:focus {
+    border-color: var(--accent);
+    outline: 2px solid var(--accent);
+    outline-offset: -1px;
+}
+
+/* Vyhledávací pole s ikonou lupy */
+.search {
+    position: relative;
+    width: 300px;
+    margin-left: auto;
+}
+
+.search .input {
+    padding-left: 36px;
+}
+
+.search > .icon-sm {
+    position: absolute;
+    top: 10px;
+    left: 12px;
+    color: var(--muted);
+    pointer-events: none;
+}
+
+/* Pruh filtrů nad tabulkou */
+.filterbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+}
+
+/* ===================== Prázdný stav ===================== */
+.empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 48px 24px;
+    text-align: center;
+}
+
+.empty-icon {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    margin-bottom: 4px;
+    border-radius: 50%;
+}
+
+.empty-title {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+}
+
+.empty-desc {
+    max-width: 420px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 20px;
+}
+
+/* ===================== Služba (karta „Přidat službu“) ===================== */
+.service {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+}
+
+.service-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.service-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: auto;
+}
+
+.service-state {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 500;
+}
+
+.service-state.is-on {
+    color: var(--pos);
+}
+
+/* ===================== Toast ===================== */
+.toast {
+    position: fixed;
+    top: 72px;
+    right: 32px;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 420px;
+    padding: 10px 14px 10px 12px;
+    border-radius: 10px;
+    background: var(--tip-bg);
+    box-shadow: var(--shadow-lg);
+    color: var(--tip-fg);
+    font-size: 13px;
+    line-height: 20px;
+}
+
+.toast > .icon-sm {
+    color: var(--toast-ico);
+}
+
+/* ===================== Dotyk a úzké obrazovky ===================== */
+@media (pointer: coarse) {
+    .btn {
+        min-height: 44px;
+    }
+
+    .btn-icon {
+        width: 44px;
+        height: 44px;
+    }
+
+    .seg-item {
+        height: 38px;
+    }
+}
+
+@media (max-width: 1100px) {
+    .table-matrix { min-width: 960px; }
+    .table-data { min-width: 940px; }
+}
+
+@media (max-width: 807px) {
+    .search {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .colchart,
+    .colchart-x {
+        margin-left: 44px;
+    }
+
+    .colchart-value {
+        display: none;
+    }
+
+    .toast {
+        top: 16px;
+        right: 16px;
+        left: 16px;
+    }
+
+    .shell-top .pill {
+        display: none;
+    }
+}

@@ -24,7 +24,6 @@ return [
     'Uživatelé' => 'Používatelia',
     'Odhlásit' => 'Odhlásiť sa',
     'Nová verze {version}' => 'Nová verzia {version}',
-    'Máš {version}, klikni pro aktualizaci' => 'Máš {version}, klikni na aktualizáciu',
     'Demo data jsou aktivní' => 'Demo dáta sú aktívne',
     'Zdroje zatím nejsou napojené' => 'Zdroje zatiaľ nie sú pripojené',
     'Všechny zdroje jsou synchronizované' => 'Všetky zdroje sú synchronizované',
@@ -32,8 +31,6 @@ return [
     'Přes 48 h bez dat: {names}. Zkontroluj cron.' => 'Viac ako 48 h bez dát: {names}. Skontroluj cron.',
     'Obnovit data' => 'Obnoviť dáta',
     'Sdílet pro AI (dočasný odkaz)' => 'Zdieľať pre AI (dočasný odkaz)',
-    'Sdílet pro AI' => 'Zdieľať pre AI',
-    'Motiv' => 'Motív',
     'Dnes' => 'Dnes',
     'Včera' => 'Včera',
     '3 dny' => '3 dni',
@@ -609,4 +606,6 @@ return [
     'typický měsíc (medián) prvních 3 měsíců' => 'typický mesiac (medián) prvých 3 mesiacov',
     'a další {count}' => 'a ďalšie {count}',
     'a dalších {count}' => 'a ďalších {count}',
+    'Jak rostou kanály webu {url} · uzavřené měsíce {range}' => 'Ako rastú kanály webu {url} · uzavreté mesiace {range}',
+    'Analyzovat s AI' => 'Analyzovať s AI',
 ];

@@ -714,51 +714,9 @@ const AllStat = (() => {
         });
     }
 
-    function bindNav() {
-        const toggle = document.getElementById('navToggle');
-        const shell = document.querySelector('.app-shell');
-
-        if (!toggle || !shell) {
-            return;
-        }
-
-        const backdrop = document.querySelector('[data-nav-backdrop]');
-        const setOpen = (open) => {
-            shell.classList.toggle('nav-open', open);
-            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-            document.body.classList.toggle('nav-locked', open); // zámek scrollu při otevřeném draweru
-        };
-
-        toggle.addEventListener('click', () => setOpen(!shell.classList.contains('nav-open')));
-        backdrop?.addEventListener('click', () => setOpen(false));
-        shell.querySelectorAll('.sidebar-nav a').forEach((a) => a.addEventListener('click', () => setOpen(false)));
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape') { setOpen(false); }
-        });
-    }
-
-    function bindTheme() {
-        const button = document.getElementById('themeToggle');
-
-        if (!button) {
-            return;
-        }
-
-        const syncIcon = () => {
-            const isDark = document.documentElement.dataset.theme === 'dark';
-            button.innerHTML = `<i data-lucide="${isDark ? 'sun' : 'moon'}"></i>`;
-            window.lucide?.createIcons();
-            renderCharts(window.ALLSTAT_DATA);
-        };
-
-        button.addEventListener('click', () => {
-            const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-            document.documentElement.dataset.theme = next;
-            localStorage.setItem('allstat-theme', next);
-            syncIcon();
-        });
-
-        syncIcon();
+    // Přepnutí motivu (assets/js/shell.js) → grafy přehledu znovu s barvami nového motivu.
+    function bindThemeCharts() {
+        document.addEventListener('allstat:themechange', () => renderCharts(window.ALLSTAT_DATA));
     }
 
     // Vyváží počet sloupců KPI mřížek podle počtu karet, aby řady byly souměrné: 7 karet → 4+3
@@ -931,9 +889,8 @@ const AllStat = (() => {
         bindDateRange();
         bindDatePickers();
         bindSourceSwitch();
-        bindNav();
         bindPagesToggle();
-        bindTheme();
+        bindThemeCharts();
         renderCharts(window.ALLSTAT_DATA);
         window.lucide?.createIcons();
     }

@@ -1,0 +1,192 @@
+/*
+ * AllStat – návrhové tokeny (barvy, stíny, písmo, rozměry). Jediné místo, kde se definují barvy:
+ * komponenty používají jen proměnné odsud, žádné vlastní hex hodnoty. Motiv přepíná atribut
+ * data-theme na <html> (light | dark), volbu drží localStorage „allstat-theme“ (assets/js/shell.js).
+ *
+ * Pořadí souborů: tokens.css → base.css → layout.css → components.css (→ legacy app.css/admin.css,
+ * dokud nejsou všechny stránky převedené; legacy se načítá PŘED nimi a jen se z něj maže).
+ */
+
+@font-face {
+    font-family: "Geist";
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url("../fonts/geist-latin.woff2") format("woff2");
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+    font-family: "Geist";
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url("../fonts/geist-latin-ext.woff2") format("woff2");
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+    font-family: "Geist Mono";
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url("../fonts/geist-mono-latin.woff2") format("woff2");
+}
+
+:root,
+:root[data-theme="light"] {
+    color-scheme: light;
+
+    /* Plochy a linky */
+    --bg: #F6F7F9;
+    --surface: #FFFFFF;
+    --subtle: #F2F4F7;
+    --hover: #F2F4F7;
+    --border: #E4E7EC;
+    --border-strong: #D0D5DD;
+    --ctrl: #8A93A3;
+
+    /* Text */
+    --text: #101828;
+    --text-2: #475467;
+    --muted: #5F6878;
+
+    /* Akcent */
+    --accent: #2F5BEA;
+    --accent-hover: #2349CF;
+    --accent-text: #2445C4;
+    --accent-soft: #EEF2FE;
+    --accent-line: #B9C8FA;
+    --on-accent: #FFFFFF;
+
+    /* Stavy: růst, pokles, varování */
+    --pos: #067647;
+    --pos-bg: #E8F6EE;
+    --neg: #B42318;
+    --neg-bg: #FDEDEB;
+    --warn: #B54708;
+    --warn-bg: #FEF4E6;
+
+    /* Grafy */
+    --bar: #2F5BEA;
+    --bar-weak: #7890EC;
+    --bar-prev: #98A2B3;
+    --grid: #EEF0F3;
+    --area: rgba(47, 91, 234, .07);
+    --tip-bg: #101828;
+    --tip-fg: #FFFFFF;
+    --tip-muted: #B4BCC9;
+    --toast-ico: #75E0A7;
+    --hm1: #E6ECFD;
+    --hm2: #C7D3FB;
+    --hm3: #8FA5F2;
+    --hm4: #2F5BEA;
+    --hm4-fg: #FFFFFF;
+
+    /* Stíny */
+    --shadow-sm: 0 1px 2px rgba(16, 24, 40, .05);
+    --shadow-md: 0 1px 2px rgba(16, 24, 40, .04), 0 6px 16px -4px rgba(16, 24, 40, .08);
+    --shadow-lg: 0 16px 32px -8px rgba(16, 24, 40, .16), 0 4px 8px -4px rgba(16, 24, 40, .06);
+    --shadow-seg: 0 1px 2px rgba(16, 24, 40, .08);
+
+    /* Barvy služeb (dlaždice se zkratkou, .src-*) */
+    --src-ga-bg: #FFF0E5; --src-ga-fg: #B54708;
+    --src-sc-bg: #E6F6EE; --src-sc-fg: #05603A;
+    --src-cl-bg: #F0EBFE; --src-cl-fg: #5925DC;
+    --src-fb-bg: #E8EFFE; --src-fb-fg: #1E46C8;
+    --src-ig-bg: #FDE8F2; --src-ig-fg: #C11574;
+    --src-li-bg: #E2F2FB; --src-li-fg: #026AA2;
+    --src-yt-bg: #FDECEB; --src-yt-fg: #B42318;
+    --src-ma-bg: #FEF3D7; --src-ma-fg: #93370D;
+    --src-ad-bg: #E9F6EA; --src-ad-fg: #2B6B30;
+    --src-ms-bg: #E3F4F7; --src-ms-fg: #0E7090;
+    --src-sz-bg: #FDEDE8; --src-sz-fg: #C4320A;
+
+    /* Písmo a rozměry */
+    --font: Geist, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --radius-sm: 6px;
+    --radius: 8px;
+    --radius-lg: 12px;
+    --side-w: 248px;
+    --page-max: 1192px;
+}
+
+:root[data-theme="dark"] {
+    color-scheme: dark;
+
+    --bg: #0B0E14;
+    --surface: #131822;
+    --subtle: #1A202C;
+    --hover: #1C2330;
+    --border: #252C3A;
+    --border-strong: #343C4D;
+    --ctrl: #5F6A80;
+
+    --text: #E8EBF1;
+    --text-2: #B4BCC9;
+    --muted: #919AAB;
+
+    --accent: #4469F2;
+    --accent-hover: #5A7BF5;
+    --accent-text: #A9BBFF;
+    --accent-soft: #1B2448;
+    --accent-line: #3B4F99;
+    --on-accent: #FFFFFF;
+
+    --pos: #4CCB8A;
+    --pos-bg: #0F2A1E;
+    --neg: #FF8C77;
+    --neg-bg: #371712;
+    --warn: #F3B25B;
+    --warn-bg: #30230D;
+
+    --bar: #7D99FF;
+    --bar-weak: #4E62AE;
+    --bar-prev: #6B7487;
+    --grid: #1E2533;
+    --area: rgba(125, 153, 255, .10);
+    --tip-bg: #E8EBF1;
+    --tip-fg: #101828;
+    --tip-muted: #475467;
+    --toast-ico: #067647;
+    --hm1: #19213D;
+    --hm2: #24326B;
+    --hm3: #3550B0;
+    --hm4: #7D99FF;
+    --hm4-fg: #0B0E14;
+
+    --shadow-sm: none;
+    --shadow-md: 0 8px 20px -6px rgba(0, 0, 0, .5);
+    --shadow-lg: 0 16px 40px -8px rgba(0, 0, 0, .6);
+    --shadow-seg: none;
+
+    --src-ga-bg: #3A2413; --src-ga-fg: #FDBA8C;
+    --src-sc-bg: #0F2C1F; --src-sc-fg: #75E0A7;
+    --src-cl-bg: #261D4A; --src-cl-fg: #BDB4FE;
+    --src-fb-bg: #18244A; --src-fb-fg: #A4BCFD;
+    --src-ig-bg: #3D1230; --src-ig-fg: #FAA7E0;
+    --src-li-bg: #0C2B40; --src-li-fg: #7CD4FD;
+    --src-yt-bg: #3D1714; --src-yt-fg: #FDA29B;
+    --src-ma-bg: #362508; --src-ma-fg: #FEC84B;
+    --src-ad-bg: #14301A; --src-ad-fg: #8BD69A;
+    --src-ms-bg: #0B2C33; --src-ms-fg: #67E3F9;
+    --src-sz-bg: #3A1B10; --src-sz-fg: #F9A07A;
+}
+
+/*
+ * Most pro legacy CSS (app.css, admin.css): staré názvy proměnných ukazují na nové tokeny, takže
+ * i nepřevedené stránky mají novou paletu v obou motivech. Při převodu stránky se legacy pravidla
+ * mažou; až legacy soubory zmizí, smaže se i tento blok.
+ */
+:root,
+:root[data-theme="light"],
+:root[data-theme="dark"] {
+    --surface-muted: var(--subtle);
+    --line: var(--border);
+    --line-strong: var(--border-strong);
+    --shadow: var(--shadow-md);
+    --blue: var(--accent);
+    --chart-grid: var(--grid);
+    --sidebar-width: var(--side-w);
+}
