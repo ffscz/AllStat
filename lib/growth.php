@@ -462,7 +462,13 @@ function allstat_get_channel_growth(PDO $pdo, int $domainId, int $months, ?DateT
         } elseif (!empty($def['spend'])) {
             [$spend] = $byConn[$cid][$def['spend']][$last['ym']] ?? [0.0, 0];
             if ($pk === 'microsoft_ads') {
-                $currency = preg_match('/\(([A-Z]{3})\)$/', (string) ($o['label'] ?? ''), $matches) ? $matches[1] : '';
+                // Měnu ukládá sync do nastavení; starší napojení ji mají jen v přípisku „(EUR)“ v názvu účtu.
+                $currencyStmt = $pdo->prepare('SELECT setting_value FROM allstat_settings WHERE setting_key = ?');
+                $currencyStmt->execute(['microsoft_ads.currency.' . $cid]);
+                $currency = (string) ($currencyStmt->fetchColumn() ?: '');
+                if (!preg_match('/^[A-Z]{3}$/', $currency)) {
+                    $currency = preg_match('/\(([A-Z]{3})\)$/', (string) ($o['label'] ?? ''), $matches) ? $matches[1] : '';
+                }
                 $spendText = t('Útrata za {month} {amount}', ['month' => preg_replace('/ \d{4}$/', '', $last['longLabel']), 'amount' => allstat_number($spend)])
                     . ($currency !== '' ? ' ' . $currency : '');
             } else {

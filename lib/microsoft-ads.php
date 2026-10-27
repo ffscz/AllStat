@@ -265,13 +265,16 @@ function allstat_engine_microsoft_ads(PDO $pdo, array $config, array $connection
         if ($accountStarted && $pdo->inTransaction()) { $pdo->rollBack(); }
         throw $error;
     }
+    // Currency is not secret: a plain setting lets Channel growth read it without the encryption key, and the
+    // sync does not rewrite config_json_enc (which could overwrite a form saved at the same moment).
     if (preg_match('/^[A-Z]{3}$/', $currency)) {
-        $connectionConfig = allstat_microsoft_ads_config($connection);
-        $connectionConfig['currency'] = $currency;
+        $pdo->prepare('INSERT INTO allstat_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)')
+            ->execute(['microsoft_ads.currency.' . $connectionId, $currency]);
         $label = trim((string) ($connection['account_label'] ?? ''));
-        if ($label === '' || $label === 'Microsoft Ads účet') { $label = $accountName ?: 'Microsoft Ads'; }
-        $pdo->prepare('UPDATE domain_sources SET account_label = ?, config_json_enc = ?, updated_at = NOW() WHERE id = ?')
-            ->execute([$label, allstat_encrypt_secret(json_encode($connectionConfig, JSON_UNESCAPED_UNICODE), $config), $connectionId]);
+        if ($label === '' || $label === 'Microsoft Ads účet') {
+            $pdo->prepare('UPDATE domain_sources SET account_label = ?, updated_at = NOW() WHERE id = ?')
+                ->execute([mb_substr($accountName ?: 'Microsoft Ads', 0, 160), $connectionId]);
+        }
     }
     $campaignCount = 0;
     $campaignNote = '';
