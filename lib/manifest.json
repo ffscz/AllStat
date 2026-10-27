@@ -274,8 +274,8 @@
             "h": "c1b8d0122d34c8fd0a6570614462c74093b86d86a129add242937ea02e48933a"
         },
         "lang/en/sources.php": {
-            "s": 96231,
-            "h": "ace82d44dc45ba41ae1c805edef167f58bbaa7744d8a2a9c12de8fbf7e921e17"
+            "s": 96526,
+            "h": "24f6c889337eb67765de426dd31849754d8871ed8e109894e4863839f63837d8"
         },
         "lang/sk/admin.php": {
             "s": 55883,
@@ -306,8 +306,8 @@
             "h": "aa46b5de8ecee7f1e2a0e5ec093cda731eae5880e884087c3caef4ef19ea9cdf"
         },
         "lang/sk/sources.php": {
-            "s": 96219,
-            "h": "eb2c23045deb88cbe6cf63ef75713e0ea195ce503a6a44ef5f2d81b23334253b"
+            "s": 96511,
+            "h": "1274c1cab5bb8b3a9a84af4e20eb24e0dae5081f1259f3a91fe0f5bafe6dae0d"
         },
         "lib/admin-repository.php": {
             "s": 20968,
@@ -386,8 +386,8 @@
             "h": "87343d2667440ff045a1a0357bab65f9e4e54af2c2946a10ae2fcc32defd03db"
         },
         "lib/microsoft-ads.php": {
-            "s": 20169,
-            "h": "6bbd468313a8269db6f9b99af266599fcdf33fccac6a8ffe1c817e377c541120"
+            "s": 20759,
+            "h": "cfa93fcec2fd43bb2446993047966645d321d679300665b6532ff45bca24d655"
         },
         "lib/migrations.php": {
             "s": 56354,
@@ -398,8 +398,8 @@
             "h": "e0cf5f709ae0fd11ec557d940e6b70156f67c841d418b0697f88400b90d9d71d"
         },
         "lib/providers.php": {
-            "s": 53316,
-            "h": "939c22b1f986cd39bc374a671c8b0a331b83196a729b4ee351a9c2f3671ce006"
+            "s": 53335,
+            "h": "cc8945f72a117d15da5d3fe043a0ce57baa05b72561d1417153a0ce0dd4de4a1"
         },
         "lib/repository.php": {
             "s": 229866,
@@ -410,8 +410,8 @@
             "h": "0790111a952434e5f879c7fe29b54b891f3ec8af814ac35a55a0a32e62727596"
         },
         "lib/share.php": {
-            "s": 98036,
-            "h": "98fc6ecbf7564c6228241263dd8abac1b9889edcec51a52bcc95b031d9d72b0c"
+            "s": 98033,
+            "h": "588e3abdeb2f9894703f900e63c0c7af389c2a48b5d4992f603442d19d7f2cda"
         },
         "lib/sites.php": {
             "s": 9840,

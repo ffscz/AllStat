@@ -60,7 +60,7 @@ function allstat_microsoft_ads_report_request(string $accountId, string $startDa
         'Format' => 'Csv', 'FormatVersion' => '2.0',
         'ExcludeReportHeader' => true, 'ExcludeReportFooter' => true, 'ExcludeColumnHeaders' => false,
         'ReturnOnlyCompleteData' => false, 'Aggregation' => 'Daily', 'Columns' => $columns,
-        'Scope' => ['AccountIds' => [$accountId]],
+        'Scope' => ['AccountIds' => [(int) $accountId]], // REST v13 expects a long, not a string
         'Time' => ['CustomDateRangeStart' => $date($startDate), 'CustomDateRangeEnd' => $date($endDate), 'ReportTimeZone' => $timezone],
     ]];
 }
@@ -190,6 +190,8 @@ function allstat_microsoft_ads_report(array $connection, string $token, string $
     $job = [(int) ($connection['id'] ?? 0), $campaigns ? 'campaign' : 'account', $startDate, $endDate];
     $id = '';
     if ($pdo !== null) {
+        // Requests that never finished are useless after a day (Microsoft keeps an ID for at most one day).
+        $pdo->exec('DELETE FROM microsoft_ads_report_jobs WHERE created_at < NOW() - INTERVAL 1 DAY');
         $find = $pdo->prepare('SELECT report_request_id FROM microsoft_ads_report_jobs WHERE connection_id = ? AND report_type = ? AND start_date = ? AND end_date = ? AND created_at >= NOW() - INTERVAL 23 HOUR');
         $find->execute($job);
         $id = (string) ($find->fetchColumn() ?: '');
@@ -294,7 +296,12 @@ function allstat_engine_microsoft_ads(PDO $pdo, array $config, array $connection
             $date = (string) ($row['TimePeriod'] ?? '');
             $name = mb_substr(trim((string) ($row['CampaignName'] ?? '')), 0, 120);
             if ($date < $startDate || $date > $endDate || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) || $name === '') { return; }
-            if ((allstat_microsoft_ads_number($row['Impressions'] ?? null) ?? 0) <= 0) { return; }
+            // A row may have 0 impressions but clicks, spend or conversions (ad shown before the period); skip only empty rows.
+            $hasData = false;
+            foreach (['Impressions', 'Clicks', 'Spend', 'ConversionsQualified', 'Revenue'] as $column) {
+                if ((allstat_microsoft_ads_number($row[$column] ?? null) ?? 0) != 0) { $hasData = true; break; }
+            }
+            if (!$hasData) { return; }
             $startCampaign();
             foreach (['Impressions' => 'campaign_impressions', 'Clicks' => 'campaign_clicks', 'Spend' => 'campaign_cost', 'ConversionsQualified' => 'campaign_conversions', 'Revenue' => 'campaign_value'] as $column => $key) {
                 $value = allstat_microsoft_ads_number($row[$column] ?? null);
