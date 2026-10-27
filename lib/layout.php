@@ -25,16 +25,11 @@ function allstat_asset_url(array $config, string $path): string
     return allstat_url($config, $path) . '?v=' . ($mtime ?: '1');
 }
 
-/**
- * Styly stránky. Legacy soubory (app.css, admin.css) jdou první, dokud nejsou všechny stránky převedené
- * na komponenty; nové vrstvy je přebíjí. $legacy = seznam legacy souborů, které stránka ještě potřebuje.
- *
- * @param string[] $legacy
- */
-function allstat_stylesheets(array $config, array $legacy = ['app']): string
+/** Styly stránky: tokeny, základ, rozvržení a komponenty (stejné pro všechny stránky). */
+function allstat_stylesheets(array $config): string
 {
     $html = '';
-    foreach (array_merge($legacy, ['tokens', 'base', 'layout', 'components']) as $name) {
+    foreach (['tokens', 'base', 'layout', 'components'] as $name) {
         $html .= '<link rel="stylesheet" href="' . h(allstat_asset_url($config, 'assets/css/' . $name . '.css')) . '">' . "\n";
     }
 
@@ -210,7 +205,6 @@ function allstat_layout_site_url(int $domainId): string
  *   crumbs    drobečky: [['label' => …, 'href' => … | null], …]; poslední je aktuální stránka
  *   help      kotva kapitoly návodu ('' = začátek návodu)
  *   domainId  zvolený web (null = přepínač ukáže web ze session / primární)
- *   legacy    legacy styly, které stránka ještě potřebuje (výchozí ['app'])
  *   bodyAttr  atributy pro <div class="shell"> (např. 'data-dashboard')
  */
 function allstat_layout_start(?PDO $pdo, array $config, array $user, array $page): void
@@ -252,7 +246,7 @@ function allstat_layout_start(?PDO $pdo, array $config, array $user, array $page
     <title><?= h($title) ?> | <?= h($config['app']['name']) ?></title>
     <script nonce="<?= h($nonce) ?>">document.documentElement.dataset.theme = localStorage.getItem('allstat-theme') || 'light';</script>
     <link rel="preload" href="<?= h(allstat_url($config, 'assets/fonts/geist-latin.woff2')) ?>" as="font" type="font/woff2" crossorigin>
-    <?= allstat_stylesheets($config, $page['legacy'] ?? ['app']) ?>
+    <?= allstat_stylesheets($config) ?>
 </head>
 <body>
 <div class="shell" <?= $page['bodyAttr'] ?? '' ?>>

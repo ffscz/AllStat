@@ -1,8 +1,8 @@
 /*
  * Pohled „Trychtýř" (views/funnel.php): čárový graf vývoje počtu událostí jednotlivých kroků v čase.
  * Data posílá index.php v window.ALLSTAT_FUNNEL (labels, longLabels, series[{name, event, data}]).
- * Barvy řad jsou stejné jako v ostatních grafech přehledu (app.js); u víc než 7 kroků se barvy opakují a
- * řady jsou čárkované. Po přepnutí motivu se graf překreslí s barvami pro nový motiv.
+ * Barvy řad jsou tokeny --series-1..6 (tokens.css); u víc kroků se barvy opakují a řady jsou čárkované.
+ * Po přepnutí motivu (allstat:themechange) se graf překreslí s barvami pro nový motiv.
  */
 (function () {
     'use strict';
@@ -11,7 +11,7 @@
     if (!root) { return; }
 
     var data = window.ALLSTAT_FUNNEL || { labels: [], longLabels: [], series: [] };
-    var palette = ['#2563eb', '#16a34a', '#8b5cf6', '#f59e0b', '#06b6d4', '#f43f5e', '#14b8a6'];
+    var SERIES = 6;
     var number = new Intl.NumberFormat(window.allstatLocale);
     var chart = null;
 
@@ -25,7 +25,6 @@
         if (chart) { chart.destroy(); chart = null; }
 
         var muted = cssVar('--muted');
-        var text = cssVar('--text');
         var surface = cssVar('--surface');
 
         chart = new Chart(canvas, {
@@ -33,14 +32,14 @@
             data: {
                 labels: data.labels,
                 datasets: data.series.map(function (s, i) {
-                    var color = palette[i % palette.length];
+                    var color = cssVar('--series-' + ((i % SERIES) + 1));
                     return {
                         label: (i + 1) + '. ' + s.name,
                         data: s.data,
                         borderColor: color,
                         backgroundColor: color,
                         borderWidth: 2.5,
-                        borderDash: i >= palette.length ? [6, 4] : [],
+                        borderDash: i >= SERIES ? [6, 4] : [],
                         tension: 0.3,
                         pointRadius: data.labels.length > 40 ? 0 : 3,
                         pointHoverRadius: 5,
@@ -56,12 +55,12 @@
                 plugins: {
                     legend: {
                         align: 'start',
-                        labels: { usePointStyle: true, pointStyle: 'line', boxWidth: 28, color: muted, font: { weight: 700 } }
+                        labels: { usePointStyle: true, pointStyle: 'line', boxWidth: 28, color: cssVar('--text-2'), font: { family: cssVar('--font'), weight: 500 } }
                     },
                     tooltip: {
-                        backgroundColor: text,
-                        titleColor: surface,
-                        bodyColor: surface,
+                        backgroundColor: cssVar('--tip-bg'),
+                        titleColor: cssVar('--tip-fg'),
+                        bodyColor: cssVar('--tip-fg'),
                         padding: 10,
                         callbacks: {
                             title: function (items) { return items.length ? data.longLabels[items[0].dataIndex] : ''; },
@@ -73,7 +72,7 @@
                     x: { grid: { display: false }, ticks: { color: muted, maxTicksLimit: 8 } },
                     y: {
                         beginAtZero: true,
-                        grid: { color: cssVar('--chart-grid') },
+                        grid: { color: cssVar('--grid') },
                         ticks: { color: muted, precision: 0 },
                         title: { display: true, text: window.allstatT('Počet událostí'), color: muted }
                     }
@@ -82,9 +81,7 @@
         });
     }
 
-    // app.js přepíná data-theme na <html> → graf znovu s barvami pro nový motiv.
-    new MutationObserver(function () { if (chart) { render(); } })
-        .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    document.addEventListener('allstat:themechange', function () { if (chart) { render(); } });
 
     render();
 })();

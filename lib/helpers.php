@@ -269,7 +269,7 @@ function allstat_docs_url(string $anchor = ''): string
 /** Textový odkaz na kapitolu návodu (nová karta). */
 function allstat_help_link(string $anchor, string $label): string
 {
-    return '<a class="help-link" href="' . h(allstat_docs_url($anchor)) . '" target="_blank" rel="noopener">' . h($label) . '</a>';
+    return '<a href="' . h(allstat_docs_url($anchor)) . '" target="_blank" rel="noopener">' . h($label) . '</a>';
 }
 
 /** Otazník v záhlaví stránky: otevře kapitolu návodu, která ke stránce patří ('' = začátek návodu). */
@@ -291,75 +291,4 @@ function allstat_help_anchor_for_provider(string $providerKey): string
         'clarity' => 'clarity',
         default => 'sluzby',
     };
-}
-
-/**
- * Malý inline SVG spojnicový graf (trend) z číselné série. Bezstavový, bez JS — vhodné do
- * server-renderovaných provider views (přepočítá se při reloadu stránky). Šířka se roztáhne
- * na 100 % kontejneru (preserveAspectRatio=none, osa x = čas), výška dle $height. Barva = hex.
- */
-function allstat_trend_svg(array $series, string $color = '#2563eb', int $height = 44): string
-{
-    $vals = array_values(array_map(static fn ($v): float => (float) $v, $series));
-    $n = count($vals);
-    if ($n === 0) {
-        return '';
-    }
-    if ($n === 1) {
-        $vals = [$vals[0], $vals[0]];
-        $n = 2;
-    }
-    $min = min($vals);
-    $max = max($vals);
-    $span = $max - $min;
-    $pad = 3.0;
-    $usable = $height - 2 * $pad;
-    $pts = [];
-    foreach ($vals as $i => $v) {
-        $x = round($i / ($n - 1) * 100, 2);
-        $y = $span > 0 ? round($pad + ($max - $v) / $span * $usable, 2) : round($height / 2, 2);
-        $pts[] = $x . ',' . $y;
-    }
-    $line = implode(' ', $pts);
-    $area = '0,' . $height . ' ' . $line . ' 100,' . $height;
-    $c = htmlspecialchars($color, ENT_QUOTES, 'UTF-8');
-
-    return '<svg class="trend-svg" viewBox="0 0 100 ' . $height . '" preserveAspectRatio="none" role="img" aria-hidden="true" focusable="false">'
-        . '<polygon points="' . $area . '" fill="' . $c . '" fill-opacity="0.12" stroke="none"/>'
-        . '<polyline points="' . $line . '" fill="none" stroke="' . $c . '" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/>'
-        . '</svg>';
-}
-
-/**
- * Horizontální bar graf jako HTML (reuse .bar-chart / .bar-row). $rows = [['label','value','share'?], …].
- * Šířka pruhu = poměr k nejsilnější položce. $percent=true → hodnota už JE procento (FB demografie z CSV),
- * zobrazí se „X %"; jinak počet + podíl z celku v závorce (IG demografie z API = počty).
- */
-function allstat_bar_rows_html(array $rows, array $palette, bool $percent = false): string
-{
-    if (!$rows) {
-        return '';
-    }
-    $palette = $palette ?: ['#2563eb'];
-    $max = max(1e-9, ...array_map(static fn ($r) => (float) ($r['value'] ?? 0), $rows));
-    $tot = array_sum(array_map(static fn ($r) => (float) ($r['value'] ?? 0), $rows));
-    $out = '';
-    $i = 0;
-    foreach ($rows as $r) {
-        $v = (float) ($r['value'] ?? 0);
-        $w = round(max(2, $v / $max * 100), 1);
-        $label = htmlspecialchars((string) ($r['label'] ?? ''), ENT_QUOTES, 'UTF-8');
-        if ($percent) {
-            $valueHtml = '<strong>' . allstat_number($v, 1) . ' %</strong>';
-        } else {
-            $share = isset($r['share']) ? (int) round((float) $r['share']) : ($tot > 0 ? (int) round($v / $tot * 100) : 0);
-            $valueHtml = '<strong>' . allstat_number($v) . '</strong> <small>(' . $share . ' %)</small>';
-        }
-        $out .= '<div class="bar-row"><span class="bar-row-label" title="' . $label . '">' . $label . '</span>'
-            . '<div class="bar-row-track"><div class="bar-row-fill" style="width: ' . $w . '%; background: ' . $palette[$i % count($palette)] . ';"></div></div>'
-            . '<span class="bar-row-value">' . $valueHtml . '</span></div>';
-        $i++;
-    }
-
-    return '<div class="bar-chart">' . $out . '</div>';
 }

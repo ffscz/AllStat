@@ -3,8 +3,7 @@
  * komponenty používají jen proměnné odsud, žádné vlastní hex hodnoty. Motiv přepíná atribut
  * data-theme na <html> (light | dark), volbu drží localStorage „allstat-theme“ (assets/js/shell.js).
  *
- * Pořadí souborů: tokens.css → base.css → layout.css → components.css (→ legacy app.css/admin.css,
- * dokud nejsou všechny stránky převedené; legacy se načítá PŘED nimi a jen se z něj maže).
+ * Pořadí souborů: tokens.css → base.css → layout.css → components.css.
  */
 
 @font-face {
@@ -83,6 +82,14 @@
     --hm4: #2F5BEA;
     --hm4-fg: #FFFFFF;
 
+    /* Řady grafu s více křivkami (kroky trychtýře); pořadí = pořadí řad */
+    --series-1: #2F5BEA;
+    --series-2: #12B76A;
+    --series-3: #7A5AF8;
+    --series-4: #F79009;
+    --series-5: #06AED4;
+    --series-6: #F04438;
+
     /* Stíny */
     --shadow-sm: 0 1px 2px rgba(16, 24, 40, .05);
     --shadow-md: 0 1px 2px rgba(16, 24, 40, .04), 0 6px 16px -4px rgba(16, 24, 40, .08);
@@ -156,6 +163,13 @@
     --hm4: #7D99FF;
     --hm4-fg: #0B0E14;
 
+    --series-1: #7D99FF;
+    --series-2: #47CD89;
+    --series-3: #A48AFB;
+    --series-4: #FDB022;
+    --series-5: #3CCBDA;
+    --series-6: #F97066;
+
     --shadow-sm: none;
     --shadow-md: 0 8px 20px -6px rgba(0, 0, 0, .5);
     --shadow-lg: 0 16px 40px -8px rgba(0, 0, 0, .6);
@@ -172,21 +186,4 @@
     --src-ad-bg: #14301A; --src-ad-fg: #8BD69A;
     --src-ms-bg: #0B2C33; --src-ms-fg: #67E3F9;
     --src-sz-bg: #3A1B10; --src-sz-fg: #F9A07A;
-}
-
-/*
- * Most pro legacy CSS (app.css, admin.css): staré názvy proměnných ukazují na nové tokeny, takže
- * i nepřevedené stránky mají novou paletu v obou motivech. Při převodu stránky se legacy pravidla
- * mažou; až legacy soubory zmizí, smaže se i tento blok.
- */
-:root,
-:root[data-theme="light"],
-:root[data-theme="dark"] {
-    --surface-muted: var(--subtle);
-    --line: var(--border);
-    --line-strong: var(--border-strong);
-    --shadow: var(--shadow-md);
-    --blue: var(--accent);
-    --chart-grid: var(--grid);
-    --sidebar-width: var(--side-w);
 }
