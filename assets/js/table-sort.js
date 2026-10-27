@@ -5,7 +5,8 @@
  * „2,71 %", „+3"; doby „10 h 53 min", „2 min 32 s"; data „10.09. 12:30", „1. 9. 2026", ISO.
  * Anglicky čísla „4,970", „2.71 %" a data „10 Sep 12:30", „1 Sep 2026".
  * Přesnou hodnotu lze vnutit atributem data-sort na <td> (např. ISO datum s rokem). Vypnutí:
- * data-no-sort na <table> nebo na <th>. Řádky s colspan (hlášky „bez dat") zůstávají na místě.
+ * data-no-sort na <table> nebo na <th>. Řádky s colspan (skupiny, hlášky „bez dat") zůstávají na místě
+ * a řadí se úseky mezi nimi.
  * Delegováno na document, takže funguje i pro tabulky překreslené AJAXem (přehled GA4).
  */
 (function () {
@@ -75,15 +76,29 @@
         var headRow = th.parentNode;
         var index = Array.prototype.indexOf.call(headRow.children, th);
         Array.prototype.forEach.call(table.tBodies, function (tbody) {
-            var rows = Array.prototype.slice.call(tbody.rows);
-            var sortable = rows.filter(function (row) {
-                return row.cells.length > 1 && !Array.prototype.some.call(row.cells, function (c) { return c.colSpan > 1; });
+            // Řádky s colspan (skupiny „Web“, „Sociální sítě“, hlášky) dělí tělo na úseky; řadí se každý zvlášť.
+            // Rozbalovací detail (tr.row-detail) se stěhuje se svým řádkem.
+            var segments = [[]];
+            Array.prototype.forEach.call(tbody.rows, function (row) {
+                var current = segments[segments.length - 1];
+                if (row.classList.contains('row-detail')) {
+                    if (current.length) { current[current.length - 1].extra.push(row); }
+                    return;
+                }
+                var divider = row.cells.length < 2 || Array.prototype.some.call(row.cells, function (c) { return c.colSpan > 1; });
+                if (divider) { segments.push([]); } else { current.push({ row: row, extra: [] }); }
             });
-            if (sortable.length < 2) { return; }
-            var keyed = sortable.map(function (row, i) { return { row: row, i: i, v: cellValue(row.cells[index]) }; });
-            keyed.sort(function (x, y) { return compare(x.v, y.v, dir) || (x.i - y.i); });
-            var anchor = sortable[sortable.length - 1].nextSibling; // řádky s colspan za seřazenými zůstanou na konci
-            keyed.forEach(function (k) { tbody.insertBefore(k.row, anchor); });
+            segments.forEach(function (items) {
+                if (items.length < 2) { return; }
+                var lastItem = items[items.length - 1];
+                var anchor = (lastItem.extra.length ? lastItem.extra[lastItem.extra.length - 1] : lastItem.row).nextSibling;
+                items.forEach(function (item, i) { item.i = i; item.v = cellValue(item.row.cells[index]); });
+                items.sort(function (x, y) { return compare(x.v, y.v, dir) || (x.i - y.i); });
+                items.forEach(function (item) {
+                    tbody.insertBefore(item.row, anchor);
+                    item.extra.forEach(function (row) { tbody.insertBefore(row, anchor); });
+                });
+            });
         });
         Array.prototype.forEach.call(headRow.children, function (cell) {
             cell.classList.remove('is-sorted-asc', 'is-sorted-desc');

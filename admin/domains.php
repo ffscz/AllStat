@@ -73,7 +73,7 @@ $hostOf = static fn (string $url): string => (string) preg_replace('~^(https?://
                         </div>
                     </td>
                     <td class="ellipsis"><?= h($hostOf((string) $domain['url'])) ?></td>
-                    <td class="num"><a class="link-more" href="sources.php?domain_id=<?= $id ?>"><?= (int) $domain['source_count'] ?></a></td>
+                    <td class="num"><a href="sources.php?domain_id=<?= $id ?>"><?= (int) $domain['source_count'] ?></a></td>
                     <td><?= $isActive ? allstat_status_pill('ok', t('Aktivní')) : allstat_status_badge('off') ?></td>
                     <td>
                         <div class="cell-actions dropdown">

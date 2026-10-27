@@ -101,15 +101,13 @@ $igReactions = static function (array $post): string {
 <section class="card">
     <?= allstat_ui_card_head(t('Demografické údaje'), t('sledující'), h(t('Věk, pohlaví a lokalita aktuálních sledujících, snímek z Meta API nezávislý na období. Dostupné u účtů se 100+ sledujícími.')),
         !empty($igDemographics['date']) ? allstat_ui_card_total(t('k {date}', ['date' => allstat_date_label($igDemographics['date'])])) : '') ?>
-    <div class="card-body grid grid-3">
+    <div class="card-body grid grid-facets">
         <?php if ($ageRows): ?><div class="meter"><span class="block-title"><?= h(t('Věk')) ?></span><?= $igMeters($ageRows) ?></div><?php endif; ?>
-        <div class="grid">
-            <?php if ($igDemographics['gender']): ?>
-                <?php $gTotal = max(1, array_sum(array_map(static fn (array $g): int => (int) $g['value'], $igDemographics['gender']))); ?>
-                <?= allstat_ui_stack(t('Pohlaví'), '', array_map(static fn (array $g): array => ['label' => $g['label'], 'value' => allstat_number((int) $g['value']), 'share' => allstat_percent(round((int) $g['value'] / $gTotal * 100), 0), 'pct' => (int) $g['value'] / $gTotal * 100], $igDemographics['gender'])) ?>
-            <?php endif; ?>
-            <?php if ($igDemographics['country']): ?><div class="meter"><span class="block-title"><?= h(t('Země')) ?></span><?= $igMeters(array_slice($igDemographics['country'], 0, 5)) ?></div><?php endif; ?>
-        </div>
+        <?php if ($igDemographics['gender']): ?>
+            <?php $gTotal = max(1, array_sum(array_map(static fn (array $g): int => (int) $g['value'], $igDemographics['gender']))); ?>
+            <?= allstat_ui_stack(t('Pohlaví'), '', array_map(static fn (array $g): array => ['label' => $g['label'], 'value' => allstat_number((int) $g['value']), 'share' => allstat_percent(round((int) $g['value'] / $gTotal * 100), 0), 'pct' => (int) $g['value'] / $gTotal * 100], $igDemographics['gender'])) ?>
+        <?php endif; ?>
+        <?php if ($igDemographics['country']): ?><div class="meter"><span class="block-title"><?= h(t('Země')) ?></span><?= $igMeters(array_slice($igDemographics['country'], 0, 5)) ?></div><?php endif; ?>
         <?php if ($igDemographics['city']): ?><div class="meter"><span class="block-title"><?= h(t('Města (top 8)')) ?></span><?= $igMeters(array_slice($igDemographics['city'], 0, 8)) ?></div><?php endif; ?>
     </div>
 </section>

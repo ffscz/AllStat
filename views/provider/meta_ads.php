@@ -90,14 +90,10 @@ $freqCell = static fn (array $row): string => ($row['frequencyScope'] ?? '') ===
 ?>
 <section class="card">
     <?= allstat_ui_card_head(t('Demografie a umístění reklam'), 'Meta Ads', h(t('Kdo reklamy viděl, podle zobrazení: věk, pohlaví, region a na jaké platformě (Facebook / Instagram / …). Automaticky z Meta Ads API, bez CSV. Delší pruh = větší podíl zobrazení.'))) ?>
-    <div class="card-body grid grid-3">
+    <div class="card-body grid grid-facets">
         <?php if ($metaAdsDemographics['age']): ?><div class="meter"><span class="block-title"><?= h(t('Věk')) ?></span><?= allstat_ui_meters($adMeters($metaAdsDemographics['age'])) ?></div><?php endif; ?>
-        <?php if ($metaAdsDemographics['gender'] || $metaAdsDemographics['platform']): ?>
-        <div class="grid">
-            <?php if ($metaAdsDemographics['gender']): ?><?= allstat_ui_stack(t('Pohlaví'), '', array_map(static fn (array $g): array => ['label' => (string) $g['label'], 'value' => allstat_number((int) $g['value']), 'share' => (int) round((float) ($g['share'] ?? 0)) . ' %', 'pct' => (float) ($g['share'] ?? 0)], $metaAdsDemographics['gender'])) ?><?php endif; ?>
-            <?php if ($metaAdsDemographics['platform']): ?><div class="meter"><span class="block-title"><?= h(t('Platforma')) ?></span><?= allstat_ui_meters($adMeters($metaAdsDemographics['platform'])) ?></div><?php endif; ?>
-        </div>
-        <?php endif; ?>
+        <?php if ($metaAdsDemographics['gender']): ?><?= allstat_ui_stack(t('Pohlaví'), '', array_map(static fn (array $g): array => ['label' => (string) $g['label'], 'value' => allstat_number((int) $g['value']), 'share' => (int) round((float) ($g['share'] ?? 0)) . ' %', 'pct' => (float) ($g['share'] ?? 0)], $metaAdsDemographics['gender'])) ?><?php endif; ?>
+        <?php if ($metaAdsDemographics['platform']): ?><div class="meter"><span class="block-title"><?= h(t('Platforma')) ?></span><?= allstat_ui_meters($adMeters($metaAdsDemographics['platform'])) ?></div><?php endif; ?>
         <?php if ($metaAdsDemographics['region']): ?><div class="meter"><span class="block-title"><?= h(t('Region (top 8)')) ?></span><?= allstat_ui_meters($adMeters($metaAdsDemographics['region'])) ?></div><?php endif; ?>
     </div>
 </section>

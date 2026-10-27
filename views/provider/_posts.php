@@ -14,16 +14,19 @@ $postTypeLabel = static fn (array $post): string => match ($post['type'] ?? 'pos
     'story' => 'Story',
     default => allstat_social_format_label((string) ($post['format'] ?? '')),
 };
-$rxTitle = static function (array $post): string {
+// Reakce u příspěvku jako emoji s počtem, jen ty, které nastaly (FB má typy, IG jen lajky → jen součet).
+$rxCell = static function (array $post): string {
     $parts = [];
     foreach ($post['reactionBreakdown'] ?? [] as $r) {
-        $parts[] = $r['emoji'] . ' ' . $r['label'] . ' ' . allstat_number((int) $r['count']);
+        if ((int) $r['count'] > 0) {
+            $parts[] = '<span class="rx" title="' . h($r['label']) . '">' . $r['emoji'] . '<span class="num">' . h(allstat_number((int) $r['count'])) . '</span></span>';
+        }
     }
 
-    return implode(', ', $parts);
+    return $parts ? '<span class="rx-list">' . implode('', $parts) . '</span>' : h(allstat_number((int) $post['reactions']));
 };
 $detailId = 0;
-$postRow = static function (array $post) use (&$detailId, $postsCols, $postsExtraCol, $postType, $postTypeLabel, $rxTitle): string {
+$postRow = static function (array $post) use (&$detailId, $postsCols, $postsExtraCol, $postType, $postTypeLabel, $rxCell): string {
     $groups = array_filter($post['detail'] ?? [], static fn (array $g): bool => !empty($g['items']));
     $id = $groups ? 'post-detail-' . (++$detailId) : '';
     $text = ($post['permalink'] ?? '') !== ''
@@ -31,12 +34,11 @@ $postRow = static function (array $post) use (&$detailId, $postsCols, $postsExtr
         : '<span class="post-text">' . h($post['message']) . '</span>';
     $toggle = $groups ? '<button type="button" class="btn-ghost btn-sm" data-post-detail="' . $id . '" aria-expanded="false" aria-controls="' . $id . '">'
         . h(t('Detail')) . allstat_icon('chevron-down', 'icon-sm') . '</button>' : '';
-    $rx = $rxTitle($post);
     $html = '<tr data-content-type="' . $postType($post) . '">'
         . '<td><div class="post">' . $text . '<span class="post-meta"><span class="chip">' . h($postTypeLabel($post)) . '</span><span class="num">' . h($post['date']) . '</span>' . $toggle . '</span></div></td>'
         . '<td class="num is-strong">' . h($post['viewsLabel'] ?? '–') . '</td>'
         . '<td class="num">' . h($post['reachLabel'] ?? '–') . '</td>'
-        . '<td class="num"' . ($rx !== '' ? ' title="' . h($rx) . '"' : '') . '>' . h(allstat_number((int) $post['reactions'])) . '</td>'
+        . '<td class="num" data-sort="' . (int) $post['reactions'] . '">' . $rxCell($post) . '</td>'
         . '<td class="num">' . h(allstat_number((int) $post['comments'])) . '</td>'
         . '<td class="num">' . h(allstat_number((int) $post['shares'])) . '</td>'
         . ($postsExtraCol ? '<td class="num">' . h($post[$postsExtraCol['key']] ?? '–') . '</td>' : '')

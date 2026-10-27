@@ -103,7 +103,7 @@ allstat_admin_header(t('Uživatelé'), 'users', $user, $config);
         <label class="field"><span class="field-label"><?= h($editing ? t('Nové heslo') : t('Heslo')) ?></span><input class="input" type="password" name="password" <?= $editing ? '' : 'required' ?> minlength="12" autocomplete="new-password" placeholder="<?= $editing ? h(t('nechte prázdné pro zachování')) : '' ?>"></label>
         <div class="field field-full section" role="group" aria-labelledby="domain-access-title" data-domain-access>
             <span class="field-label" id="domain-access-title"><?= h(t('Přístup k webům')) ?></span>
-            <div class="grid grid-3">
+            <div class="grid grid-tiles">
                 <label class="check"><input type="radio" name="domain_access" value="all" <?= $domainAccess === 'all' ? 'checked' : '' ?>><span class="name-stack"><span class="name-main"><?= h(t('Všechny weby')) ?></span><span class="name-sub"><?= h(t('včetně webů přidaných později')) ?></span></span></label>
                 <label class="check"><input type="radio" name="domain_access" value="selected" <?= $domainAccess === 'selected' ? 'checked' : '' ?>><span class="name-stack"><span class="name-main"><?= h(t('Jen vybrané weby')) ?></span><span class="name-sub"><?= h(t('v přehledu, reportech i sdílených odkazech uvidí jen zaškrtnuté')) ?></span></span></label>
             </div>

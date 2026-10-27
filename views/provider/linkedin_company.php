@@ -164,7 +164,7 @@ if (!empty($linkedinReactions['hasData'])):
 <section class="card">
     <?= allstat_ui_card_head(t('Demografie sledujících'), 'LinkedIn', h(t('Kdo sleduje firemní stránku, podle profesního profilu. Celoživotní stav z LinkedIn API, ne za zvolené období. Součet nemusí dát 100 % sledujících.')),
         ($liD['date'] ?? '') !== '' ? allstat_ui_card_total(t('naposledy {date}', ['date' => allstat_date_label($liD['date'])])) : '') ?>
-    <div class="card-body grid grid-3">
+    <div class="card-body grid grid-facets">
         <?= $liFacet(t('Seniorita'), $liD['seniority']) ?>
         <?= $liFacet(t('Funkce'), $liD['function']) ?>
         <?= $liFacet(t('Obor (top 12)'), $liD['industry']) ?>
@@ -179,7 +179,7 @@ if (!empty($linkedinReactions['hasData'])):
 <section class="card">
     <?= allstat_ui_card_head(t('Složení návštěvníků stránky'), 'LinkedIn', h(t('Kdo navštěvuje firemní stránku, podle profesního profilu (z návštěv, ne ze sledujících). Celoživotní stav z LinkedIn API.')),
         ($liV['date'] ?? '') !== '' ? allstat_ui_card_total(t('naposledy {date}', ['date' => allstat_date_label($liV['date'])])) : '') ?>
-    <div class="card-body grid grid-3">
+    <div class="card-body grid grid-facets">
         <?= $liFacet(t('Pracovní funkce'), $liV['function']) ?>
         <?= $liFacet(t('Seniorita'), $liV['seniority']) ?>
         <?= $liFacet(t('Obor (top 12)'), $liV['industry']) ?>

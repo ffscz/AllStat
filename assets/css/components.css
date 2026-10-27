@@ -275,6 +275,7 @@
 
 .tile-sm { width: 28px; height: 28px; border-radius: 7px; font-size: 11px; }
 .tile-md { width: 32px; height: 32px; border-radius: var(--radius); font-size: 13px; letter-spacing: 0; }
+.tile-lg { width: 48px; height: 48px; border-radius: 12px; font-size: 15px; }
 .tile-round { border-radius: 50%; font-size: 12px; font-weight: 600; }
 
 .src-ga { background: var(--src-ga-bg); color: var(--src-ga-fg); }
@@ -404,7 +405,8 @@ a.pill:hover {
     padding: 20px 24px 0;
 }
 
-.card-head:last-child {
+.card-head:last-child,
+.card-head:has(+ .table-wrap) {
     padding-bottom: 20px;
 }
 
@@ -454,8 +456,12 @@ a.pill:hover {
     font-weight: 500;
 }
 
-.metric-value {
+/* Barva přes :where, aby tón (.is-up / .is-down) z base.css vyhrál */
+:where(.metric-value) {
     color: var(--text);
+}
+
+.metric-value {
     font-size: 28px;
     line-height: 36px;
     font-weight: 650;
@@ -706,7 +712,6 @@ a.pill:hover {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    table-layout: fixed;
     font-size: 13px;
     line-height: 20px;
 }
@@ -777,6 +782,10 @@ a.pill:hover {
 
 .table td.is-strong {
     font-weight: 600;
+}
+
+.table-matrix {
+    table-layout: fixed;
 }
 
 .table-matrix thead th {
@@ -1218,6 +1227,45 @@ a.pill:hover {
     color: var(--accent-text);
 }
 
+/* Rozpad reakcí: dlaždice s emoji, počtem a názvem reakce */
+.slots-reactions {
+    grid-template-columns: repeat(auto-fit, minmax(min(112px, 100%), 1fr));
+    margin-top: 0;
+}
+
+.slots-reactions .slot {
+    align-items: center;
+    gap: 2px;
+    padding: 14px 12px;
+    text-align: center;
+}
+
+.slot-emoji {
+    font-size: 24px;
+    line-height: 32px;
+}
+
+.slot-value {
+    font-size: 18px;
+    line-height: 28px;
+    font-weight: 600;
+}
+
+/* Reakce u příspěvku v tabulce: emoji s počtem */
+.rx-list {
+    display: inline-flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 2px 10px;
+}
+
+.rx {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    white-space: nowrap;
+}
+
 /* ===================== Rozbalovací poznámka (<details>) ===================== */
 .note > summary {
     display: flex;
@@ -1300,8 +1348,18 @@ a.pill:hover {
     text-underline-offset: 3px;
 }
 
-:where(.card-desc, .section-desc, .page-sub, .block-desc, .field-help, .auth-desc, .note-body, .empty-desc) a {
+:where(.card-desc, .section-desc, .page-sub, .block-desc, .field-help, .auth-desc, .note-body, .empty-desc) a,
+:where(.table td) > a:not([class]) {
     color: var(--accent-text);
+}
+
+:where(.table td) > a:not([class]) {
+    font-weight: 500;
+}
+
+:where(.table td) > a:not([class]):hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
 }
 
 .callout a {
@@ -1457,7 +1515,7 @@ textarea.input {
 }
 
 @media (max-width: 1100px) {
-    .table-matrix { min-width: 960px; }
+    .table-matrix { min-width: 1040px; }
     .table-data { min-width: 940px; }
 }
 
@@ -1685,7 +1743,12 @@ button.legend-item:hover {
     text-align: left;
 }
 
-/* Šířky sloupců tabulky (table-layout: fixed potřebuje pevné sloupce, jinak se akce lámou) */
+/* Dlouhé názvy v buňce se zkrátí (celé jsou v title), jinak by tabulka s automatickou šířkou rostla do šířky. */
+.table :is(td.ellipsis, td .ellipsis) {
+    max-width: 300px;
+}
+
+/* Výchozí šířky sloupců; delší záhlaví nebo hodnota sloupec rozšíří, takže se texty nepřekrývají. */
 .col-xs { width: 72px; }
 .col-num { width: 88px; } /* číselný sloupec (počty, procenta) */
 .col-sm { width: 104px; }
@@ -1752,6 +1815,19 @@ th.is-sorted-desc {
 th.is-sorted-asc::after { content: "\25B2"; opacity: 1; }
 th.is-sorted-desc::after { content: "\25BC"; opacity: 1; }
 
+/* Úzké měsíční sloupce: šipka sedí v okraji buňky, aby nezabírala místo hodnotě */
+.table-matrix th.is-sortable {
+    position: relative;
+}
+
+.table-matrix th.is-sortable::after {
+    position: absolute;
+    top: 50%;
+    right: 1px;
+    margin: 0;
+    transform: translateY(-50%);
+}
+
 /* Formuláře: mřížka polí, celořádkové pole, akce, zaškrtávátko */
 .form-grid {
     display: grid;
@@ -1763,8 +1839,15 @@ th.is-sorted-desc::after { content: "\25BC"; opacity: 1; }
     grid-column: 1 / -1;
 }
 
+/* Vlastní šipka: nativní sedí u okraje a v tmavém motivu splývá */
 select.input {
-    padding-right: 8px;
+    padding-right: 36px;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238A93A3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-position: right 12px center;
+    background-repeat: no-repeat;
+    background-size: 16px;
+    text-overflow: ellipsis;
 }
 
 .input[readonly] {
@@ -2080,7 +2163,8 @@ tr.row-extra {
 ol.steps,
 ol.meters,
 ul.rows,
-ul.checks {
+ul.checks,
+ul.slots {
     margin: 0;
     padding: 0;
     list-style: none;

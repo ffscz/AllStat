@@ -1,19 +1,22 @@
 <?php
 /**
  * Záhlaví pohledů v index.php: název, ovládání období a zdroje dat, tlačítko AI reportu a hlášky.
- * Přehled (Růst kanálů) má období v uzavřených měsících (.seg, přepíná assets/js/growth.js bez reloadu);
+ * Název nese u detailu zdroje dlaždici služby. Přehled (Růst kanálů) má období v uzavřených měsících (.seg, přepíná assets/js/growth.js bez reloadu);
  * ostatní pohledy mají rychlá období (.seg), kalendář rozsahu a výběr zdroje (.dropdown/.menu), které
- * obsluhuje assets/js/app.js. Ovládání je uvnitř formuláře #dashboardFilters (AJAX obnova přehledu GA4).
+ * obsluhuje assets/js/app.js. Tolik ovládání se vedle názvu nevejde, proto je lišta pod ním (.page-head-stack). Ovládání je uvnitř formuláře #dashboardFilters (AJAX obnova přehledu GA4).
  */
 
 $today = (new DateTimeImmutable('today'))->format('Y-m-d');
 $curStart = $data['range']['start'];
 $curEnd = $data['range']['end'];
 ?>
-<div class="page-head">
-    <div>
-        <h1 class="h1"><?= h($pageTitle) ?></h1>
-        <?php if ($pageSubtitle !== ''): ?><p class="page-sub" data-page-sub><?= h($pageSubtitle) ?></p><?php endif; ?>
+<div class="page-head<?= $isGrowthView ? '' : ' page-head-stack' ?>">
+    <div class="page-title">
+        <?php if ($isGenericView): ?><?= allstat_source_tile((string) $selectedProvider['provider_key'], 'lg') ?><?php endif; ?>
+        <div>
+            <h1 class="h1"><?= h($pageTitle) ?></h1>
+            <?php if ($pageSubtitle !== ''): ?><p class="page-sub" data-page-sub><?= h($pageSubtitle) ?></p><?php endif; ?>
+        </div>
     </div>
     <?php if ($isGrowthView):
         $gwHead = $growth['window'];
