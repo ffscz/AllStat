@@ -49,29 +49,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= h(t('Přihlášení')) ?> | AllStat</title>
     <script nonce="<?= h(allstat_nonce()) ?>">document.documentElement.dataset.theme = localStorage.getItem('allstat-theme') || 'light';</script>
-    <link rel="stylesheet" href="<?= h(allstat_url($config, 'assets/css/app.css')) ?>">
-    <link rel="stylesheet" href="<?= h(allstat_url($config, 'assets/css/admin.css')) ?>">
+    <?= allstat_stylesheets($config, []) ?>
 </head>
 <body>
-    <main class="auth-shell">
-        <section class="auth-card">
-            <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
-            <h1><?= h(t('Přihlášení')) ?></h1>
-            <p><?= h(t('Administrace AllStat je chráněná účtem a případně jednorázovým 2FA kódem.')) ?></p>
-            <?php if ($error): ?><div class="notice notice-error"><?= h($error) ?></div><?php endif; ?>
-            <form method="post" class="form-stack">
+    <main class="auth">
+        <section class="card auth-card">
+            <a class="logo auth-logo" href="<?= h(allstat_url($config, '')) ?>" aria-label="AllStat">
+                <svg class="logo-mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="13" width="4.5" height="8" rx="1.5" fill="currentColor" opacity=".45"/><rect x="9.75" y="7" width="4.5" height="14" rx="1.5" fill="currentColor" opacity=".7"/><rect x="16.5" y="3" width="4.5" height="18" rx="1.5" fill="currentColor"/></svg>
+                <span class="logo-name">AllStat</span>
+            </a>
+            <div class="auth-head">
+                <h1 class="h1"><?= h(t('Přihlášení')) ?></h1>
+                <p class="auth-desc"><?= h(t('Administrace AllStat je chráněná účtem a případně jednorázovým 2FA kódem.')) ?></p>
+            </div>
+            <?php if ($error): ?><div class="callout tone-down" role="alert"><?= allstat_icon('info', 'icon-sm') ?><span><?= h($error) ?></span></div><?php endif; ?>
+            <form method="post" class="auth-form">
                 <?= allstat_csrf_field() ?>
                 <input type="hidden" name="next" value="<?= h($next) ?>">
-                <label><span><?= h(t('E-mail')) ?></span><input type="text" name="email" required inputmode="email" autocomplete="username" autofocus></label>
-                <label><span><?= h(t('Heslo')) ?></span><input type="password" name="password" required autocomplete="current-password"></label>
-                <button class="button-primary" type="submit"><?= h(t('Přihlásit')) ?></button>
+                <label class="field"><span class="field-label"><?= h(t('E-mail')) ?></span><input class="input" type="text" name="email" required inputmode="email" autocomplete="username" autofocus></label>
+                <label class="field"><span class="field-label"><?= h(t('Heslo')) ?></span><input class="input" type="password" name="password" required autocomplete="current-password"></label>
+                <button class="btn btn-primary" type="submit"><?= h(t('Přihlásit')) ?></button>
             </form>
             <?= allstat_locale_switcher($config) ?>
         </section>
     </main>
-    <?php $nonce = allstat_nonce(); ?>
-    <script src="<?= h(allstat_url($config, 'assets/vendor/lucide.min.js')) ?>" nonce="<?= h($nonce) ?>"></script>
-    <script src="<?= h(allstat_url($config, 'assets/js/i18n.js')) ?>" nonce="<?= h($nonce) ?>"></script>
-    <script src="<?= h(allstat_url($config, 'assets/js/admin.js')) ?>" nonce="<?= h($nonce) ?>"></script>
+    <script src="<?= h(allstat_asset_url($config, 'assets/js/i18n.js')) ?>" nonce="<?= h(allstat_nonce()) ?>"></script>
 </body>
 </html>

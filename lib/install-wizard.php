@@ -113,7 +113,7 @@ function installer_send_headers(): void
     header('X-Content-Type-Options: nosniff');
     header('X-Frame-Options: DENY');
     header('Referrer-Policy: no-referrer');
-    header("Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; script-src 'nonce-" . installer_nonce() . "'; img-src data:; form-action 'self'; frame-ancestors 'none'; base-uri 'none'");
+    header("Content-Security-Policy: default-src 'none'; style-src 'self'; font-src 'self'; script-src 'nonce-" . installer_nonce() . "'; img-src data:; form-action 'self'; frame-ancestors 'none'; base-uri 'none'");
 }
 
 // --- CSRF bez sessions (double submit cookie) --------------------------------------------------
@@ -1237,9 +1237,9 @@ function installer_install(array $f, array $state, string $root): array
 function installer_status_icon(string $status): string
 {
     return match ($status) {
-        'ok' => '<span class="pill pill-ok" aria-label="' . h(t('V pořádku')) . '">✓</span>',
-        'warn' => '<span class="pill pill-warn" aria-label="' . h(t('Upozornění')) . '">!</span>',
-        default => '<span class="pill pill-fail" aria-label="' . h(t('Chyba')) . '">✕</span>',
+        'ok' => '<span class="status tone-up" aria-label="' . h(t('V pořádku')) . '">✓</span>',
+        'warn' => '<span class="status tone-warn" aria-label="' . h(t('Upozornění')) . '">!</span>',
+        default => '<span class="status tone-down" aria-label="' . h(t('Chyba')) . '">✕</span>',
     };
 }
 
@@ -1268,82 +1268,30 @@ function installer_render_environment(array $checks, bool $blocked): void
     $total = count($checks);
     $okCount = $total - count($problems);
 
-    echo '<div class="card"><h2>' . h(t('Kontrola serveru')) . '</h2>';
+    echo '<div class="card wizard-card"><h2 class="h2 wizard-h2">' . h(t('Kontrola serveru')) . '</h2>';
     if ($problems === []) {
-        echo '<div class="notice notice-ok">' . h(tn($total, 'Server splňuje všechny požadavky ({count} kontrola v pořádku).', 'Server splňuje všechny požadavky ({count} kontroly v pořádku).', 'Server splňuje všechny požadavky ({count} kontrol v pořádku).')) . '</div>';
+        echo '<div class="callout tone-up">' . h(tn($total, 'Server splňuje všechny požadavky ({count} kontrola v pořádku).', 'Server splňuje všechny požadavky ({count} kontroly v pořádku).', 'Server splňuje všechny požadavky ({count} kontrol v pořádku).')) . '</div>';
     } else {
         installer_render_checks($problems);
         if ($blocked) {
-            echo '<div class="notice notice-error">' . h(t('Než budete pokračovat, opravte položky označené křížkem. Po úpravě tuto stránku obnovte.')) . '</div>';
+            echo '<div class="callout tone-down">' . h(t('Než budete pokračovat, opravte položky označené křížkem. Po úpravě tuto stránku obnovte.')) . '</div>';
         }
-        echo '<p class="help">' . t('Jak jednotlivé položky opravit, popisuje návod v kapitole {link}.', ['link' => installer_doc_link('problemy', t('Když se něco nepovede'))]) . '</p>';
+        echo '<p class="card-desc">' . t('Jak jednotlivé položky opravit, popisuje návod v kapitole {link}.', ['link' => installer_doc_link('problemy', t('Když se něco nepovede'))]) . '</p>';
     }
-    echo '<details><summary>' . h($problems === [] ? t('Zobrazit všechny kontroly') : t('Zobrazit i položky v pořádku ({count})', ['count' => $okCount])) . '</summary><div class="inner">';
+    echo '<details class="note wizard-note"><summary>' . h($problems === [] ? t('Zobrazit všechny kontroly') : t('Zobrazit i položky v pořádku ({count})', ['count' => $okCount])) . '</summary><div class="note-body">';
     installer_render_checks($problems === [] ? $checks : array_values(array_filter($checks, static fn(array $c): bool => $c['status'] === 'ok')));
     echo '</div></details></div>';
 }
 
-function installer_css(): string
+/** Styly průvodce: stejné vrstvy jako aplikace (tokeny, základ, komponenty), bez legacy souborů. */
+function installer_stylesheets(): string
 {
-    return <<<'CSS'
-:root{color-scheme:light dark;--bg:#f6f8fb;--surface:#fff;--soft:#f8fafc;--text:#111827;--muted:#667085;--line:#e5e7eb;--line2:#d5dbe5;--blue:#2563eb;--blue-d:#1d4ed8;--ok:#15803d;--ok-bg:#ecfdf3;--warn:#a16207;--warn-bg:#fffbeb;--err:#b42318;--err-bg:#fef3f2;--shadow:0 18px 50px rgba(31,41,55,.08)}
-@media (prefers-color-scheme:dark){:root{--bg:#10131a;--surface:#171b24;--soft:#1f2530;--text:#eef2f7;--muted:#a7b0c0;--line:#2b3240;--line2:#3a4354;--blue:#5b8def;--blue-d:#7aa2f7;--ok:#4ade80;--ok-bg:#12261a;--warn:#fbbf24;--warn-bg:#2a2210;--err:#f87171;--err-bg:#2c1615;--shadow:0 18px 48px rgba(0,0,0,.28)}}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
-.wrap{max-width:780px;margin:0 auto;padding:28px 16px 64px}
-.top{display:flex;align-items:center;gap:12px;margin-bottom:20px}
-.brand-mark{display:inline-flex;align-items:flex-end;gap:3px;width:28px;height:28px}
-.brand-mark span{display:block;width:6px;border-radius:2px;background:#2563eb}
-.brand-mark span:nth-child(1){height:13px;background:#60a5fa}.brand-mark span:nth-child(2){height:22px}.brand-mark span:nth-child(3){height:28px;background:#1d4ed8}
-.top strong{font-size:20px}.top .ver{margin-left:auto;color:var(--muted);font-size:13px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:24px;margin-bottom:18px}
-h1{font-size:26px;line-height:1.25;margin:0 0 8px}
-h2{font-size:19px;margin:0 0 4px;display:flex;align-items:center;gap:10px}
-h2 .num{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--blue);color:#fff;font-size:14px;font-weight:700;flex:none}
-p{margin:.4em 0}.lead{color:var(--muted)}.help{color:var(--muted);font-size:14px;margin:.2em 0 0}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px;margin-top:14px}.grid .full{grid-column:1/-1}
-@media (max-width:600px){.grid{grid-template-columns:1fr}.card{padding:18px}}
-label{display:block;font-weight:600;font-size:14px}
-input[type=text],input[type=email],input[type=password],input[type=url],select,textarea{display:block;width:100%;margin-top:6px;padding:10px 12px;font:inherit;color:var(--text);background:var(--surface);border:1px solid var(--line2);border-radius:8px}
-textarea{min-height:96px;resize:vertical;font-family:inherit}
-input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);outline-offset:1px;border-color:var(--blue)}
-label .help{font-weight:400}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 20px;border-radius:8px;border:1px solid var(--blue);background:var(--blue);color:#fff;font:inherit;font-weight:600;cursor:pointer;text-decoration:none}
-.btn:hover{background:var(--blue-d);border-color:var(--blue-d)}
-.btn[disabled]{opacity:.5;cursor:not-allowed}
-.btn.secondary{background:transparent;color:var(--blue)}.btn.secondary:hover{background:var(--soft)}
-.btn.small{padding:7px 12px;font-size:14px}
-.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px;align-items:center}
-.notice{margin:14px 0;padding:12px 14px;border-radius:8px;font-size:15px}
-.notice ul{margin:6px 0 0;padding-left:20px}
-.notice-ok{background:var(--ok-bg);color:var(--ok)}.notice-warn{background:var(--warn-bg);color:var(--warn)}.notice-error{background:var(--err-bg);color:var(--err)}
-.checks{list-style:none;margin:12px 0 0;padding:0}
-.checks li{display:flex;gap:12px;padding:10px 0;border-top:1px solid var(--line);align-items:flex-start}
-.checks li:first-child{border-top:0}
-.checks strong{display:block;font-size:15px}.checks span{display:block;color:var(--muted);font-size:14px}
-.pill{flex:none;display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;font-size:13px;font-weight:700;margin-top:1px}
-.pill-ok{background:var(--ok-bg);color:var(--ok)}.pill-warn{background:var(--warn-bg);color:var(--warn)}.pill-fail{background:var(--err-bg);color:var(--err)}
-details{margin-top:14px;border:1px solid var(--line);border-radius:8px;background:var(--soft)}
-details summary{cursor:pointer;padding:10px 14px;font-weight:600;font-size:14px}
-details .inner{padding:0 14px 14px}
-.pw{display:flex;gap:8px;align-items:flex-end}.pw>label{flex:1}
-code,.code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px}
-.code{display:block;background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 12px;word-break:break-all;margin:8px 0 0;user-select:all}
-ol.todo{padding-left:0;list-style:none;counter-reset:s;margin:14px 0 0}
-ol.todo>li{counter-increment:s;position:relative;padding:12px 0 12px 44px;border-top:1px solid var(--line)}
-ol.todo>li:first-child{border-top:0}
-ol.todo>li::before{content:counter(s);position:absolute;left:0;top:12px;width:28px;height:28px;border-radius:50%;background:var(--soft);border:1px solid var(--line2);display:grid;place-items:center;font-weight:700;font-size:14px}
-.steps{margin:10px 0 0;padding-left:20px;color:var(--muted);font-size:14px}
-.choices{display:grid;gap:10px;margin-top:14px}
-.choice{display:flex;gap:12px;align-items:flex-start;padding:14px;border:1px solid var(--line2);border-radius:10px;cursor:pointer;font-weight:400;font-size:16px;background:var(--surface)}
-.choice:has(input:checked){border-color:var(--blue);background:var(--soft)}
-.choice input[type=radio]{margin:5px 0 0;width:18px;height:18px;flex:none}
-.choice strong{font-size:15px}
-.choice .help{display:block}
-.choice input[type=text]{margin-top:10px}
-footer{color:var(--muted);font-size:13px;text-align:center;margin-top:24px}
-.doc-link{color:var(--blue);font-weight:600;text-decoration:none}.doc-link:hover{text-decoration:underline}
-CSS;
+    $html = '';
+    foreach (['tokens', 'base', 'layout', 'components'] as $name) {
+        $html .= '<link rel="stylesheet" href="' . h(installer_url('assets/css/' . $name . '.css')) . '">';
+    }
+
+    return $html;
 }
 
 /** Odkaz na kapitolu webového návodu (nová karta); adresa stejná jako odkazy Nápověda v aplikaci. */
@@ -1412,10 +1360,12 @@ function installer_page_start(string $title, string $version): void
         . '<meta name="viewport" content="width=device-width, initial-scale=1">'
         . '<meta name="robots" content="noindex, nofollow">'
         . '<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 28 28\'%3E%3Crect x=\'3\' y=\'15\' width=\'6\' height=\'13\' rx=\'2\' fill=\'%2360a5fa\'/%3E%3Crect x=\'11\' y=\'6\' width=\'6\' height=\'22\' rx=\'2\' fill=\'%232563eb\'/%3E%3Crect x=\'19\' y=\'0\' width=\'6\' height=\'28\' rx=\'2\' fill=\'%231d4ed8\'/%3E%3C/svg%3E">'
-        . '<title>' . h($title) . '</title><style>' . installer_css() . '</style></head><body><div class="wrap">'
-        . '<div class="top"><span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>'
-        . '<strong>AllStat</strong><span class="ver">' . h(t('Instalace')) . ($version !== '' ? ' · ' . h(t('verze {version}', ['version' => $version])) : '') . ' · ' . installer_doc_link('pruvodce', t('Návod')) . '</span></div>'
-        . '<p class="help" style="text-align:right;margin:-12px 0 14px">' . implode(' · ', $langLinks) . '</p>';
+        . '<title>' . h($title) . '</title>'
+        . '<script nonce="' . h(installer_nonce()) . '">try{document.documentElement.dataset.theme=localStorage.getItem("allstat-theme")||"light"}catch(e){document.documentElement.dataset.theme="light"}</script>'
+        . installer_stylesheets() . '</head><body><div class="wizard">'
+        . '<div class="wizard-top"><span class="logo"><svg class="logo-mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="13" width="4.5" height="8" rx="1.5" fill="currentColor" opacity=".45"/><rect x="9.75" y="7" width="4.5" height="14" rx="1.5" fill="currentColor" opacity=".7"/><rect x="16.5" y="3" width="4.5" height="18" rx="1.5" fill="currentColor"/></svg><span class="logo-name">AllStat</span></span>'
+        . '<span class="wizard-ver">' . h(t('Instalace')) . ($version !== '' ? ' · ' . h(t('verze {version}', ['version' => $version])) : '') . ' · ' . installer_doc_link('pruvodce', t('Návod')) . '</span></div>'
+        . '<p class="wizard-langs">' . implode(' · ', $langLinks) . '</p>';
 }
 
 function installer_page_end(): void
@@ -1426,7 +1376,7 @@ function installer_page_end(): void
 function installer_page_message(string $title, string $bodyHtml, string $version): void
 {
     installer_page_start($title, $version);
-    echo '<div class="card"><h1>' . h($title) . '</h1>' . $bodyHtml . '</div>';
+    echo '<div class="card wizard-card"><h1 class="h1">' . h($title) . '</h1>' . $bodyHtml . '</div>';
     installer_page_end();
 }
 
@@ -1439,19 +1389,19 @@ function installer_render_form(array $ctx): void
 
     installer_page_start(t('AllStat: instalace'), $ctx['version']);
 
-    echo '<div class="card"><h1>' . h(t('Vítejte v instalaci')) . '</h1>'
-        . '<p class="lead">' . h(t('Průvodce nastaví AllStat na vašem hostingu. Potřebujete prázdnou databázi MySQL (vytvoříte ji v administraci hostingu), adresu vašeho webu a asi pět minut času. Na jiné weby ani databáze na hostingu nijak nesáhne.')) . '</p>'
-        . '<p class="help">' . t('Postup s obrázky je v {guide}, celou instalaci na jedné stránce shrnuje {card}.', [
+    echo '<div class="card wizard-card"><h1 class="h1">' . h(t('Vítejte v instalaci')) . '</h1>'
+        . '<p class="card-desc">' . h(t('Průvodce nastaví AllStat na vašem hostingu. Potřebujete prázdnou databázi MySQL (vytvoříte ji v administraci hostingu), adresu vašeho webu a asi pět minut času. Na jiné weby ani databáze na hostingu nijak nesáhne.')) . '</p>'
+        . '<p class="card-desc">' . t('Postup s obrázky je v {guide}, celou instalaci na jedné stránce shrnuje {card}.', [
             'guide' => installer_doc_link('pruvodce', t('návodu')),
             'card' => installer_doc_link('karta', t('kontrolní karta')),
         ]) . '</p></div>';
 
     if ($ctx['state']['mode'] === 'resume') {
-        echo '<div class="notice notice-warn">' . h(t('Nalezen funkční config.php s připojením k databázi, ale instalace ještě není dokončená. Zbývá založit tabulky, organizaci a administrátora.')) . '</div>';
+        echo '<div class="callout tone-warn">' . h(t('Nalezen funkční config.php s připojením k databázi, ale instalace ještě není dokončená. Zbývá založit tabulky, organizaci a administrátora.')) . '</div>';
     }
 
     foreach ($ctx['errors'] as $error) {
-        echo '<div class="notice notice-error">' . h($error) . '</div>';
+        echo '<div class="callout tone-down">' . h($error) . '</div>';
     }
 
     // Kontrola serveru
@@ -1461,60 +1411,60 @@ function installer_render_form(array $ctx): void
     echo '<input type="hidden" name="csrf" value="' . h(installer_csrf_token()) . '">';
 
     // Instalační kód: bez něj průvodce nic neotestuje ani nenainstaluje
-    echo '<div class="card" id="token"><h2>' . h(t('Instalační kód')) . '</h2>';
+    echo '<div class="card wizard-card" id="token"><h2 class="h2 wizard-h2">' . h(t('Instalační kód')) . '</h2>';
     if ($ctx['token_ready']) {
-        echo '<p class="help">' . t('Aby instalaci nemohl dokončit nikdo cizí, kdo by na tuto stránku narazil dřív než vy, průvodce vytvořil ve složce AllStatu na serveru soubor <code>install-token.php</code>. Otevřete ho přes FTP nebo správce souborů hostingu (v prohlížeči je prázdný) a opište kód z řádku <code>KOD:</code>. Po instalaci se soubor sám smaže.') . '</p>';
+        echo '<p class="card-desc">' . t('Aby instalaci nemohl dokončit nikdo cizí, kdo by na tuto stránku narazil dřív než vy, průvodce vytvořil ve složce AllStatu na serveru soubor <code>install-token.php</code>. Otevřete ho přes FTP nebo správce souborů hostingu (v prohlížeči je prázdný) a opište kód z řádku <code>KOD:</code>. Po instalaci se soubor sám smaže.') . '</p>';
     } else {
         // Vzor schválně neobsahuje použitelný kód: kdo ho nahraje beze změny, dostane hlášku, ne kód, který vidí každý.
-        echo '<div class="notice notice-warn">' . h($ctx['token_status'] === 'invalid'
+        echo '<div class="callout tone-warn">' . h($ctx['token_status'] === 'invalid'
                 ? t('Soubor install-token.php na serveru je, ale na řádku KOD: chybí použitelný kód.')
                 : t('Průvodce nemohl na server zapsat soubor s instalačním kódem.')) . '</div>'
-            . '<p class="help">' . t('Vytvořte ve složce AllStatu soubor <code>install-token.php</code> podle vzoru níže a místo textu v závorce napište vlastní kód: aspoň {min} písmen a číslic bez diakritiky, pomlčky můžete použít. Stránku pak obnovte a kód zadejte sem. Po instalaci soubor smažte.', ['min' => INSTALLER_TOKEN_MIN_LENGTH]) . '</p>'
+            . '<p class="card-desc">' . t('Vytvořte ve složce AllStatu soubor <code>install-token.php</code> podle vzoru níže a místo textu v závorce napište vlastní kód: aspoň {min} písmen a číslic bez diakritiky, pomlčky můžete použít. Stránku pak obnovte a kód zadejte sem. Po instalaci soubor smažte.', ['min' => INSTALLER_TOKEN_MIN_LENGTH]) . '</p>'
             . '<pre class="code">' . h("<?php\n// KOD: " . t('(sem napište vlastní kód)')) . '</pre>';
     }
-    echo '<div class="grid"><label class="full">' . h(t('Kód ze souboru install-token.php')) . '<input type="text" name="install_token" value="' . h($f['install_token']) . '" required autocomplete="off" autocapitalize="characters" spellcheck="false"></label></div></div>';
+    echo '<div class="grid"><label class="field wizard-full"><span class="field-label">' . h(t('Kód ze souboru install-token.php')) . '</span><input class="input" type="text" name="install_token" value="' . h($f['install_token']) . '" required autocomplete="off" autocapitalize="characters" spellcheck="false"></label></div></div>';
 
     // 1) Databáze
     if ($fresh) {
-        echo '<div class="card" id="db"><h2><span class="num">1</span> ' . h(t('Databáze')) . '</h2>'
-            . '<p class="help">' . t('V administraci hostingu vytvořte novou prázdnou databázi a uživatele s plným přístupem k ní (v cPanelu: „MySQL® Databases“, jinde „Databáze“). Údaje sem opište přesně, včetně předpony před názvem (například <code>ucet_allstat</code>).') . '</p>';
+        echo '<div class="card wizard-card" id="db"><h2 class="h2 wizard-h2"><span class="num">1</span> ' . h(t('Databáze')) . '</h2>'
+            . '<p class="card-desc">' . t('V administraci hostingu vytvořte novou prázdnou databázi a uživatele s plným přístupem k ní (v cPanelu: „MySQL® Databases“, jinde „Databáze“). Údaje sem opište přesně, včetně předpony před názvem (například <code>ucet_allstat</code>).') . '</p>';
 
         if ($ctx['db_report'] !== null) {
             installer_render_checks($ctx['db_report']['checks']);
             echo $ctx['db_report']['fatal']
-                ? '<div class="notice notice-error">' . h(t('Připojení má problém, opravte ho a test zopakujte.')) . '</div>'
-                : '<div class="notice notice-ok">' . h(t('Databáze je připravená, můžete pokračovat.')) . '</div>';
+                ? '<div class="callout tone-down">' . h(t('Připojení má problém, opravte ho a test zopakujte.')) . '</div>'
+                : '<div class="callout tone-up">' . h(t('Databáze je připravená, můžete pokračovat.')) . '</div>';
         }
 
         echo '<div class="grid">'
-            . '<label>' . h(t('Server databáze')) . '<input type="text" name="db_host" value="' . h($f['db_host']) . '" required><span class="help">' . h(t('Na většině hostingů „localhost“.')) . '</span></label>'
-            . '<label>' . h(t('Port')) . '<input type="text" name="db_port" value="' . h($f['db_port']) . '" inputmode="numeric" required><span class="help">' . h(t('Obvykle 3306.')) . '</span></label>'
-            . '<label>' . h(t('Název databáze')) . '<input type="text" name="db_name" value="' . h($f['db_name']) . '" required autocapitalize="off" spellcheck="false"></label>'
-            . '<label>' . h(t('Uživatel databáze')) . '<input type="text" name="db_user" value="' . h($f['db_user']) . '" required autocapitalize="off" spellcheck="false"></label>'
-            . '<label class="full">' . h(t('Heslo k databázi')) . '<input type="password" name="db_pass" value="' . h($f['db_pass']) . '" autocomplete="new-password"></label>'
-            . '</div><div class="actions"><button class="btn secondary" type="submit" name="action" value="test_db" formaction="#db" formnovalidate' . ($blocked ? ' disabled' : '') . '>' . h(t('Otestovat připojení')) . '</button></div></div>';
+            . '<label class="field"><span class="field-label">' . h(t('Server databáze')) . '</span><input class="input" type="text" name="db_host" value="' . h($f['db_host']) . '" required><span class="field-help">' . h(t('Na většině hostingů „localhost“.')) . '</span></label>'
+            . '<label class="field"><span class="field-label">' . h(t('Port')) . '</span><input class="input" type="text" name="db_port" value="' . h($f['db_port']) . '" inputmode="numeric" required><span class="field-help">' . h(t('Obvykle 3306.')) . '</span></label>'
+            . '<label class="field"><span class="field-label">' . h(t('Název databáze')) . '</span><input class="input" type="text" name="db_name" value="' . h($f['db_name']) . '" required autocapitalize="off" spellcheck="false"></label>'
+            . '<label class="field"><span class="field-label">' . h(t('Uživatel databáze')) . '</span><input class="input" type="text" name="db_user" value="' . h($f['db_user']) . '" required autocapitalize="off" spellcheck="false"></label>'
+            . '<label class="field wizard-full"><span class="field-label">' . h(t('Heslo k databázi')) . '</span><input class="input" type="password" name="db_pass" value="' . h($f['db_pass']) . '" autocomplete="new-password"></label>'
+            . '</div><div class="actions"><button class="btn btn-secondary" type="submit" name="action" value="test_db" formaction="#db" formnovalidate' . ($blocked ? ' disabled' : '') . '>' . h(t('Otestovat připojení')) . '</button></div></div>';
     } else {
-        echo '<div class="card"><h2><span class="num">1</span> ' . h(t('Databáze')) . '</h2><p class="help">' . h(t('Použije se připojení z existujícího souboru config.php.')) . '</p></div>';
+        echo '<div class="card wizard-card"><h2 class="h2 wizard-h2"><span class="num">1</span> ' . h(t('Databáze')) . '</h2><p class="card-desc">' . h(t('Použije se připojení z existujícího souboru config.php.')) . '</p></div>';
     }
 
     // 2) Organizace
-    echo '<div class="card"><h2><span class="num">2</span> ' . h(t('Organizace a web')) . '</h2>'
-        . '<p class="help">' . h(t('Tyto údaje se zobrazí na veřejných stránkách o ochraně osobních údajů, které Google, Meta a LinkedIn vyžadují při napojení. Později je změníte v Nastavení.')) . '</p>'
+    echo '<div class="card wizard-card"><h2 class="h2 wizard-h2"><span class="num">2</span> ' . h(t('Organizace a web')) . '</h2>'
+        . '<p class="card-desc">' . h(t('Tyto údaje se zobrazí na veřejných stránkách o ochraně osobních údajů, které Google, Meta a LinkedIn vyžadují při napojení. Později je změníte v Nastavení.')) . '</p>'
         . '<div class="grid">'
-        . '<label class="full">' . h(t('Název organizace nebo firmy')) . '<input type="text" name="org_name" value="' . h($f['org_name']) . '" required></label>'
-        . '<label>' . h(t('Kontaktní e-mail')) . '<input type="email" name="org_email" value="' . h($f['org_email']) . '" required><span class="help">' . h(t('Na něj se budou obracet lidé s dotazy k osobním údajům.')) . '</span></label>'
-        . '<label>' . h(t('Adresa sledovaného webu')) . '<input type="text" name="org_web" value="' . h($f['org_web']) . '" placeholder="https://www.example.cz" required><span class="help">' . h(t('První web, jehož statistiky chcete sledovat. Další přidáte později.')) . '</span></label>'
+        . '<label class="field wizard-full"><span class="field-label">' . h(t('Název organizace nebo firmy')) . '</span><input class="input" type="text" name="org_name" value="' . h($f['org_name']) . '" required></label>'
+        . '<label class="field"><span class="field-label">' . h(t('Kontaktní e-mail')) . '</span><input class="input" type="email" name="org_email" value="' . h($f['org_email']) . '" required><span class="field-help">' . h(t('Na něj se budou obracet lidé s dotazy k osobním údajům.')) . '</span></label>'
+        . '<label class="field"><span class="field-label">' . h(t('Adresa sledovaného webu')) . '</span><input class="input" type="text" name="org_web" value="' . h($f['org_web']) . '" placeholder="https://www.example.cz" required><span class="field-help">' . h(t('První web, jehož statistiky chcete sledovat. Další přidáte později.')) . '</span></label>'
         . '</div>'
-        . '<details><summary>' . h(t('Další údaje (nepovinné)')) . '</summary><div class="inner"><div class="grid">'
-        . '<label>' . h(t('Sídlo organizace')) . '<input type="text" name="org_address" value="' . h($f['org_address']) . '"></label>'
-        . '<label>' . h(t('IČO')) . '<input type="text" name="org_ico" value="' . h($f['org_ico']) . '"></label>'
-        . '<label class="full">' . h(t('Popis organizace pro AI analýzy')) . '<textarea name="org_context" placeholder="' . h(t('Například: Jsme e-shop s outdoorovým vybavením, hlavním cílem je prodej, marketing dělají dva lidé.')) . '">' . h($f['org_context']) . '</textarea>'
-        . '<span class="help">' . h(t('Když budete výsledky posílat AI asistentovi k rozboru, díky tomuto popisu ohodnotí data ve správném kontextu. Prázdné pole znamená obecný kontext.')) . '</span></label>'
+        . '<details class="note wizard-note"><summary>' . h(t('Další údaje (nepovinné)')) . '</summary><div class="note-body"><div class="grid">'
+        . '<label class="field"><span class="field-label">' . h(t('Sídlo organizace')) . '</span><input class="input" type="text" name="org_address" value="' . h($f['org_address']) . '"></label>'
+        . '<label class="field"><span class="field-label">' . h(t('IČO')) . '</span><input class="input" type="text" name="org_ico" value="' . h($f['org_ico']) . '"></label>'
+        . '<label class="field wizard-full"><span class="field-label">' . h(t('Popis organizace pro AI analýzy')) . '</span><textarea class="input" name="org_context" placeholder="' . h(t('Například: Jsme e-shop s outdoorovým vybavením, hlavním cílem je prodej, marketing dělají dva lidé.')) . '">' . h($f['org_context']) . '</textarea>'
+        . '<span class="field-help">' . h(t('Když budete výsledky posílat AI asistentovi k rozboru, díky tomuto popisu ohodnotí data ve správném kontextu. Prázdné pole znamená obecný kontext.')) . '</span></label>'
         . '</div></div></details>';
 
     if ($fresh) {
-        echo '<details><summary>' . h(t('Pokročilé (časové pásmo, cesta aplikace)')) . '</summary><div class="inner"><div class="grid">'
-            . '<label>' . h(t('Časové pásmo')) . '<select name="timezone">';
+        echo '<details class="note wizard-note"><summary>' . h(t('Pokročilé (časové pásmo, cesta aplikace)')) . '</summary><div class="note-body"><div class="grid">'
+            . '<label class="field"><span class="field-label">' . h(t('Časové pásmo')) . '</span><select class="input" name="timezone">';
         foreach (installer_timezones() as $group => $ids) {
             echo '<optgroup label="' . h($group) . '">';
             foreach ($ids as $id) {
@@ -1523,7 +1473,7 @@ function installer_render_form(array $ctx): void
             echo '</optgroup>';
         }
         echo '</select></label>'
-            . '<label>' . h(t('Cesta aplikace na serveru')) . '<input type="text" name="base_path" value="' . h($f['base_path']) . '" spellcheck="false"><span class="help">' . h(t('Zjištěno automaticky. Měňte jen tehdy, když víte, že to váš hosting vyžaduje.')) . '</span></label>'
+            . '<label class="field"><span class="field-label">' . h(t('Cesta aplikace na serveru')) . '</span><input class="input" type="text" name="base_path" value="' . h($f['base_path']) . '" spellcheck="false"><span class="field-help">' . h(t('Zjištěno automaticky. Měňte jen tehdy, když víte, že to váš hosting vyžaduje.')) . '</span></label>'
             . '</div></div></details>';
     } else {
         echo '<input type="hidden" name="timezone" value="' . h((string) ($ctx['state']['config']['app']['timezone'] ?? 'Europe/Prague')) . '">';
@@ -1531,42 +1481,42 @@ function installer_render_form(array $ctx): void
     echo '</div>';
 
     // 3) Administrátor
-    echo '<div class="card"><h2><span class="num">3</span> ' . h(t('Administrátor')) . '</h2>'
-        . '<p class="help">' . h(t('První účet s plnými právy. E-mail a heslo použijete k přihlášení do AllStatu.')) . '</p>'
+    echo '<div class="card wizard-card"><h2 class="h2 wizard-h2"><span class="num">3</span> ' . h(t('Administrátor')) . '</h2>'
+        . '<p class="card-desc">' . h(t('První účet s plnými právy. E-mail a heslo použijete k přihlášení do AllStatu.')) . '</p>'
         . '<div class="grid">'
-        . '<label>' . h(t('Jméno')) . '<input type="text" name="admin_name" value="' . h($f['admin_name']) . '" autocomplete="name" required></label>'
-        . '<label>' . h(t('E-mail (přihlašovací jméno)')) . '<input type="email" name="admin_email" value="' . h($f['admin_email']) . '" autocomplete="username" required></label>'
-        . '<label>' . h(t('Heslo')) . '<input type="password" name="admin_password" id="pw1" minlength="12" autocomplete="new-password" required><span class="help">' . h(t('Nejméně 12 znaků.')) . '</span></label>'
-        . '<label>' . h(t('Heslo znovu')) . '<input type="password" name="admin_password2" id="pw2" minlength="12" autocomplete="new-password" required></label>'
-        . '</div><div class="actions"><button class="btn secondary small" type="button" id="pw-gen">' . h(t('Vygenerovat silné heslo')) . '</button>'
-        . '<button class="btn secondary small" type="button" id="pw-show">' . h(t('Zobrazit hesla')) . '</button></div>'
-        . '<p class="help" id="pw-note" hidden>' . h(t('Vygenerované heslo si hned uložte do správce hesel, po instalaci ho už nikde neuvidíte.')) . '</p></div>';
+        . '<label class="field"><span class="field-label">' . h(t('Jméno')) . '</span><input class="input" type="text" name="admin_name" value="' . h($f['admin_name']) . '" autocomplete="name" required></label>'
+        . '<label class="field"><span class="field-label">' . h(t('E-mail (přihlašovací jméno)')) . '</span><input class="input" type="email" name="admin_email" value="' . h($f['admin_email']) . '" autocomplete="username" required></label>'
+        . '<label class="field"><span class="field-label">' . h(t('Heslo')) . '</span><input class="input" type="password" name="admin_password" id="pw1" minlength="12" autocomplete="new-password" required><span class="field-help">' . h(t('Nejméně 12 znaků.')) . '</span></label>'
+        . '<label class="field"><span class="field-label">' . h(t('Heslo znovu')) . '</span><input class="input" type="password" name="admin_password2" id="pw2" minlength="12" autocomplete="new-password" required></label>'
+        . '</div><div class="actions"><button class="btn btn-secondary btn-sm" type="button" id="pw-gen">' . h(t('Vygenerovat silné heslo')) . '</button>'
+        . '<button class="btn btn-secondary btn-sm" type="button" id="pw-show">' . h(t('Zobrazit hesla')) . '</button></div>'
+        . '<p class="card-desc" id="pw-note" hidden>' . h(t('Vygenerované heslo si hned uložte do správce hesel, po instalaci ho už nikde neuvidíte.')) . '</p></div>';
 
     // 4) Připojení AI (MCP)
     $detectedBase = $ctx['state']['mode'] === 'resume' ? (string) ($ctx['state']['config']['app']['base_path'] ?? '/') : installer_base_path();
     $atRoot = ($detectedBase === '/' || $detectedBase === '');
     $mode = $f['mcp_mode'];
-    echo '<div class="card" id="mcp"><h2><span class="num">4</span> ' . h(t('Připojení AI (Claude, ChatGPT)')) . '</h2>'
-        . '<p class="help">' . h(t('AllStat umí zpřístupnit data asistentům Claude a ChatGPT, jen ke čtení. Přístup povoluje a kdykoli ruší administrátor. Zapnete ho po instalaci v menu „AI konektory“, tady jen určíte, na jaké adrese bude MCP server běžet.')) . '</p>'
+    echo '<div class="card wizard-card" id="mcp"><h2 class="h2 wizard-h2"><span class="num">4</span> ' . h(t('Připojení AI (Claude, ChatGPT)')) . '</h2>'
+        . '<p class="card-desc">' . h(t('AllStat umí zpřístupnit data asistentům Claude a ChatGPT, jen ke čtení. Přístup povoluje a kdykoli ruší administrátor. Zapnete ho po instalaci v menu „AI konektory“, tady jen určíte, na jaké adrese bude MCP server běžet.')) . '</p>'
         . '<div class="choices">'
         . '<label class="choice"><input type="radio" name="mcp_mode" value="same"' . ($mode === 'same' ? ' checked' : '') . '><span>'
         . '<strong>' . h(t('Na adrese AllStatu')) . '</strong> <code>' . h(installer_app_url($detectedBase)) . '</code>'
-        . '<span class="help">' . h($atRoot
+        . '<span class="field-help">' . h($atRoot
             ? t('AllStat běží v kořeni adresy (například na subdoméně), nic dalšího nastavovat nemusíte.')
             : t('AllStat běží ve složce domény. Po instalaci vám ukážeme krátké pravidlo pro soubor .htaccess v kořeni domény, bez něj by některé klienty nenašly přihlášení.'))
         . '</span></span></label>'
         . '<label class="choice"><input type="radio" name="mcp_mode" value="custom"' . ($mode === 'custom' ? ' checked' : '') . '><span>'
         . '<strong>' . h(t('Na vlastní subdoméně')) . '</strong>'
-        . '<span class="help">' . h(t('V hostingu vytvořte subdoménu a jako její složku nastavte složku, ve které je AllStat. Pravidlo v kořeni domény pak není potřeba.')) . '</span>'
-        . '<input type="text" name="mcp_host_url" value="' . h($f['mcp_host_url']) . '" placeholder="' . h(t('https://mcp.vase-firma.cz')) . '" inputmode="url" autocapitalize="off" spellcheck="false">'
+        . '<span class="field-help">' . h(t('V hostingu vytvořte subdoménu a jako její složku nastavte složku, ve které je AllStat. Pravidlo v kořeni domény pak není potřeba.')) . '</span>'
+        . '<input class="input" type="text" name="mcp_host_url" value="' . h($f['mcp_host_url']) . '" placeholder="' . h(t('https://mcp.vase-firma.cz')) . '" inputmode="url" autocapitalize="off" spellcheck="false">'
         . '</span></label>'
         . '<label class="choice"><input type="radio" name="mcp_mode" value="later"' . ($mode === 'later' ? ' checked' : '') . '><span>'
-        . '<strong>' . h(t('Nastavit později')) . '</strong><span class="help">' . h(t('Adresy vyplníte sami v menu „AI konektory“.')) . '</span></span></label>'
+        . '<strong>' . h(t('Nastavit později')) . '</strong><span class="field-help">' . h(t('Adresy vyplníte sami v menu „AI konektory“.')) . '</span></span></label>'
         . '</div></div>';
 
-    echo '<div class="card"><h2>' . h(t('Nainstalovat')) . '</h2>'
-        . '<p class="help">' . h(t('Instalace založí tabulky v databázi, vytvoří soubory config.php a config-keys.php (s jedinečným šifrovacím klíčem) a připraví účet administrátora. Trvá několik sekund.')) . '</p>'
-        . '<div class="actions"><button class="btn" type="submit" name="action" value="install" id="install-btn"' . ($blocked ? ' disabled' : '') . '>' . h(t('Nainstalovat AllStat')) . '</button></div></div>';
+    echo '<div class="card wizard-card"><h2 class="h2 wizard-h2">' . h(t('Nainstalovat')) . '</h2>'
+        . '<p class="card-desc">' . h(t('Instalace založí tabulky v databázi, vytvoří soubory config.php a config-keys.php (s jedinečným šifrovacím klíčem) a připraví účet administrátora. Trvá několik sekund.')) . '</p>'
+        . '<div class="actions"><button class="btn btn-primary" type="submit" name="action" value="install" id="install-btn"' . ($blocked ? ' disabled' : '') . '>' . h(t('Nainstalovat AllStat')) . '</button></div></div>';
     echo '</form>';
 
     $jsHide = (string) json_encode(t('Skrýt hesla'), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP);
@@ -1595,33 +1545,33 @@ function installer_render_success(array $r, string $version): void
     $manual = $r['manual'];
 
     installer_page_start(t('AllStat je nainstalovaný'), $version);
-    echo '<div class="card"><h1>' . h($manual === [] ? t('AllStat je nainstalovaný') : t('Skoro hotovo, zbývá nahrát soubory')) . '</h1>';
+    echo '<div class="card wizard-card"><h1 class="h1">' . h($manual === [] ? t('AllStat je nainstalovaný') : t('Skoro hotovo, zbývá nahrát soubory')) . '</h1>';
 
     if ($manual === []) {
-        echo '<p class="lead">' . h(t('Instalace proběhla. Přihlaste se a projděte čtyři kroky níže, aby AllStat fungoval dlouhodobě.')) . '</p>'
-            . '<div class="actions"><a class="btn" href="' . h($loginUrl) . '">' . h(t('Přihlásit se do AllStatu')) . '</a></div>';
+        echo '<p class="card-desc">' . h(t('Instalace proběhla. Přihlaste se a projděte čtyři kroky níže, aby AllStat fungoval dlouhodobě.')) . '</p>'
+            . '<div class="actions"><a class="btn btn-primary" href="' . h($loginUrl) . '">' . h(t('Přihlásit se do AllStatu')) . '</a></div>';
     } else {
-        echo '<div class="notice notice-warn">' . t('Server nedovolil instalátoru zapsat soubory do složky aplikace. Databáze je připravená, ale aplikace se spustí až po nahrání souborů níže. <strong>Tuto stránku nezavírejte ani neobnovujte</strong>, klíč z ní už podruhé neuvidíte.') . '</div>';
+        echo '<div class="callout tone-warn">' . t('Server nedovolil instalátoru zapsat soubory do složky aplikace. Databáze je připravená, ale aplikace se spustí až po nahrání souborů níže. <strong>Tuto stránku nezavírejte ani neobnovujte</strong>, klíč z ní už podruhé neuvidíte.') . '</div>';
         foreach ($manual as $name => $content) {
             $id = 'file-' . preg_replace('/[^a-z0-9]/', '', strtolower($name));
-            echo '<h2 style="margin-top:18px">' . h($name) . '</h2>'
-                . '<p class="help">' . t('Uložte jako <code>{name}</code> do složky, kde leží soubor <code>install.php</code> (přes FTP nebo správce souborů).', ['name' => h($name)]) . '</p>'
-                . '<textarea readonly rows="12" class="code" id="' . h($id) . '" style="width:100%;user-select:all">' . h($content) . '</textarea>'
-                . '<div class="actions"><a class="btn secondary small" download="' . h($name) . '" href="data:text/plain;charset=utf-8;base64,' . base64_encode($content) . '">' . h(t('Stáhnout {name}', ['name' => $name])) . '</a></div>';
+            echo '<h2 class="h2 wizard-h2 wizard-gap">' . h($name) . '</h2>'
+                . '<p class="card-desc">' . t('Uložte jako <code>{name}</code> do složky, kde leží soubor <code>install.php</code> (přes FTP nebo správce souborů).', ['name' => h($name)]) . '</p>'
+                . '<textarea readonly rows="12" class="input code wizard-file" id="' . h($id) . '">' . h($content) . '</textarea>'
+                . '<div class="actions"><a class="btn btn-secondary btn-sm" download="' . h($name) . '" href="data:text/plain;charset=utf-8;base64,' . base64_encode($content) . '">' . h(t('Stáhnout {name}', ['name' => $name])) . '</a></div>';
         }
-        echo '<p class="help" style="margin-top:14px">' . t('Po nahrání smažte ze serveru i soubor <code>install-token.php</code> s instalačním kódem, už ho nebudete potřebovat.') . '</p>'
-            . '<div class="actions"><a class="btn" href="' . h($loginUrl) . '">' . h(t('Po nahrání souborů přejít na přihlášení')) . '</a></div>';
+        echo '<p class="card-desc wizard-gap">' . t('Po nahrání smažte ze serveru i soubor <code>install-token.php</code> s instalačním kódem, už ho nebudete potřebovat.') . '</p>'
+            . '<div class="actions"><a class="btn btn-primary" href="' . h($loginUrl) . '">' . h(t('Po nahrání souborů přejít na přihlášení')) . '</a></div>';
     }
     echo '</div>';
 
-    echo '<div class="card"><h2>' . h(t('Co udělat hned')) . '</h2>'
-        . '<p class="help">' . t('Podrobně a s obrázky v návodu: {link}.', ['link' => installer_doc_link('po-instalaci', t('Po instalaci: čtyři kroky'))]) . '</p><ol class="todo">'
+    echo '<div class="card wizard-card"><h2 class="h2 wizard-h2">' . h(t('Co udělat hned')) . '</h2>'
+        . '<p class="card-desc">' . t('Podrobně a s obrázky v návodu: {link}.', ['link' => installer_doc_link('po-instalaci', t('Po instalaci: čtyři kroky'))]) . '</p><ol class="todo">'
         . '<li>' . t('<strong>Zálohujte dva soubory.</strong> Stáhněte si z hostingu <code>config.php</code> a <code>config-keys.php</code> a uložte je na bezpečné místo mimo web (správce hesel, zabezpečené úložiště). V <code>config-keys.php</code> je klíč, kterým jsou zašifrované přístupy k vašim službám. Bez něj by se napojení musela vytvořit znovu.') . '</li>'
         . '<li>' . t('<strong>Nastavte automatické stahování dat.</strong> V administraci hostingu otevřete „Cron“ (plánovač úloh na serveru) a přidejte úlohu spouštěnou jednou denně (například v 6:00) s tímto příkazem:')
         . '<code class="code">curl -s "' . h($cronUrl) . '" &gt; /dev/null 2&gt;&amp;1</code>'
-        . '<p class="help">' . h(t('Adresa obsahuje tajný klíč, nikomu ji neposílejte. Když hosting umí jen „zavolat URL“, použijte samotnou adresu:')) . '</p>'
+        . '<p class="card-desc">' . h(t('Adresa obsahuje tajný klíč, nikomu ji neposílejte. Když hosting umí jen „zavolat URL“, použijte samotnou adresu:')) . '</p>'
         . '<code class="code">' . h($cronUrl) . '</code>'
-        . '<p class="help">' . h(t('Alternativa přes příkazový řádek PHP (spolehlivější u dlouhých stahování):')) . '</p>'
+        . '<p class="card-desc">' . h(t('Alternativa přes příkazový řádek PHP (spolehlivější u dlouhých stahování):')) . '</p>'
         . '<code class="code">' . h($cliCommand) . '</code></li>'
         . '<li>' . t('<strong>Zapněte dvoufázové ověření.</strong> Po přihlášení otevřete v menu „2FA“ a spárujte účet s aplikací typu Google Authenticator. Doporučujeme to všem administrátorům.') . '</li>'
         . '<li>' . t('<strong>Napojte první zdroj dat.</strong> V menu otevřete „Zdroje dat“, vyberte službu (například Google Analytics 4) a postupujte podle návodu přímo v aplikaci.') . '</li>'
@@ -1630,34 +1580,34 @@ function installer_render_success(array $r, string $version): void
     // Připojení AI (MCP): co ještě zbývá udělat podle zvolené varianty
     $m = $r['mcp'];
     if ($m['mode'] !== 'later') {
-        echo '<div class="card"><h2>' . h(t('Připojení AI: další krok')) . '</h2>';
+        echo '<div class="card wizard-card"><h2 class="h2 wizard-h2">' . h(t('Připojení AI: další krok')) . '</h2>';
         if ($m['note'] !== '') {
-            echo '<div class="notice notice-warn">' . h($m['note']) . '</div>';
+            echo '<div class="callout tone-warn">' . h($m['note']) . '</div>';
         }
         if ($m['host'] !== '') {
             echo '<p>' . h(t('Adresa MCP serveru, kterou zadáte v Claude nebo ChatGPT:')) . ' <code>' . h($m['host'] . '/mcp') . '</code></p>';
             if ($m['root_block'] !== '') {
                 echo '<p>' . t('AllStat běží ve složce domény. Aby klienti našli přihlášení, vložte tento blok <strong>na začátek souboru <code>.htaccess</code> v kořeni domény</strong> (obvykle složka <code>public_html</code>, nad případná pravidla WordPressu). Když soubor neexistuje, vytvořte ho. Blok nic jiného na webu nemění.') . '</p>'
-                    . '<code class="code" style="white-space:pre-wrap;user-select:all">' . h($m['root_block']) . '</code>'
-                    . '<p class="help">' . h(t('Bez bloku klienti, kteří hledají přihlášení podle standardu RFC 8414, spojení nenavážou. Kontrola v menu „AI konektory“ ho po vložení pozná. Alternativou je vlastní subdoména, která ukazuje do stejné složky jako AllStat, pak blok nepotřebujete.')) . '</p>';
+                    . '<code class="code code-pre">' . h($m['root_block']) . '</code>'
+                    . '<p class="card-desc">' . h(t('Bez bloku klienti, kteří hledají přihlášení podle standardu RFC 8414, spojení nenavážou. Kontrola v menu „AI konektory“ ho po vložení pozná. Alternativou je vlastní subdoména, která ukazuje do stejné složky jako AllStat, pak blok nepotřebujete.')) . '</p>';
             } elseif ($m['mode'] === 'custom') {
                 $host = (string) parse_url($m['host'], PHP_URL_HOST);
                 echo '<p>' . t('V hostingu vytvořte subdoménu <code>{host}</code> a jako její složku (document root) nastavte <code>{root}</code>, tedy tu, ve které je AllStat. Žádné další pravidlo není potřeba.', ['host' => h($host), 'root' => h($r['root'])]) . '</p>';
             } else {
                 echo '<p>' . h(t('AllStat běží v kořeni adresy, žádné další pravidlo není potřeba.')) . '</p>';
             }
-            echo '<p class="help">' . t('Potom otevřete v menu „AI konektory“, spusťte kontrolu, zapněte připojení a postupujte podle návodu pro Claude nebo ChatGPT. Celý postup je v návodu: {link}.', ['link' => installer_doc_link('ai', t('Připojení AI'))]) . '</p>';
+            echo '<p class="card-desc">' . t('Potom otevřete v menu „AI konektory“, spusťte kontrolu, zapněte připojení a postupujte podle návodu pro Claude nebo ChatGPT. Celý postup je v návodu: {link}.', ['link' => installer_doc_link('ai', t('Připojení AI'))]) . '</p>';
         }
         echo '</div>';
     }
 
-    echo '<div class="card"><h2>' . h(t('Co se provedlo')) . '</h2><ul class="steps">';
+    echo '<div class="card wizard-card"><h2 class="h2 wizard-h2">' . h(t('Co se provedlo')) . '</h2><ul class="steps">';
     foreach ($r['steps'] as $step) {
         echo '<li>' . h($step) . '</li>';
     }
     echo '</ul>';
     if ($manual === []) {
-        echo '<p class="help" style="margin-top:12px">' . h($r['self_delete']
+        echo '<p class="card-desc wizard-gap">' . h($r['self_delete']
             ? t('Instalátor (install.php) se po zobrazení této stránky sám odstraní. Kdyby na serveru zůstal, je uzamčený a můžete ho smazat ručně.')
             : t('Instalátor je uzamčený a nic už nezmění. Doporučujeme ho ze serveru smazat: soubory install.php a lib/install-wizard.php.')) . '</p>';
     }
@@ -1686,9 +1636,9 @@ if ($state['mode'] === 'locked') {
     http_response_code(410);
     installer_page_message(
         t('AllStat je již nainstalovaný'),
-        '<p class="lead">' . h(t('Instalátor je z bezpečnostních důvodů uzamčený, protože v databázi už existuje uživatel.')) . '</p>'
-        . '<div class="actions"><a class="btn" href="' . h(installer_url('admin/login.php')) . '">' . h(t('Přejít na přihlášení')) . '</a></div>'
-        . '<p class="help" style="margin-top:14px">' . h(t('Soubory install.php a lib/install-wizard.php můžete na serveru smazat.')) . '</p>',
+        '<p class="card-desc">' . h(t('Instalátor je z bezpečnostních důvodů uzamčený, protože v databázi už existuje uživatel.')) . '</p>'
+        . '<div class="actions"><a class="btn btn-primary" href="' . h(installer_url('admin/login.php')) . '">' . h(t('Přejít na přihlášení')) . '</a></div>'
+        . '<p class="card-desc wizard-gap">' . h(t('Soubory install.php a lib/install-wizard.php můžete na serveru smazat.')) . '</p>',
         $installVersion
     );
     exit;
@@ -1697,7 +1647,7 @@ if ($state['mode'] === 'locked') {
 if ($state['mode'] === 'broken') {
     installer_page_message(
         t('Konfigurace vyžaduje pozornost'),
-        '<div class="notice notice-error">' . h((string) $state['message']) . '</div>'
+        '<div class="callout tone-down">' . h((string) $state['message']) . '</div>'
         . '<p>' . h(t('Máte dvě možnosti:')) . '</p><ol>'
         . '<li>' . t('Opravte údaje v souboru <code>config.php</code> (přístup k databázi) a stránku obnovte.') . '</li>'
         . '<li>' . t('Nebo soubor <code>config.php</code> smažte a instalátor spusťte znovu od začátku.') . '</li></ol>',
