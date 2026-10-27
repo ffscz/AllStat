@@ -25,21 +25,21 @@
 
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = 'select-search-btn';
+        btn.className = 'select-search-btn input';
         btn.setAttribute('aria-haspopup', 'listbox');
         btn.setAttribute('aria-expanded', 'false');
         btn.setAttribute('aria-label', select.getAttribute('aria-label') || window.allstatT('Web'));
         const label = document.createElement('span');
-        label.className = 'select-search-label';
+        label.className = 'select-search-label ellipsis';
         btn.append(label);
         btn.insertAdjacentHTML('beforeend', CHEVRON);
 
         const pop = document.createElement('div');
-        pop.className = 'select-search-pop';
+        pop.className = 'select-search-pop menu';
         pop.hidden = true;
         const input = document.createElement('input');
         input.type = 'search';
-        input.className = 'select-search-input';
+        input.className = 'select-search-input input';
         input.placeholder = window.allstatT('Hledat web');
         input.autocomplete = 'off';
         input.setAttribute('aria-label', window.allstatT('Hledat web'));
@@ -56,7 +56,7 @@
         const items = Array.from(select.options).map((option) => {
             const item = document.createElement('button');
             item.type = 'button';
-            item.className = 'select-search-item';
+            item.className = 'select-search-item menu-item';
             item.setAttribute('role', 'option');
             item.dataset.value = option.value;
             item.dataset.search = normalize(option.textContent);
@@ -88,9 +88,9 @@
             input.value = '';
             filter();
             pop.hidden = false;
-            pop.classList.remove('is-right');
+            pop.classList.remove('menu-end');
             // U pravého okraje okna (topbar, mobil) se seznam otevře doleva.
-            if (pop.getBoundingClientRect().right > window.innerWidth - 8) { pop.classList.add('is-right'); }
+            if (pop.getBoundingClientRect().right > window.innerWidth - 8) { pop.classList.add('menu-end'); }
             btn.setAttribute('aria-expanded', 'true');
             items.find((item) => item.classList.contains('is-selected'))?.scrollIntoView({ block: 'nearest' });
             input.focus();

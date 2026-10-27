@@ -1422,11 +1422,11 @@ function installer_render_form(array $ctx): void
             . '<p class="card-desc">' . t('Vytvořte ve složce AllStatu soubor <code>install-token.php</code> podle vzoru níže a místo textu v závorce napište vlastní kód: aspoň {min} písmen a číslic bez diakritiky, pomlčky můžete použít. Stránku pak obnovte a kód zadejte sem. Po instalaci soubor smažte.', ['min' => INSTALLER_TOKEN_MIN_LENGTH]) . '</p>'
             . '<pre class="code">' . h("<?php\n// KOD: " . t('(sem napište vlastní kód)')) . '</pre>';
     }
-    echo '<div class="grid"><label class="field wizard-full"><span class="field-label">' . h(t('Kód ze souboru install-token.php')) . '</span><input class="input" type="text" name="install_token" value="' . h($f['install_token']) . '" required autocomplete="off" autocapitalize="characters" spellcheck="false"></label></div></div>';
+    echo '<div class="form-grid"><label class="field field-full"><span class="field-label">' . h(t('Kód ze souboru install-token.php')) . '</span><input class="input" type="text" name="install_token" value="' . h($f['install_token']) . '" required autocomplete="off" autocapitalize="characters" spellcheck="false"></label></div></div>';
 
     // 1) Databáze
     if ($fresh) {
-        echo '<div class="card wizard-card" id="db"><h2 class="h2 wizard-h2"><span class="num">1</span> ' . h(t('Databáze')) . '</h2>'
+        echo '<div class="card wizard-card" id="db"><h2 class="h2 wizard-h2"><span class="step-no">1</span> ' . h(t('Databáze')) . '</h2>'
             . '<p class="card-desc">' . t('V administraci hostingu vytvořte novou prázdnou databázi a uživatele s plným přístupem k ní (v cPanelu: „MySQL® Databases“, jinde „Databáze“). Údaje sem opište přesně, včetně předpony před názvem (například <code>ucet_allstat</code>).') . '</p>';
 
         if ($ctx['db_report'] !== null) {
@@ -1436,34 +1436,34 @@ function installer_render_form(array $ctx): void
                 : '<div class="callout tone-up">' . h(t('Databáze je připravená, můžete pokračovat.')) . '</div>';
         }
 
-        echo '<div class="grid">'
+        echo '<div class="form-grid">'
             . '<label class="field"><span class="field-label">' . h(t('Server databáze')) . '</span><input class="input" type="text" name="db_host" value="' . h($f['db_host']) . '" required><span class="field-help">' . h(t('Na většině hostingů „localhost“.')) . '</span></label>'
             . '<label class="field"><span class="field-label">' . h(t('Port')) . '</span><input class="input" type="text" name="db_port" value="' . h($f['db_port']) . '" inputmode="numeric" required><span class="field-help">' . h(t('Obvykle 3306.')) . '</span></label>'
             . '<label class="field"><span class="field-label">' . h(t('Název databáze')) . '</span><input class="input" type="text" name="db_name" value="' . h($f['db_name']) . '" required autocapitalize="off" spellcheck="false"></label>'
             . '<label class="field"><span class="field-label">' . h(t('Uživatel databáze')) . '</span><input class="input" type="text" name="db_user" value="' . h($f['db_user']) . '" required autocapitalize="off" spellcheck="false"></label>'
-            . '<label class="field wizard-full"><span class="field-label">' . h(t('Heslo k databázi')) . '</span><input class="input" type="password" name="db_pass" value="' . h($f['db_pass']) . '" autocomplete="new-password"></label>'
-            . '</div><div class="actions"><button class="btn btn-secondary" type="submit" name="action" value="test_db" formaction="#db" formnovalidate' . ($blocked ? ' disabled' : '') . '>' . h(t('Otestovat připojení')) . '</button></div></div>';
+            . '<label class="field field-full"><span class="field-label">' . h(t('Heslo k databázi')) . '</span><input class="input" type="password" name="db_pass" value="' . h($f['db_pass']) . '" autocomplete="new-password"></label>'
+            . '</div><div class="form-actions"><button class="btn btn-secondary" type="submit" name="action" value="test_db" formaction="#db" formnovalidate' . ($blocked ? ' disabled' : '') . '>' . h(t('Otestovat připojení')) . '</button></div></div>';
     } else {
-        echo '<div class="card wizard-card"><h2 class="h2 wizard-h2"><span class="num">1</span> ' . h(t('Databáze')) . '</h2><p class="card-desc">' . h(t('Použije se připojení z existujícího souboru config.php.')) . '</p></div>';
+        echo '<div class="card wizard-card"><h2 class="h2 wizard-h2"><span class="step-no">1</span> ' . h(t('Databáze')) . '</h2><p class="card-desc">' . h(t('Použije se připojení z existujícího souboru config.php.')) . '</p></div>';
     }
 
     // 2) Organizace
-    echo '<div class="card wizard-card"><h2 class="h2 wizard-h2"><span class="num">2</span> ' . h(t('Organizace a web')) . '</h2>'
+    echo '<div class="card wizard-card"><h2 class="h2 wizard-h2"><span class="step-no">2</span> ' . h(t('Organizace a web')) . '</h2>'
         . '<p class="card-desc">' . h(t('Tyto údaje se zobrazí na veřejných stránkách o ochraně osobních údajů, které Google, Meta a LinkedIn vyžadují při napojení. Později je změníte v Nastavení.')) . '</p>'
-        . '<div class="grid">'
-        . '<label class="field wizard-full"><span class="field-label">' . h(t('Název organizace nebo firmy')) . '</span><input class="input" type="text" name="org_name" value="' . h($f['org_name']) . '" required></label>'
+        . '<div class="form-grid">'
+        . '<label class="field field-full"><span class="field-label">' . h(t('Název organizace nebo firmy')) . '</span><input class="input" type="text" name="org_name" value="' . h($f['org_name']) . '" required></label>'
         . '<label class="field"><span class="field-label">' . h(t('Kontaktní e-mail')) . '</span><input class="input" type="email" name="org_email" value="' . h($f['org_email']) . '" required><span class="field-help">' . h(t('Na něj se budou obracet lidé s dotazy k osobním údajům.')) . '</span></label>'
         . '<label class="field"><span class="field-label">' . h(t('Adresa sledovaného webu')) . '</span><input class="input" type="text" name="org_web" value="' . h($f['org_web']) . '" placeholder="https://www.example.cz" required><span class="field-help">' . h(t('První web, jehož statistiky chcete sledovat. Další přidáte později.')) . '</span></label>'
         . '</div>'
-        . '<details class="note wizard-note"><summary>' . h(t('Další údaje (nepovinné)')) . '</summary><div class="note-body"><div class="grid">'
+        . '<details class="note wizard-note"><summary>' . h(t('Další údaje (nepovinné)')) . '</summary><div class="note-body"><div class="form-grid">'
         . '<label class="field"><span class="field-label">' . h(t('Sídlo organizace')) . '</span><input class="input" type="text" name="org_address" value="' . h($f['org_address']) . '"></label>'
         . '<label class="field"><span class="field-label">' . h(t('IČO')) . '</span><input class="input" type="text" name="org_ico" value="' . h($f['org_ico']) . '"></label>'
-        . '<label class="field wizard-full"><span class="field-label">' . h(t('Popis organizace pro AI analýzy')) . '</span><textarea class="input" name="org_context" placeholder="' . h(t('Například: Jsme e-shop s outdoorovým vybavením, hlavním cílem je prodej, marketing dělají dva lidé.')) . '">' . h($f['org_context']) . '</textarea>'
+        . '<label class="field field-full"><span class="field-label">' . h(t('Popis organizace pro AI analýzy')) . '</span><textarea class="input" name="org_context" placeholder="' . h(t('Například: Jsme e-shop s outdoorovým vybavením, hlavním cílem je prodej, marketing dělají dva lidé.')) . '">' . h($f['org_context']) . '</textarea>'
         . '<span class="field-help">' . h(t('Když budete výsledky posílat AI asistentovi k rozboru, díky tomuto popisu ohodnotí data ve správném kontextu. Prázdné pole znamená obecný kontext.')) . '</span></label>'
         . '</div></div></details>';
 
     if ($fresh) {
-        echo '<details class="note wizard-note"><summary>' . h(t('Pokročilé (časové pásmo, cesta aplikace)')) . '</summary><div class="note-body"><div class="grid">'
+        echo '<details class="note wizard-note"><summary>' . h(t('Pokročilé (časové pásmo, cesta aplikace)')) . '</summary><div class="note-body"><div class="form-grid">'
             . '<label class="field"><span class="field-label">' . h(t('Časové pásmo')) . '</span><select class="input" name="timezone">';
         foreach (installer_timezones() as $group => $ids) {
             echo '<optgroup label="' . h($group) . '">';
@@ -1481,14 +1481,14 @@ function installer_render_form(array $ctx): void
     echo '</div>';
 
     // 3) Administrátor
-    echo '<div class="card wizard-card"><h2 class="h2 wizard-h2"><span class="num">3</span> ' . h(t('Administrátor')) . '</h2>'
+    echo '<div class="card wizard-card"><h2 class="h2 wizard-h2"><span class="step-no">3</span> ' . h(t('Administrátor')) . '</h2>'
         . '<p class="card-desc">' . h(t('První účet s plnými právy. E-mail a heslo použijete k přihlášení do AllStatu.')) . '</p>'
-        . '<div class="grid">'
+        . '<div class="form-grid">'
         . '<label class="field"><span class="field-label">' . h(t('Jméno')) . '</span><input class="input" type="text" name="admin_name" value="' . h($f['admin_name']) . '" autocomplete="name" required></label>'
         . '<label class="field"><span class="field-label">' . h(t('E-mail (přihlašovací jméno)')) . '</span><input class="input" type="email" name="admin_email" value="' . h($f['admin_email']) . '" autocomplete="username" required></label>'
         . '<label class="field"><span class="field-label">' . h(t('Heslo')) . '</span><input class="input" type="password" name="admin_password" id="pw1" minlength="12" autocomplete="new-password" required><span class="field-help">' . h(t('Nejméně 12 znaků.')) . '</span></label>'
         . '<label class="field"><span class="field-label">' . h(t('Heslo znovu')) . '</span><input class="input" type="password" name="admin_password2" id="pw2" minlength="12" autocomplete="new-password" required></label>'
-        . '</div><div class="actions"><button class="btn btn-secondary btn-sm" type="button" id="pw-gen">' . h(t('Vygenerovat silné heslo')) . '</button>'
+        . '</div><div class="form-actions"><button class="btn btn-secondary btn-sm" type="button" id="pw-gen">' . h(t('Vygenerovat silné heslo')) . '</button>'
         . '<button class="btn btn-secondary btn-sm" type="button" id="pw-show">' . h(t('Zobrazit hesla')) . '</button></div>'
         . '<p class="card-desc" id="pw-note" hidden>' . h(t('Vygenerované heslo si hned uložte do správce hesel, po instalaci ho už nikde neuvidíte.')) . '</p></div>';
 
@@ -1496,7 +1496,7 @@ function installer_render_form(array $ctx): void
     $detectedBase = $ctx['state']['mode'] === 'resume' ? (string) ($ctx['state']['config']['app']['base_path'] ?? '/') : installer_base_path();
     $atRoot = ($detectedBase === '/' || $detectedBase === '');
     $mode = $f['mcp_mode'];
-    echo '<div class="card wizard-card" id="mcp"><h2 class="h2 wizard-h2"><span class="num">4</span> ' . h(t('Připojení AI (Claude, ChatGPT)')) . '</h2>'
+    echo '<div class="card wizard-card" id="mcp"><h2 class="h2 wizard-h2"><span class="step-no">4</span> ' . h(t('Připojení AI (Claude, ChatGPT)')) . '</h2>'
         . '<p class="card-desc">' . h(t('AllStat umí zpřístupnit data asistentům Claude a ChatGPT, jen ke čtení. Přístup povoluje a kdykoli ruší administrátor. Zapnete ho po instalaci v menu „AI konektory“, tady jen určíte, na jaké adrese bude MCP server běžet.')) . '</p>'
         . '<div class="choices">'
         . '<label class="choice"><input type="radio" name="mcp_mode" value="same"' . ($mode === 'same' ? ' checked' : '') . '><span>'
@@ -1516,7 +1516,7 @@ function installer_render_form(array $ctx): void
 
     echo '<div class="card wizard-card"><h2 class="h2 wizard-h2">' . h(t('Nainstalovat')) . '</h2>'
         . '<p class="card-desc">' . h(t('Instalace založí tabulky v databázi, vytvoří soubory config.php a config-keys.php (s jedinečným šifrovacím klíčem) a připraví účet administrátora. Trvá několik sekund.')) . '</p>'
-        . '<div class="actions"><button class="btn btn-primary" type="submit" name="action" value="install" id="install-btn"' . ($blocked ? ' disabled' : '') . '>' . h(t('Nainstalovat AllStat')) . '</button></div></div>';
+        . '<div class="form-actions"><button class="btn btn-primary" type="submit" name="action" value="install" id="install-btn"' . ($blocked ? ' disabled' : '') . '>' . h(t('Nainstalovat AllStat')) . '</button></div></div>';
     echo '</form>';
 
     $jsHide = (string) json_encode(t('Skrýt hesla'), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP);
@@ -1549,7 +1549,7 @@ function installer_render_success(array $r, string $version): void
 
     if ($manual === []) {
         echo '<p class="card-desc">' . h(t('Instalace proběhla. Přihlaste se a projděte čtyři kroky níže, aby AllStat fungoval dlouhodobě.')) . '</p>'
-            . '<div class="actions"><a class="btn btn-primary" href="' . h($loginUrl) . '">' . h(t('Přihlásit se do AllStatu')) . '</a></div>';
+            . '<div class="form-actions"><a class="btn btn-primary" href="' . h($loginUrl) . '">' . h(t('Přihlásit se do AllStatu')) . '</a></div>';
     } else {
         echo '<div class="callout tone-warn">' . t('Server nedovolil instalátoru zapsat soubory do složky aplikace. Databáze je připravená, ale aplikace se spustí až po nahrání souborů níže. <strong>Tuto stránku nezavírejte ani neobnovujte</strong>, klíč z ní už podruhé neuvidíte.') . '</div>';
         foreach ($manual as $name => $content) {
@@ -1557,15 +1557,15 @@ function installer_render_success(array $r, string $version): void
             echo '<h2 class="h2 wizard-h2 wizard-gap">' . h($name) . '</h2>'
                 . '<p class="card-desc">' . t('Uložte jako <code>{name}</code> do složky, kde leží soubor <code>install.php</code> (přes FTP nebo správce souborů).', ['name' => h($name)]) . '</p>'
                 . '<textarea readonly rows="12" class="input code wizard-file" id="' . h($id) . '">' . h($content) . '</textarea>'
-                . '<div class="actions"><a class="btn btn-secondary btn-sm" download="' . h($name) . '" href="data:text/plain;charset=utf-8;base64,' . base64_encode($content) . '">' . h(t('Stáhnout {name}', ['name' => $name])) . '</a></div>';
+                . '<div class="form-actions"><a class="btn btn-secondary btn-sm" download="' . h($name) . '" href="data:text/plain;charset=utf-8;base64,' . base64_encode($content) . '">' . h(t('Stáhnout {name}', ['name' => $name])) . '</a></div>';
         }
         echo '<p class="card-desc wizard-gap">' . t('Po nahrání smažte ze serveru i soubor <code>install-token.php</code> s instalačním kódem, už ho nebudete potřebovat.') . '</p>'
-            . '<div class="actions"><a class="btn btn-primary" href="' . h($loginUrl) . '">' . h(t('Po nahrání souborů přejít na přihlášení')) . '</a></div>';
+            . '<div class="form-actions"><a class="btn btn-primary" href="' . h($loginUrl) . '">' . h(t('Po nahrání souborů přejít na přihlášení')) . '</a></div>';
     }
     echo '</div>';
 
     echo '<div class="card wizard-card"><h2 class="h2 wizard-h2">' . h(t('Co udělat hned')) . '</h2>'
-        . '<p class="card-desc">' . t('Podrobně a s obrázky v návodu: {link}.', ['link' => installer_doc_link('po-instalaci', t('Po instalaci: čtyři kroky'))]) . '</p><ol class="todo">'
+        . '<p class="card-desc">' . t('Podrobně a s obrázky v návodu: {link}.', ['link' => installer_doc_link('po-instalaci', t('Po instalaci: čtyři kroky'))]) . '</p><ol class="steps steps-divided">'
         . '<li>' . t('<strong>Zálohujte dva soubory.</strong> Stáhněte si z hostingu <code>config.php</code> a <code>config-keys.php</code> a uložte je na bezpečné místo mimo web (správce hesel, zabezpečené úložiště). V <code>config-keys.php</code> je klíč, kterým jsou zašifrované přístupy k vašim službám. Bez něj by se napojení musela vytvořit znovu.') . '</li>'
         . '<li>' . t('<strong>Nastavte automatické stahování dat.</strong> V administraci hostingu otevřete „Cron“ (plánovač úloh na serveru) a přidejte úlohu spouštěnou jednou denně (například v 6:00) s tímto příkazem:')
         . '<code class="code">curl -s "' . h($cronUrl) . '" &gt; /dev/null 2&gt;&amp;1</code>'
@@ -1588,7 +1588,7 @@ function installer_render_success(array $r, string $version): void
             echo '<p>' . h(t('Adresa MCP serveru, kterou zadáte v Claude nebo ChatGPT:')) . ' <code>' . h($m['host'] . '/mcp') . '</code></p>';
             if ($m['root_block'] !== '') {
                 echo '<p>' . t('AllStat běží ve složce domény. Aby klienti našli přihlášení, vložte tento blok <strong>na začátek souboru <code>.htaccess</code> v kořeni domény</strong> (obvykle složka <code>public_html</code>, nad případná pravidla WordPressu). Když soubor neexistuje, vytvořte ho. Blok nic jiného na webu nemění.') . '</p>'
-                    . '<code class="code code-pre">' . h($m['root_block']) . '</code>'
+                    . '<code class="code">' . h($m['root_block']) . '</code>'
                     . '<p class="card-desc">' . h(t('Bez bloku klienti, kteří hledají přihlášení podle standardu RFC 8414, spojení nenavážou. Kontrola v menu „AI konektory“ ho po vložení pozná. Alternativou je vlastní subdoména, která ukazuje do stejné složky jako AllStat, pak blok nepotřebujete.')) . '</p>';
             } elseif ($m['mode'] === 'custom') {
                 $host = (string) parse_url($m['host'], PHP_URL_HOST);
@@ -1601,7 +1601,7 @@ function installer_render_success(array $r, string $version): void
         echo '</div>';
     }
 
-    echo '<div class="card wizard-card"><h2 class="h2 wizard-h2">' . h(t('Co se provedlo')) . '</h2><ul class="steps">';
+    echo '<div class="card wizard-card"><h2 class="h2 wizard-h2">' . h(t('Co se provedlo')) . '</h2><ul class="bullets">';
     foreach ($r['steps'] as $step) {
         echo '<li>' . h($step) . '</li>';
     }
@@ -1637,7 +1637,7 @@ if ($state['mode'] === 'locked') {
     installer_page_message(
         t('AllStat je již nainstalovaný'),
         '<p class="card-desc">' . h(t('Instalátor je z bezpečnostních důvodů uzamčený, protože v databázi už existuje uživatel.')) . '</p>'
-        . '<div class="actions"><a class="btn btn-primary" href="' . h(installer_url('admin/login.php')) . '">' . h(t('Přejít na přihlášení')) . '</a></div>'
+        . '<div class="form-actions"><a class="btn btn-primary" href="' . h(installer_url('admin/login.php')) . '">' . h(t('Přejít na přihlášení')) . '</a></div>'
         . '<p class="card-desc wizard-gap">' . h(t('Soubory install.php a lib/install-wizard.php můžete na serveru smazat.')) . '</p>',
         $installVersion
     );

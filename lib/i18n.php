@@ -204,5 +204,5 @@ function allstat_locale_switcher(array $config): string
     return '<form class="locale-switch" method="post" action="' . htmlspecialchars(allstat_url($config, 'admin/locale.php'), ENT_QUOTES, 'UTF-8') . '">'
         . (function_exists('allstat_csrf_field') ? allstat_csrf_field() : '')
         . '<input type="hidden" name="back" value="' . htmlspecialchars((string) ($_SERVER['REQUEST_URI'] ?? ''), ENT_QUOTES, 'UTF-8') . '">'
-        . '<select name="locale" data-locale-switch aria-label="Jazyk / Language">' . $options . '</select></form>';
+        . '<select class="input" name="locale" data-locale-switch aria-label="Jazyk / Language">' . $options . '</select></form>';
 }
