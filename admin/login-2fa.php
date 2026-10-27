@@ -1,6 +1,7 @@
 <?php
 
 require __DIR__ . '/_bootstrap.php';
+require_once __DIR__ . '/../lib/layout.php';
 
 $pdo = allstat_admin_require_database($pdo, $config);
 $user = allstat_current_user($pdo);
@@ -47,29 +48,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= h(t('2FA ověření')) ?> | AllStat</title>
     <script nonce="<?= h(allstat_nonce()) ?>">document.documentElement.dataset.theme = localStorage.getItem('allstat-theme') || 'light';</script>
-    <link rel="stylesheet" href="<?= h(allstat_url($config, 'assets/css/app.css')) ?>">
-    <link rel="stylesheet" href="<?= h(allstat_url($config, 'assets/css/admin.css')) ?>">
+    <?= allstat_stylesheets($config, []) ?>
 </head>
 <body>
-    <main class="auth-shell">
-        <section class="auth-card">
-            <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
-            <h1><?= h(t('2FA ověření')) ?></h1>
-            <p><?= h(t('Zadejte šestimístný kód z autentizační aplikace pro účet {email}.', ['email' => $user['email']])) ?></p>
-            <?php if ($error): ?><div class="notice notice-error"><?= h($error) ?></div><?php endif; ?>
+    <main class="auth">
+        <section class="card auth-card">
+            <a class="logo auth-logo" href="<?= h(allstat_url($config, '')) ?>" aria-label="AllStat">
+                <svg class="logo-mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="13" width="4.5" height="8" rx="1.5" fill="currentColor" opacity=".45"/><rect x="9.75" y="7" width="4.5" height="14" rx="1.5" fill="currentColor" opacity=".7"/><rect x="16.5" y="3" width="4.5" height="18" rx="1.5" fill="currentColor"/></svg>
+                <span class="logo-name">AllStat</span>
+            </a>
+            <div class="auth-head">
+                <h1 class="h1"><?= h(t('2FA ověření')) ?></h1>
+                <p class="auth-desc"><?= h(t('Zadejte šestimístný kód z autentizační aplikace pro účet {email}.', ['email' => $user['email']])) ?></p>
+            </div>
+            <?php if ($error): ?><div class="callout tone-down" role="alert"><?= allstat_icon('info', 'icon-sm') ?><span><?= h($error) ?></span></div><?php endif; ?>
             <?php if ($locked): ?>
-            <p><a class="button-primary" href="<?= h(allstat_url($config, 'admin/login.php')) ?>"><?= h(t('Zpět na přihlášení')) ?></a></p>
+            <a class="btn btn-primary" href="<?= h(allstat_url($config, 'admin/login.php')) ?>"><?= h(t('Zpět na přihlášení')) ?></a>
             <?php else: ?>
-            <form method="post" class="form-stack">
+            <form method="post" class="auth-form">
                 <?= allstat_csrf_field() ?>
                 <input type="hidden" name="next" value="<?= h($next) ?>">
-                <label><span><?= h(t('Ověřovací kód')) ?></span><input type="text" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required autofocus autocomplete="one-time-code"></label>
-                <button class="button-primary" type="submit"><?= h(t('Ověřit')) ?></button>
+                <label class="field"><span class="field-label"><?= h(t('Ověřovací kód')) ?></span><input class="input input-code" type="text" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required autofocus autocomplete="one-time-code"></label>
+                <button class="btn btn-primary" type="submit"><?= h(t('Ověřit')) ?></button>
             </form>
             <?php endif; ?>
             <?= allstat_locale_switcher($config) ?>
         </section>
     </main>
-    <script src="<?= h(allstat_url($config, 'assets/js/i18n.js')) ?>" nonce="<?= h(allstat_nonce()) ?>"></script>
+    <script src="<?= h(allstat_asset_url($config, 'assets/js/i18n.js')) ?>" nonce="<?= h(allstat_nonce()) ?>"></script>
 </body>
 </html>

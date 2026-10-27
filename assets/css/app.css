@@ -933,31 +933,6 @@ th.is-sorted-desc::after { content: "\25BC"; opacity: 1; }
     100% { background-position: 0 50%; }
 }
 
-.install-body {
-    display: grid;
-    place-items: center;
-    padding: 24px;
-}
-
-.install-panel {
-    width: min(520px, 100%);
-    padding: 30px;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    background: var(--surface);
-    box-shadow: var(--shadow);
-}
-
-.install-panel h1 {
-    margin: 16px 0 8px;
-    font-size: 26px;
-}
-
-.install-panel p {
-    color: var(--muted);
-    line-height: 1.55;
-}
-
 .notice {
     margin: 12px 0;
     padding: 12px 14px;
@@ -1611,26 +1586,6 @@ th.is-sorted-desc::after { content: "\25BC"; opacity: 1; }
 }
 
 /* Přepínač jazyka (allstat_locale_switcher, lib/i18n.php) */
-.locale-switch {
-    display: inline-flex;
-    margin: 0;
-}
-
-.locale-switch select {
-    min-height: 36px;
-    padding: 0 8px;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    background: var(--surface);
-    color: var(--text);
-    font: inherit;
-    font-size: 13px;
-}
-
-.auth-card .locale-switch {
-    justify-content: center;
-    margin-top: 16px;
-}
 
 /* Dlouhé ukázky v textu (UTM adresa v prázdném stavu tabulky) nesmí roztáhnout stránku. */
 .table-muted code {
