@@ -327,7 +327,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
 <h3>Running the installation</h3>
 <p>Click “Install AllStat”. Within a few seconds, the wizard does the following:</p>
 <ul>
-  <li>creates 37 tables in the database,</li>
+  <li>creates 40 tables in the database,</li>
   <li>saves the organization details and adds the first tracked website,</li>
   <li>saves the addresses for the AI connection based on your choice (you turn it on later in the “AI connectors” menu),</li>
   <li>creates the <code>config.php</code> file with the database access,</li>
@@ -741,7 +741,7 @@ location ~ ^/allstat/(lib|views|docs)/ { deny all; }</code></pre>
     <tr><td>License</td><td>GNU GPL version 3 (the <code>LICENSE</code> file), source code and updates at github.com/ffscz/AllStat</td></tr>
     <tr><td>Application language</td><td>Czech, Slovak and English</td></tr>
     <tr><td>Server requirements</td><td>PHP 8.1 or newer (8.3 recommended), MySQL 5.7.8 or newer or MariaDB 10.3 or newer, Apache or LiteSpeed (nginx with custom rules, see chapter 10)</td></tr>
-    <tr><td>Database</td><td>37 tables, InnoDB, utf8mb4 encoding, utf8mb4_czech_ci collation</td></tr>
+    <tr><td>Database</td><td>40 tables, InnoDB, utf8mb4 encoding, utf8mb4_czech_ci collation</td></tr>
     <tr><td>Browsers</td><td>modern browsers (Chrome, Edge, Firefox, Safari), tested in Chrome</td></tr>
     <tr><td>Data storage</td><td>everything in your database. AllStat does not send your data to the author or to third parties, it only calls the services you connect yourself</td></tr>
     <tr><td>Encryption</td><td>sign-ins to services are stored encrypted (AES-256-GCM) with the key from the <code>config-keys.php</code> file, and user passwords as a secure hash</td></tr>
