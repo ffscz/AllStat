@@ -110,7 +110,7 @@ $prevNote = $prevPeriod !== '' ? t('vs. {period}', ['period' => $prevPeriod]) : 
         <div class="card-body">
             <div class="table-wrap">
                 <table class="table table-plain">
-                    <thead><tr data-pages-head><th scope="col"><?= h(t('Stránka')) ?></th><th scope="col" style="width: 84px"><?= h(t('Návštěvy')) ?></th><th scope="col" style="width: 84px"><?= h(t('Konverze')) ?></th><th scope="col" style="width: 84px"><?= h(t('Změna')) ?></th></tr></thead>
+                    <thead><tr data-pages-head><th scope="col"><?= h(t('Stránka')) ?></th><th class="col-num" scope="col"><?= h(t('Návštěvy')) ?></th><th class="col-num" scope="col"><?= h(t('Konverze')) ?></th><th class="col-num" scope="col"><?= h(t('Změna')) ?></th></tr></thead>
                     <tbody data-pages-rows>
                         <?php foreach ($data['tables']['landingPages'] as $page): ?>
                             <tr>
@@ -132,7 +132,7 @@ $prevNote = $prevPeriod !== '' ? t('vs. {period}', ['period' => $prevPeriod]) : 
         <div class="card-body">
             <div class="table-wrap">
                 <table class="table table-plain">
-                    <thead><tr><th scope="col"><?= h(t('Dotaz')) ?></th><th scope="col" style="width: 84px"><?= h(t('Kliknutí')) ?></th><th scope="col" style="width: 96px"><?= h(t('Zobrazení')) ?></th><th scope="col" style="width: 72px"><?= h(t('Pozice')) ?></th></tr></thead>
+                    <thead><tr><th scope="col"><?= h(t('Dotaz')) ?></th><th class="col-num" scope="col"><?= h(t('Kliknutí')) ?></th><th class="col-num" scope="col"><?= h(t('Zobrazení')) ?></th><th class="col-xs" scope="col"><?= h(t('Pozice')) ?></th></tr></thead>
                     <tbody data-query-rows>
                         <?php foreach ($data['tables']['queries'] as $query): ?>
                             <tr>
@@ -175,7 +175,7 @@ $prevNote = $prevPeriod !== '' ? t('vs. {period}', ['period' => $prevPeriod]) : 
         <div class="card-body">
             <div class="table-wrap">
                 <table class="table table-plain">
-                    <thead><tr><th scope="col"><?= h(t('Akce')) ?></th><th scope="col" style="width: 84px"><?= h(t('Počet')) ?></th><th scope="col" style="width: 140px"><?= h(t('Z toho key events')) ?></th></tr></thead>
+                    <thead><tr><th scope="col"><?= h(t('Akce')) ?></th><th class="col-num" scope="col"><?= h(t('Počet')) ?></th><th class="col-md" scope="col"><?= h(t('Z toho key events')) ?></th></tr></thead>
                     <tbody data-event-rows>
                         <?php foreach ($data['tables']['events'] as $event): ?>
                             <tr>
@@ -226,7 +226,7 @@ $prevNote = $prevPeriod !== '' ? t('vs. {period}', ['period' => $prevPeriod]) : 
     <div class="card-body">
         <div class="table-wrap">
             <table class="table table-plain">
-                <thead><tr><th scope="col"><?= h(t('Krok')) ?></th><th scope="col" style="width: 96px"><?= h(t('Počet')) ?></th><th scope="col" style="width: 30%"><?= h(t('Podíl z vrcholu')) ?></th><th scope="col" style="width: 152px"><?= h(t('Pokles vs. předchozí')) ?></th></tr></thead>
+                <thead><tr><th scope="col"><?= h(t('Krok')) ?></th><th class="col-num" scope="col"><?= h(t('Počet')) ?></th><th scope="col" style="width: 30%"><?= h(t('Podíl z vrcholu')) ?></th><th class="col-md" scope="col"><?= h(t('Pokles vs. předchozí')) ?></th></tr></thead>
                 <tbody>
                     <?php foreach ($funnel['steps'] as $step): ?>
                         <tr>
@@ -249,7 +249,7 @@ $prevNote = $prevPeriod !== '' ? t('vs. {period}', ['period' => $prevPeriod]) : 
     <div class="card-body">
         <div class="table-wrap">
             <table class="table table-plain">
-                <thead><tr><th scope="col"><?= h(t('Produkt')) ?></th><th scope="col" style="width: 96px"><?= h(t('Zobrazení')) ?></th><th scope="col" style="width: 96px"><?= h(t('Do košíku')) ?></th><th scope="col" style="width: 96px"><?= h(t('Prodáno')) ?></th><th scope="col" style="width: 112px"><?= h(t('Tržby')) ?></th><th scope="col" style="width: 96px"><?= h(t('Konverze')) ?></th></tr></thead>
+                <thead><tr><th scope="col"><?= h(t('Produkt')) ?></th><th class="col-num" scope="col"><?= h(t('Zobrazení')) ?></th><th class="col-num" scope="col"><?= h(t('Do košíku')) ?></th><th class="col-num" scope="col"><?= h(t('Prodáno')) ?></th><th class="col-sm" scope="col"><?= h(t('Tržby')) ?></th><th class="col-num" scope="col"><?= h(t('Konverze')) ?></th></tr></thead>
                 <tbody>
                     <?php foreach ($products as $p): ?>
                         <tr>
@@ -287,7 +287,7 @@ $prevNote = $prevPeriod !== '' ? t('vs. {period}', ['period' => $prevPeriod]) : 
     <div class="card-body">
         <div class="table-wrap">
             <table class="table table-plain">
-                <thead><tr><th scope="col"><?= h(t('Zdroj')) ?></th><th scope="col" style="width: 120px"><?= h(t('Stav')) ?></th><th scope="col" style="width: 140px"><?= h(t('Poslední sync')) ?></th><th scope="col" style="width: 48px"><span class="sr-only"><?= h(t('Obnovit')) ?></span></th></tr></thead>
+                <thead><tr><th scope="col"><?= h(t('Zdroj')) ?></th><th class="col-sm" scope="col"><?= h(t('Stav')) ?></th><th class="col-md" scope="col"><?= h(t('Poslední sync')) ?></th><th class="col-xs" scope="col"><span class="sr-only"><?= h(t('Obnovit')) ?></span></th></tr></thead>
                 <tbody data-source-rows>
                     <?php $statusTone = ['ok' => 'tone-up', 'warning' => 'tone-warn', 'error' => 'tone-down']; ?>
                     <?php foreach ($data['tables']['sources'] as $source): ?>

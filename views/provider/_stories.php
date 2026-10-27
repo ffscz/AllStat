@@ -21,7 +21,7 @@ $stT = $socialStories['totals'] ?? [];
         <?php if (!empty($socialStories['rows'])): ?>
         <div class="table-wrap">
             <table class="table table-plain">
-                <thead><tr><th scope="col">Story</th><th scope="col" style="width: 152px"><?= h(t('Datum a čas')) ?></th><?php if ($stHasMetrics): ?><th scope="col" style="width: 88px"><?= h(t('Dosah')) ?></th><th scope="col" style="width: 96px"><?= h(t('Zobrazení')) ?></th><th scope="col" style="width: 96px"><?= h(t('Odpovědi')) ?></th><th scope="col" style="width: 96px"><?= h(t('Navigace')) ?></th><?php endif; ?></tr></thead>
+                <thead><tr><th scope="col">Story</th><th class="col-md" scope="col"><?= h(t('Datum a čas')) ?></th><?php if ($stHasMetrics): ?><th class="col-num" scope="col"><?= h(t('Dosah')) ?></th><th class="col-num" scope="col"><?= h(t('Zobrazení')) ?></th><th class="col-num" scope="col"><?= h(t('Odpovědi')) ?></th><th class="col-num" scope="col"><?= h(t('Navigace')) ?></th><?php endif; ?></tr></thead>
                 <tbody>
                     <?php foreach ($socialStories['rows'] as $st): ?>
                         <tr>

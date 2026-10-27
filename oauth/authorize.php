@@ -105,7 +105,7 @@ function allstat_mcp_authz_page(array $config, int $status, string $title, strin
 <body>
     <main class="auth">
         <section class="card auth-card">
-            <a class="logo auth-logo" href="<?= h(allstat_url($config, '')) ?>" aria-label="AllStat">
+            <a class="logo" href="<?= h(allstat_url($config, '')) ?>" aria-label="AllStat">
                 <svg class="logo-mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="13" width="4.5" height="8" rx="1.5" fill="currentColor" opacity=".45"/><rect x="9.75" y="7" width="4.5" height="14" rx="1.5" fill="currentColor" opacity=".7"/><rect x="16.5" y="3" width="4.5" height="18" rx="1.5" fill="currentColor"/></svg>
                 <span class="logo-name">AllStat</span>
             </a>

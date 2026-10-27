@@ -59,14 +59,14 @@ $postRow = static function (array $post) use (&$detailId, $postsCols, $postsExtr
     return $html;
 };
 $postsHead = '<thead><tr><th scope="col">' . h(t('Příspěvek')) . '</th>'
-    . '<th scope="col" style="width: 104px">' . h(t('Zobrazení')) . '</th>'
-    . '<th scope="col" style="width: 88px">' . h(t('Dosah')) . '</th>'
-    . '<th scope="col" style="width: 80px">' . h(t('Reakce')) . '</th>'
-    . '<th scope="col" style="width: 104px">' . h(t('Komentáře')) . '</th>'
-    . '<th scope="col" style="width: 80px">' . h(t('Sdílení')) . '</th>'
-    . ($postsExtraCol ? '<th scope="col" style="width: 88px">' . h($postsExtraCol['label']) . '</th>' : '')
-    . '<th scope="col" style="width: 88px">' . h(t('Zapojení')) . '</th>'
-    . '<th scope="col" style="width: 120px">' . h(t('Míra zapojení')) . '</th></tr></thead>';
+    . '<th class="col-sm" scope="col">' . h(t('Zobrazení')) . '</th>'
+    . '<th class="col-num" scope="col">' . h(t('Dosah')) . '</th>'
+    . '<th class="col-num" scope="col">' . h(t('Reakce')) . '</th>'
+    . '<th class="col-sm" scope="col">' . h(t('Komentáře')) . '</th>'
+    . '<th class="col-num" scope="col">' . h(t('Sdílení')) . '</th>'
+    . ($postsExtraCol ? '<th class="col-num" scope="col">' . h($postsExtraCol['label']) . '</th>' : '')
+    . '<th class="col-num" scope="col">' . h(t('Zapojení')) . '</th>'
+    . '<th class="col-sm" scope="col">' . h(t('Míra zapojení')) . '</th></tr></thead>';
 $postsTotal = (int) ($socialPostsAll['total'] ?? 0);
 ?>
 <section class="card card-clip" id="vsechny-prispevky" data-posts>

@@ -41,12 +41,12 @@ $liPostRow = static function (array $post, int $maxLen = 0): string {
         . '<td class="num">' . h($post['engRateLabel'] ?? '–') . '</td></tr>';
 };
 $liPostsHead = '<thead><tr><th scope="col">' . h(t('Příspěvek')) . '</th>'
-    . '<th scope="col" style="width: 88px">' . h(t('Dosah')) . '</th>'
-    . '<th scope="col" style="width: 80px">' . h(t('Reakce')) . '</th>'
-    . '<th scope="col" style="width: 104px">' . h(t('Komentáře')) . '</th>'
-    . '<th scope="col" style="width: 80px">' . h(t('Sdílení')) . '</th>'
-    . '<th scope="col" style="width: 96px">Engagement</th>'
-    . '<th scope="col" style="width: 120px">' . h(t('Zapojení %')) . '</th></tr></thead>';
+    . '<th class="col-num" scope="col">' . h(t('Dosah')) . '</th>'
+    . '<th class="col-num" scope="col">' . h(t('Reakce')) . '</th>'
+    . '<th class="col-sm" scope="col">' . h(t('Komentáře')) . '</th>'
+    . '<th class="col-num" scope="col">' . h(t('Sdílení')) . '</th>'
+    . '<th class="col-num" scope="col">Engagement</th>'
+    . '<th class="col-sm" scope="col">' . h(t('Zapojení %')) . '</th></tr></thead>';
 ?>
 <?php if (!empty($socialPosts)): ?>
 <div class="grid grid-3">
@@ -82,7 +82,7 @@ $liPostsHead = '<thead><tr><th scope="col">' . h(t('Příspěvek')) . '</th>'
         <div class="card-body">
             <div class="table-wrap">
                 <table class="table table-plain">
-                    <thead><tr><th scope="col"><?= h(t('Typ obsahu')) ?></th><th scope="col" style="width: 64px"><?= h(t('Počet')) ?></th><th scope="col" style="width: 96px"><?= h(t('Ø engagement')) ?></th><th scope="col" style="width: 120px"><?= h(t('Engagement celkem')) ?></th><th scope="col" style="width: 72px"><?= h(t('Dosah')) ?></th></tr></thead>
+                    <thead><tr><th scope="col"><?= h(t('Typ obsahu')) ?></th><th class="col-xs" scope="col"><?= h(t('Počet')) ?></th><th class="col-num" scope="col"><?= h(t('Ø engagement')) ?></th><th class="col-sm" scope="col"><?= h(t('Engagement celkem')) ?></th><th class="col-xs" scope="col"><?= h(t('Dosah')) ?></th></tr></thead>
                     <tbody>
                         <?php foreach ($socialPosts['byFormat'] as $f): ?>
                             <tr>

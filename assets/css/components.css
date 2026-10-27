@@ -2,9 +2,9 @@
  * AllStat – komponenty. Každý prvek je tu jednou a používá se napříč celou aplikací; varianty jsou
  * modifikátory (.btn-primary, .table-matrix …) nebo tóny (.tone-up …), ne kopie pravidel.
  * Barvy jen z tokens.css. Obsah:
- *   tlačítka · segmenty · přepínač · nabídka · dlaždice · štítky · karta · metriky · karta kanálu
+ *   tlačítka · segmenty · nabídka · dlaždice · štítky · karta · metriky · karta kanálu
  *   sloupcové grafy · grafy · tabulka · řádky · měřáky · legenda · záložky · heatmapa · příspěvek
- *   rozbalovací poznámka · výzva · formuláře · prázdný stav · služba · toast
+ *   rozbalovací poznámka · výzva · formuláře · prázdný stav · služba
  */
 
 /* ===================== Tlačítka ===================== */
@@ -149,56 +149,6 @@
     font-weight: 500;
 }
 
-/* ===================== Přepínač (switch) ===================== */
-.switch {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    height: 36px;
-    padding: 0 6px;
-    border-radius: var(--radius);
-    color: var(--text-2);
-    font-size: 14px;
-    line-height: 20px;
-    font-weight: 500;
-    white-space: nowrap;
-}
-
-.switch:hover {
-    color: var(--text);
-}
-
-.switch-track {
-    position: relative;
-    width: 32px;
-    height: 18px;
-    flex: none;
-    border-radius: 9px;
-    background: var(--ctrl);
-    transition: background-color .15s;
-}
-
-.switch-track::after {
-    content: "";
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: #FFFFFF;
-    box-shadow: 0 1px 2px rgba(16, 24, 40, .25);
-    transition: transform .15s;
-}
-
-.switch[aria-checked="true"] .switch-track {
-    background: var(--accent);
-}
-
-.switch[aria-checked="true"] .switch-track::after {
-    transform: translateX(14px);
-}
-
 /* ===================== Nabídka (popover) ===================== */
 /* Rodič má position:relative (.site-switch, .dropdown); otevírá assets/js/shell.js přes [data-menu]. */
 .dropdown {
@@ -323,10 +273,8 @@
     letter-spacing: .03em;
 }
 
-.tile-xs { width: 24px; height: 24px; border-radius: var(--radius-sm); font-size: 10px; }
 .tile-sm { width: 28px; height: 28px; border-radius: 7px; font-size: 11px; }
 .tile-md { width: 32px; height: 32px; border-radius: var(--radius); font-size: 13px; letter-spacing: 0; }
-.tile-lg { width: 48px; height: 48px; border-radius: var(--radius-lg); font-size: 15px; }
 .tile-round { border-radius: 50%; font-size: 12px; font-weight: 600; }
 
 .src-ga { background: var(--src-ga-bg); color: var(--src-ga-fg); }
@@ -660,7 +608,7 @@ a.pill:hover {
 }
 
 /* ===================== Sloupcové grafy (HTML, bez knihovny) ===================== */
-/* .bars = malý graf v kartě kanálu, .colchart = velký s hodnotami nad sloupci. Sloupec je vždy .bar. */
+/* .bars = malý sloupcový graf v kartě kanálu, sloupec je .bar. */
 .bars {
     display: flex;
     align-items: flex-end;
@@ -713,67 +661,6 @@ a.pill:hover {
     font-weight: 600;
 }
 
-.colchart {
-    position: relative;
-    height: 220px;
-    margin: 24px 0 0 56px;
-}
-
-.colchart-cols {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: flex-end;
-    gap: 12px;
-}
-
-.colchart-col {
-    display: flex;
-    flex: 1 1 0;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 6px;
-    min-width: 0;
-    height: 100%;
-}
-
-.colchart-col .bar {
-    flex: none;
-    width: 100%;
-    max-width: 56px;
-    border-radius: 3px 3px 0 0;
-}
-
-.colchart-value {
-    color: var(--text-2);
-    font-size: 11px;
-    line-height: 16px;
-    font-weight: 500;
-    white-space: nowrap;
-}
-
-.colchart-x {
-    display: flex;
-    gap: 12px;
-    margin: 10px 0 0 56px;
-}
-
-.colchart-x span {
-    flex: 1 1 0;
-    min-width: 0;
-    color: var(--muted);
-    font-size: 11px;
-    line-height: 16px;
-    text-align: center;
-    white-space: nowrap;
-}
-
-.colchart-x span.is-current {
-    color: var(--text-2);
-    font-weight: 600;
-}
-
 /* ===================== Grafy (Chart.js canvas) ===================== */
 .chart-wrap {
     padding: 20px 24px 24px;
@@ -804,6 +691,7 @@ a.pill:hover {
  *   .table-plain   jednoduchý přehled v kartě (bez pozadí záhlaví, bez krajního odsazení)
  *   .table-data    seznam položek se správou (první sloupec vlevo, akce vpravo, hover) */
 .table-wrap {
+    position: relative;
     overflow-x: auto;
 }
 
@@ -998,12 +886,14 @@ a.pill:hover {
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    max-width: 100%;
     margin-top: 16px;
     border-radius: 4px;
     color: var(--accent-text);
     font-size: 13px;
     line-height: 20px;
     font-weight: 500;
+    overflow-wrap: anywhere;
 }
 
 .link-more:hover {
@@ -1550,29 +1440,6 @@ textarea.input {
     color: var(--pos);
 }
 
-/* ===================== Toast ===================== */
-.toast {
-    position: fixed;
-    top: 72px;
-    right: 32px;
-    z-index: 40;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    max-width: 420px;
-    padding: 10px 14px 10px 12px;
-    border-radius: 10px;
-    background: var(--tip-bg);
-    box-shadow: var(--shadow-lg);
-    color: var(--tip-fg);
-    font-size: 13px;
-    line-height: 20px;
-}
-
-.toast > .icon-sm {
-    color: var(--toast-ico);
-}
-
 /* ===================== Dotyk a úzké obrazovky ===================== */
 @media (pointer: coarse) {
     .btn {
@@ -1600,27 +1467,12 @@ textarea.input {
         margin-left: 0;
     }
 
-    .colchart,
-    .colchart-x {
-        margin-left: 44px;
-    }
-
-    .colchart-value {
-        display: none;
-    }
-
-    .toast {
-        top: 16px;
-        right: 16px;
-        left: 16px;
-    }
-
     .shell-top .pill {
         display: none;
     }
 }
 
-/* ===================== Fáze 1 A: záhlaví dashboardu a Přehled ===================== */
+/* ===================== Záhlaví přehledu: obnova obsahu, výběr zdroje, legenda, kalendář ===================== */
 /* Obal bloku stránky, který se vyměňuje bez reloadu (Přehled po změně období): drží mezery .page. */
 .page-stack {
     display: flex;
@@ -1804,7 +1656,7 @@ button.legend-item:hover {
     background: var(--accent-soft);
 }
 
-/* Fáze 1 B: detaily zdrojů ------------------------------------------------------------------------ */
+/* ===================== Detaily zdrojů: široká tabulka, detail řádku ===================== */
 /* Široká tabulka (příspěvky) drží na úzké obrazovce šířku a posouvá se uvnitř .table-wrap. */
 @media (max-width: 1100px) {
     .table-wide { min-width: 880px; }
@@ -1825,7 +1677,7 @@ button.legend-item:hover {
     .card-head { flex-wrap: wrap; }
 }
 
-/* ===================== Fáze 1 C: správa ===================== */
+/* ===================== Správa: tabulky, formuláře, postupy, výběr s hledáním ===================== */
 /* Doplňky pro stránky správy (admin/*.php) a sdílené skripty, které správa používá
  * (table-sort.js, select-search.js). Rozdíly jsou modifikátory existujících komponent. */
 
@@ -1835,15 +1687,11 @@ button.legend-item:hover {
 
 /* Šířky sloupců tabulky (table-layout: fixed potřebuje pevné sloupce, jinak se akce lámou) */
 .col-xs { width: 72px; }
+.col-num { width: 88px; } /* číselný sloupec (počty, procenta) */
 .col-sm { width: 104px; }
 .col-md { width: 148px; }
 .col-lg { width: 192px; }
 .col-xl { width: 272px; }
-
-/* Absolutně umístěné potomky (.sr-only v záhlaví, nabídky) ořízne obal, jinak by roztáhly stránku do šířky. */
-.table-wrap {
-    position: relative;
-}
 
 /* Na širokém displeji se .table-data vejde, takže obal nemusí ořezávat nabídky akcí v řádcích. */
 @media (min-width: 1101px) {
@@ -2210,11 +2058,6 @@ tr.row-extra {
     .funnel-step-controls { grid-area: controls; }
 }
 
-.link-more {
-    max-width: 100%;
-    overflow-wrap: anywhere;
-}
-
 /* Úzký displej: dlouhé segmenty se posouvají, dlouhé popisky tlačítek se zalomí */
 @media (max-width: 807px) {
     .seg {
@@ -2243,7 +2086,6 @@ ul.checks {
     list-style: none;
 }
 
-/* Fáze 1 D: samostatné stránky mimo shell (přihlášení, 2FA, bez přístupu, instalátor) */
 
 /* ===================== Samostatná stránka (.auth) ===================== */
 .auth {

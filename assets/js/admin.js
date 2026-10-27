@@ -232,52 +232,6 @@
         });
     }
 
-    function bindProviderDefaults() {
-        const select = document.querySelector('[data-provider-select]');
-
-        if (!select) {
-            return;
-        }
-
-        const guides = document.querySelectorAll('[data-guide-for]');
-
-        const swapGuide = (key) => {
-            guides.forEach((guide) => {
-                guide.hidden = guide.getAttribute('data-guide-for') !== key;
-            });
-        };
-
-        // Show/hide OAuth-only fields + relabel the token field for API-key providers (e.g. Clarity).
-        const toggleOauth = (supportsOauth) => {
-            document.querySelectorAll('[data-oauth-only]').forEach((el) => {
-                el.hidden = !supportsOauth;
-            });
-            const tokenInput = document.querySelector('[name="access_token"]');
-            if (tokenInput) {
-                const span = tokenInput.closest('label')?.querySelector('span');
-                if (span) {
-                    span.textContent = supportsOauth ? window.allstatT('Access token') : window.allstatT('API token');
-                }
-            }
-        };
-
-        select.addEventListener('change', () => {
-            const option = select.options[select.selectedIndex];
-            const fields = ['scopes', 'auth_url', 'token_url', 'api_base_url'];
-
-            fields.forEach((field) => {
-                const input = document.querySelector(`[name="${field}"]`);
-                const value = option.getAttribute(`data-${field}`);
-                if (input && value && !input.value) {
-                    input.value = value;
-                }
-            });
-
-            swapGuide(option.getAttribute('data-provider_key') || '');
-            toggleOauth(option.getAttribute('data-supports_oauth') !== '0');
-        });
-    }
-
     function bindConnectionActions() {
         const resultBox = document.querySelector('[data-connection-result]');
         if (!resultBox) return;
@@ -868,7 +822,6 @@
         bindRowSync();
         bindTableFilters();
         bindMenuFlip();
-        bindProviderDefaults();
         bindConnectionActions();
         bindInlineReplacements();
         bindReportTabs();
