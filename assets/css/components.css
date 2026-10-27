@@ -1124,6 +1124,17 @@ a.pill:hover {
     background: var(--bar);
 }
 
+/* Měřák se statistikami pod pruhem (kroky trychtýře): statistiky bez linky, kroky dál od sebe */
+.meters:has(> .meter > .stats) {
+    gap: 28px;
+}
+
+.meter > .stats {
+    margin-top: 6px;
+    padding-top: 0;
+    border-top: 0;
+}
+
 /* Složený pruh (zařízení, noví a vracející se) */
 .stack {
     display: flex;
@@ -1615,6 +1626,7 @@ textarea.input {
     display: flex;
     flex-direction: column;
     gap: inherit;
+    min-width: 0;
 }
 
 /* Obsah se právě načítá (AJAX obnova) */

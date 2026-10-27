@@ -156,4 +156,3 @@ $curEnd = $data['range']['end'];
         <input type="text" class="input mono field-full" readonly data-share-url aria-label="<?= h(t('Odkaz (pro ruční použití)')) ?>">
     </div>
 </section>
-</div>
