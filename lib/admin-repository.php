@@ -404,6 +404,7 @@ function allstat_delete_connection(PDO $pdo, ?int $actorId, int $id): array
         $statement = $pdo->prepare('DELETE FROM domain_sources WHERE id = ?');
         $statement->execute([$id]);
         $pdo->prepare('DELETE FROM microsoft_ads_report_jobs WHERE connection_id = ?')->execute([$id]);
+        $pdo->prepare('DELETE FROM allstat_settings WHERE setting_key = ?')->execute(['microsoft_ads.currency.' . $id]);
 
         allstat_audit($pdo, $actorId, null, 'source_connection_deleted', (string) $id);
         $pdo->commit();
