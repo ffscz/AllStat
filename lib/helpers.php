@@ -261,6 +261,7 @@ function allstat_help_anchor_for_provider(string $providerKey): string
         'facebook_pages', 'instagram_business', 'meta_ads' => 'meta',
         'linkedin_company' => 'linkedin',
         'google_ads' => 'google-ads',
+        'microsoft_ads' => 'microsoft-ads',
         'clarity' => 'clarity',
         default => 'sluzby',
     };

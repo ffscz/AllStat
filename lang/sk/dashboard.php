@@ -2,6 +2,7 @@
 
 // Slovenské překlady: dashboard (soubory: index.php, views/growth.php, views/funnel.php, views/no-access.php, views/provider/*). Klíč = český originál z kódu.
 return [
+    'Microsoft Ads kampaně' => 'Kampane Microsoft Ads',
     'Varování' => 'Varovanie',
     'Chyba' => 'Chyba',
     'Denně' => 'Denne',
@@ -398,6 +399,7 @@ return [
     'Stránka {page} z {pages}' => 'Stránka {page} z {pages}',
     'Další →' => 'Ďalšia →',
     'Google Ads kampaně' => 'Kampane Google Ads',
+    'ROAS a konverze vycházejí z atribučního nastavení účtu Microsoft Advertising.' => 'ROAS a konverzie vychádzajú z atribučného nastavenia účtu Microsoft Advertising.',
     'Kampaně' => 'Kampane',
     'Kampaně za zvolené období seřazené podle útraty, součet dní s útratou. Částky v měně účtu Google Ads.' => 'Kampane za zvolené obdobie zoradené podľa výdavkov, súčet dní s výdavkami. Sumy v mene účtu Google Ads.',
     'ROAS a CPA dávají smysl jen u kampaní s měřením konverzí.' => 'ROAS a CPA dávajú zmysel len pri kampaniach s meraním konverzií.',

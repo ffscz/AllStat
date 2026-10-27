@@ -11,7 +11,7 @@ require_once __DIR__ . '/providers.php';
  * v allstat_default_providers, nové výchozí settings) ZVEDNI tuhle konstantu — jinak se změna na
  * produkci neprovede. Formát: YYYY-MM-DD.N.
  */
-const ALLSTAT_SCHEMA_VERSION = '2026-10-22.3';
+const ALLSTAT_SCHEMA_VERSION = '2026-10-26.1';
 
 function allstat_schema_is_current(PDO $pdo): bool
 {
@@ -330,6 +330,19 @@ function allstat_migrate(PDO $pdo): void
         UNIQUE KEY provider_metrics_conn_unique (domain_id, connection_id, metric_date, metric_key, dimension),
         KEY provider_metrics_conn_date_idx (domain_id, connection_id, metric_date),
         KEY provider_metrics_source_idx (source_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_czech_ci");
+
+    // Microsoft Reporting API returns an asynchronous request ID valid for at most one day.
+    // Keep it per connection/report/range so a later sync can resume polling.
+    $pdo->exec("CREATE TABLE IF NOT EXISTS microsoft_ads_report_jobs (
+        connection_id INT UNSIGNED NOT NULL,
+        report_type VARCHAR(16) NOT NULL,
+        start_date DATE NOT NULL,
+        end_date DATE NOT NULL,
+        report_request_id VARCHAR(40) NOT NULL,
+        created_at DATETIME NOT NULL,
+        PRIMARY KEY (connection_id, report_type, start_date, end_date),
+        KEY microsoft_ads_report_jobs_created_idx (created_at)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_czech_ci");
 
     // Existing installs: re-key provider_metrics_daily from the provider grain (source_id =
