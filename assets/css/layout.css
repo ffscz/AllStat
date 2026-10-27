@@ -29,6 +29,20 @@
     min-width: 0;
 }
 
+/* Logo a křížek mobilní navigace (křížek je vidět jen ve vysunutém panelu na mobilu) */
+.shell-side-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.shell-top .nav-toggle,
+.shell-side .nav-close,
+.shell-scrim {
+    display: none;
+}
+
 /* ---------- Logo ---------- */
 .logo {
     display: flex;
@@ -241,7 +255,6 @@ a.crumb:hover {
     gap: 32px;
     width: 100%;
     max-width: var(--page-max);
-    margin: 0 auto;
     padding: 28px 32px 64px;
 }
 
@@ -279,6 +292,20 @@ a.crumb:hover {
     flex-wrap: wrap;
     align-items: center;
     gap: 8px;
+}
+
+/* Název s dlaždicí služby (detail zdroje) */
+.page-title {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-width: 0;
+}
+
+/* Záhlaví s mnoha ovládacími prvky: lišta vždy pod názvem, takže se po přepnutí období nepřeskupuje. */
+.page-head-stack {
+    flex-direction: column;
+    align-items: stretch;
 }
 
 /* ---------- Sekce ---------- */
@@ -342,44 +369,74 @@ a.crumb:hover {
     grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
 }
 
-/* ---------- Mobil: panel se mění v pruh nahoře, navigace jde vodorovně ---------- */
+/* Bloky demografie (věk, pohlaví, země …): každý ve vlastní buňce, řady oddělené linkou */
+.grid-facets {
+    grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr));
+    gap: 20px 32px;
+    overflow: hidden;
+}
+
+/* Linka pod každým blokem; u poslední řady ji ořízne overflow (záporný okraj o 1 px). */
+.grid-facets > * {
+    min-width: 0;
+    margin-bottom: -1px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+/* ---------- Mobil: panel se schová a vysouvá zleva přes hamburger v horní liště (shell.js) ---------- */
 @media (max-width: 807px) {
     .shell-side {
+        position: fixed;
+        inset: 0 auto 0 0;
+        z-index: 50;
+        width: min(300px, 86vw);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        box-shadow: var(--shadow-lg);
+        transform: translateX(-100%);
+        visibility: hidden;
+        /* Při zavírání se skryje až po vyjetí, při otevírání hned (jinak by nepřijal fokus). */
+        transition: transform .2s ease-out, visibility 0s .2s;
+    }
+
+    .shell.is-nav-open .shell-side {
+        transform: none;
+        visibility: visible;
+        transition: transform .2s ease-out;
+    }
+
+    .shell-scrim:not([hidden]) {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 40;
+        background: rgb(16 24 40 / .45);
+    }
+
+    .shell-top .nav-toggle,
+    .shell-side .nav-close {
+        display: inline-grid;
+    }
+
+    .shell-main {
         flex-basis: 100%;
-        gap: 12px;
-        width: 100%;
-        padding: 12px 16px;
-        box-shadow: inset 0 -1px 0 var(--border);
-    }
-
-    .nav {
-        flex-direction: row;
-        gap: 4px;
-        margin: 0 -16px;
-        padding: 0 16px 4px;
-        overflow-x: auto;
-        scrollbar-width: none;
-    }
-
-    .nav-group {
-        flex-direction: row;
-        gap: 4px;
-    }
-
-    .nav-label,
-    .shell-side-foot {
-        display: none;
-    }
-
-    .nav-item {
-        width: auto;
-        white-space: nowrap;
     }
 
     .shell-top {
-        padding: 0 16px;
+        gap: 8px;
+        padding: 0 12px 0 8px;
     }
 
+    .crumbs {
+        overflow: hidden;
+    }
+
+    .crumbs > :not(:last-child) {
+        display: none;
+    }
+
+    .shell-top .pill,
     .vsep {
         display: none;
     }
@@ -388,6 +445,10 @@ a.crumb:hover {
         gap: 24px;
         padding: 20px 16px 48px;
     }
+}
+
+.is-scroll-locked {
+    overflow: hidden;
 }
 
 @media (pointer: coarse) {

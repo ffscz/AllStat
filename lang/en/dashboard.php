@@ -704,4 +704,6 @@ return [
     'Nejúspěšnější příspěvky' => 'Top posts',
     'Pět příspěvků za období s nejvyšším zapojením (reakce, komentáře, sdílení). Reakce i komentáře se počítají jen na originálu příspěvku, stejně jako v Business Suite.' => 'Five posts in the period with the highest engagement (reactions, comments, shares). Reactions and comments are counted only on the original post, as in Business Suite.',
     'Za zvolené období zatím nejsou data' => 'No data for the selected period yet',
+    'Otevřít menu' => 'Open menu',
+    'Zavřít menu' => 'Close menu',
 ];

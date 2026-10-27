@@ -67,14 +67,12 @@ $deltaRow = static fn (string $label, string $value, ?array $delta = null, strin
         <?php if ($fbDemoAge !== null && $fbDemoAge > 35): ?>
         <div class="callout tone-warn"><?= allstat_icon('clock', 'icon-sm') ?><span><?= t('<strong>Demografie je stará {days} dní.</strong> Publikum se mění pomalu, ale pro čerstvá čísla stáhni v Business Suite nový export ({insights_link} → Exportovat → Exportovat jako CSV) a {import_link}.', ['days' => (int) $fbDemoAge, 'insights_link' => '<a href="https://business.facebook.com/latest/insights/people" target="_blank" rel="noopener">' . h(t('Přehledy → Okruh uživatelů')) . '</a>', 'import_link' => '<a href="' . h($importUrl) . '#publikum">' . h(t('importuj ho')) . '</a>']) ?></span></div>
         <?php endif; ?>
-        <div class="grid grid-3">
+        <div class="grid grid-facets">
             <?php if ($fbAge): ?><div class="meter"><span class="block-title"><?= h(t('Věk')) ?></span><?= allstat_ui_meters($demMeters($fbAge)) ?></div><?php endif; ?>
-            <div class="grid">
-                <?php if (!empty($fbDemographics['gender'])): ?>
-                    <?= allstat_ui_stack(t('Pohlaví'), '', array_map(static fn (array $g): array => ['label' => $g['label'], 'value' => allstat_percent((float) $g['value'], 1), 'share' => '', 'pct' => (float) $g['value']], $fbDemographics['gender'])) ?>
-                <?php endif; ?>
-                <?php if (!empty($fbDemographics['country'])): ?><div class="meter"><span class="block-title"><?= h(t('Země')) ?></span><?= allstat_ui_meters($demMeters(array_slice($fbDemographics['country'], 0, 5))) ?></div><?php endif; ?>
-            </div>
+            <?php if (!empty($fbDemographics['gender'])): ?>
+                <?= allstat_ui_stack(t('Pohlaví'), '', array_map(static fn (array $g): array => ['label' => $g['label'], 'value' => allstat_percent((float) $g['value'], 1), 'share' => '', 'pct' => (float) $g['value']], $fbDemographics['gender'])) ?>
+            <?php endif; ?>
+            <?php if (!empty($fbDemographics['country'])): ?><div class="meter"><span class="block-title"><?= h(t('Země')) ?></span><?= allstat_ui_meters($demMeters(array_slice($fbDemographics['country'], 0, 5))) ?></div><?php endif; ?>
             <?php if (!empty($fbDemographics['city'])): ?><div class="meter"><span class="block-title"><?= h(t('Nejčastější města')) ?></span><?= allstat_ui_meters($demMeters(array_slice($fbDemographics['city'], 0, 6))) ?></div><?php endif; ?>
         </div>
     </div>
@@ -92,11 +90,11 @@ if (array_sum($reactions) > 0):
 <section class="card">
     <?= allstat_ui_card_head(t('Rozpad reakcí'), '', h(t('Jak lidé na příspěvky reagovali, sentiment, ne jen počet. Pomáhá poznat, který obsah vyvolává emoce.'))) ?>
     <div class="card-body">
-        <div class="stats">
+        <ul class="slots slots-reactions">
             <?php foreach ($reactionMeta as $key => [$emoji, $label]): ?>
-                <div><span class="stat-label"><?= $emoji ?> <?= h($label) ?></span><span class="stat-value num"><?= h(allstat_number((int) ($reactions[$key] ?? 0))) ?></span></div>
+                <li class="slot"><span class="slot-emoji" aria-hidden="true"><?= $emoji ?></span><span class="slot-value num"><?= h(allstat_number((int) ($reactions[$key] ?? 0))) ?></span><span class="block-desc"><?= h($label) ?></span></li>
             <?php endforeach; ?>
-        </div>
+        </ul>
     </div>
 </section>
 <?php endif; ?>

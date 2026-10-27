@@ -1,4 +1,4 @@
-// Shell AllStatu (lib/layout.php): rozbalovací nabídky a přepínání motivu. Načítá se na každé stránce.
+// Shell AllStatu (lib/layout.php): rozbalovací nabídky, mobilní navigace a přepínání motivu. Načítá se na každé stránce.
 (() => {
     // Nabídky: tlačítko [data-menu-toggle="id"] otevře/zavře .menu s tím id. Zavře je klik mimo, Escape
     // nebo otevření jiné nabídky. Stránky můžou použít stejný vzor (nabídka „…“ u řádku tabulky apod.).
@@ -60,7 +60,44 @@
         sync();
     }
 
+    // Mobilní navigace: hamburger v horní liště vysune postranní panel přes obsah. Zavře ho křížek,
+    // klik na ztmavené pozadí, Escape nebo návrat na širokou obrazovku (panel je pak zase vedle obsahu).
+    function bindNav() {
+        const shell = document.querySelector('.shell');
+        const toggle = document.querySelector('[data-nav-toggle]');
+        const side = document.getElementById('shell-side');
+        const scrim = document.querySelector('.shell-scrim');
+        if (!shell || !toggle || !side || !scrim) { return; }
+
+        const setOpen = (open) => {
+            shell.classList.toggle('is-nav-open', open);
+            scrim.hidden = !open;
+            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            document.documentElement.classList.toggle('is-scroll-locked', open);
+            if (open) {
+                // Panel je při otevírání viditelný hned (layout.css), takže fokus přijme bez čekání na animaci.
+                (side.querySelector('.nav-item[aria-current="page"]') || side.querySelector('a, button'))?.focus({ preventScroll: true });
+            }
+        };
+
+        toggle.addEventListener('click', () => setOpen(true));
+        document.querySelectorAll('[data-nav-close]').forEach((el) => el.addEventListener('click', () => {
+            setOpen(false);
+            toggle.focus();
+        }));
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && shell.classList.contains('is-nav-open')) {
+                setOpen(false);
+                toggle.focus();
+            }
+        });
+        window.matchMedia('(min-width: 808px)').addEventListener('change', (event) => {
+            if (event.matches) { setOpen(false); }
+        });
+    }
+
     bindMenus();
+    bindNav();
     bindTheme();
     window.lucide?.createIcons();
 })();

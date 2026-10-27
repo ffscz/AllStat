@@ -280,7 +280,7 @@ $spendCurrencies = array_keys($spendBy);
             <div class="legend"><span class="legend-item"><span class="swatch swatch-current" aria-hidden="true"></span><?= h(t('Poslední uzavřený měsíc')) ?></span></div>
         </div>
         <div class="table-wrap">
-            <table class="table table-matrix" data-no-sort>
+            <table class="table table-matrix">
                 <colgroup><col style="width: 248px"><col style="width: 104px"><?php foreach ($gw['months'] as $ym): ?><col><?php endforeach; ?></colgroup>
                 <thead>
                     <tr>
@@ -302,7 +302,7 @@ $spendCurrencies = array_keys($spendBy);
                                 </th>
                                 <td class="num <?= $b[4] ?>" title="<?= h($growthTitle($c)) ?>"><?= h($b[5]) ?></td>
                                 <?php foreach ($c['months'] as $e): ?>
-                                    <td class="num<?= $e['ym'] === $lastYm ? ' is-current' : '' ?>" title="<?= h($e['longLabel'] . ($e['partial'] ? ', ' . t('data za {days} z {expected} dní', ['days' => $e['days'], 'expected' => $e['expected']]) : '')) ?>">
+                                    <td class="num<?= $e['ym'] === $lastYm ? ' is-current' : '' ?>" data-sort="<?= $e['value'] === null ? '' : h((string) $e['value']) ?>" title="<?= h($e['longLabel'] . ($e['partial'] ? ', ' . t('data za {days} z {expected} dní', ['days' => $e['days'], 'expected' => $e['expected']]) : '')) ?>">
                                         <span class="cell-value"><?= $e['value'] === null ? '–' : h(allstat_number($e['value'])) ?><?php if ($e['partial']): ?><sup>*</sup><?php endif; ?></span>
                                         <?php if ($e['value'] !== null && $e['mom'] !== null): ?><span class="cell-delta <?= $tone($e['mom']) ?>"><?= h(allstat_growth_pct($e['mom'])) ?></span><?php endif; ?>
                                     </td>

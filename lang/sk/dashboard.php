@@ -704,4 +704,6 @@ return [
     'Nejúspěšnější příspěvky' => 'Najúspešnejšie príspevky',
     'Pět příspěvků za období s nejvyšším zapojením (reakce, komentáře, sdílení). Reakce i komentáře se počítají jen na originálu příspěvku, stejně jako v Business Suite.' => 'Päť príspevkov za obdobie s najvyšším zapojením (reakcie, komentáre, zdieľania). Reakcie aj komentáre sa počítajú len na origináli príspevku, rovnako ako v Business Suite.',
     'Za zvolené období zatím nejsou data' => 'Za zvolené obdobie zatiaľ nie sú dáta',
+    'Otevřít menu' => 'Otvoriť menu',
+    'Zavřít menu' => 'Zavrieť menu',
 ];

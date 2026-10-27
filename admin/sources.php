@@ -94,7 +94,7 @@ allstat_admin_header(t('Zdroje dat'), 'sources', $user, $config, null, [
 
     <?php if ($connections): ?>
     <div class="table-wrap">
-        <table class="table table-data" id="sources-table" data-no-sort data-csrf="<?= h(allstat_csrf_token()) ?>">
+        <table class="table table-data" id="sources-table" data-csrf="<?= h(allstat_csrf_token()) ?>">
             <colgroup><col class="col-xl"><col><col class="col-md"><col class="col-md"><col class="col-lg"><col class="col-sm"></colgroup>
             <thead><tr><th scope="col"><?= h(t('Služba')) ?></th><th scope="col"><?= h(t('Účet a ID')) ?></th><th scope="col"><?= h(t('Přístup')) ?></th><th scope="col"><?= h(t('Stav')) ?></th><th scope="col"><?= h(t('Synchronizace')) ?></th><th scope="col" data-no-sort><span class="sr-only"><?= h(t('Akce')) ?></span></th></tr></thead>
             <tbody>

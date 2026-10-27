@@ -251,11 +251,14 @@ function allstat_layout_start(?PDO $pdo, array $config, array $user, array $page
 </head>
 <body>
 <div class="shell" <?= $page['bodyAttr'] ?? '' ?>>
-    <aside class="shell-side" aria-label="<?= h(t('Postranní panel')) ?>">
-        <a class="logo" href="<?= h(allstat_url($config, '')) ?>" aria-label="AllStat">
-            <svg class="logo-mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="13" width="4.5" height="8" rx="1.5" fill="currentColor" opacity=".45"/><rect x="9.75" y="7" width="4.5" height="14" rx="1.5" fill="currentColor" opacity=".7"/><rect x="16.5" y="3" width="4.5" height="18" rx="1.5" fill="currentColor"/></svg>
-            <span class="logo-name">AllStat</span>
-        </a>
+    <aside class="shell-side" id="shell-side" aria-label="<?= h(t('Postranní panel')) ?>">
+        <div class="shell-side-head">
+            <a class="logo" href="<?= h(allstat_url($config, '')) ?>" aria-label="AllStat">
+                <svg class="logo-mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="13" width="4.5" height="8" rx="1.5" fill="currentColor" opacity=".45"/><rect x="9.75" y="7" width="4.5" height="14" rx="1.5" fill="currentColor" opacity=".7"/><rect x="16.5" y="3" width="4.5" height="18" rx="1.5" fill="currentColor"/></svg>
+                <span class="logo-name">AllStat</span>
+            </a>
+            <button type="button" class="btn-icon nav-close" data-nav-close aria-label="<?= h(t('Zavřít menu')) ?>"><?= allstat_icon('x', 'icon') ?></button>
+        </div>
 
         <?php if ($current): ?>
         <div class="site-switch dropdown">
@@ -306,8 +309,11 @@ function allstat_layout_start(?PDO $pdo, array $config, array $user, array $page
         </div>
     </aside>
 
+    <div class="shell-scrim" data-nav-close hidden></div>
+
     <div class="shell-main">
         <header class="shell-top">
+            <button type="button" class="btn-icon nav-toggle" data-nav-toggle aria-controls="shell-side" aria-expanded="false" aria-label="<?= h(t('Otevřít menu')) ?>"><?= allstat_icon('menu', 'icon') ?></button>
             <nav class="crumbs" aria-label="<?= h(t('Drobečková navigace')) ?>">
                 <?php foreach (array_values($crumbs) as $i => $crumb): $isLast = $i === count($crumbs) - 1; ?>
                     <?php if ($i > 0): ?><span class="crumb-sep" aria-hidden="true">/</span><?php endif; ?>
