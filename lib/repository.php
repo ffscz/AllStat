@@ -3913,7 +3913,7 @@ function allstat_last_sync_label(array $statuses): string
     // a nikdo si toho nevsiml.
     $health = allstat_sync_health($statuses);
 
-    return $health['oldestLabel'] !== '' ? $health['oldestLabel'] : 'nesync.';
+    return $health['oldestLabel'] !== '' ? $health['oldestLabel'] : t('nesync.');
 }
 
 /**
