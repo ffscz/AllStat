@@ -1,19 +1,30 @@
 const AllStat = (() => {
     const charts = new Map();
-    const palette = {
-        blue: '#2563eb',
-        green: '#16a34a',
-        violet: '#8b5cf6',
-        orange: '#f59e0b',
-        cyan: '#06b6d4',
-        rose: '#f43f5e',
-        teal: '#14b8a6'
-    };
     const statusLabels = { ok: 'OK', warning: window.allstatT('Varování'), error: window.allstatT('Chyba') };
+    const statusTones = { ok: 'tone-up', warning: 'tone-warn', error: 'tone-down' };
     const formatter = new Intl.NumberFormat(window.allstatLocale);
+    const decimalFormatter = new Intl.NumberFormat(window.allstatLocale, { maximumFractionDigits: 2 });
+    // Metriky, u kterých je lepší nižší hodnota (barva změny se otáčí). Stejný seznam má views/overview.php.
+    const LOWER_IS_BETTER = ['bounce_rate'];
 
     function cssVariable(name) {
         return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+
+    // Barvy grafů z tokenů aktuálního motivu (tokens.css); čte se při každém kreslení, takže po
+    // allstat:themechange stačí grafy překreslit.
+    function chartTheme() {
+        return {
+            line: cssVariable('--bar'),
+            area: cssVariable('--area'),
+            grid: cssVariable('--grid'),
+            muted: cssVariable('--muted'),
+            surface: cssVariable('--surface'),
+            tipBg: cssVariable('--tip-bg'),
+            tipFg: cssVariable('--tip-fg'),
+            tipMuted: cssVariable('--tip-muted'),
+            font: cssVariable('--font')
+        };
     }
 
     // Pohledy, které se překreslují serverově (plný reload, bez AJAX obnovy přehledu): zdroj (provider), Růst kanálů, Trychtýř.
@@ -31,7 +42,7 @@ const AllStat = (() => {
     }
 
     function iconRefresh() {
-        return '<i data-lucide="refresh-cw"></i>';
+        return '<i data-lucide="refresh-cw" class="icon-sm"></i>';
     }
 
     function destroyChart(key) {
@@ -41,204 +52,292 @@ const AllStat = (() => {
         }
     }
 
-    function renderLineChart(data) {
-        const canvas = document.getElementById('visitsChart');
+    // Popisek období: celý měsíc „září 2026“, jinak „1. 9. – 15. 9. 2026“ (stejně jako allstat_ui_period_label v views/_ui.php).
+    const MONTH_NAMES = ['leden', 'únor', 'březen', 'duben', 'květen', 'červen', 'červenec', 'srpen', 'září', 'říjen', 'listopad', 'prosinec'];
 
+    function periodLabel(startIso, endIso) {
+        const parse = (iso) => { const p = String(iso).split('-').map(Number); return new Date(p[0], p[1] - 1, p[2]); };
+        const s = parse(startIso);
+        const e = parse(endIso);
+        const en = (window.allstatLocale || '').startsWith('en');
+        if (s.getDate() === 1 && e.getTime() === new Date(s.getFullYear(), s.getMonth() + 1, 0).getTime()) {
+            return window.allstatT(MONTH_NAMES[s.getMonth()]) + ' ' + s.getFullYear();
+        }
+        const dm = (d) => (en ? d.getDate() + ' ' + d.toLocaleString('en-GB', { month: 'short' }) : d.getDate() + '. ' + (d.getMonth() + 1) + '.');
+        if (startIso === endIso) {
+            return dm(s) + ' ' + s.getFullYear();
+        }
+        return (s.getFullYear() === e.getFullYear() ? dm(s) : dm(s) + ' ' + s.getFullYear()) + ' – ' + dm(e) + ' ' + e.getFullYear();
+    }
+
+    function capitalize(text) {
+        return text.charAt(0).toUpperCase() + text.slice(1);
+    }
+
+    function deltaClass(change, higherIsBetter = true) {
+        if (change === null || change === undefined) {
+            return 'is-muted';
+        }
+        if (Math.abs(change) < 0.05) {
+            return 'is-flat';
+        }
+        return (change > 0) === higherIsBetter ? 'is-up' : 'is-down';
+    }
+
+    // Čárový graf jedné řady s plochou pod křivkou (záložky metrik) nebo bez os (malý graf sledujících).
+    function renderLine(key, canvas, labels, series, label, small = false) {
         if (!canvas || !window.Chart) {
             return;
         }
 
-        destroyChart('visits');
-        charts.set('visits', new Chart(canvas, {
+        const theme = chartTheme();
+        destroyChart(key);
+        charts.set(key, new Chart(canvas, {
             type: 'line',
             data: {
-                labels: data.charts.visits.labels,
-                datasets: [
-                    {
-                        label: window.allstatT('Návštěvy (GA4)'),
-                        data: data.charts.visits.visits,
-                        borderColor: palette.blue,
-                        backgroundColor: 'transparent',
-                        tension: 0.38,
-                        pointRadius: 3,
-                        pointHoverRadius: 5,
-                        borderWidth: 3
-                    },
-                    {
-                        label: window.allstatT('Uživatelé (GA4)'),
-                        data: data.charts.visits.users,
-                        borderColor: palette.green,
-                        backgroundColor: 'transparent',
-                        tension: 0.38,
-                        pointRadius: 3,
-                        pointHoverRadius: 5,
-                        borderWidth: 3
-                    },
-                    {
-                        label: window.allstatT('Konverze (GA4)'),
-                        data: data.charts.visits.conversions,
-                        borderColor: palette.violet,
-                        backgroundColor: 'transparent',
-                        tension: 0.38,
-                        pointRadius: 3,
-                        pointHoverRadius: 5,
-                        borderWidth: 3,
-                        yAxisID: 'y1'
-                    }
-                ]
+                labels,
+                datasets: [{
+                    label,
+                    data: series,
+                    borderColor: theme.line,
+                    backgroundColor: theme.area,
+                    fill: true,
+                    tension: 0.2,
+                    borderWidth: 2,
+                    spanGaps: true,
+                    pointRadius: 0,
+                    pointHoverRadius: small ? 0 : 4,
+                    pointHoverBackgroundColor: theme.line,
+                    pointHoverBorderColor: theme.surface,
+                    pointHoverBorderWidth: 2
+                }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                animation: false,
                 interaction: { mode: 'index', intersect: false },
                 plugins: {
-                    legend: {
-                        align: 'start',
-                        labels: {
-                            usePointStyle: true,
-                            pointStyle: 'line',
-                            boxWidth: 28,
-                            color: cssVariable('--muted'),
-                            font: { weight: 700 }
-                        }
-                    },
+                    legend: { display: false },
                     tooltip: {
-                        backgroundColor: cssVariable('--text'),
-                        titleColor: cssVariable('--surface'),
-                        bodyColor: cssVariable('--surface')
+                        enabled: !small,
+                        backgroundColor: theme.tipBg,
+                        titleColor: theme.tipMuted,
+                        bodyColor: theme.tipFg,
+                        titleFont: { family: theme.font, weight: 500 },
+                        bodyFont: { family: theme.font, weight: 600 },
+                        padding: 10,
+                        cornerRadius: 8,
+                        displayColors: false,
+                        callbacks: { label: (ctx) => `${label}: ${decimalFormatter.format(ctx.parsed.y)}` }
                     }
                 },
-                scales: {
+                scales: small ? { x: { display: false }, y: { display: false } } : {
                     x: {
                         grid: { display: false },
-                        ticks: { color: cssVariable('--muted'), maxTicksLimit: 7 }
+                        border: { display: false },
+                        ticks: { color: theme.muted, font: { family: theme.font, size: 11 }, maxRotation: 0, autoSkipPadding: 24 }
                     },
                     y: {
                         beginAtZero: true,
-                        position: 'left',
-                        grid: { color: cssVariable('--chart-grid') },
-                        ticks: { color: cssVariable('--muted') },
-                        title: { display: true, text: window.allstatT('Návštěvy / uživatelé'), color: cssVariable('--muted') }
-                    },
-                    y1: {
-                        beginAtZero: true,
-                        position: 'right',
-                        grid: { drawOnChartArea: false },
-                        ticks: { color: cssVariable('--muted') },
-                        title: { display: true, text: window.allstatT('Konverze'), color: cssVariable('--muted') }
+                        border: { display: false },
+                        grid: { color: theme.grid },
+                        ticks: { color: theme.muted, font: { family: theme.font, size: 11 }, maxTicksLimit: 5, callback: (v) => decimalFormatter.format(v) }
                     }
                 }
             }
         }));
     }
 
-    // Horizontální bar grafy (Zdroje návštěv / Zařízení / Noví vs vracející) — šířka pruhu je poměr
-    // k NEJVĚTŠÍ položce (max čitelnost rozdílů), podíl z celku říká procento v závorce.
-    function renderBarRows(selector, rows, colors) {
-        const holder = document.querySelector(selector);
+    // Záložky metrik nad grafem (přehled GA4 i detail zdroje): vybraná záložka určuje řadu v grafu.
+    function renderMetricChart() {
+        const wrap = document.querySelector('[data-metric-chart]');
 
+        if (!wrap) {
+            return;
+        }
+
+        const tab = wrap.querySelector('[data-metric-tab][aria-selected="true"]') || wrap.querySelector('[data-metric-tab]');
+        const canvas = wrap.querySelector('canvas');
+
+        if (!tab || !canvas) {
+            return;
+        }
+
+        const key = tab.dataset.metricTab;
+        const label = tab.querySelector('[data-metric-label]')?.textContent.trim() || key;
+        let labels = [];
+        let series = [];
+        let granularity = wrap.dataset.granularity || 'day';
+
+        if (wrap.dataset.metricChart === 'overview') {
+            const visits = (window.ALLSTAT_DATA && window.ALLSTAT_DATA.charts && window.ALLSTAT_DATA.charts.visits) || {};
+            labels = visits.labels || [];
+            series = visits[key] || [];
+            granularity = window.ALLSTAT_DATA.granularity || granularity;
+        } else {
+            const provider = window.ALLSTAT_PROVIDER || {};
+            const metric = (provider.metrics || []).find((m) => m.key === key);
+            labels = provider.labels || [];
+            series = metric ? metric.series || [] : [];
+        }
+
+        const titles = {
+            day: window.allstatT('{metric} po dnech', { metric: label }),
+            week: window.allstatT('{metric} po týdnech', { metric: label }),
+            month: window.allstatT('{metric} po měsících', { metric: label })
+        };
+        const title = wrap.querySelector('[data-chart-title]');
+        if (title) {
+            title.textContent = titles[granularity] || titles.day;
+        }
+        canvas.setAttribute('role', 'img');
+        canvas.setAttribute('aria-label', title ? title.textContent : label);
+        renderLine('metric', canvas, labels, series, label);
+    }
+
+    function bindMetricTabs() {
+        const wrap = document.querySelector('[data-metric-chart]');
+
+        if (!wrap) {
+            return;
+        }
+
+        const tabs = [...wrap.querySelectorAll('[data-metric-tab]')];
+        const select = (tab, focus) => {
+            tabs.forEach((t) => {
+                t.setAttribute('aria-selected', t === tab ? 'true' : 'false');
+                t.tabIndex = t === tab ? 0 : -1;
+            });
+            if (focus) {
+                tab.focus();
+            }
+            renderMetricChart();
+        };
+
+        tabs.forEach((tab, index) => {
+            tab.addEventListener('click', () => select(tab, false));
+            tab.addEventListener('keydown', (event) => {
+                const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key];
+                if (step) {
+                    event.preventDefault();
+                    select(tabs[(index + step + tabs.length) % tabs.length], true);
+                } else if (event.key === 'Home' || event.key === 'End') {
+                    event.preventDefault();
+                    select(tabs[event.key === 'Home' ? 0 : tabs.length - 1], true);
+                }
+            });
+        });
+    }
+
+    // Malý graf vývoje sledujících v detailu sociální sítě. Dny bez uloženého stavu (0) se přeskakují.
+    function renderFollowersSpark() {
+        const canvas = document.querySelector('[data-followers-spark]');
+        const provider = window.ALLSTAT_PROVIDER;
+
+        if (!canvas || !provider) {
+            return;
+        }
+
+        const metric = (provider.metrics || []).find((m) => m.key === canvas.dataset.followersSpark);
+        if (!metric) {
+            return;
+        }
+
+        renderLine('followers', canvas, provider.labels || [], (metric.series || []).map((v) => (Number(v) > 0 ? v : null)), metric.label, true);
+    }
+
+    // Měřák a složený pruh: stejný markup jako allstat_ui_meter() / allstat_ui_stack_body() ve views/_ui.php.
+    function meterHtml(row) {
+        const width = Math.max(0, Math.min(100, Number(row.width) || 0));
+        return `<div class="meter"><div class="meter-top">`
+            + `<span class="meter-name ellipsis" title="${escapeHtml(row.title || row.label)}">${escapeHtml(row.label)}${row.extraHtml || ''}</span>`
+            + `<span class="row-end"><span class="row-value num">${escapeHtml(row.value)}</span>`
+            + (row.share ? `<span class="row-share num">${escapeHtml(row.share)}</span>` : '') + `</span></div>`
+            + `<div class="track"><div class="track-fill" style="width: ${Math.round(Math.max(width, width > 0 ? 1 : 0) * 10) / 10}%"></div></div>`
+            + (row.noteHtml ? `<span class="block-desc">${row.noteHtml}</span>` : '')
+            + `</div>`;
+    }
+
+    function widths(values) {
+        const max = Math.max(1, ...values.map((v) => Number(v) || 0));
+        return values.map((v) => (Number(v) || 0) / max * 100);
+    }
+
+    function renderMeters(name, rows, emptyText) {
+        const holder = document.querySelector(`[data-meters="${name}"]`);
+        if (holder) {
+            holder.innerHTML = rows.length ? rows.map(meterHtml).join('') : `<p class="card-desc">${escapeHtml(emptyText)}</p>`;
+        }
+    }
+
+    function renderStack(name, segments, totalLabel, emptyText) {
+        const holder = document.querySelector(`[data-stack="${name}"]`);
         if (!holder) {
             return;
         }
 
-        if (!rows.length) {
-            holder.innerHTML = '<p class="table-muted">' + window.allstatT('Zatím bez dat, spusť GA4 sync.') + '</p>';
-            return;
-        }
-
-        const max = Math.max(1, ...rows.map((r) => r.value || 0));
-        holder.innerHTML = rows.map((r, i) => `
-            <div class="bar-row">
-                <span class="bar-row-label" title="${escapeHtml(r.label)}">${escapeHtml(r.label)}</span>
-                <div class="bar-row-track"><div class="bar-row-fill" style="width: ${Math.max(2, (r.value || 0) / max * 100).toFixed(1)}%; background: ${colors[i % colors.length]};"></div></div>
-                <span class="bar-row-value"><strong>${escapeHtml(r.valueLabel)}</strong> <small>(${escapeHtml(r.shareLabel)})</small></span>
-            </div>
-        `).join('');
-    }
-
-    function renderTrafficChart(data) {
-        const chart = data.charts && data.charts.traffic;
-
-        if (!chart) {
-            return;
-        }
-
-        renderBarRows('[data-bar-traffic]', (chart.sources || []).map((s) => ({
-            label: s.source, value: s.sessions, valueLabel: s.sessionsLabel, shareLabel: s.shareLabel
-        })), [palette.blue, palette.green, palette.violet, palette.orange, palette.cyan, palette.rose]);
-
-        const total = document.querySelector('[data-traffic-total]');
+        const total = holder.querySelector('[data-stack-total]');
         if (total) {
-            total.textContent = chart.totalLabel;
+            total.textContent = totalLabel;
         }
+        holder.querySelectorAll('.stack, .rows, .card-desc').forEach((el) => el.remove());
+        if (!segments.length) {
+            holder.insertAdjacentHTML('beforeend', `<p class="card-desc">${escapeHtml(emptyText)}</p>`);
+            return;
+        }
+        const fill = (i) => `fill-${Math.min(3, i + 1)}`;
+        const aria = segments.map((s) => `${s.label} ${s.share}`).join(', ');
+        holder.insertAdjacentHTML('beforeend',
+            `<div class="stack" role="img" aria-label="${escapeHtml(aria)}">`
+            + segments.map((s, i) => `<span class="${fill(i)}" style="width: ${Math.round(Math.max(0, s.pct) * 10) / 10}%"></span>`).join('')
+            + `</div><div class="rows rows-compact">`
+            + segments.map((s, i) => `<div class="row"><span class="swatch ${fill(i)}"></span><span class="row-label">${escapeHtml(s.label)}</span>`
+                + `<span class="row-end"><span class="row-value num">${escapeHtml(s.value)}</span>`
+                + (s.share && s.share !== s.value ? `<span class="row-share num">${escapeHtml(s.share)}</span>` : '') + `</span></div>`).join('')
+            + `</div>`);
     }
 
-    function renderSparklines(data) {
-        document.querySelectorAll('[data-sparkline]').forEach((canvas, index) => {
-            const key = canvas.dataset.sparkline;
-            const kpi = data.kpis.find((item) => item.key === key);
+    function renderBreakdowns(data) {
+        const c = data.charts || {};
+        const tables = data.tables || {};
+        const traffic = (c.traffic && c.traffic.sources) || [];
+        const trafficW = widths(traffic.map((s) => s.sessions));
+        renderMeters('traffic', traffic.map((s, i) => ({ label: s.source, value: s.sessionsLabel, share: s.shareLabel, width: trafficW[i] })), window.allstatT('Zatím bez dat o kanálech, spusť GA4 sync.'));
+        const trafficTotal = document.querySelector('[data-traffic-total]');
+        if (trafficTotal && c.traffic) {
+            trafficTotal.textContent = window.allstatT('{count} celkem', { count: c.traffic.totalLabel });
+        }
 
-            if (!kpi || !window.Chart) {
-                return;
+        const geo = tables.geo || [];
+        const geoW = widths(geo.map((g) => g.sessions));
+        renderMeters('geo', geo.map((g, i) => ({ label: g.region, title: `${g.region}, ${g.country}`, value: g.sessionsLabel, share: g.shareLabel, width: geoW[i] })), window.allstatT('Zatím bez geo dat, spusť sync.'));
+
+        const refs = tables.referrers || [];
+        const refW = widths(refs.map((r) => r.sessions));
+        renderMeters('referrers', refs.map((r, i) => ({
+            label: r.source, value: r.sessionsLabel, share: r.shareLabel, width: refW[i],
+            extraHtml: r.ai ? ` <span class="chip tone-accent">AI · ${escapeHtml(r.ai)}</span>` : ''
+        })), window.allstatT('Zatím bez referral dat, spusť GA4 sync.'));
+
+        const devices = (c.devices && c.devices.items) || [];
+        renderStack('devices', devices.map((d) => ({ label: d.device, value: d.sessionsLabel, share: d.shareLabel, pct: Number(d.share) || 0 })),
+            window.allstatT('{count} návštěv', { count: c.devices ? c.devices.totalLabel : '0' }), window.allstatT('Zatím bez dat o zařízeních, spusť GA4 sync.'));
+
+        const nr = (c.newReturning && c.newReturning.segments) || [];
+        const nrVals = nr.map((s, i) => Number(s.value ?? ((c.newReturning.values || [])[i])) || 0);
+        const nrTotal = Math.max(1, nrVals.reduce((a, b) => a + b, 0));
+        renderStack('newreturning', nr.map((s, i) => ({ label: s.label, value: s.valueLabel, share: s.shareLabel, pct: nrVals[i] / nrTotal * 100 })),
+            window.allstatT('{count} uživatelů', { count: c.newReturning ? c.newReturning.totalLabel : '0' }), window.allstatT('Zatím bez dat, spusť GA4 sync.'));
+
+        const aiTop = document.querySelector('[data-ai-top]');
+        if (aiTop) {
+            const top = (tables.aiSources || [])[0];
+            aiTop.querySelector('.row-value').textContent = top ? top.source : '–';
+            const count = aiTop.querySelector('.row-delta');
+            if (count) {
+                count.textContent = top ? window.allstatT('{count} návštěv', { count: formatter.format(top.sessions) }) : '';
             }
-
-            const chartKey = `sparkline-${key}-${index}`;
-            destroyChart(chartKey);
-            charts.set(chartKey, new Chart(canvas, {
-                type: 'line',
-                data: {
-                    labels: data.charts.visits.labels,
-                    datasets: [{
-                        data: kpi.sparkline,
-                        borderColor: palette[kpi.color] || palette.blue,
-                        backgroundColor: 'transparent',
-                        borderWidth: 2,
-                        tension: 0.42,
-                        pointRadius: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false }, tooltip: { enabled: false } },
-                    scales: { x: { display: false }, y: { display: false } },
-                    elements: { line: { capBezierPoints: true } }
-                }
-            }));
-        });
-    }
-
-    function renderDeviceChart(data) {
-        const chart = data.charts && data.charts.devices;
-
-        if (!chart) {
-            return;
-        }
-
-        renderBarRows('[data-bar-devices]', (chart.items || []).map((d, i) => ({
-            label: d.device, value: d.sessions ?? (chart.values || [])[i], valueLabel: d.sessionsLabel, shareLabel: d.shareLabel
-        })), [palette.blue, palette.green, palette.violet, palette.orange, palette.cyan, palette.rose]);
-
-        const total = document.querySelector('[data-device-total]');
-        if (total) {
-            total.textContent = chart.totalLabel;
-        }
-    }
-
-    function renderNewReturningChart(data) {
-        const chart = data.charts && data.charts.newReturning;
-
-        if (!chart) {
-            return;
-        }
-
-        renderBarRows('[data-bar-newreturning]', (chart.segments || []).map((s, i) => ({
-            label: s.label, value: s.value ?? (chart.values || [])[i], valueLabel: s.valueLabel, shareLabel: s.shareLabel
-        })), [palette.blue, palette.green]);
-
-        const total = document.querySelector('[data-newreturning-total]');
-        if (total) {
-            total.textContent = chart.totalLabel;
         }
     }
 
@@ -255,36 +354,38 @@ const AllStat = (() => {
 
         const landing = (data.tables && data.tables.landingPages) || [];
         const all = (data.tables && data.tables.allPages) || [];
-        const emptyRow = '<tr><td colspan="3" class="table-muted">' + window.allstatT('Zatím bez dat o stránkách, spusť GA4 sync.') + '</td></tr>';
+        const th = (text, width) => `<th scope="col"${width ? ` style="width: ${width}px"` : ''}>${escapeHtml(text)}</th>`;
+        const empty = (cols) => `<tr><td colspan="${cols}" class="is-muted">${window.allstatT('Zatím bez dat o stránkách, spusť GA4 sync.')}</td></tr>`;
 
         if (pagesMode === 'vsechny') {
             if (head) {
-                head.innerHTML = '<th>' + window.allstatT('Stránka') + '</th><th>' + window.allstatT('Zobrazení') + '</th><th>' + window.allstatT('Podíl') + '</th>';
+                head.innerHTML = th(window.allstatT('Stránka')) + th(window.allstatT('Zobrazení'), 96) + th(window.allstatT('Podíl'), 84);
             }
             if (help) {
-                help.innerHTML = window.allstatT('Nejnavštěvovanější stránky podle počtu zobrazení (GA4 dimenze <code>pagePath</code> / <code>screenPageViews</code>) za zvolené období.');
+                help.textContent = window.allstatT('Nejnavštěvovanější stránky podle počtu zobrazení za zvolené období.');
             }
             body.innerHTML = all.length ? all.map((p) => `
                 <tr>
-                    <td>${escapeHtml(p.path)}</td>
-                    <td>${escapeHtml(p.viewsLabel)}</td>
-                    <td>${escapeHtml(p.shareLabel)}</td>
+                    <td class="ellipsis" title="${escapeHtml(p.path)}">${escapeHtml(p.path)}</td>
+                    <td class="num is-strong">${escapeHtml(p.viewsLabel)}</td>
+                    <td class="num">${escapeHtml(p.shareLabel)}</td>
                 </tr>
-            `).join('') : emptyRow;
+            `).join('') : empty(3);
         } else {
             if (head) {
-                head.innerHTML = '<th>' + window.allstatT('Stránka') + '</th><th>' + window.allstatT('Návštěvy') + '</th><th>' + window.allstatT('Změna') + '</th>';
+                head.innerHTML = th(window.allstatT('Stránka')) + th(window.allstatT('Návštěvy'), 84) + th(window.allstatT('Konverze'), 84) + th(window.allstatT('Změna'), 84);
             }
             if (help) {
-                help.innerHTML = window.allstatT('Top vstupní stránky, kde návštěva začala. GA4 dimenze <code>landingPage</code>. „Změna" = rozdíl proti předchozímu období (u celého měsíce proti předchozímu měsíci, jinak proti stejně dlouhému období těsně před).');
+                help.textContent = window.allstatT('Kde návštěva začala. Změna proti předchozímu období.');
             }
             body.innerHTML = landing.length ? landing.map((p) => `
                 <tr>
-                    <td>${escapeHtml(p.path)}</td>
-                    <td>${formatter.format(p.sessions)}</td>
-                    <td class="${p.change >= 0 ? 'positive' : 'negative'}">${p.change >= 0 ? '&uarr;' : '&darr;'} ${escapeHtml(p.changeLabel)}</td>
+                    <td class="ellipsis" title="${escapeHtml(p.path)}">${escapeHtml(p.path)}</td>
+                    <td class="num is-strong">${formatter.format(p.sessions)}</td>
+                    <td class="num">${formatter.format(p.conversions || 0)}</td>
+                    <td class="num ${deltaClass(p.change)}">${escapeHtml(p.changeLabel)}</td>
                 </tr>
-            `).join('') : emptyRow;
+            `).join('') : empty(4);
         }
     }
 
@@ -294,225 +395,116 @@ const AllStat = (() => {
         buttons.forEach((btn) => {
             btn.addEventListener('click', () => {
                 pagesMode = btn.dataset.pagesToggle === 'vsechny' ? 'vsechny' : 'vstupni';
-                buttons.forEach((b) => b.classList.toggle('is-active', b === btn));
+                buttons.forEach((b) => b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'));
                 renderPagesTable(window.ALLSTAT_DATA);
             });
         });
     }
 
-    function renderProviderView() {
-        const provider = window.ALLSTAT_PROVIDER;
-
-        if (!provider || !Array.isArray(provider.metrics) || !window.Chart) {
-            return;
-        }
-
-        const lineColors = [palette.blue, palette.green, palette.violet, palette.orange, palette.cyan, palette.rose, palette.teal];
-        const canvas = document.getElementById('providerChart');
-        const chartMetrics = Array.isArray(provider.chartKeys)
-            ? provider.metrics.filter((m) => provider.chartKeys.includes(m.key))
-            : provider.metrics;
-
-        if (canvas && provider.showChart !== false && chartMetrics.length) {
-            destroyChart('provider');
-            charts.set('provider', new Chart(canvas, {
-                type: 'line',
-                data: {
-                    labels: provider.labels,
-                    datasets: chartMetrics.map((metric, index) => ({
-                        label: metric.label,
-                        data: metric.series,
-                        borderColor: lineColors[index % lineColors.length],
-                        backgroundColor: 'transparent',
-                        tension: 0.38,
-                        pointRadius: 2,
-                        pointHoverRadius: 5,
-                        borderWidth: 2
-                    }))
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { mode: 'index', intersect: false },
-                    plugins: {
-                        legend: {
-                            align: 'start',
-                            labels: { usePointStyle: true, pointStyle: 'line', boxWidth: 28, color: cssVariable('--muted'), font: { weight: 700 } }
-                        },
-                        tooltip: { backgroundColor: cssVariable('--text'), titleColor: cssVariable('--surface'), bodyColor: cssVariable('--surface') }
-                    },
-                    scales: {
-                        x: { grid: { display: false }, ticks: { color: cssVariable('--muted'), maxTicksLimit: 8 } },
-                        y: { beginAtZero: true, grid: { color: cssVariable('--chart-grid') }, ticks: { color: cssVariable('--muted') } }
-                    }
-                }
-            }));
-        }
-
-        provider.metrics.forEach((metric, index) => {
-            const spark = document.querySelector(`[data-provider-spark="${CSS.escape(metric.key)}"]`);
-
-            if (!spark) {
-                return;
-            }
-
-            const chartKey = `provider-spark-${metric.key}-${index}`;
-            destroyChart(chartKey);
-            charts.set(chartKey, new Chart(spark, {
-                type: 'line',
-                data: {
-                    labels: provider.labels,
-                    datasets: [{ data: metric.series, borderColor: palette.cyan, backgroundColor: 'transparent', borderWidth: 2, tension: 0.42, pointRadius: 0 }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false }, tooltip: { enabled: false } },
-                    scales: { x: { display: false }, y: { display: false } }
-                }
-            }));
-        });
-    }
-
-    function renderCharts(data) {
-        renderLineChart(data);
-        renderTrafficChart(data);
-        renderSparklines(data);
-        renderDeviceChart(data);
-        renderNewReturningChart(data);
-        renderProviderView();
+    function renderCharts() {
+        renderMetricChart();
+        renderFollowersSpark();
     }
 
     function updateKpis(data) {
-        data.kpis.forEach((kpi) => {
-            const card = document.querySelector(`[data-kpi-card="${CSS.escape(kpi.key)}"]`);
-
-            if (!card) {
-                return;
-            }
-
-            const value = card.querySelector('[data-kpi-value]');
-            const change = card.querySelector('[data-kpi-change]');
-
-            if (value) {
-                value.textContent = kpi.displayValue;
-            }
-
-            if (change) {
-                change.classList.toggle('trend-up', kpi.trend === 'up');
-                change.classList.toggle('trend-down', kpi.trend === 'down');
-                change.classList.toggle('trend-none', kpi.trend === 'none');
-                if (kpi.trend === 'none') {
-                    change.innerHTML = window.allstatT('bez srovnání');
-                } else {
-                    change.innerHTML = `${kpi.trend === 'up' ? '&uarr;' : '&darr;'} ${escapeHtml(kpi.changeLabel)}`;
-                }
-            }
-        });
-
-        // Keep "vs. předchozí období (dates)" in sync on AJAX range changes (server renders it only on load).
         const prev = data.previousRange;
-        const fmtDate = (iso) => { const d = new Date(iso + 'T00:00:00'); return `${d.getDate()}. ${d.getMonth() + 1}. ${d.getFullYear()}`; };
-        const prevLabel = (prev && prev.start && prev.end) ? ` (${fmtDate(prev.start)} – ${fmtDate(prev.end)})` : '';
-        document.querySelectorAll('[data-prev-range]').forEach((el) => {
-            el.textContent = window.allstatT('vs. předchozí období') + prevLabel;
+        const prevText = (prev && prev.start && prev.end) ? window.allstatT('vs. {period}', { period: periodLabel(prev.start, prev.end) }) : '';
+
+        data.kpis.forEach((kpi) => {
+            document.querySelectorAll(`[data-kpi-card="${CSS.escape(kpi.key)}"]`).forEach((card) => {
+                const value = card.querySelector('[data-kpi-value]');
+                const change = card.querySelector('[data-kpi-change]');
+
+                if (value) {
+                    value.textContent = kpi.displayValue;
+                }
+
+                if (change) {
+                    const keep = [...change.classList].filter((c) => !c.startsWith('is-'));
+                    change.className = [...keep, deltaClass(kpi.trend === 'none' ? null : kpi.change, !LOWER_IS_BETTER.includes(kpi.key))].join(' ');
+                    change.textContent = kpi.trend === 'none' ? window.allstatT('bez srovnání') : kpi.changeLabel;
+                }
+
+                const prevEl = card.querySelector('[data-prev-range]');
+                if (prevEl) {
+                    prevEl.textContent = kpi.trend === 'none' ? '' : prevText;
+                }
+            });
         });
+
+        const period = document.querySelector('[data-period-label]');
+        if (period && data.range) {
+            period.textContent = capitalize(periodLabel(data.range.start, data.range.end));
+        }
     }
 
     function updateTables(data) {
         renderPagesTable(data);
-        const landingRows = document.querySelector('[data-landing-rows]');
         const queryRows = document.querySelector('[data-query-rows]');
         const sourceRows = document.querySelector('[data-source-rows]');
-        const geoRows = document.querySelector('[data-geo-rows]');
         const eventRows = document.querySelector('[data-event-rows]');
-        const referrerRows = document.querySelector('[data-referrer-rows]');
+        const decimal1 = new Intl.NumberFormat(window.allstatLocale, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
         if (eventRows) {
             const events = data.tables.events || [];
             eventRows.innerHTML = events.length ? events.map((e) => `
                 <tr>
-                    <td>${escapeHtml(e.event)}${e.isKey ? ' <span class="status-badge status-ok">key</span>' : ''}</td>
-                    <td>${escapeHtml(e.countLabel)}</td>
-                    <td>${escapeHtml(e.keyEventsLabel)}</td>
+                    <td class="ellipsis" title="${escapeHtml(e.event)}">${escapeHtml(e.event)}${e.isKey ? ' <span class="chip tone-up">key</span>' : ''}</td>
+                    <td class="num is-strong">${escapeHtml(e.countLabel)}</td>
+                    <td class="num">${escapeHtml(e.keyEventsLabel)}</td>
                 </tr>
-            `).join('') : '<tr><td colspan="3" class="table-muted">' + window.allstatT('Zatím bez event dat, spusť sync.') + '</td></tr>';
-        }
-
-        if (referrerRows) {
-            const referrers = data.tables.referrers || [];
-            referrerRows.innerHTML = referrers.length ? referrers.map((r) => `
-                <tr>
-                    <td>${escapeHtml(r.source)}${r.ai ? ` <span class="status-badge status-ai">AI · ${escapeHtml(r.ai)}</span>` : ''}</td>
-                    <td>${escapeHtml(r.sessionsLabel)}</td>
-                    <td>${escapeHtml(r.shareLabel)}</td>
-                </tr>
-            `).join('') : '<tr><td colspan="3" class="table-muted">' + window.allstatT('Zatím bez referral dat, spusť GA4 sync.') + '</td></tr>';
-        }
-
-        if (geoRows) {
-            const geo = data.tables.geo || [];
-            geoRows.innerHTML = geo.length ? geo.map((g) => `
-                <tr>
-                    <td>${escapeHtml(g.region)}</td>
-                    <td>${escapeHtml(g.country)}</td>
-                    <td>${escapeHtml(g.sessionsLabel)}</td>
-                    <td>${escapeHtml(g.shareLabel)}</td>
-                </tr>
-            `).join('') : '<tr><td colspan="4" class="table-muted">' + window.allstatT('Zatím bez geo dat, spusť sync.') + '</td></tr>';
-        }
-
-        if (landingRows) {
-            landingRows.innerHTML = data.tables.landingPages.map((page) => `
-                <tr>
-                    <td>${escapeHtml(page.path)}</td>
-                    <td>${formatter.format(page.sessions)}</td>
-                    <td class="${page.change >= 0 ? 'positive' : 'negative'}">${page.change >= 0 ? '&uarr;' : '&darr;'} ${escapeHtml(page.changeLabel)}</td>
-                </tr>
-            `).join('');
+            `).join('') : '<tr><td colspan="3" class="is-muted">' + window.allstatT('Zatím bez event dat, spusť sync.') + '</td></tr>';
         }
 
         if (queryRows) {
-            queryRows.innerHTML = data.tables.queries.map((query) => `
+            const queries = data.tables.queries || [];
+            queryRows.innerHTML = queries.length ? queries.map((query) => `
                 <tr>
-                    <td>${escapeHtml(query.query)}</td>
-                    <td>${formatter.format(query.clicks)}</td>
-                    <td>${formatter.format(query.impressions)}</td>
-                    <td>${escapeHtml(query.ctrLabel)}</td>
+                    <td class="ellipsis" title="${escapeHtml(query.query)}">${escapeHtml(query.query)}</td>
+                    <td class="num is-strong">${formatter.format(query.clicks)}</td>
+                    <td class="num">${formatter.format(query.impressions)}</td>
+                    <td class="num" title="CTR ${escapeHtml(query.ctrLabel)}">${decimal1.format(query.position || 0)}</td>
                 </tr>
-            `).join('');
+            `).join('') : '<tr><td colspan="4" class="is-muted">' + window.allstatT('Zatím bez dat ze Search Console.') + '</td></tr>';
         }
 
         const utmList = document.querySelector('[data-utm-list]');
         if (utmList) {
-            // Zrcadlí serverový markup .utm-item v index.php — při změně markupu upravit obojí.
+            // Zrcadlí serverový markup kampaní ve views/overview.php, při změně upravit obojí.
             const utm = data.tables.utm || [];
-            utmList.innerHTML = utm.length ? utm.map((c) => `
-                <div class="utm-item">
-                    <div class="utm-item-top">
-                        <span class="utm-name" title="utm_campaign">${escapeHtml(c.campaignLabel)}</span>
-                        <span class="utm-value"><strong>${escapeHtml(c.sessionsLabel)}</strong> <small>${window.allstatT('návštěv')} · ${escapeHtml(c.shareLabel)}</small></span>
-                    </div>
-                    <div class="utm-track"><div class="utm-fill" style="width: ${Math.round(Math.max(3, c.share || 0) * 10) / 10}%;"></div></div>
-                    <div class="utm-tags">
-                        <span class="utm-chip" title="utm_source / utm_medium">${escapeHtml(c.channelLabel)}</span>
-                        ${c.contentLabel !== '—' ? `<span class="utm-chip" title="utm_content, A/B ${window.allstatT('varianta')}">${window.allstatT('varianta')}: ${escapeHtml(c.contentLabel)}</span>` : ''}
-                        <span class="utm-chip${c.conversions > 0 ? ' utm-chip-ok' : ''}" title="${window.allstatT('Konverze z této kampaně (a podíl z jejích návštěv)')}">${window.allstatT('konverze')}: ${escapeHtml(c.conversionsLabel)}${c.convRate !== '—' ? ` (${escapeHtml(c.convRate)})` : ''}</span>
-                    </div>
-                    ${(c.pages || []).length ? `<div class="utm-pages">${window.allstatT('Kam přišli')}: ${c.pages.map((p) => `${escapeHtml(p.path)} <span class="table-muted">(${escapeHtml(p.sessionsLabel)})</span>`).join(' · ')}</div>` : ''}
-                </div>
-            `).join('') : '<p class="table-muted">' + window.allstatT('Zatím žádná návštěvnost s UTM parametry za zvolené období. Otaguj odkazy (např. <code>?utm_campaign=jaro&amp;utm_source=facebook&amp;utm_medium=cpc&amp;utm_content=banner1</code>) a po dalším GA4 syncu se kampaně objeví zde.') + '</p>';
+            const utmRow = (c) => meterHtml({
+                label: c.campaignLabel,
+                title: `utm_campaign: ${c.campaignLabel}`,
+                value: c.sessionsLabel,
+                share: c.shareLabel,
+                width: Number(c.share) || 0,
+                noteHtml: `<span class="chip" title="utm_source / utm_medium">${escapeHtml(c.channelLabel)}</span>`
+                    + (c.contentLabel !== '—' ? ` <span class="chip" title="${escapeHtml(window.allstatT('utm_content, A/B varianta'))}">${escapeHtml(window.allstatT('varianta: {value}', { value: c.contentLabel }))}</span>` : '')
+                    + ` <span class="chip${c.conversions > 0 ? ' tone-up' : ''}" title="${escapeHtml(window.allstatT('Konverze z této kampaně (a podíl z jejích návštěv)'))}">${escapeHtml(window.allstatT('konverze: {value}', { value: c.conversionsLabel + (c.convRate !== '—' ? ` (${c.convRate})` : '') }))}</span>`
+                    + ((c.pages || []).length ? `<br>${escapeHtml(window.allstatT('Kam přišli:'))} ${c.pages.map((p) => `${escapeHtml(p.path)} (${escapeHtml(p.sessionsLabel)})`).join(' · ')}` : '')
+            });
+            utmList.innerHTML = utm.slice(0, 8).map(utmRow).join('');
+            const more = document.querySelector('[data-utm-more]');
+            if (more) {
+                more.hidden = utm.length <= 8;
+                more.querySelector('[data-utm-more-label]').textContent = window.allstatT('a dalších {count}', { count: Math.max(0, utm.length - 8) });
+                more.querySelector('[data-utm-rest]').innerHTML = utm.slice(8).map(utmRow).join('');
+            }
+            const empty = document.querySelector('[data-utm-empty]');
+            if (empty) {
+                empty.hidden = utm.length > 0;
+            }
         }
 
         if (sourceRows) {
             sourceRows.innerHTML = data.tables.sources.length ? data.tables.sources.map((source) => `
                 <tr>
-                    <td>${escapeHtml(source.source)}</td>
-                    <td><span class="status-badge status-${escapeHtml(source.status)}">${escapeHtml(statusLabels[source.status] || source.status)}</span></td>
-                    <td>${escapeHtml(source.lastSync)}</td>
-                    <td><button class="table-icon-button" type="button" title="${window.allstatT('Obnovit')}" aria-label="${window.allstatT('Obnovit')}" data-refresh-dashboard>${iconRefresh()}</button></td>
+                    <td class="ellipsis">${escapeHtml(source.source)}</td>
+                    <td><span class="status ${statusTones[source.status] || 'tone-flat'}"><span class="dot"></span>${escapeHtml(statusLabels[source.status] || source.status)}</span></td>
+                    <td class="num">${escapeHtml(source.lastSync)}</td>
+                    <td><button class="btn-icon btn-sm" type="button" title="${window.allstatT('Obnovit')}" aria-label="${window.allstatT('Obnovit')}" data-refresh-dashboard>${iconRefresh()}</button></td>
                 </tr>
-            `).join('') : '<tr><td colspan="4" class="table-muted">' + window.allstatT('Zatím není napojený žádný zdroj dat.') + '</td></tr>';
+            `).join('') : '<tr><td colspan="4" class="is-muted">' + window.allstatT('Zatím není napojený žádný zdroj dat.') + '</td></tr>';
         }
     }
 
@@ -542,7 +534,8 @@ const AllStat = (() => {
         updateKpis(data);
         updateTables(data);
         updateMeta(data);
-        renderCharts(data);
+        renderBreakdowns(data);
+        renderCharts();
         window.lucide?.createIcons();
     }
 
@@ -687,22 +680,9 @@ const AllStat = (() => {
         });
     }
 
-    // Přepnutí motivu (assets/js/shell.js) → grafy přehledu znovu s barvami nového motivu.
+    // Přepnutí motivu (assets/js/shell.js) → grafy znovu s barvami nového motivu (tokeny čte chartTheme()).
     function bindThemeCharts() {
-        document.addEventListener('allstat:themechange', () => renderCharts(window.ALLSTAT_DATA));
-    }
-
-    // Vyváží počet sloupců KPI mřížek podle počtu karet, aby řady byly souměrné: 7 karet → 4+3
-    // (ne 6+1), 8 → 4+4, 6 → 3+3. GA4 přehledové mřížky (.kpi-group) mají vlastní auto-fit layout,
-    // ty nechává být.
-    function balanceKpiGrids() {
-        document.querySelectorAll('.kpi-grid').forEach((grid) => {
-            if (grid.closest('.kpi-group')) { return; }
-            const n = grid.querySelectorAll('.kpi-card').length;
-            if (n < 1) { return; }
-            const cols = n <= 4 ? n : Math.min(6, Math.ceil(n / 2));
-            grid.style.setProperty('--kpi-cols', String(cols));
-        });
+        document.addEventListener('allstat:themechange', renderCharts);
     }
 
     // Aplikuje aktuální filtr: přehled (GA4) = AJAX refresh, provider view = serverový plný reload.
@@ -855,15 +835,15 @@ const AllStat = (() => {
     }
 
     function init() {
-        balanceKpiGrids();
         bindFilters();
         bindQuickRanges();
         bindAutoApply();
         bindDateRange();
         bindSourceSwitch();
         bindPagesToggle();
+        bindMetricTabs();
         bindThemeCharts();
-        renderCharts(window.ALLSTAT_DATA);
+        renderCharts();
         window.lucide?.createIcons();
     }
 
