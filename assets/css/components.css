@@ -1628,3 +1628,354 @@ textarea.input {
         display: none;
     }
 }
+
+/* Fáze 1 D: samostatné stránky mimo shell (přihlášení, 2FA, bez přístupu, instalátor) */
+/* .callout je definovaný až za .tone-*, a přebíjí je; s tónem musí vyhrát tón. */
+.callout.tone-up { background: var(--pos-bg); color: var(--pos); }
+.callout.tone-down { background: var(--neg-bg); color: var(--neg); }
+.callout.tone-warn { background: var(--warn-bg); color: var(--warn); }
+.callout.tone-accent { background: var(--accent-soft); color: var(--accent-text); }
+
+/* ===================== Samostatná stránka (.auth) ===================== */
+.auth {
+    display: grid;
+    min-height: 100vh;
+    place-items: center;
+    padding: 24px 16px;
+}
+
+.auth-card {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: min(420px, 100%);
+    padding: 28px;
+    box-shadow: var(--shadow-md);
+}
+
+.auth-card .logo {
+    align-self: flex-start;
+    margin-left: -8px;
+}
+
+.auth-head {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.auth-desc {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 20px;
+    text-wrap: pretty;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.auth-form .btn {
+    height: 40px;
+}
+
+.auth-card .empty {
+    padding: 0;
+}
+
+.input-code {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    letter-spacing: .3em;
+    text-align: center;
+}
+
+/* Přepínač jazyka (allstat_locale_switcher, lib/i18n.php) */
+.locale-switch {
+    display: inline-flex;
+    align-self: center;
+    margin: 0;
+}
+
+.locale-switch select {
+    height: 32px;
+    padding: 0 8px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text-2);
+    font-size: 13px;
+}
+
+/* ===================== Průvodce instalací (install.php) ===================== */
+/* Karty, pole, tlačítka a hlášky jsou běžné komponenty; tady jen rozvržení stránky a prvky jen pro průvodce. */
+.wizard {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 28px 16px 64px;
+}
+
+.wizard-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 12px;
+}
+
+.wizard-ver {
+    margin-left: auto;
+    color: var(--muted);
+    font-size: 13px;
+    text-align: right;
+}
+
+.wizard-langs {
+    margin: 4px 0 16px;
+    color: var(--muted);
+    font-size: 13px;
+    text-align: right;
+}
+
+.wizard-card,
+.wizard > .callout {
+    margin-bottom: 16px;
+}
+
+.wizard-card {
+    padding: 24px;
+}
+
+.wizard-h2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.wizard-gap {
+    margin-top: 14px;
+}
+
+.wizard-card > .card-desc,
+.wizard-card > .callout {
+    margin-top: 8px;
+}
+
+.wizard .num {
+    display: inline-grid;
+    width: 26px;
+    height: 26px;
+    flex: none;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--on-accent);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.wizard .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 16px;
+    margin-top: 16px;
+}
+
+.wizard .wizard-full {
+    grid-column: 1 / -1;
+}
+
+.wizard .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.wizard .doc-link {
+    color: var(--accent-text);
+    font-weight: 600;
+}
+
+.wizard .doc-link:hover {
+    text-decoration: underline;
+}
+
+.wizard code {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+}
+
+.wizard .code {
+    display: block;
+    margin-top: 8px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--subtle);
+    overflow-wrap: anywhere;
+    user-select: all;
+}
+
+.wizard .code-pre {
+    white-space: pre-wrap;
+}
+
+.wizard textarea.wizard-file {
+    height: auto;
+    padding: 10px 12px;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+}
+
+.wizard-note {
+    margin-top: 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--subtle);
+}
+
+.wizard-note > summary {
+    height: 44px;
+    padding: 0 16px;
+}
+
+.wizard-note .note-body {
+    max-width: none;
+    padding: 0 16px 16px;
+}
+
+.checks,
+.steps {
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.checks li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 0;
+    border-top: 1px solid var(--border);
+}
+
+.checks .status {
+    flex: none;
+    justify-content: center;
+    width: 24px;
+    padding: 0;
+    font-weight: 700;
+}
+
+.checks li:first-child {
+    border-top: 0;
+}
+
+.checks strong {
+    display: block;
+    font-weight: 600;
+}
+
+.checks li span:not(.status) {
+    display: block;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.steps {
+    padding-left: 20px;
+    list-style: disc;
+    color: var(--text-2);
+    font-size: 13px;
+}
+
+.todo {
+    margin: 14px 0 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: step;
+}
+
+.todo > li {
+    position: relative;
+    padding: 12px 0 12px 44px;
+    border-top: 1px solid var(--border);
+    counter-increment: step;
+}
+
+.todo > li:first-child {
+    border-top: 0;
+}
+
+.todo > li::before {
+    content: counter(step);
+    position: absolute;
+    top: 12px;
+    left: 0;
+    display: grid;
+    width: 28px;
+    height: 28px;
+    place-items: center;
+    border: 1px solid var(--border-strong);
+    border-radius: 50%;
+    background: var(--subtle);
+    font-weight: 700;
+}
+
+.choices {
+    display: grid;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.choice {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    cursor: pointer;
+}
+
+.choice:has(input:checked) {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+}
+
+.choice input[type="radio"] {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    margin-top: 1px;
+    accent-color: var(--accent);
+}
+
+.choice .field-help {
+    display: block;
+}
+
+.choice .input {
+    margin-top: 10px;
+}
+
+.wizard > footer {
+    margin-top: 24px;
+    color: var(--muted);
+    font-size: 13px;
+    text-align: center;
+}
+
+@media (max-width: 600px) {
+    .wizard .grid {
+        grid-template-columns: 1fr;
+    }
+
+    .wizard-card {
+        padding: 18px;
+    }
+}
