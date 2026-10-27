@@ -1,5 +1,5 @@
 {
-    "version": "1.3.0",
+    "version": "1.4.0",
     "files": {
         "LICENSE": {
             "s": 35823,
@@ -22,8 +22,8 @@
             "h": "7dc20e6f433872b2f9f74a9eea37b753f4a02f54c311fb2e4203e6e147d782c4"
         },
         "admin/connection-sync.php": {
-            "s": 4485,
-            "h": "13614c00bf338895de8839ca5c39cc294c77024861c5077b61171eebec29483c"
+            "s": 4626,
+            "h": "f260555d8d64a03d5d067cd8bf3ea4e70ad530848eb1d1fb9fc450ea27848b72"
         },
         "admin/connection-test.php": {
             "s": 1200,
@@ -90,12 +90,12 @@
             "h": "dbca6cc398a22b074d88b9422bcb3942e8798dbffc0003b993a4d37145d9af76"
         },
         "admin/oauth-callback.php": {
-            "s": 6980,
-            "h": "3a808705f190e7986c2eefbc89bfb43398cd5b9ad3198f4dcd0577947b4d62e2"
+            "s": 7725,
+            "h": "8d793997ff43dddeccb0a707b21ceb9a16f5c9790acdaaa8531c2928e246fdf6"
         },
         "admin/oauth-start.php": {
-            "s": 2559,
-            "h": "a43c4964b79c50eda00e8ff7ab9863ccb112e471d9236f4cd63b856bb28d7f21"
+            "s": 3199,
+            "h": "efba13a4be62c4ac4f64e13825c1825a1e193f2303d15ed4e01456b3ba0b0c0d"
         },
         "admin/reports.php": {
             "s": 34121,
@@ -126,8 +126,8 @@
             "h": "12151d46b713f1ec9b656fa304c1deddddfdd57ab5cd305caab306b40e281a40"
         },
         "admin/source-edit.php": {
-            "s": 28427,
-            "h": "0e18e2324d7dee28858e179ad0294d9808210b502b1f0a656596a27fd16a77e0"
+            "s": 28830,
+            "h": "68e15a85f748606704236db4e519a3abee50bb3fb3369f7dd639393d5e9b2f3f"
         },
         "admin/sources.php": {
             "s": 8537,
@@ -238,8 +238,8 @@
             "h": "022db8e5654038717679670df38d18b4587f6e9870d054ce3f67e962fda2885f"
         },
         "index.php": {
-            "s": 82118,
-            "h": "04a44da14c7fe8a7f79c56caf70845676b117e621712029ab75293a4476d9534"
+            "s": 82397,
+            "h": "6694ef80d58c90ddafdbd1f45b6f50fdcaef4b0be413a29964f4c414153ee3a5"
         },
         "install.php": {
             "s": 1546,
@@ -254,28 +254,28 @@
             "h": "5dfedba685861524c3c8283cb798f15e4f9fd199e7ed1a07bc235a8da0dec56c"
         },
         "lang/en/core.php": {
-            "s": 56210,
-            "h": "e1aa1b90205427daf8421d4bd4c5031c16cc935073d084d2a14489c06610c934"
+            "s": 56962,
+            "h": "f156a5a8ba3c5aaf15e59bc3cc9be7f84e6e3bbe11203b4feafd60c34730b96d"
         },
         "lang/en/dashboard.php": {
-            "s": 75415,
-            "h": "ce8f0abfa133c9c270ed537fca195b7a9cac0882e7c67f66556111f0d3a12af2"
+            "s": 75655,
+            "h": "ab631384d403c96eae4f47516e5686f7b815e6b054b9359dae7e48e1d3ceabdb"
         },
         "lang/en/extra.php": {
             "s": 663,
             "h": "2ddb76dc211c6a84ae9fe307fd3fda54c15a30fc8370a5fbad11cd919092c386"
         },
         "lang/en/install.php": {
-            "s": 53731,
-            "h": "f44dba8d4a3f8e421cee71a96b92a87915ba7fa7e7e0e4acc380f9d6e049084a"
+            "s": 53798,
+            "h": "3b1df73d1b0a774305ef1e3674a86b5d02d2d203a407de86f1e77c7b556675d0"
         },
         "lang/en/js.php": {
             "s": 6979,
             "h": "c1b8d0122d34c8fd0a6570614462c74093b86d86a129add242937ea02e48933a"
         },
         "lang/en/sources.php": {
-            "s": 91082,
-            "h": "273761a9ab12d8638391f5e4236f1df19c36e8cda76fa04d9b2adc452e99a7c9"
+            "s": 96231,
+            "h": "ace82d44dc45ba41ae1c805edef167f58bbaa7744d8a2a9c12de8fbf7e921e17"
         },
         "lang/sk/admin.php": {
             "s": 55883,
@@ -286,32 +286,32 @@
             "h": "d71c6d0081f5ad53201f8edecb9527a321f92cf0817f986feac4c4a82c525bb8"
         },
         "lang/sk/core.php": {
-            "s": 57676,
-            "h": "a1714a13e0b32b538e01c27ccb74a438f8ee804bbeb589e69650bb21e45d3415"
+            "s": 58416,
+            "h": "efe58d08013bd1a7201c173c0779e6df296a5686eca8f5d28749046408f27224"
         },
         "lang/sk/dashboard.php": {
-            "s": 77069,
-            "h": "ce365a91822cce410997f49f3f5643e964957012b204759b87976082d4563bc8"
+            "s": 77310,
+            "h": "4fd9e9d8ac580128a7060ad96816d475a0735ecbfe367efcbc7d4e2a16898360"
         },
         "lang/sk/extra.php": {
             "s": 720,
             "h": "9ef6984b9a92f0579dc216d6465fb7fc757080fe5ee05dae4c161037f2162c51"
         },
         "lang/sk/install.php": {
-            "s": 55029,
-            "h": "47670e3889160347013b75ec7d865c60716616dd23507dfbea40c4ae51cef34b"
+            "s": 55093,
+            "h": "e1a54f05f3ba9d0308041d01bba77cc648942e2aa81e394823bb382d10614f89"
         },
         "lang/sk/js.php": {
             "s": 7249,
             "h": "aa46b5de8ecee7f1e2a0e5ec093cda731eae5880e884087c3caef4ef19ea9cdf"
         },
         "lang/sk/sources.php": {
-            "s": 90958,
-            "h": "6626164424bc1f0cf1a261b942d37848f88864a6cb1be936ad1b8b76cf508bf2"
+            "s": 96219,
+            "h": "eb2c23045deb88cbe6cf63ef75713e0ea195ce503a6a44ef5f2d81b23334253b"
         },
         "lib/admin-repository.php": {
-            "s": 18885,
-            "h": "f6cfde9ae33b139deba5557d627bc6042cf87a3e1e6d51119380b6977c07ecba"
+            "s": 20968,
+            "h": "f9ab3543729ec06f6e8fd9c78f0ea9d2b176f1bf66e1a7f3a89cd462f55b8b18"
         },
         "lib/ai-sources.php": {
             "s": 2157,
@@ -350,20 +350,20 @@
             "h": "48687f8e85c9e3caa67f4297140a0ef2e0c964f46b6337cd661bade1df09db5f"
         },
         "lib/growth.php": {
-            "s": 29936,
-            "h": "6ea922d893baa91ea3c86ac45ab07d958ac6af8672283e9141a3631447ac8dd2"
+            "s": 31041,
+            "h": "b5b3aeb18dc727801427e86d944ebc13213bf261a876d4abad4547d443cb7e91"
         },
         "lib/helpers.php": {
-            "s": 15117,
-            "h": "8596e724bee505d1d354d14cc34d9930e3aab5f27505bf8c30e6c46acf17f010"
+            "s": 15317,
+            "h": "10673c2370c6a3743c25668f87b2c312a0cbde6dc1b0cc9d572332871bb465f9"
         },
         "lib/i18n.php": {
             "s": 8603,
             "h": "cd7c23cc2a4d493b6ecbe3c2be93042970d5fdacc46a29f8aaa3a044d8eaefce"
         },
         "lib/install-wizard.php": {
-            "s": 92022,
-            "h": "4316facc6cab112645f1936ba8ef1cbea60f7e44e28772ecf78c345fe680d011"
+            "s": 92083,
+            "h": "82bf94555bdb457cdabbe54cc3cba63fa5de7be4032b9a370788508c8c8528e3"
         },
         "lib/mcp-oauth.php": {
             "s": 113103,
@@ -378,44 +378,48 @@
             "h": "bb41f685938b4adc72f72734e81c84e430aac601e49e1dccb45b5d1b826f1f69"
         },
         "lib/mcp-tools.php": {
-            "s": 147779,
-            "h": "3d182533f3451f0d9dab0a92ea3be809ba9bf54df7b5ee7b0a10a9be8ef242fd"
+            "s": 148124,
+            "h": "15ec222286f127800d96efa3a04291f4fffe1e00b54366df34e5eccbd8fdd082"
         },
         "lib/meta-connect.php": {
             "s": 12187,
             "h": "87343d2667440ff045a1a0357bab65f9e4e54af2c2946a10ae2fcc32defd03db"
         },
+        "lib/microsoft-ads.php": {
+            "s": 19956,
+            "h": "082c745233c4535ee77a469598659275d45c956ca03277a9a5a706eb1cc2a425"
+        },
         "lib/migrations.php": {
-            "s": 55664,
-            "h": "5e518c051eddbf2b74686f05ef63becde9b7930ade17eeafad27975ab2bed237"
+            "s": 56354,
+            "h": "a91098e139f51a3b0540f91f2ab2849de0e23ad187152aa21bfdbeb4e8a311cf"
         },
         "lib/oauth.php": {
-            "s": 26720,
-            "h": "e137b9ace1c4576706116c823ae21406187e61c2bdc57dbefb9cdc6cf38a2d96"
+            "s": 30659,
+            "h": "e0cf5f709ae0fd11ec557d940e6b70156f67c841d418b0697f88400b90d9d71d"
         },
         "lib/providers.php": {
-            "s": 46998,
-            "h": "0e5bb3c07d1e9ee9b5da52155974ee6d43c6db019601a8b0b69d66a57ff4b72c"
+            "s": 53316,
+            "h": "939c22b1f986cd39bc374a671c8b0a331b83196a729b4ee351a9c2f3671ce006"
         },
         "lib/repository.php": {
-            "s": 229058,
-            "h": "ca7d14b1dc520bdce2d8ac258e0534463134fd975900ad23129c870d6df9d3de"
+            "s": 229866,
+            "h": "4c9f784d886ff57796e427fd5217805d4a64a9ef5efd472ed346fd4afc33f193"
         },
         "lib/seeder.php": {
             "s": 6447,
             "h": "0790111a952434e5f879c7fe29b54b891f3ec8af814ac35a55a0a32e62727596"
         },
         "lib/share.php": {
-            "s": 96734,
-            "h": "278b100ebf859329c8f8e8902038ec77f076b93195e6f4b69160f5140c93088e"
+            "s": 98036,
+            "h": "98fc6ecbf7564c6228241263dd8abac1b9889edcec51a52bcc95b031d9d72b0c"
         },
         "lib/sites.php": {
             "s": 9840,
             "h": "32aabcf2c46dc8341774df8f4b9b14ed95c0ea6aa8c1e4413c9e3441d4981250"
         },
         "lib/sync-engines.php": {
-            "s": 141625,
-            "h": "b33ddbe508a98d41c9cb230ee79eee2e3a54eed0e88e7c1d5f498fc862d09ce1"
+            "s": 142048,
+            "h": "f50a5076e0004dce8fa9d6238efa774dbabbb78ad8f393b5b8daa9674203b7e3"
         },
         "lib/sync.php": {
             "s": 43521,
@@ -435,7 +439,7 @@
         },
         "lib/version.php": {
             "s": 542,
-            "h": "c88f04f84f84297ca53968ad04c260723b44a110dacbc1df49d301325f91d1d4"
+            "h": "97348ea82f1e502d575da94a50c9c71b9bc59050a7934abac5ecbed135448db7"
         },
         "oauth/authorize.php": {
             "s": 20265,
@@ -490,8 +494,8 @@
             "h": "43b0f724a0daab4dbef452af584993bf5ca4f1feb7db52a25f69711e44dc9148"
         },
         "views/provider/google_ads.php": {
-            "s": 3561,
-            "h": "db95b094c211d0694443ec62192431e1beb75d7ac719a2870bee72135399094e"
+            "s": 3903,
+            "h": "42fad33b656b4a4a57223e68275f6caea8b43f0a83b776ada22a23c6adad5e3f"
         },
         "views/provider/instagram_business.php": {
             "s": 23332,
@@ -504,6 +508,10 @@
         "views/provider/meta_ads.php": {
             "s": 19625,
             "h": "36b3dccdb75538b2806ff593d1ecda30b65d63706dd50e350d1395b726c69bf0"
+        },
+        "views/provider/microsoft_ads.php": {
+            "s": 115,
+            "h": "e4aa1a92f9ee2fdff7fe1c16382d1be8c2bd5ae71fb85d2c1cde1bae4402bec6"
         },
         "views/provider/youtube.php": {
             "s": 16111,
