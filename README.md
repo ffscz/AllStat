@@ -18,7 +18,7 @@ Czech, Slovak and English.
 ## Features
 
 - **Data sources:** Google Analytics 4, Google Search Console, Microsoft Clarity, Facebook, Instagram,
-  Meta Ads, LinkedIn, YouTube, Google Ads, Seznam Webmaster, CSV import from Meta Business Suite.
+  Meta Ads, LinkedIn, YouTube, Google Ads, Microsoft Ads, Seznam Webmaster, CSV import from Meta Business Suite.
 - **Multiple websites** under one installation, and for each user you can limit which websites they see.
 - **Google accounts:** one or more Google accounts (an agency, clients) and a choice of websites from their
   GA4 and Search Console, with no need to copy Property IDs and Client IDs.

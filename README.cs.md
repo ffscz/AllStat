@@ -16,7 +16,7 @@ a ukládá je do **vaší vlastní databáze**. Běží na běžném webhostingu
 ## Co umí
 
 - **Zdroje dat:** Google Analytics 4, Google Search Console, Microsoft Clarity, Facebook, Instagram,
-  Meta Ads, LinkedIn, YouTube, Google Ads, Seznam Webmaster, import CSV z Meta Business Suite.
+  Meta Ads, LinkedIn, YouTube, Google Ads, Microsoft Ads, Seznam Webmaster, import CSV z Meta Business Suite.
 - **Více webů** pod jednou instalací, u každého uživatele lze omezit, které weby vidí.
 - **Google účty:** jeden nebo víc Google účtů (agentura, klienti) a výběr webů z jejich GA4 a Search Console,
   bez opisování Property ID a Client ID.
