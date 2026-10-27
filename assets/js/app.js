@@ -508,32 +508,10 @@ const AllStat = (() => {
         }
     }
 
-    function updateMeta(data) {
-        const mode = document.querySelector('[data-data-mode]');
-        const lastSync = document.querySelector('[data-last-sync]');
-        const dot = document.querySelector('.sync-card .status-dot');
-
-        if (mode) {
-            mode.textContent = data.meta.databaseMode
-                ? (data.meta.sourceCount > 0 ? window.allstatT('Všechny zdroje jsou synchronizované') : window.allstatT('Zdroje zatím nejsou napojené'))
-                : window.allstatT('Demo data jsou aktivní');
-        }
-
-        if (lastSync) {
-            lastSync.textContent = data.meta.lastSync;
-        }
-
-        if (dot) {
-            dot.classList.toggle('status-dot-ok', data.meta.databaseMode);
-            dot.classList.toggle('status-dot-warning', !data.meta.databaseMode);
-        }
-    }
-
     function updateDashboard(data) {
         window.ALLSTAT_DATA = data;
         updateKpis(data);
         updateTables(data);
-        updateMeta(data);
         renderBreakdowns(data);
         renderCharts();
         window.lucide?.createIcons();

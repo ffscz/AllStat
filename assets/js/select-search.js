@@ -21,7 +21,7 @@
 
         const listId = 'select-search-list-' + (++uid);
         const wrap = document.createElement('div');
-        wrap.className = 'select-search' + (select.closest('.filter-control') ? ' is-inline' : '');
+        wrap.className = 'select-search';
 
         const btn = document.createElement('button');
         btn.type = 'button';
@@ -89,7 +89,7 @@
             filter();
             pop.hidden = false;
             pop.classList.remove('menu-end');
-            // U pravého okraje okna (topbar, mobil) se seznam otevře doleva.
+            // U pravého okraje okna (horní lišta, mobil) se seznam otevře doleva.
             if (pop.getBoundingClientRect().right > window.innerWidth - 8) { pop.classList.add('menu-end'); }
             btn.setAttribute('aria-expanded', 'true');
             items.find((item) => item.classList.contains('is-selected'))?.scrollIntoView({ block: 'nearest' });

@@ -39,7 +39,6 @@ function allstat_admin_header(string $title, string $active, array $user, array 
         'active' => $active,
         'help' => $help,
         'crumbs' => $head['crumbs'] ?? null,
-        'legacy' => [],
         'bodyAttr' => 'data-admin-shell',
     ], static fn ($v): bool => $v !== null));
     ?>

@@ -140,10 +140,20 @@ $curEnd = $data['range']['end'];
     <div class="callout <?= ($flash['type'] ?? '') === 'error' ? 'tone-down' : 'tone-up' ?>" role="status"><?= h((string) ($flash['message'] ?? '')) ?></div>
 <?php endforeach; unset($_SESSION['flashes']); ?>
 
-<div id="shareResult" class="share-result" hidden>
-    <div class="share-result-head"><strong><?= h(t('Report pro AI')) ?></strong> <span data-share-expiry></span><button type="button" class="share-close" data-share-close aria-label="<?= h(t('Zavřít')) ?>">×</button></div>
-    <p class="share-hint"><?= t('<strong>Klikni „Kopírovat text pro AI"</strong> a vlož do ChatGPT / Claude / Perplexity. Text přečte každá AI hned. Report platí max 15 minut. Odkaz níže je jen pro ruční použití, běžný chat ho sám neotevře.') ?></p>
-    <div style="margin-bottom:8px;"><button type="button" class="btn btn-primary btn-sm" data-share-copy-text><?= h(t('Kopírovat text pro AI')) ?></button></div>
-    <div class="share-url-row"><input type="text" readonly data-share-url aria-label="<?= h(t('Odkaz (pro ruční použití)')) ?>"></div>
-    <div class="share-fmt"><?= h(t('Formát:')) ?> <a href="#" data-share-fmt="md">Markdown</a> · <a href="#" data-share-fmt="json">JSON</a></div>
+<section id="shareResult" class="card" hidden>
+    <div class="card-head">
+        <div>
+            <h2 class="card-title"><?= h(t('Report pro AI')) ?><small data-share-expiry></small></h2>
+            <p class="card-desc"><?= t('<strong>Klikni „Kopírovat text pro AI"</strong> a vlož do ChatGPT / Claude / Perplexity. Text přečte každá AI hned. Report platí max 15 minut. Odkaz níže je jen pro ruční použití, běžný chat ho sám neotevře.') ?></p>
+        </div>
+        <button type="button" class="btn-icon" data-share-close title="<?= h(t('Zavřít')) ?>" aria-label="<?= h(t('Zavřít')) ?>"><?= allstat_icon('x', 'icon') ?></button>
+    </div>
+    <div class="card-body form-grid">
+        <div class="form-actions field-full">
+            <button type="button" class="btn btn-primary btn-sm" data-share-copy-text><?= h(t('Kopírovat text pro AI')) ?></button>
+            <span class="field-help"><?= h(t('Formát:')) ?> <a href="#" data-share-fmt="md">Markdown</a> · <a href="#" data-share-fmt="json">JSON</a></span>
+        </div>
+        <input type="text" class="input mono field-full" readonly data-share-url aria-label="<?= h(t('Odkaz (pro ruční použití)')) ?>">
+    </div>
+</section>
 </div>

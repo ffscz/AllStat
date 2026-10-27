@@ -1392,11 +1392,20 @@ a.pill:hover {
     opacity: .8;
 }
 
+/* Odkaz uvnitř textu: v popisech a nápovědách akcentem, v hlášce barvou hlášky */
+:where(.card-desc, .section-desc, .page-sub, .block-desc, .field-help, .auth-desc, .note-body, .empty-desc) a,
+.callout a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+:where(.card-desc, .section-desc, .page-sub, .block-desc, .field-help, .auth-desc, .note-body, .empty-desc) a {
+    color: var(--accent-text);
+}
+
 .callout a {
     color: inherit;
     font-weight: 600;
-    text-decoration: underline;
-    text-underline-offset: 3px;
 }
 
 .callout-actions {
@@ -2214,6 +2223,7 @@ tr.row-extra {
 
 /* Seznamy, které jsou komponentou (číslování dělá .steps samo) */
 ol.steps,
+ol.meters,
 ul.rows,
 ul.checks {
     margin: 0;

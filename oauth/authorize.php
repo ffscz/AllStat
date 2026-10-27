@@ -41,7 +41,7 @@ function allstat_mcp_authz_crash_page(): void
     $heading = $translate ? t('Něco se nepovedlo') : 'Něco se nepovedlo';
 
     try {
-        if (isset($GLOBALS['config']) && is_array($GLOBALS['config']) && function_exists('allstat_url') && function_exists('allstat_nonce') && function_exists('h')) {
+        if (isset($GLOBALS['config']) && is_array($GLOBALS['config']) && function_exists('allstat_url') && function_exists('allstat_nonce') && function_exists('h') && function_exists('allstat_stylesheets') && function_exists('allstat_icon')) {
             allstat_mcp_authz_error($GLOBALS['config'], 500, $heading, $message);
         }
     } catch (Throwable) {
@@ -75,6 +75,7 @@ require_once __DIR__ . '/../lib/helpers.php';
 require_once __DIR__ . '/../lib/database.php';
 require_once __DIR__ . '/../lib/migrations.php';
 require_once __DIR__ . '/../lib/auth.php';
+require_once __DIR__ . '/../lib/layout.php';
 require_once __DIR__ . '/../lib/mcp-oauth.php';
 
 allstat_session_start($config); // session + výchozí CSP a bezpečnostní hlavičky
@@ -99,13 +100,15 @@ function allstat_mcp_authz_page(array $config, int $status, string $title, strin
     <meta name="referrer" content="no-referrer">
     <title><?= h($title) ?> | AllStat</title>
     <script nonce="<?= h($nonce) ?>">document.documentElement.dataset.theme = localStorage.getItem('allstat-theme') || 'light';</script>
-    <link rel="stylesheet" href="<?= h(allstat_url($config, 'assets/css/app.css')) ?>">
-    <link rel="stylesheet" href="<?= h(allstat_url($config, 'assets/css/admin.css')) ?>">
+    <?= allstat_stylesheets($config) ?>
 </head>
 <body>
-    <main class="auth-shell">
-        <section class="auth-card">
-            <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+    <main class="auth">
+        <section class="card auth-card">
+            <a class="logo auth-logo" href="<?= h(allstat_url($config, '')) ?>" aria-label="AllStat">
+                <svg class="logo-mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="13" width="4.5" height="8" rx="1.5" fill="currentColor" opacity=".45"/><rect x="9.75" y="7" width="4.5" height="14" rx="1.5" fill="currentColor" opacity=".7"/><rect x="16.5" y="3" width="4.5" height="18" rx="1.5" fill="currentColor"/></svg>
+                <span class="logo-name">AllStat</span>
+            </a>
             <?= $bodyHtml ?>
         </section>
     </main>
@@ -122,8 +125,9 @@ function allstat_mcp_authz_error(array $config, int $status, string $heading, st
         $config,
         $status,
         $heading,
-        '<h1>' . h($heading) . '</h1><div class="notice notice-error">' . h($message) . '</div>'
-        . '<p class="form-help">' . h(t('Vraťte se do aplikace a připojení zkuste zopakovat.')) . '</p>'
+        '<div class="auth-head"><h1 class="h1">' . h($heading) . '</h1>'
+        . '<p class="auth-desc">' . h(t('Vraťte se do aplikace a připojení zkuste zopakovat.')) . '</p></div>'
+        . '<div class="callout tone-down" role="alert">' . allstat_icon('info', 'icon-sm') . '<span>' . h($message) . '</span></div>'
     );
 }
 
@@ -215,43 +219,48 @@ function allstat_mcp_authz_consent_page(array $config, array $client, array $req
 
     if ($isAdmin) {
         ?>
-            <h1><?= h(t('Povolit přístup k AllStatu?')) ?></h1>
+            <div class="auth-head">
+                <h1 class="h1"><?= h(t('Povolit přístup k AllStatu?')) ?></h1>
+                <p class="auth-desc"><?= t('Aplikace <strong>{app}</strong> chce číst data z AllStatu.', ['app' => h($appName)]) ?></p>
+                <p class="auth-desc"><?= t('Po povolení se vrátíte na: <strong>{host}</strong>', ['host' => h($redirectLabel)]) ?></p>
+                <?php if ($identityHost !== ''): ?>
+                    <p class="auth-desc"><?= t('Identita aplikace ověřena z: <strong>{host}</strong>', ['host' => h($identityHost)]) ?></p>
+                <?php endif; ?>
+            </div>
             <?php if ($error !== null): ?>
-                <div class="notice notice-error"><?= h($error) ?></div>
+                <div class="callout tone-down" role="alert"><?= allstat_icon('info', 'icon-sm') ?><span><?= h($error) ?></span></div>
             <?php endif; ?>
-            <p><?= t('Aplikace <strong>{app}</strong> chce číst data z AllStatu.', ['app' => h($appName)]) ?></p>
-            <p><?= t('Po povolení se vrátíte na: <strong>{host}</strong>', ['host' => h($redirectLabel)]) ?></p>
-            <?php if ($identityHost !== ''): ?>
-                <p><?= t('Identita aplikace ověřena z: <strong>{host}</strong>', ['host' => h($identityHost)]) ?></p>
-            <?php else: ?>
-                <div class="notice notice-warn"><?= h(t('Název aplikace si zvolila sama aplikace a nelze ho ověřit. Rozhodující je adresa, na kterou se po povolení vrátíte.')) ?></div>
+            <?php if ($identityHost === ''): ?>
+                <div class="callout tone-warn"><?= allstat_icon('info', 'icon-sm') ?><span><?= h(t('Název aplikace si zvolila sama aplikace a nelze ho ověřit. Rozhodující je adresa, na kterou se po povolení vrátíte.')) ?></span></div>
             <?php endif; ?>
-            <p><?= h(t('Bude moci číst metriky, reporty a přehledy všech webů v AllStatu. Nemůže nic měnit ani mazat.')) ?></p>
-            <p><strong><?= h(t('Povolte jen tehdy, když jste připojení právě sami spustili v Claude, ChatGPT nebo jiné aplikaci.')) ?></strong></p>
-            <p class="form-help"><?= t('Přihlášen(a) jako {email}', ['email' => h($user['email'])]) ?></p>
-            <form method="post" class="form-stack">
+            <p class="auth-desc"><?= h(t('Bude moci číst metriky, reporty a přehledy všech webů v AllStatu. Nemůže nic měnit ani mazat.')) ?></p>
+            <p class="auth-desc"><strong><?= h(t('Povolte jen tehdy, když jste připojení právě sami spustili v Claude, ChatGPT nebo jiné aplikaci.')) ?></strong></p>
+            <p class="field-help"><?= t('Přihlášen(a) jako {email}', ['email' => h($user['email'])]) ?></p>
+            <form method="post" class="auth-form">
                 <?= allstat_csrf_field() ?>
                 <input type="hidden" name="req" value="<?= h($token) ?>">
                 <?php if ($needsPassword): ?>
-                    <label><span><?= h(t('Pro potvrzení zadejte své heslo k AllStatu')) ?></span><input type="password" name="password" autocomplete="current-password" required></label>
+                    <label class="field"><span class="field-label"><?= h(t('Pro potvrzení zadejte své heslo k AllStatu')) ?></span><input class="input" type="password" name="password" autocomplete="current-password" required></label>
                 <?php endif; ?>
                 <div class="form-actions">
-                    <button class="button-primary" type="submit" name="decision" value="allow"><?= h(t('Povolit')) ?></button>
-                    <button class="button-secondary" type="submit" name="decision" value="deny" formnovalidate><?= h(t('Zamítnout')) ?></button>
+                    <button class="btn btn-primary" type="submit" name="decision" value="allow"><?= h(t('Povolit')) ?></button>
+                    <button class="btn btn-secondary" type="submit" name="decision" value="deny" formnovalidate><?= h(t('Zamítnout')) ?></button>
                 </div>
             </form>
-            <p class="form-help"><?= h(t('Přístup můžete kdykoli zrušit v Administrace → AI konektory.')) ?></p>
+            <p class="field-help"><?= h(t('Přístup můžete kdykoli zrušit v Administrace → AI konektory.')) ?></p>
         <?php
     } else {
         ?>
-            <h1><?= h(t('Povolit přístup k AllStatu?')) ?></h1>
-            <div class="notice notice-error"><?= h(t('Připojení AI konektoru může povolit jen administrátor AllStatu.')) ?></div>
-            <p class="form-help"><?= t('Přihlášen(a) jako {email}', ['email' => h($user['email'])]) ?></p>
-            <form method="post" class="form-stack">
+            <div class="auth-head">
+                <h1 class="h1"><?= h(t('Povolit přístup k AllStatu?')) ?></h1>
+            </div>
+            <div class="callout tone-down" role="alert"><?= allstat_icon('info', 'icon-sm') ?><span><?= h(t('Připojení AI konektoru může povolit jen administrátor AllStatu.')) ?></span></div>
+            <p class="field-help"><?= t('Přihlášen(a) jako {email}', ['email' => h($user['email'])]) ?></p>
+            <form method="post" class="auth-form">
                 <?= allstat_csrf_field() ?>
                 <input type="hidden" name="req" value="<?= h($token) ?>">
                 <div class="form-actions">
-                    <button class="button-secondary" type="submit" name="decision" value="deny"><?= h(t('Zpět do aplikace')) ?></button>
+                    <button class="btn btn-secondary" type="submit" name="decision" value="deny"><?= h(t('Zpět do aplikace')) ?></button>
                 </div>
             </form>
         <?php

@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= h(t('Přihlášení')) ?> | AllStat</title>
     <script nonce="<?= h(allstat_nonce()) ?>">document.documentElement.dataset.theme = localStorage.getItem('allstat-theme') || 'light';</script>
-    <?= allstat_stylesheets($config, []) ?>
+    <?= allstat_stylesheets($config) ?>
 </head>
 <body>
     <main class="auth">
