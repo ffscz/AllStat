@@ -1,88 +1,72 @@
 <?php
 /**
- * Provider-view partial — Instagram Business: media-level engagement (KPIs + Top + all posts).
- * Included by index.php inside the generic provider view when provider_key = 'instagram_business'.
- * In scope from index.php: $socialPosts + $socialPostsAll (paginated) + $data + $viewSourceId + h().
- * Engagement = lajky + komentáře + sdílení. Sdílení IG sync stahuje až od 29. 9. 2026 (insights.metric(shares)),
- * starší příspěvky je dostanou po „Stáhnout historii" nebo importu CSV z Business Suite.
+ * Detail zdroje – Instagram Business: sledující, příspěvky a jejich výkon, formáty obsahu, nejlepší čas pro
+ * publikaci, okruh uživatelů (sledující vs. nesledující), demografie, Stories, nejúspěšnější příspěvky a
+ * top podle uložení. Includuje views/provider.php pod záložkami metrik účtu. V rozsahu z index.php:
+ * $socialPosts, $socialPostsAll, $socialStories, $igAudience, $igDemographics, $providerPayload, $data,
+ * $config, $viewSourceId. Engagement = lajky + komentáře + sdílení. Sdílení IG sync stahuje až od 29. 9. 2026
+ * (insights.metric(shares)), starší příspěvky je dostanou po „Stáhnout historii" nebo importu CSV z Business Suite.
+ * Jen prezentace, bez přístupu do DB.
  */
-// IG má jen jeden typ reakce (lajk) — žádné love/haha/wow jako FB. „Rozpad" je tedy ❤️ lajky + 💬 komentáře + 🔁 sdílení.
+if (empty($socialPosts)) {
+    return;
+}
+$importUrl = allstat_url($config, 'admin/social-import.php');
+$deltaRow = static fn (string $label, string $value, ?array $delta = null, string $title = ''): array => ['label' => $label, 'value' => $value, 'title' => $title] + allstat_ui_social_delta($delta);
+// Měřáky z řádků label + value (počty): pruh = poměr k největší položce, podíl = z celku řádků.
+$igMeters = static function (array $rows): string {
+    $values = array_map(static fn (array $r): int => (int) $r['value'], $rows);
+    $total = array_sum($values);
+
+    return allstat_ui_meters(array_map(static fn (array $r, int $v, float $w) => [
+        'label' => $r['label'],
+        'value' => allstat_number($v),
+        'share' => $total > 0 ? allstat_percent(round($v / $total * 100), 0) : '',
+        'width' => $w,
+    ], $rows, $values, allstat_ui_widths($values)));
+};
+// IG má jen jeden typ reakce (lajk): „rozpad" je ❤️ lajky + 💬 komentáře + 🔁 sdílení.
 $igReactions = static function (array $post): string {
     $shares = (int) ($post['shares'] ?? 0);
-    return '<span class="rx" title="' . h(t('Lajky')) . '">❤️&nbsp;' . h(allstat_number((int) ($post['reactions'] ?? 0)))
-        . '</span> <span class="rx" title="' . h(t('Komentáře')) . '">💬&nbsp;' . h(allstat_number((int) ($post['comments'] ?? 0))) . '</span>'
-        . ($shares > 0 ? ' <span class="rx" title="' . h(t('Sdílení')) . '">🔁&nbsp;' . h(allstat_number($shares)) . '</span>' : '');
+
+    return '❤️ ' . allstat_number((int) ($post['reactions'] ?? 0)) . ' · 💬 ' . allstat_number((int) ($post['comments'] ?? 0))
+        . ($shares > 0 ? ' · 🔁 ' . allstat_number($shares) : '');
 };
 ?>
-<?php if (!empty($socialPosts)): ?>
-<section class="analytics-grid" aria-label="<?= h(t('Poznámka k datům z API')) ?>">
-    <article class="panel panel-wide">
-        <p class="panel-help"><?= t('<strong>Co Meta přes API u Instagramu neposkytuje (a proto to zde není):</strong> rozpad Interakcí na „Od sledujících / nesledujících", <strong>Kliknutí na odkaz</strong> a <strong>Návštěvy profilu</strong> – tyto účtové metriky Meta v lednu 2025 z API zrušila a nechává je jen ve svém Business Suite. <strong>Zobrazení</strong> (views) se u příspěvků doplní po nejbližší synchronizaci; do té doby ukazujeme <strong>Dosah</strong>.') ?></p>
-        <details class="more-posts csv-inline">
-            <summary><div><h3><?= h(t('Doplnit data příspěvků z CSV')) ?> <small>(<?= h(t('export „Obsah"')) ?>)</small></h3><p><?= t('Instagram posílá všechna čísla příspěvků přes API, noční synchronizace ale obnovuje jen posledních 7 dní. Starší příspěvky zaktualizuješ tlačítkem Stáhnout historii u napojení, nebo tímhle exportem: v Business Suite Přehledy → Obsah → Exportovat data, záložka Instagram, jen tenhle účet a volba Příspěvek, pak Generovat a po chvíli Stáhnout export. {link}.', ['link' => '<a class="text-link" href="' . h(allstat_url($config, 'admin/social-import.php')) . '#obsah">' . h(t('Návod krok za krokem')) . '</a>']) ?></p></div></summary>
-            <form method="post" action="<?= h(allstat_url($config, 'admin/social-import.php')) ?>" enctype="multipart/form-data" class="csv-inline-form">
-                <?= allstat_csrf_field() ?>
-                <input type="hidden" name="connection_id" value="<?= (int) $viewSourceId ?>">
-                <input type="hidden" name="return_to" value="dashboard">
-                <input type="file" name="csv" accept=".csv,text/csv" required>
-                <button class="button-primary" type="submit"><?= h(t('Importovat a doplnit')) ?></button>
-            </form>
-        </details>
-    </article>
-</section>
-
-<section class="kpi-grid" aria-label="<?= h(t('Příspěvky – souhrn')) ?>">
-    <article class="kpi-card kpi-violet">
-        <div class="kpi-head"><span class="kpi-icon"><i data-lucide="award"></i></span><span><strong><?= h(t('Počet příspěvků')) ?></strong> <small>(<?= h(t('za období')) ?>)</small></span></div>
-        <div class="kpi-value"><?= h(allstat_number((int) $socialPosts['count'])) ?></div>
-    </article>
-    <article class="kpi-card kpi-rose">
-        <div class="kpi-head"><span class="kpi-icon"><i data-lucide="heart"></i></span><span><strong><?= h(t('Celkový engagement')) ?></strong> <small>(<?= h(t('lajky, komentáře, sdílení')) ?>)</small></span></div>
-        <div class="kpi-value"><?= h($socialPosts['engagementLabel']) ?></div>
-    </article>
-    <?php if (((int) ($socialPosts['saved'] ?? 0)) > 0): ?>
-    <article class="kpi-card kpi-green">
-        <div class="kpi-head"><span class="kpi-icon"><i data-lucide="bookmark"></i></span><span><strong><?= h(t('Uložení')) ?></strong> <small>(<?= h(t('součet · Ø {avg}/přísp.', ['avg' => allstat_number((float) ($socialPosts['avgSaved'] ?? 0), 1)])) ?>)</small></span>
-            <span class="kpi-help" tabindex="0" aria-label="<?= h(t('Vysvětlení')) ?>"><i data-lucide="info"></i><span class="kpi-help-popover"><?= h(t('Kolikrát si lidé příspěvek uložili (Instagram „saved"). Nejsilnější signál kvality obsahu, uložení = „tohle si chci najít později".')) ?></span></span>
+<div class="grid grid-3">
+    <?php include __DIR__ . '/_followers.php'; ?>
+    <section class="card">
+        <?= allstat_ui_card_head(t('Příspěvky'), '', h(t('Publikované za období, změna proti předchozímu. Stories se nepočítají.'))) ?>
+        <div class="card-body">
+            <?= allstat_ui_rows([
+                $deltaRow(t('Počet příspěvků'), allstat_number((int) $socialPosts['count']), $socialPosts['deltas']['count'] ?? null),
+                ['label' => t('Frekvence / týden'), 'value' => allstat_number((float) $socialPosts['perWeek'], 1)],
+                ['label' => t('Ø lajků'), 'value' => allstat_number((float) $socialPosts['avgReactions'], 1)],
+                ['label' => t('Ø komentářů'), 'value' => allstat_number((float) $socialPosts['avgComments'], 1)],
+            ]) ?>
         </div>
-        <div class="kpi-value"><?= h($socialPosts['savedLabel']) ?></div>
-    </article>
-    <?php endif; ?>
-    <article class="kpi-card kpi-blue">
-        <div class="kpi-head"><span class="kpi-icon"><i data-lucide="heart"></i></span><span><strong><?= h(t('Ø lajků')) ?></strong> <small>(<?= h(t('na příspěvek')) ?>)</small></span></div>
-        <div class="kpi-value"><?= h(allstat_number((float) $socialPosts['avgReactions'], 1)) ?></div>
-    </article>
-    <article class="kpi-card kpi-cyan">
-        <div class="kpi-head"><span class="kpi-icon"><i data-lucide="message-circle"></i></span><span><strong><?= h(t('Ø komentářů')) ?></strong></span></div>
-        <div class="kpi-value"><?= h(allstat_number((float) $socialPosts['avgComments'], 1)) ?></div>
-    </article>
-    <article class="kpi-card kpi-orange">
-        <div class="kpi-head"><span class="kpi-icon"><i data-lucide="calendar-days"></i></span><span><strong><?= h(t('Frekvence / týden')) ?></strong></span></div>
-        <div class="kpi-value"><?= h(allstat_number((float) $socialPosts['perWeek'], 1)) ?></div>
-    </article>
-</section>
+    </section>
+    <section class="card">
+        <?= allstat_ui_card_head(t('Výkon příspěvků'), '', h(t('Součty za příspěvky publikované v období.'))) ?>
+        <div class="card-body">
+            <?php
+            $perf = [
+                $deltaRow(t('Celkový engagement'), (string) $socialPosts['engagementLabel'], $socialPosts['deltas']['engagement'] ?? null, t('Lajky + komentáře + sdílení na příspěvcích.')),
+            ];
+            if (((int) ($socialPosts['saved'] ?? 0)) > 0) {
+                $perf[] = ['label' => t('Uložení'), 'value' => (string) $socialPosts['savedLabel'], 'title' => t('Kolikrát si lidé příspěvek uložili (Instagram „saved"). Nejsilnější signál kvality obsahu, uložení = „tohle si chci najít později".')];
+                $perf[] = ['label' => t('Ø uložení na příspěvek'), 'value' => allstat_number((float) ($socialPosts['avgSaved'] ?? 0), 1)];
+            }
+            ?>
+            <?= allstat_ui_rows($perf) ?>
+        </div>
+    </section>
+</div>
 
-<?php include __DIR__ . '/_content_trends.php'; ?>
-
-<?php
-// Sdílený renderer bar grafu pro Okruh + Demografii (vrací řetězec, reuse .bar-chart). Podíl z položky nebo z celku.
-$igPal = ['#2563eb', '#16a34a', '#8b5cf6', '#f59e0b', '#06b6d4', '#f43f5e', '#14b8a6'];
-$igBar = static function (array $rows, array $pal): string {
-    if (!$rows) { return ''; }
-    $max = max(1, ...array_map(static fn ($r) => (int) $r['value'], $rows));
-    $tot = array_sum(array_map(static fn ($r) => (int) $r['value'], $rows));
-    $out = ''; $i = 0;
-    foreach ($rows as $r) {
-        $v = (int) $r['value'];
-        $share = isset($r['share']) ? (int) round((float) $r['share']) : ($tot > 0 ? (int) round($v / $tot * 100) : 0);
-        $out .= '<div class="bar-row"><span class="bar-row-label" title="' . h($r['label']) . '">' . h($r['label']) . '</span>'
-            . '<div class="bar-row-track"><div class="bar-row-fill" style="width: ' . round(max(2, $v / $max * 100), 1) . '%; background: ' . $pal[$i % count($pal)] . ';"></div></div>'
-            . '<span class="bar-row-value"><strong>' . h(allstat_number($v)) . '</strong> <small>(' . $share . ' %)</small></span></div>';
-        $i++;
-    }
-    return '<div class="bar-chart">' . $out . '</div>';
-};
-?>
+<div class="grid grid-2">
+    <?php include __DIR__ . '/_formats.php'; ?>
+    <?php include __DIR__ . '/_heatmap.php'; ?>
+</div>
 
 <?php if ($igAudience['hasData'] ?? false):
     $audBuild = static function (array $d): array {
@@ -92,20 +76,21 @@ $igBar = static function (array $rows, array $pal): string {
         if ((int) ($d['unknown'] ?? 0) > 0)     { $rows[] = ['label' => t('Neznámí'),     'value' => (int) $d['unknown']]; }
         return $rows;
     };
+    $audStack = static fn (string $title, array $rows): string => allstat_ui_stack($title, '', array_map(static function (array $r) use ($rows): array {
+        $total = max(1, array_sum(array_column($rows, 'value')));
+        $pct = (int) $r['value'] / $total * 100;
+
+        return ['label' => $r['label'], 'value' => allstat_number((int) $r['value']), 'share' => allstat_percent(round($pct), 0), 'pct' => $pct];
+    }, $rows));
+    $audReach = $audBuild($igAudience['reach']);
+    $audViews = $audBuild($igAudience['views']);
 ?>
-<section class="analytics-grid" aria-label="<?= h(t('Okruh uživatelů')) ?>">
-    <article class="panel panel-wide">
-        <div class="panel-header"><h2><?= h(t('Okruh uživatelů')) ?> <span>(<?= h(t('sledující vs. nesledující')) ?>)</span></h2></div>
-        <p class="panel-help"><?= t('Kolik z dosahu a zobrazení za zvolené období připadá na tvé <strong>sledující</strong> a kolik na <strong>nesledující</strong> účty. Vysoký podíl nesledujících znamená, že se obsah šíří dál (reels, doporučení, sdílení) a získáváš nové publikum.') ?></p>
-        <?php if ($rows = $audBuild($igAudience['reach'])): ?>
-            <h3 class="content-subhead"><?= h(t('Dosah')) ?></h3>
-            <?= $igBar($rows, $igPal) ?>
-        <?php endif; ?>
-        <?php if ($rows = $audBuild($igAudience['views'])): ?>
-            <h3 class="content-subhead"><?= h(t('Zobrazení')) ?></h3>
-            <?= $igBar($rows, $igPal) ?>
-        <?php endif; ?>
-    </article>
+<section class="card">
+    <?= allstat_ui_card_head(t('Okruh uživatelů'), t('sledující vs. nesledující'), h(t('Podíl dosahu a zobrazení za období na sledující a nesledující účty. Vysoký podíl nesledujících znamená, že se obsah šíří dál.'))) ?>
+    <div class="card-body grid grid-2">
+        <?php if ($audReach): ?><?= $audStack(t('Dosah'), $audReach) ?><?php endif; ?>
+        <?php if ($audViews): ?><?= $audStack(t('Zobrazení'), $audViews) ?><?php endif; ?>
+    </div>
 </section>
 <?php endif; ?>
 
@@ -113,185 +98,63 @@ $igBar = static function (array $rows, array $pal): string {
     $ageRows = $igDemographics['age'];
     usort($ageRows, static fn ($a, $b) => strcmp((string) $a['label'], (string) $b['label']));
 ?>
-<section class="analytics-grid" aria-label="<?= h(t('Demografické údaje')) ?>">
-    <article class="panel panel-wide">
-        <div class="panel-header"><h2><?= h(t('Demografické údaje')) ?> <span>(<?= h(t('sledující')) ?>)</span></h2><?php if (!empty($igDemographics['date'])): ?><span class="panel-total"><?= h(t('k {date}', ['date' => allstat_date_label($igDemographics['date'])])) ?></span><?php endif; ?></div>
-        <p class="panel-help"><?= t('Věk, pohlaví a lokalita tvých <strong>aktuálních sledujících</strong> (snímek z Meta API, nezávislý na zvoleném období). Dostupné u účtů se 100+ sledujícími.') ?></p>
-        <?php if ($ageRows): ?><h3 class="content-subhead"><?= h(t('Věk')) ?></h3><?= $igBar($ageRows, $igPal) ?><?php endif; ?>
-        <?php if ($igDemographics['gender']): ?><h3 class="content-subhead"><?= h(t('Pohlaví')) ?></h3><?= $igBar($igDemographics['gender'], $igPal) ?><?php endif; ?>
-        <?php if ($igDemographics['country']): ?><h3 class="content-subhead"><?= h(t('Země')) ?></h3><?= $igBar(array_slice($igDemographics['country'], 0, 8), $igPal) ?><?php endif; ?>
-        <?php if ($igDemographics['city']): ?><h3 class="content-subhead"><?= h(t('Města (top 8)')) ?></h3><?= $igBar(array_slice($igDemographics['city'], 0, 8), $igPal) ?><?php endif; ?>
-    </article>
-</section>
-<?php endif; ?>
-
-<?php include __DIR__ . '/_heatmap.php'; ?>
-
-<?php if (!empty($socialPosts['byFormat'])):
-    // Top formáty jako graf: pruh = poměr k nejsilnějšímu formátu. Řadíme dle Zobrazení, s fallbackem
-    // na Dosah → Engagement → Počet (IG Zobrazení se plní až po synchronizaci; Dosah bývá k dispozici dřív).
-    $fmtRows = $socialPosts['byFormat'];
-    $fmtMetric = 'views';
-    if (array_sum(array_column($fmtRows, 'views')) <= 0) {
-        if (array_sum(array_column($fmtRows, 'reach')) > 0)          { $fmtMetric = 'reach'; }
-        elseif (array_sum(array_column($fmtRows, 'engagement')) > 0) { $fmtMetric = 'engagement'; }
-        else                                                         { $fmtMetric = 'count'; }
-    }
-    // České tvary do „dle …", „podíl na …" a „… celkem" (2. pád, ať je to gramaticky správně).
-    $fmtForms = [
-        'views'      => ['dle' => t('dle zobrazení'),       'na' => t('zobrazení'),       'unit' => t('zobrazení')],
-        'reach'      => ['dle' => t('dle dosahu'),          'na' => t('dosahu'),          'unit' => t('dosahu')],
-        'engagement' => ['dle' => t('dle engagementu'),     'na' => t('engagementu'),     'unit' => t('engagementu')],
-        'count'      => ['dle' => t('dle počtu příspěvků'), 'na' => t('počtu příspěvků'), 'unit' => t('příspěvků')],
-    ][$fmtMetric];
-    usort($fmtRows, static fn (array $a, array $b): int => (int) ($b[$fmtMetric] ?? 0) <=> (int) ($a[$fmtMetric] ?? 0));
-    $fmtMax = max(1, ...array_map(static fn (array $f): int => (int) ($f[$fmtMetric] ?? 0), $fmtRows));
-    $fmtTotal = array_sum(array_map(static fn (array $f): int => (int) ($f[$fmtMetric] ?? 0), $fmtRows));
-    $fmtPalette = ['#2563eb', '#16a34a', '#8b5cf6', '#f59e0b', '#06b6d4', '#f43f5e'];
-?>
-<section class="analytics-grid" aria-label="<?= h(t('Top formáty obsahu')) ?>">
-    <article class="panel panel-wide">
-        <div class="panel-header">
-            <h2><?= h(t('Top formáty obsahu')) ?> <span>(<?= h($fmtForms['dle']) ?>)</span></h2>
-            <?php if ($fmtTotal > 0): ?><span class="panel-total"><strong><?= h(allstat_number($fmtTotal)) ?></strong> <?= h(t('{unit} celkem', ['unit' => $fmtForms['unit']])) ?></span><?php endif; ?>
+<section class="card">
+    <?= allstat_ui_card_head(t('Demografické údaje'), t('sledující'), h(t('Věk, pohlaví a lokalita aktuálních sledujících, snímek z Meta API nezávislý na období. Dostupné u účtů se 100+ sledujícími.')),
+        !empty($igDemographics['date']) ? allstat_ui_card_total(t('k {date}', ['date' => allstat_date_label($igDemographics['date'])])) : '') ?>
+    <div class="card-body grid grid-3">
+        <?php if ($ageRows): ?><div class="meter"><span class="block-title"><?= h(t('Věk')) ?></span><?= $igMeters($ageRows) ?></div><?php endif; ?>
+        <div class="grid">
+            <?php if ($igDemographics['gender']): ?>
+                <?php $gTotal = max(1, array_sum(array_map(static fn (array $g): int => (int) $g['value'], $igDemographics['gender']))); ?>
+                <?= allstat_ui_stack(t('Pohlaví'), '', array_map(static fn (array $g): array => ['label' => $g['label'], 'value' => allstat_number((int) $g['value']), 'share' => allstat_percent(round((int) $g['value'] / $gTotal * 100), 0), 'pct' => (int) $g['value'] / $gTotal * 100], $igDemographics['gender'])) ?>
+            <?php endif; ?>
+            <?php if ($igDemographics['country']): ?><div class="meter"><span class="block-title"><?= h(t('Země')) ?></span><?= $igMeters(array_slice($igDemographics['country'], 0, 5)) ?></div><?php endif; ?>
         </div>
-        <p class="panel-help"><?= h(t('Které formáty (foto, album/více fotek, video/reel) mají největší podíl na {metric}. Delší pruh = silnější formát. Podrobná čísla včetně Ø zapojení na příspěvek jsou v tabulce pod grafem.', ['metric' => $fmtForms['na']])) ?></p>
-        <div class="bar-chart">
-            <?php foreach ($fmtRows as $i => $f): $val = (int) ($f[$fmtMetric] ?? 0); ?>
-                <div class="bar-row">
-                    <span class="bar-row-label" title="<?= h($f['label']) ?>"><?= h($f['label']) ?></span>
-                    <div class="bar-row-track"><div class="bar-row-fill" style="width: <?= round(max(2, $val / $fmtMax * 100), 1) ?>%; background: <?= $fmtPalette[$i % count($fmtPalette)] ?>;"></div></div>
-                    <span class="bar-row-value"><strong><?= h(allstat_number($val)) ?></strong> <small>(<?= $fmtTotal > 0 ? (int) round($val / $fmtTotal * 100) : 0 ?> %)</small></span>
-                </div>
-            <?php endforeach; ?>
-        </div>
-        <details class="more-posts" style="margin-top:14px;">
-            <summary><div><h3><?= h(t('Podrobná tabulka formátů')) ?></h3><p><?= h(t('Počet příspěvků, zobrazení, Ø zapojení na příspěvek, engagement celkem a dosah pro každý typ obsahu.')) ?></p></div></summary>
-            <div class="table-scroll" style="margin-top:10px;">
-                <table>
-                    <thead><tr><th><?= h(t('Typ obsahu')) ?></th><th><?= h(t('Počet')) ?></th><th><?= h(t('Zobrazení')) ?></th><th><?= h(t('Ø engagement')) ?></th><th><?= h(t('Engagement celkem')) ?></th><th><?= h(t('Dosah')) ?></th></tr></thead>
-                    <tbody>
-                        <?php foreach ($fmtRows as $f): ?>
-                            <tr>
-                                <td><?= h($f['label']) ?></td>
-                                <td><?= h(allstat_number((int) $f['count'])) ?></td>
-                                <td><strong><?= h(allstat_number((int) ($f['views'] ?? 0))) ?></strong></td>
-                                <td><?= h(allstat_number((float) $f['avgEngagement'], 1)) ?></td>
-                                <td><?= h(allstat_number((int) $f['engagement'])) ?></td>
-                                <td><?= $f['reach'] > 0 ? h(allstat_number((int) $f['reach'])) : '—' ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-        </details>
-    </article>
+        <?php if ($igDemographics['city']): ?><div class="meter"><span class="block-title"><?= h(t('Města (top 8)')) ?></span><?= $igMeters(array_slice($igDemographics['city'], 0, 8)) ?></div><?php endif; ?>
+    </div>
 </section>
 <?php endif; ?>
 
 <?php include __DIR__ . '/_stories.php'; ?>
 
-<section class="tables-grid" aria-label="<?= h(t('Top příspěvky')) ?>" id="vsechny-prispevky">
-    <article class="panel table-panel table-panel-wide">
-        <div class="panel-header"><h2><?= h(t('Přehled obsahu')) ?> <span>(Instagram)</span></h2></div>
-        <p class="panel-help"><?= t('Nejúspěšnější příspěvky za období podle engagementu (lajky + komentáře + sdílení). Přepni typ obsahu záložkami níže. Sloupec <strong>Reakce</strong> = ❤️ lajky · 💬 komentáře · 🔁 sdílení, Instagram přes API nemá typy reakcí jako Facebook, jen lajky. Klikni na text pro otevření na Instagramu.') ?></p>
-        <div class="content-tabs" role="tablist" aria-label="<?= h(t('Filtr podle typu obsahu')) ?>">
-            <button type="button" class="content-tab is-active" data-content-filter="all"><?= h(t('Vše')) ?></button>
-            <button type="button" class="content-tab" data-content-filter="post"><?= h(t('Příspěvky')) ?></button>
-            <button type="button" class="content-tab" data-content-filter="reel"><?= h(t('Reely')) ?></button>
-        </div>
-        <h3 class="content-subhead"><?= h(t('Top 5 podle zapojení')) ?></h3>
-        <div class="table-scroll">
-            <table>
-                <thead><tr><th><?= h(t('Příspěvek')) ?></th><th><?= h(t('Datum')) ?></th><th><?= h(t('Zobrazení')) ?></th><th><?= h(t('Dosah')) ?></th><th><?= h(t('Reakce')) ?></th><th><?= h(t('Zapojení %')) ?></th><th>Engagement</th></tr></thead>
-                <tbody>
-                    <?php foreach ($socialPosts['top'] as $post): ?>
-                        <tr class="content-row" data-content-type="<?= ($post['type'] ?? 'post') === 'reel' ? 'reel' : 'post' ?>">
-                            <td><?php if (($post['permalink'] ?? '') !== ''): ?><a class="text-link" href="<?= h($post['permalink']) ?>" target="_blank" rel="noopener"><?= h($post['message']) ?></a><?php else: ?><?= h($post['message']) ?><?php endif; ?></td>
-                            <td><?= h($post['date']) ?></td>
-                            <td class="col-views"><strong><?= h($post['viewsLabel'] ?? '—') ?></strong></td><td><?= h($post['reachLabel'] ?? '—') ?></td>
-                            <td class="rx-cell"><?= $igReactions($post) ?></td>
-                            <td><?= h($post['engRateLabel'] ?? '—') ?></td>
-                            <td><strong><?= h($post['engagementLabel']) ?></strong></td>
-                        </tr>
-                    <?php endforeach; ?>
-                    <?php if (empty($socialPosts['top'])): ?>
-                        <tr><td colspan="7" class="table-muted"><?= h(t('Za vybrané období nebyl publikován žádný příspěvek. Spusť „Stáhnout historii" nebo zvol delší období.')) ?></td></tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
+<?php $postsNetwork = 'Instagram'; $postsExtraCol = ['label' => t('Uložení'), 'key' => 'savedLabel']; include __DIR__ . '/_posts.php'; ?>
 
-        <?php if (!empty($socialPosts['topSaved'])): ?>
-        <h3 class="content-subhead"><?= h(t('Top 5 podle uložení')) ?> <small>(<?= h(t('nejsilnější signál kvality obsahu')) ?>)</small></h3>
-        <div class="table-scroll">
-            <table>
-                <thead><tr><th><?= h(t('Příspěvek')) ?></th><th><?= h(t('Datum')) ?></th><th><?= h(t('Uložení')) ?></th><th><?= h(t('Zobrazení')) ?></th><th><?= h(t('Reakce')) ?></th><th>Engagement</th></tr></thead>
+<?php if (!empty($socialPosts['topSaved'])): ?>
+<section class="card">
+    <?= allstat_ui_card_head(t('Top 5 podle uložení'), '', h(t('Nejsilnější signál kvality obsahu.'))) ?>
+    <div class="card-body">
+        <div class="table-wrap">
+            <table class="table table-plain">
+                <thead><tr><th scope="col"><?= h(t('Příspěvek')) ?></th><th scope="col" style="width: 104px"><?= h(t('Datum')) ?></th><th scope="col" style="width: 88px"><?= h(t('Uložení')) ?></th><th scope="col" style="width: 104px"><?= h(t('Zobrazení')) ?></th><th scope="col" style="width: 168px"><?= h(t('Reakce')) ?></th><th scope="col" style="width: 96px">Engagement</th></tr></thead>
                 <tbody>
                     <?php foreach ($socialPosts['topSaved'] as $post): ?>
                         <tr>
-                            <td><?php if (($post['permalink'] ?? '') !== ''): ?><a class="text-link" href="<?= h($post['permalink']) ?>" target="_blank" rel="noopener"><?= h($post['message']) ?></a><?php else: ?><?= h($post['message']) ?><?php endif; ?></td>
-                            <td><?= h($post['date']) ?></td>
-                            <td><strong><?= h($post['savedLabel'] ?? '—') ?></strong></td>
-                            <td class="col-views"><?= h($post['viewsLabel'] ?? '—') ?></td>
-                            <td class="rx-cell"><?= $igReactions($post) ?></td>
-                            <td><strong><?= h($post['engagementLabel']) ?></strong></td>
+                            <td><div class="post"><?php if (($post['permalink'] ?? '') !== ''): ?><a class="post-text" href="<?= h($post['permalink']) ?>" target="_blank" rel="noopener"><?= h($post['message']) ?></a><?php else: ?><span class="post-text"><?= h($post['message']) ?></span><?php endif; ?></div></td>
+                            <td class="num"><?= h($post['date']) ?></td>
+                            <td class="num is-strong"><?= h($post['savedLabel'] ?? '–') ?></td>
+                            <td class="num"><?= h($post['viewsLabel'] ?? '–') ?></td>
+                            <td class="num"><?= h($igReactions($post)) ?></td>
+                            <td class="num"><?= h($post['engagementLabel']) ?></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
-        <?php endif; ?>
-
-        <?php if (!empty($socialPostsAll) && (int) ($socialPostsAll['total'] ?? 0) > 5): ?>
-        <?php
-        $ppBase = '?domain_id=' . (int) $data['domain']['id'] . '&start=' . urlencode($data['range']['start']) . '&end=' . urlencode($data['range']['end']) . '&source_id=' . (int) $viewSourceId;
-        $ppLink = static fn (int $n): string => $ppBase . '&posts_page=' . $n . '#vsechny-prispevky';
-        ?>
-        <details class="more-posts" <?= (int) ($socialPostsAll['page'] ?? 1) > 1 ? 'open' : '' ?>>
-            <summary><div><h3><?= h(t('Zobrazit všechny příspěvky za období')) ?></h3><p><?= h(t('Kompletní výpis příspěvků ({total}) se stránkováním. Filtr typu obsahu výše platí i tady.', ['total' => (int) $socialPostsAll['total']])) ?></p></div></summary>
-            <div class="table-scroll" style="margin-top:10px;">
-                <table>
-                    <thead><tr><th><?= h(t('Příspěvek')) ?></th><th><?= h(t('Datum')) ?></th><th><?= h(t('Zobrazení')) ?></th><th><?= h(t('Dosah')) ?></th><th><?= h(t('Reakce')) ?></th><th><?= h(t('Zapojení %')) ?></th><th>Engagement</th></tr></thead>
-                    <tbody>
-                        <?php foreach ($socialPostsAll['rows'] as $post): $msg = mb_strimwidth((string) $post['message'], 0, 90, '…'); ?>
-                            <tr class="content-row" data-content-type="<?= ($post['type'] ?? 'post') === 'reel' ? 'reel' : 'post' ?>">
-                                <td><?php if (($post['permalink'] ?? '') !== ''): ?><a class="text-link" href="<?= h($post['permalink']) ?>" target="_blank" rel="noopener"><?= h($msg) ?></a><?php else: ?><?= h($msg) ?><?php endif; ?></td>
-                                <td><?= h($post['date']) ?></td>
-                                <td class="col-views"><strong><?= h($post['viewsLabel'] ?? '—') ?></strong></td><td><?= h($post['reachLabel'] ?? '—') ?></td>
-                                <td class="rx-cell"><?= $igReactions($post) ?></td>
-                                <td><?= h($post['engRateLabel'] ?? '—') ?></td>
-                                <td><strong><?= h($post['engagementLabel']) ?></strong></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-            <?php if ((int) ($socialPostsAll['totalPages'] ?? 1) > 1): ?>
-            <nav class="pagination" aria-label="<?= h(t('Stránkování příspěvků')) ?>">
-                <a class="text-link <?= (int) $socialPostsAll['page'] <= 1 ? 'is-disabled' : '' ?>" href="<?= (int) $socialPostsAll['page'] > 1 ? h($ppLink((int) $socialPostsAll['page'] - 1)) : '#' ?>"><?= h(t('← Předchozí')) ?></a>
-                <span class="pagination-info"><?= h(t('Stránka {page} z {pages}', ['page' => (int) $socialPostsAll['page'], 'pages' => (int) $socialPostsAll['totalPages']])) ?></span>
-                <a class="text-link <?= (int) $socialPostsAll['page'] >= (int) $socialPostsAll['totalPages'] ? 'is-disabled' : '' ?>" href="<?= (int) $socialPostsAll['page'] < (int) $socialPostsAll['totalPages'] ? h($ppLink((int) $socialPostsAll['page'] + 1)) : '#' ?>"><?= h(t('Další →')) ?></a>
-            </nav>
-            <?php endif; ?>
-        </details>
-        <?php endif; ?>
-    </article>
+    </div>
 </section>
-
-<script nonce="<?= h(allstat_nonce()) ?>">
-(function () {
-    var tabs = document.querySelectorAll('.content-tab');
-    if (!tabs.length) { return; }
-    tabs.forEach(function (t) {
-        t.addEventListener('click', function () {
-            var f = t.getAttribute('data-content-filter');
-            tabs.forEach(function (x) { x.classList.toggle('is-active', x === t); });
-            document.querySelectorAll('.content-row').forEach(function (r) {
-                r.style.display = (f === 'all' || r.getAttribute('data-content-type') === f) ? '' : 'none';
-            });
-        });
-    });
-})();
-</script>
 <?php endif; ?>
+
+<details class="card note">
+    <summary><?= allstat_icon('download', 'icon') ?><?= h(t('Doplnit data z CSV')) ?> <small class="is-muted">Meta Business Suite</small><?= allstat_icon('chevron-down', 'note-chev') ?></summary>
+    <div class="note-body">
+        <p><?= t('<strong>Co Meta přes API u Instagramu neposkytuje (a proto to zde není):</strong> rozpad Interakcí na „Od sledujících / nesledujících", <strong>Kliknutí na odkaz</strong> a <strong>Návštěvy profilu</strong> – tyto účtové metriky Meta v lednu 2025 z API zrušila a nechává je jen ve svém Business Suite. <strong>Zobrazení</strong> (views) se u příspěvků doplní po nejbližší synchronizaci; do té doby ukazujeme <strong>Dosah</strong>.') ?></p>
+        <p><?= t('Instagram posílá všechna čísla příspěvků přes API, noční synchronizace ale obnovuje jen posledních 7 dní. Starší příspěvky zaktualizuješ tlačítkem Stáhnout historii u napojení, nebo tímhle exportem: v Business Suite Přehledy → Obsah → Exportovat data, záložka Instagram, jen tenhle účet a volba Příspěvek, pak Generovat a po chvíli Stáhnout export. {link}.', ['link' => '<a href="' . h($importUrl) . '#obsah">' . h(t('Návod krok za krokem')) . '</a>']) ?></p>
+        <form class="callout-actions" method="post" action="<?= h($importUrl) ?>" enctype="multipart/form-data">
+            <?= allstat_csrf_field() ?>
+            <input type="hidden" name="connection_id" value="<?= (int) $viewSourceId ?>">
+            <input type="hidden" name="return_to" value="dashboard">
+            <input class="input" type="file" name="csv" accept=".csv,text/csv" required aria-label="<?= h(t('CSV s obsahem příspěvků')) ?>">
+            <button class="btn btn-primary btn-sm" type="submit"><?= h(t('Importovat a doplnit')) ?></button>
+        </form>
+    </div>
+</details>

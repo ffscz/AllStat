@@ -1814,3 +1814,24 @@ button.legend-item:hover {
 .dp-clear:hover {
     background: var(--accent-soft);
 }
+
+/* Fáze 1 B: detaily zdrojů ------------------------------------------------------------------------ */
+/* Široká tabulka (příspěvky) drží na úzké obrazovce šířku a posouvá se uvnitř .table-wrap. */
+@media (max-width: 1100px) {
+    .table-wide { min-width: 880px; }
+}
+
+/* Rozbalený detail řádku tabulky (statistiky příspěvku) */
+.table tr.row-detail > td {
+    height: auto;
+    padding-top: 16px;
+    padding-bottom: 20px;
+    background: var(--bg);
+    text-align: left;
+    white-space: normal;
+}
+
+/* Na úzké obrazovce se ovládání v hlavičce karty (přepínač, tlačítko) zalomí pod nadpis. */
+@media (max-width: 807px) {
+    .card-head { flex-wrap: wrap; }
+}

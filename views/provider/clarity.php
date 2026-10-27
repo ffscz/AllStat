@@ -1,35 +1,21 @@
 <?php
 /**
- * Provider-view partial — Microsoft Clarity breakdown tables (referrers / pages / browsers / smart events).
- * Included by index.php inside the generic provider view when provider_key = 'clarity'.
- * In scope from index.php: $clarityBreakdowns (allstat_get_clarity_breakdowns) + the h() helper.
- * Presentation only — no DB access here; the shared KPI grid + trend are still rendered by index.php.
+ * Detail zdroje – Microsoft Clarity: rozpady (odkazující weby, stránky, prohlížeče, chytré události)
+ * jako měřáky ve dvou sloupcích. Záložky metrik a graf kreslí views/provider.php.
+ * V rozsahu z index.php: $clarityBreakdowns (allstat_get_clarity_breakdowns). Jen prezentace.
  */
+if (empty($clarityBreakdowns)) {
+    return;
+}
 ?>
-<?php if (!empty($clarityBreakdowns)): ?>
-<section class="tables-grid clarity-breakdowns" aria-label="<?= h(t('Clarity rozpady')) ?>">
-    <?php foreach ($clarityBreakdowns as $breakdown): ?>
-        <article class="panel table-panel">
-            <div class="panel-header"><h2><?= h($breakdown['title']) ?> <span>(Clarity)</span></h2></div>
-            <p class="panel-help"><?= h($breakdown['help']) ?></p>
-            <div class="table-scroll">
-                <table>
-                    <thead><tr><th><?= h($breakdown['title']) ?></th><th><?= h(t('Návštěvy')) ?></th><th><?= h(t('Podíl')) ?></th></tr></thead>
-                    <tbody>
-                        <?php foreach ($breakdown['items'] as $item): ?>
-                            <tr>
-                                <td><?= h($item['name']) ?></td>
-                                <td><?= h($item['sessionsLabel']) ?></td>
-                                <td><?= h($item['shareLabel']) ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                        <?php if (!$breakdown['items']): ?>
-                            <tr><td colspan="3" class="table-muted"><?= h(t('Bez dat za toto období, naimportuj denní Clarity CSV nebo počkej na sync.')) ?></td></tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
+<div class="grid grid-2">
+    <?php foreach ($clarityBreakdowns as $breakdown): $cbW = allstat_ui_widths(array_column($breakdown['items'], 'sessions')); ?>
+        <section class="card">
+            <?= allstat_ui_card_head((string) $breakdown['title'], 'Clarity', h($breakdown['help'])) ?>
+            <div class="card-body">
+                <?= allstat_ui_meters(array_map(static fn (array $item, float $w): array => ['label' => $item['name'], 'value' => $item['sessionsLabel'], 'share' => $item['shareLabel'], 'width' => $w], $breakdown['items'], $cbW),
+                    '', t('Bez dat za toto období, naimportuj denní Clarity CSV nebo počkej na sync.')) ?>
             </div>
-        </article>
+        </section>
     <?php endforeach; ?>
-</section>
-<?php endif; ?>
+</div>
