@@ -600,8 +600,8 @@ const AllStat = (() => {
 
         form.addEventListener('submit', (event) => {
             event.preventDefault();
-            // Manuální rozsah = žádný chip není aktivní (rozsah nemusí odpovídat žádnému rychlému výběru).
-            document.querySelectorAll('.quick-ranges .chip.is-active').forEach((c) => c.classList.remove('is-active'));
+            // Manuální rozsah = žádné rychlé období není aktivní (rozsah nemusí odpovídat žádnému rychlému výběru).
+            clearQuickRanges();
             refreshDashboard(new URLSearchParams(new FormData(form)));
         });
 
@@ -620,10 +620,19 @@ const AllStat = (() => {
         });
     }
 
+    // Rychlá období (.seg v záhlaví, views/_dashboard-head.php): aktivní položka má aria-current.
+    function quickRangeLinks() {
+        return document.querySelectorAll('[data-quick-ranges] [data-range-start]');
+    }
+
+    function clearQuickRanges() {
+        quickRangeLinks().forEach((link) => link.removeAttribute('aria-current'));
+    }
+
     function bindQuickRanges() {
         const form = document.getElementById('dashboardFilters');
 
-        // Provider views, Růst kanálů a Trychtýř se překreslují serverově (jiný payload) → tam chipy zůstávají jako plné odkazy.
+        // Provider views a Trychtýř se překreslují serverově (jiný payload) → tam rychlá období zůstávají jako plné odkazy.
         if (!form || isServerView()) {
             return;
         }
@@ -631,69 +640,33 @@ const AllStat = (() => {
         const startInput = form.querySelector('input[name="start"]');
         const endInput = form.querySelector('input[name="end"]');
 
-        document.querySelectorAll('.quick-ranges .chip[data-range-start]').forEach((chip) => {
-            chip.addEventListener('click', (event) => {
+        quickRangeLinks().forEach((link) => {
+            link.addEventListener('click', (event) => {
                 event.preventDefault();
-                if (startInput) { startInput.value = chip.dataset.rangeStart; }
-                if (endInput) { endInput.value = chip.dataset.rangeEnd; }
-                document.querySelectorAll('.quick-ranges .chip').forEach((c) => c.classList.toggle('is-active', c === chip));
+                if (startInput) { startInput.value = link.dataset.rangeStart; }
+                if (endInput) { endInput.value = link.dataset.rangeEnd; }
+                quickRangeLinks().forEach((l) => {
+                    if (l === link) { l.setAttribute('aria-current', 'true'); } else { l.removeAttribute('aria-current'); }
+                });
                 refreshDashboard(new URLSearchParams(new FormData(form)));
             });
         });
     }
 
-    function bindDatePickers() {
-        // Nativní ikonky pickeru jsou skryté (CSS) — kalendář otevře klik/tap kamkoli do pole.
-        // showPicker() funguje v Chrome/Edge/Firefox/Safari 16+; kde není, pole zůstává normálně editovatelné.
-        document.querySelectorAll('.date-filter input[type="date"]').forEach((input) => {
-            input.addEventListener('click', () => {
-                try { input.showPicker(); } catch (e) { /* fallback: ruční zápis */ }
-            });
-        });
-    }
-
     function bindSourceSwitch() {
-        // Přepínač „Zdroj dat" — vlastní listbox s SVG ikonami providerů (nativní <select> je neumí).
+        // Nabídka „Přepnout zdroj" (.dropdown/.menu): otevírání a zavírání řeší assets/js/shell.js
+        // ([data-menu-toggle]), tady jen přechod na zvolený zdroj.
         const picker = document.querySelector('[data-source-picker]');
 
         if (!picker) {
             return;
         }
 
-        const btn = picker.querySelector('.source-picker-btn');
-        const menu = picker.querySelector('.source-picker-menu');
-
-        const close = () => {
-            menu.hidden = true;
-            btn.setAttribute('aria-expanded', 'false');
-        };
-
-        btn.addEventListener('click', () => {
-            menu.hidden = !menu.hidden;
-            btn.setAttribute('aria-expanded', String(!menu.hidden));
-            if (!menu.hidden) {
-                (menu.querySelector('.source-picker-item.is-selected') || menu.querySelector('.source-picker-item'))?.focus();
-            }
-        });
-
-        document.addEventListener('click', (event) => {
-            if (!picker.contains(event.target)) {
-                close();
-            }
-        });
-
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && !menu.hidden) {
-                close();
-                btn.focus();
-            }
-        });
-
-        menu.querySelectorAll('.source-picker-item').forEach((item) => {
+        picker.querySelectorAll('.menu-item[data-value]').forEach((item) => {
             item.addEventListener('click', () => {
                 const q = new URLSearchParams({ domain_id: picker.dataset.domain || '' });
                 if (item.dataset.view === 'growth') {
-                    // Růst kanálů má vlastní měsíční období, denní rozsah se nepřenáší.
+                    // Přehled (Růst kanálů) má vlastní měsíční období, denní rozsah se nepřenáší.
                     q.set('view', 'growth');
                 } else {
                     // Z Růstu kanálů picker nemá denní rozsah → prázdné start/end = výchozích 7 dní (u trychtýře 30 dní).
@@ -737,7 +710,7 @@ const AllStat = (() => {
         const form = document.getElementById('dashboardFilters');
         if (!form) { return; }
         if (isServerView()) { form.submit(); return; }
-        document.querySelectorAll('.quick-ranges .chip.is-active').forEach((c) => c.classList.remove('is-active'));
+        clearQuickRanges();
         refreshDashboard(new URLSearchParams(new FormData(form)));
     }
 
@@ -870,10 +843,10 @@ const AllStat = (() => {
         document.addEventListener('click', (e) => { if (!wrap.contains(e.target)) { close(); } });
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !pop.hidden) { close(); } });
 
-        // Klik na rychlé období (chip) v přehledu (AJAX) topbar nereloaduje → sync labelu.
-        document.querySelectorAll('.quick-ranges .chip[data-range-start]').forEach((chip) => {
-            chip.addEventListener('click', () => {
-                start = parse(chip.dataset.rangeStart); end = parse(chip.dataset.rangeEnd); picking = false;
+        // Klik na rychlé období v přehledu (AJAX) záhlaví nereloaduje → sync labelu.
+        quickRangeLinks().forEach((link) => {
+            link.addEventListener('click', () => {
+                start = parse(link.dataset.rangeStart); end = parse(link.dataset.rangeEnd); picking = false;
                 updateLabel();
             });
         });
@@ -887,7 +860,6 @@ const AllStat = (() => {
         bindQuickRanges();
         bindAutoApply();
         bindDateRange();
-        bindDatePickers();
         bindSourceSwitch();
         bindPagesToggle();
         bindThemeCharts();
