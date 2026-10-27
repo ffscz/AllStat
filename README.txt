@@ -54,7 +54,14 @@ Změny ve verzi 1.5.0
  * Detaily zdrojů, Trychtýř a stránky správy jsou postavené ze stejných prvků; grafy berou barvy
    z motivu a po jeho přepnutí se překreslí.
  * Přihlášení, dvoufázové ověření, souhlas pro připojení AI a instalační průvodce mají nový vzhled.
- * Na mobilu se navigace posouvá vodorovně a široké tabulky se posouvají uvnitř karty.
+ * Obsah stránek je zarovnaný k levému panelu a na širokém monitoru využije víc místa. Ovládání období
+   v detailech zdrojů je pod názvem, takže se po přepnutí období nic nepřeskupuje.
+ * Tabulky jdou řadit kliknutím na záhlaví i v přehledu Měsíc po měsíci a ve Zdrojích dat (ve skupinách
+   zvlášť), záhlaví se už nepřekrývají.
+ * Facebook: rozpad reakcí za období s emoji a u každého příspěvku emoji s počtem reakcí.
+ * Demografie (Facebook, Instagram, Meta Ads, LinkedIn) má věk, pohlaví, země a města v samostatných
+   blocích.
+ * Na mobilu se navigace otevírá tlačítkem v horní liště a široké tabulky se posouvají uvnitř karty.
 
 
 Změny ve verzi 1.4.0
