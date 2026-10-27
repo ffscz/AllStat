@@ -1,10 +1,10 @@
 {
-    "version": "1.3.0",
-    "published": "2026-10-23T06:52:51Z",
-    "zip_url": "https://github.com/ffscz/AllStat/releases/download/v1.3.0/allstat-1.3.0.zip",
-    "sha256": "16f8f4fbfdd88f9af66a2a9180a5952d225b9db06545b153a5dee43d1df83553",
-    "signature": "MEUCIAG+92D0qlCFDrbknsOd/hBq1phOqtT/91MrvjbDQfmrAiEA+sZzrQvK3szN2FwP9aYhTvep/5rriNd7FKMeUloXP2M=",
+    "version": "1.4.0",
+    "published": "2026-10-27T08:31:53Z",
+    "zip_url": "https://github.com/ffscz/AllStat/releases/download/v1.4.0/allstat-1.4.0.zip",
+    "sha256": "0c66b2aafa9dee90bf2cbc8c8b414c1918be9fdb6ce22f5c540eb112baf6e6d6",
+    "signature": "MEQCIHQxJS4fG6ie+8BaSival5xUAa6NdE0OBz38IMKFnQxvAiAWdeXk2h3IPl4GUChpz9xTuW/ZEZDyw6X5fihwQ/DsHA==",
     "min_php": "8.1",
-    "html_url": "https://github.com/ffscz/AllStat/releases/tag/v1.3.0",
-    "notes": "* Obsahuje i bezpečnostní opravy z verze 1.2.10 (obejití 2FA, instalační kód, adresy napojení). Doporučujeme aktualizovat co nejdřív.\n * Google účty: jeden nebo víc Google účtů pro celou instalaci (menu Google účty). Z účtu se načte\n   seznam GA4 property a webů ze Search Console a vybrané weby se připojí najednou, bez opisování\n   Property ID a Client ID. Stávající napojení fungují dál a jde je na účet přepnout.\n * Všechny weby: nová stránka se souhrnem návštěv, klíčových událostí, tržeb a kliknutí z Googlu\n   u všech webů za zvolené období, se srovnáním s předchozím obdobím, filtrem podle Google účtu\n   a hledáním.\n * Jazyk rozhraní: čeština, slovenština a angličtina. Každý uživatel si jazyk vybere v horní liště,\n   výchozí jazyk instalace je v Nastavení a volí se i v instalačním průvodci. Data pro AI,\n   datový feed a exporty zůstávají česky.\n * Připojení AI (MCP): nový nástroj get_websites_summary (souhrn všech webů jedním dotazem) a filtr\n   podle Google účtu v list_websites, například „weby v účtu CITADELA“.\n * Rotace šifrovacího klíče nově přešifruje i Meta App Secret a tokeny Google účtů. Dřív Meta App\n   Secret po rotaci nešel přečíst."
+    "html_url": "https://github.com/ffscz/AllStat/releases/tag/v1.4.0",
+    "notes": "* Nový zdroj Microsoft Ads: denní výkon účtu a kampaní (zobrazení, kliknutí, útrata, konverze,\n   hodnota konverzí) přes Reporting API, jen ke čtení. Přihlášení Google účtem nebo účtem Microsoftu\n   (Microsoft Entra, i s vlastním tenantem). Data jsou v přehledu, v Růstu kanálů, v reportech pro AI\n   i v připojení AI. Připravený report si další synchronizace vyzvedne, i když ho Microsoft\n   generuje déle. Funkci přispěl proseo (pull request #1), děkujeme.\n * Odkazy Nápověda vedou uživatele s anglickým rozhraním na anglický návod\n   (https://ffscz.github.io/AllStat/en/). Doplněné překlady v instalačním průvodci a bočním panelu.\n * Cron: napojení se označí jako zpracované už před synchronizací, takže pád jednoho napojení\n   (například došlá paměť) nezablokuje další běhy pro ostatní.\n * Bezpečnost: složka tests se do balíčku nedává a v .htaccess je z webu zakázaná."
 }
