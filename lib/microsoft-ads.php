@@ -133,11 +133,13 @@ function allstat_microsoft_ads_csv_rows(string $csv, array $expectedColumns = []
     try {
         if (fwrite($stream, $csv) !== strlen($csv)) { throw new RuntimeException('Microsoft Ads: CSV nelze načíst.'); }
         unset($csv);
+        // Reporting API puts a UTF-8 BOM before the quoted first heading ("TimePeriod"). It must be skipped before
+        // parsing: after it fgetcsv no longer sees the opening quote and would keep the quotes in the column name.
         rewind($stream);
+        if (fread($stream, 3) !== "\xef\xbb\xbf") { rewind($stream); }
         $head = fgetcsv($stream);
         if (!is_array($head) || !$head) { return; }
-        // Reporting API sometimes puts a UTF-8 BOM before the first heading.
-        $head = array_map(static fn ($s) => trim((string) $s, "\xef\xbb\xbf \r\n"), $head);
+        $head = array_map(static fn ($s) => trim((string) $s, " \r\n"), $head);
         if (array_diff($expectedColumns, $head)) {
             throw new RuntimeException('Microsoft Ads: CSV report neobsahuje očekávané sloupce.');
         }
