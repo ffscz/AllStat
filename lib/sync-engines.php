@@ -12,6 +12,7 @@
  */
 
 require_once __DIR__ . '/oauth.php';
+require_once __DIR__ . '/microsoft-ads.php';
 
 /**
  * Highest Meta rate-limit usage % from a response's headers. Meta reports each limit as 0–100 (%
@@ -123,6 +124,10 @@ function allstat_sync_recipe(string $providerKey): ?array
             'engine' => 'google_ads',
             'metrics' => ['impressions' => 'impressions', 'clicks' => 'clicks', 'cost' => 'cost', 'conversions' => 'conversions', 'conversion_value' => 'conversion_value'],
         ],
+        'microsoft_ads' => [
+            'engine' => 'microsoft_ads',
+            'metrics' => ['impressions' => 'impressions', 'clicks' => 'clicks', 'cost' => 'cost', 'conversions' => 'conversions', 'conversion_value' => 'conversion_value'],
+        ],
         'seznam_wmt' => [
             'engine' => 'seznam_wmt',
             'metrics' => ['indexed' => 'indexed', 'content' => 'content', 'downloaded' => 'downloaded', 'error' => 'error', 'redirected' => 'redirected', 'doc_count' => 'doc_count'],
@@ -171,6 +176,7 @@ function allstat_run_engine(string $engine, PDO $pdo, array $config, array $conn
         'linkedin' => allstat_engine_linkedin($pdo, $config, $connection, $token, $startDate, $endDate, $recipe),
         'clarity' => allstat_engine_clarity($pdo, $config, $connection, $token, $startDate, $endDate, $recipe),
         'google_ads' => allstat_engine_google_ads($pdo, $config, $connection, $token, $startDate, $endDate, $recipe),
+        'microsoft_ads' => allstat_engine_microsoft_ads($pdo, $config, $connection, $token, $startDate, $endDate, $recipe),
         'seznam_wmt' => allstat_engine_seznam_wmt($pdo, $config, $connection, $token, $startDate, $endDate, $recipe),
         'youtube' => allstat_engine_youtube($pdo, $config, $connection, $token, $startDate, $endDate, $recipe),
         default => throw new RuntimeException('Neznámý engine: ' . $engine),

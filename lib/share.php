@@ -402,6 +402,7 @@ function allstat_share_instructions(string $providerKey, int $viewSourceId): str
             . "- Konverze a měření: měří účet klíčové události (registrace, objednávky, formuláře)? bez toho nejde řídit na výsledek.\n"
             . "- Vývoj v čase (viz týdenní/měsíční tabulka), kde výkon kulminoval/klesl.\n"
             . "Piš česky, stručně, v odrážkách, od největšího dopadu, s konkrétními akcemi (co ŠKÁLOVAT, co OSEKAT, co doměřit).",
+        'microsoft_ads' => "Jsi specialista na výkonnostní reklamu (Microsoft Ads) pro organizaci. Co je konverze a jaký je cíl kampaní, vyčti z KONTEXTU ORGANIZACE. Níže jsou data jednoho účtu za období. Vyhodnoť útratu, kliknutí, konverze a kampaně; ROAS/PNO hodnoť jen při dostupné hodnotě konverzí. Piš česky, stručně a prioritizovaně.",
 
         'clarity' => "Jsi analytik chování uživatelů na webu (Microsoft Clarity). Níže jsou behaviorální data webu za období. Najdi slabiny UX a kvality provozu a navrhni konkrétní zlepšení. Zaměř se na:\n"
             . "- Kvalitu provozu: podíl botů vs. lidí, nepokřivují boti čísla?\n"
@@ -482,8 +483,8 @@ function allstat_share_build(PDO $pdo, array $config, array $share): array
         allstat_share_section_linkedin($pdo, $domainId, $viewSourceId, $start, $end, $granularity, $payload);
     } elseif ($providerKey === 'youtube') {
         allstat_share_section_youtube($pdo, $domainId, $viewSourceId, $start, $end, $granularity, $payload);
-    } elseif ($providerKey === 'google_ads') {
-        allstat_share_section_google_ads($pdo, $domainId, $viewSourceId, $start, $end, $payload);
+    } elseif (in_array($providerKey, ['google_ads', 'microsoft_ads'], true)) {
+        allstat_share_section_google_ads($pdo, $domainId, $viewSourceId, $start, $end, $payload, $providerKey === 'microsoft_ads' ? 'Microsoft Ads' : 'Google Ads');
     } elseif ($providerKey === 'clarity') {
         allstat_share_section_clarity($pdo, $domainId, $viewSourceId, $start, $end, $payload);
     } elseif ($providerKey === 'seznam_wmt') {
@@ -1127,16 +1128,30 @@ function allstat_share_section_youtube(PDO $pdo, int $domainId, int $viewSourceI
 /**
  * Google Ads: KPI (útrata/ROAS/PNO/CPA/CTR/CPC/CPM…) + trend útraty/prokliků/zobrazení/konverzí.
  */
-function allstat_share_section_google_ads(PDO $pdo, int $domainId, int $viewSourceId, string $start, string $end, array &$payload): void
+function allstat_share_section_google_ads(PDO $pdo, int $domainId, int $viewSourceId, string $start, string $end, array &$payload, string $providerName = 'Google Ads'): void
 {
-    $kpis = allstat_get_google_ads_kpis($pdo, $domainId, $viewSourceId, $start, $end);
-    $payload['sections'][] = ['title' => 'KPI Google Ads', 'cols' => ['Metrika', 'Hodnota'],
+    $kpis = allstat_get_google_ads_kpis($pdo, $domainId, $viewSourceId, $start, $end, 'day', $providerName);
+    $payload['sections'][] = ['title' => 'KPI ' . $providerName, 'cols' => ['Metrika', 'Hodnota'],
         'rows' => array_map(static fn (array $m): array => [$m['label'] ?? '', $m['displayValue'] ?? ''], $kpis['metrics'] ?? [])];
     if (!empty($kpis['noConversions'])) {
         $payload['meta']['poznamka'] = 'Účet nemá měření hodnoty konverzí, ROAS/PNO/CPA/Konverze proto nejsou; hodnoť CTR/CPC/objem.';
     }
     $wk = allstat_share_weekly_section($pdo, $domainId, $viewSourceId, ['cost' => 'Útrata', 'clicks' => 'Kliknutí', 'impressions' => 'Zobrazení', 'conversions' => 'Konverze'], $start, $end);
     if ($wk) { $payload['sections'][] = $wk; }
+    if ($providerName === 'Microsoft Ads') {
+        $campaigns = allstat_get_google_ads_campaigns($pdo, $domainId, $viewSourceId, $start, $end, 15);
+        if ($campaigns) {
+            $payload['sections'][] = [
+                'title' => 'Kampaně Microsoft Ads',
+                'cols' => ['Kampaň', 'Útrata', 'Kliknutí', 'Zobrazení', 'Konverze', 'ROAS'],
+                'rows' => array_map(static fn (array $c): array => [
+                    $c['name'], allstat_number($c['cost'], 2), allstat_number($c['clicks']),
+                    allstat_number($c['impressions']), allstat_number($c['conversions'], 2),
+                    $c['roas'] !== null ? allstat_number($c['roas'], 2) . '×' : '–',
+                ], $campaigns),
+            ];
+        }
+    }
 }
 
 /**

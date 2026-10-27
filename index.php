@@ -179,10 +179,10 @@ if ($isGenericView) {
             'showChart' => count($adsKpis['labels']) > 1,
             'hasData' => $adsKpis['hasData'],
         ];
-    } elseif (($selectedProvider['provider_key'] ?? '') === 'google_ads') {
+    } elseif (in_array(($selectedProvider['provider_key'] ?? ''), ['google_ads', 'microsoft_ads'], true)) {
         // Google Ads gets its own rich PPC view: derived ROAS/PNO/CPA/CPC/CTR/CPM KPIs from the synced
         // cost/clicks/impressions/conversions/conversion_value (account-level).
-        $adsKpis = allstat_get_google_ads_kpis($pdo, (int) $domainId, $viewSourceId, $start, $end);
+        $adsKpis = allstat_get_google_ads_kpis($pdo, (int) $domainId, $viewSourceId, $start, $end, 'day', (string) $selectedProvider['name']);
         $googleAdsNoConversions = !empty($adsKpis['noConversions']);
         $googleAdsCampaigns = allstat_get_google_ads_campaigns($pdo, (int) $domainId, $viewSourceId, $start, $end, 15);
         $providerPayload = [
@@ -556,7 +556,9 @@ if ($isGenericView) {
             <section class="analytics-grid" aria-label="<?= h(t('Vybraný zdroj')) ?>">
                 <article class="panel panel-wide">
                     <div class="panel-header"><h2><?= h($selectedProvider['label']) ?> <span>(<?= h($selectedProvider['name']) ?>)</span></h2></div>
-                    <p class="panel-help"><?= h(t('{group}, data jen za {scope}. Nemíchá se s ostatními zdroji ani s GA4 přehledem.', ['group' => $provGroup, 'scope' => t($provIsAds ? 'tento reklamní účet' : 'tuto jednu stránku / účet')])) ?><?php if ($provIsAds): ?> <?= t('ROAS a konverze závisí na <strong>atribučním okně</strong> Meta (výchozí 7 dní klik / 1 den zobrazení; lze změnit v config_json napojení).') ?><?php endif; ?></p>
+                    <p class="panel-help"><?= h(t('{group}, data jen za {scope}. Nemíchá se s ostatními zdroji ani s GA4 přehledem.', ['group' => $provGroup, 'scope' => t($provIsAds ? 'tento reklamní účet' : 'tuto jednu stránku / účet')])) ?><?php if ($provIsAds): ?> <?= ($selectedProvider['provider_key'] ?? '') === 'microsoft_ads'
+                        ? t('ROAS a konverze vycházejí z atribučního nastavení účtu Microsoft Advertising.')
+                        : t('ROAS a konverze závisí na <strong>atribučním okně</strong> Meta (výchozí 7 dní klik / 1 den zobrazení; lze změnit v config_json napojení).') ?><?php endif; ?></p>
                 </article>
             </section>
             <section class="kpi-grid" aria-label="<?= h(t('Metriky zdroje')) ?>">

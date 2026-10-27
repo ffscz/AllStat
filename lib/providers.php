@@ -94,6 +94,17 @@ function allstat_default_providers(): array
             'docs_url' => 'https://developers.google.com/google-ads/api/docs/oauth/overview',
         ],
         [
+            'provider_key' => 'microsoft_ads',
+            'name' => 'Microsoft Ads',
+            'category' => 'ppc',
+            'supports_oauth' => 1,
+            'default_scopes' => 'profile email',
+            'auth_url' => 'https://accounts.google.com/o/oauth2/v2/auth',
+            'token_url' => 'https://oauth2.googleapis.com/token',
+            'api_base_url' => 'https://reporting.api.bingads.microsoft.com',
+            'docs_url' => 'https://learn.microsoft.com/en-us/advertising/guides/request-download-report?view=bingads-13',
+        ],
+        [
             'provider_key' => 'meta_ads',
             'name' => 'Meta Ads',
             'category' => 'ppc',
@@ -301,6 +312,22 @@ function allstat_provider_setup_guide(string $providerKey): array
                 t('Ulož a spusť OAuth.'),
             ],
         ],
+        'microsoft_ads' => [
+            'console_url' => 'https://console.cloud.google.com/apis/credentials',
+            'console_label' => 'Google Cloud Console',
+            'enable_apis' => ['Reporting API v13'],
+            'property_id_format' => t('Číselné Account ID'),
+            'property_id_where' => t('Microsoft Advertising → nastavení účtu → číslo účtu (Account ID). Customer ID je samostatné číslo zákazníka.'),
+            'pricing_note' => t('Reporting API vyžaduje Developer Token. Dostupnost a limity závisejí na schváleném přístupu.'),
+            'token_note' => t('Pro přihlášení Google účtem založ Google OAuth webovou aplikaci. Redirect URI je callback AllStatu. Google OAuth žádá profile, email a offline přístup; uživatel musí mít přístup k reklamnímu účtu. Varianta Microsoft Entra zůstává dostupná přes Pokročilé nastavení.'),
+            'steps' => [
+                t('V Google Cloud Console vytvoř OAuth client typu Web application a nastav přesnou adresu callbacku z AllStatu jako Authorized redirect URI.'),
+                t('Vytvoř Client secret a zkopíruj Client ID. Developer Token vyžádej v Microsoft Advertising API Center.'),
+                t('Pro Microsoft Entra nastav Authorization URL https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize a Token URL https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token. V obou použij stejný tenant: common, organizations, consumers, GUID nebo doménu.'),
+                t('Vyplň Account ID, Customer ID, Client ID, Client secret a Developer Token. Ulož napojení a spusť OAuth.'),
+                t('Otestuj napojení a potom stáhni historii. Údaje se ukládají v měně reklamního účtu.'),
+            ],
+        ],
         default => [],
     };
 }
@@ -371,6 +398,24 @@ function allstat_provider_form_schema(string $providerKey): array
                 $clientSecret,
                 ['name' => 'login_customer_id', 'label' => t('MCC / Login customer ID (volitelné)'), 'type' => 'text', 'config' => 'login_customer_id',
                  'help' => t('Jen pokud přistupuješ přes manažerský účet. Bez pomlček.'), 'required' => false],
+            ],
+        ],
+        'microsoft_ads' => [
+            'connect' => 'oauth',
+            'intro' => t('Denní výkon účtu a kampaní Microsoft Ads.'),
+            'fields' => [
+                ['name' => 'property_id', 'label' => t('Account ID'), 'type' => 'text', 'placeholder' => '123456789',
+                 'help' => t('Číselné ID reklamního účtu.'), 'required' => true],
+                ['name' => 'customer_id', 'label' => t('Customer ID'), 'type' => 'text', 'config' => 'customer_id',
+                 'help' => t('Číselné ID zákazníka, pod kterým je účet dostupný.'), 'required' => true],
+                ['name' => 'report_timezone', 'label' => t('Časová zóna reportu'), 'type' => 'text', 'config' => 'report_timezone',
+                 'placeholder' => 'BelgradeBratislavaBudapestLjubljanaPrague',
+                 'help' => t('Výchozí je Praha. Pro účet v jiné zóně zadej hodnotu ReportTimeZone z dokumentace Microsoft Advertising.'), 'required' => false],
+                ['name' => 'client_id', 'label' => 'Client ID (Google OAuth)', 'type' => 'text',
+                 'help' => t('Google Cloud Console → Credentials → OAuth client typu Web application. Pro variantu Microsoft Entra nastav její URL v Pokročilém nastavení.'), 'required' => true],
+                $clientSecret,
+                ['name' => 'developer_token', 'label' => 'Developer Token', 'type' => 'password', 'config' => 'developer_token', 'secret_config' => true,
+                 'help' => t('Ukládá se šifrovaně. Prázdné pole při úpravě zachová uloženou hodnotu.'), 'required' => true],
             ],
         ],
         'youtube' => [
@@ -495,6 +540,13 @@ function allstat_provider_allowed_hosts(string $providerKey): array
             'searchconsole.googleapis.com',
             'googleads.googleapis.com',
         ],
+        'microsoft_ads' => [
+            'accounts.google.com',
+            'oauth2.googleapis.com',
+            'login.microsoftonline.com',
+            'reporting.api.bingads.microsoft.com',
+            'reporting.api.sandbox.bingads.microsoft.com',
+        ],
         'youtube' => [
             'accounts.google.com',
             'oauth2.googleapis.com',
@@ -538,6 +590,35 @@ function allstat_provider_url_allowed(string $providerKey, ?string $url): bool
     return in_array($host, allstat_provider_allowed_hosts($providerKey), true);
 }
 
+/** OAuth endpointy určují identitu; nepovolíme smíchat Google autorizaci s Entra tokenem. */
+function allstat_microsoft_ads_identity_provider(array $connection): ?string
+{
+    $auth = (string) ($connection['auth_url'] ?? '');
+    $token = (string) ($connection['token_url'] ?? '');
+    if ($auth === 'https://accounts.google.com/o/oauth2/v2/auth' && $token === 'https://oauth2.googleapis.com/token') {
+        return 'Google';
+    }
+    $prefix = 'https://login.microsoftonline.com/';
+    if (str_starts_with($auth, $prefix)
+        && preg_match('#^https://login\.microsoftonline\.com/([A-Za-z0-9.-]+)/oauth2/v2\.0/authorize$#D', $auth, $matches) === 1
+        && $token === $prefix . $matches[1] . '/oauth2/v2.0/token'
+        && (in_array(strtolower($matches[1]), ['common', 'organizations', 'consumers'], true)
+            || preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iD', $matches[1]) === 1
+            || (filter_var($matches[1], FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME) !== false && str_contains($matches[1], '.')))) {
+        return 'Microsoft';
+    }
+    return null;
+}
+
+/** Reporting host must never be an OAuth host, even though both are allowed provider URLs. */
+function allstat_microsoft_ads_api_base_allowed(?string $url): bool
+{
+    return in_array($url, [
+        'https://reporting.api.bingads.microsoft.com',
+        'https://reporting.api.sandbox.bingads.microsoft.com',
+    ], true);
+}
+
 /**
  * Znovu ověří adresy uložené u napojení (auth_url, token_url, api_base_url) těsně před tím, než se na ně
  * pošle token nebo client secret. Formulář je kontroluje při uložení, ale v DB mohou být i ze starší verze
@@ -551,6 +632,14 @@ function allstat_connection_urls_error(array $connection): ?string
         if (!allstat_provider_url_allowed($providerKey, (string) ($connection[$field] ?? ''))) {
             return t('{label} u napojení nemíří přes HTTPS na povolenou doménu providera. Opravte ji v úpravě napojení.', ['label' => $label]);
         }
+    }
+
+    if ($providerKey === 'microsoft_ads' && allstat_microsoft_ads_identity_provider($connection) === null) {
+        return t('Microsoft Ads: Authorization URL a Token URL musí být odpovídající oficiální dvojice Google nebo Microsoft OAuth.');
+    }
+
+    if ($providerKey === 'microsoft_ads' && !allstat_microsoft_ads_api_base_allowed((string) ($connection['api_base_url'] ?? ''))) {
+        return t('Microsoft Ads: API Base URL musí být oficiální Reporting API host.');
     }
 
     return null;
@@ -577,6 +666,7 @@ function allstat_provider_icon_svg(string $providerKey): string
         'linkedin_company' => $svg('<rect x="2.5" y="2.5" width="19" height="19" rx="3" fill="#0A66C2"/><rect x="6" y="10" width="2.8" height="8" fill="#fff"/><circle cx="7.4" cy="6.9" r="1.6" fill="#fff"/><path d="M11.5 10h2.7v1.2c.5-.8 1.4-1.4 2.7-1.4 2.1 0 3.1 1.3 3.1 3.6V18h-2.8v-4.1c0-1.1-.4-1.7-1.3-1.7-1 0-1.6.7-1.6 1.9V18h-2.8z" fill="#fff"/>'),
         'meta_ads' => $svg('<circle cx="7.5" cy="12" r="4.4" fill="none" stroke="#0081FB" stroke-width="2.2"/><circle cx="16.5" cy="12" r="4.4" fill="none" stroke="#0081FB" stroke-width="2.2"/>'),
         'google_ads' => $svg('<rect x="9.4" y="3.2" width="5.2" height="15.4" rx="2.6" transform="rotate(-30 12 11)" fill="#4285F4"/><rect x="9.4" y="3.2" width="5.2" height="15.4" rx="2.6" transform="rotate(30 12 11)" fill="#FBBC04"/><circle cx="5.4" cy="18.3" r="2.7" fill="#34A853"/>'),
+        'microsoft_ads' => $svg('<path d="M3 4h8l3 8-3 8H3l3-8z" fill="#00A4EF"/><path d="M14 4h7v16h-7l-3-8z" fill="#7FBA00"/>'),
         'youtube' => $svg('<rect x="2" y="5" width="20" height="14" rx="4" fill="#FF0000"/><path d="M10 9v6l5-3z" fill="#fff"/>'),
         'seznam_wmt' => $svg('<circle cx="12" cy="12" r="9.5" fill="#CC0000"/><path d="M15.6 8.4c-.8-.8-2-1.2-3.4-1.2-2.3 0-3.9 1.2-3.9 3 0 3.4 5.6 2.3 5.6 4.1 0 .7-.7 1.1-1.8 1.1-1.2 0-2.3-.5-3.1-1.3l-1.3 1.7c1.1 1 2.7 1.6 4.4 1.6 2.4 0 4-1.2 4-3 0-3.5-5.6-2.5-5.6-4.2 0-.6.6-1 1.6-1 1 0 1.9.4 2.6 1z" fill="#fff"/>'),
         default => $svg('<path d="M4 19V5m0 14h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="m7 14 4-4 3 3 5-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'),

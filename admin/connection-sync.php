@@ -8,6 +8,9 @@ $user = allstat_require_user($pdo, $config);
 allstat_require_admin($user);
 allstat_csrf_check();
 
+// Reporting API may need several polling rounds and a subsequent download.
+if (function_exists('set_time_limit')) { set_time_limit(300); }
+
 header('Content-Type: application/json; charset=utf-8');
 
 $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT) ?: 0;

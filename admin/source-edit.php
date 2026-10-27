@@ -83,6 +83,15 @@ if (!$id && (!$selectedSource || $selectedSourceId <= 0)) {
 
 $providerKey = (string) ($selectedSource['provider_key'] ?? '');
 $schema = allstat_provider_form_schema($providerKey);
+if ($providerKey === 'microsoft_ads' && allstat_microsoft_ads_identity_provider($connection) === 'Microsoft') {
+    foreach ($schema['fields'] as &$field) {
+        if ($field['name'] === 'client_id') {
+            $field['label'] = 'Client ID (Microsoft Entra)';
+            $field['help'] = t('Microsoft Entra → App registrations → Application (client) ID.');
+        }
+    }
+    unset($field);
+}
 $connect = $schema['connect'] ?? 'oauth';
 $guide = allstat_provider_setup_guide($providerKey);
 
