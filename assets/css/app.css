@@ -866,11 +866,6 @@ th.is-sorted-desc::after { content: "\25BC"; opacity: 1; }
     background: rgba(37, 99, 235, 0.14);
 }
 
-.status-error {
-    color: #be123c;
-    background: rgba(244, 63, 94, 0.18);
-}
-
 .status-ai {
     color: #0f766e;
     background: rgba(20, 184, 166, 0.18);
@@ -891,11 +886,6 @@ th.is-sorted-desc::after { content: "\25BC"; opacity: 1; }
 [data-theme="dark"] .status-info {
     color: #93c5fd;
     background: rgba(37, 99, 235, 0.24);
-}
-
-[data-theme="dark"] .status-error {
-    color: #fda4af;
-    background: rgba(244, 63, 94, 0.24);
 }
 
 [data-theme="dark"] .status-ai {
@@ -1599,99 +1589,6 @@ th.is-sorted-desc::after { content: "\25BC"; opacity: 1; }
 
 .update-card + .sync-card {
     margin-top: 10px;
-}
-
-/* Stránka Aktualizace */
-.update-facts {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 12px;
-    margin: 0 0 14px;
-}
-
-.update-facts dt {
-    color: var(--muted);
-    font-size: 12px;
-}
-
-.update-facts dd {
-    margin: 2px 0 0;
-    font-size: 16px;
-    font-weight: 650;
-}
-
-.update-subhead {
-    margin: 18px 0 8px;
-    font-size: 14px;
-}
-
-.update-subhead:first-child {
-    margin-top: 0;
-}
-
-.update-notes {
-    padding: 12px 14px;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    background: var(--surface-muted);
-    font-size: 13px;
-    line-height: 1.55;
-}
-
-.update-code {
-    margin: 0 0 8px;
-    padding: 10px 12px;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    background: var(--surface-muted);
-    font-size: 12px;
-    line-height: 1.5;
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
-}
-
-.update-checks {
-    display: grid;
-    gap: 4px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    font-size: 13px;
-}
-
-.update-checks .is-ok span {
-    color: var(--green);
-    font-weight: 700;
-}
-
-.update-checks .is-bad span {
-    color: var(--rose);
-    font-weight: 700;
-}
-
-.update-modified {
-    margin-top: 10px;
-    font-size: 13px;
-}
-
-.form-stack .update-confirm {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    color: var(--text);
-    font-size: 13px;
-}
-
-.form-stack .update-confirm input {
-    width: 16px;
-    min-height: 16px;
-    height: 16px;
-    margin-top: 2px;
-}
-
-.update-history td:last-child {
-    min-width: 280px;
-    white-space: normal;
 }
 
 /* Verze aplikace v bočním panelu (lib/version.php): v kartě synchronizace a dole v administraci. */

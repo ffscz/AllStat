@@ -176,7 +176,7 @@ function allstat_sites_sparkline(array $values, int $width = 260, int $height = 
 {
     $count = count($values);
     if ($count < 2 || max($values) <= 0) {
-        return '<svg class="site-spark" viewBox="0 0 ' . $width . ' ' . $height . '" preserveAspectRatio="none" aria-hidden="true"><line x1="0" y1="' . ($height - 1) . '" x2="' . $width . '" y2="' . ($height - 1) . '" class="site-spark-base"/></svg>';
+        return '<svg class="site-spark" width="100%" height="' . $height . '" viewBox="0 0 ' . $width . ' ' . $height . '" preserveAspectRatio="none" aria-hidden="true"><line x1="0" y1="' . ($height - 1) . '" x2="' . $width . '" y2="' . ($height - 1) . '" class="site-spark-base" stroke="var(--border-strong)" stroke-width="1"/></svg>';
     }
     $max = max($values);
     $points = [];
@@ -186,7 +186,7 @@ function allstat_sites_sparkline(array $values, int $width = 260, int $height = 
         $points[] = $x . ',' . $y;
     }
 
-    return '<svg class="site-spark" viewBox="0 0 ' . $width . ' ' . $height . '" preserveAspectRatio="none" aria-hidden="true">'
-        . '<line x1="0" y1="' . ($height - 1) . '" x2="' . $width . '" y2="' . ($height - 1) . '" class="site-spark-base"/>'
-        . '<polyline points="' . implode(' ', $points) . '" class="site-spark-line" vector-effect="non-scaling-stroke"/></svg>';
+    return '<svg class="site-spark" width="100%" height="' . $height . '" viewBox="0 0 ' . $width . ' ' . $height . '" preserveAspectRatio="none" aria-hidden="true">'
+        . '<line x1="0" y1="' . ($height - 1) . '" x2="' . $width . '" y2="' . ($height - 1) . '" class="site-spark-base" stroke="var(--border-strong)" stroke-width="1"/>'
+        . '<polyline points="' . implode(' ', $points) . '" class="site-spark-line" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>';
 }
