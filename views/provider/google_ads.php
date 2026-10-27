@@ -1,48 +1,41 @@
 <?php
 /**
- * Provider-view partial — Google Ads. Included by index.php inside the generic provider view when
- * provider_key = 'google_ads'. In scope from index.php: $googleAdsNoConversions, $googleAdsCampaigns + h().
- * Presentation only — the shared KPI grid (Útrata/ROAS/PNO/CPA/CPC/CTR/CPM…) + trend are rendered by index.php.
+ * Detail zdroje – Google Ads (a Microsoft Ads, viz microsoft_ads.php): kampaně za období podle útraty.
+ * Záložky metrik (Útrata/ROAS/PNO/CPA/CPC/CTR/CPM…) a graf kreslí views/provider.php.
+ * V rozsahu z index.php: $googleAdsNoConversions, $googleAdsCampaigns, $selectedProvider. Jen prezentace.
  */
+$adsProviderName = ($selectedProvider['provider_key'] ?? '') === 'microsoft_ads' ? 'Microsoft Ads' : 'Google Ads';
 ?>
-<?php $adsProviderName = ($selectedProvider['provider_key'] ?? '') === 'microsoft_ads' ? 'Microsoft Ads' : 'Google Ads'; ?>
-<?php if (!empty($googleAdsCampaigns)): ?>
-<section class="tables-grid" aria-label="<?= h($adsProviderName === 'Google Ads' ? t('Google Ads kampaně') : t('Microsoft Ads kampaně')) ?>">
-    <article class="panel table-panel table-panel-wide">
-        <div class="panel-header"><h2><?= h(t('Kampaně')) ?> <span>(<?= h($adsProviderName) ?>)</span></h2></div>
-        <p class="panel-help"><?= h(str_replace('Google Ads', $adsProviderName, t('Kampaně za zvolené období seřazené podle útraty, součet dní s útratou. Částky v měně účtu Google Ads.'))) ?><?= empty($googleAdsNoConversions) ? ' ' . h(t('ROAS a CPA dávají smysl jen u kampaní s měřením konverzí.')) : '' ?></p>
-        <div class="table-scroll">
-            <table>
-                <thead><tr><th><?= h(t('Kampaň')) ?></th><th><?= h(t('Útrata')) ?></th><th><?= h(t('Zobrazení')) ?></th><th><?= h(t('Kliknutí')) ?></th><th>CTR</th><th>CPC</th><?php if (empty($googleAdsNoConversions)): ?><th><?= h(t('Konverze')) ?></th><th>CPA</th><th>ROAS</th><?php endif; ?></tr></thead>
-                <tbody>
-                    <?php foreach ($googleAdsCampaigns as $campaign): ?>
-                        <tr>
-                            <td><?= h($campaign['name']) ?><br><small class="table-muted"><?= h($campaign['runLabel']) ?></small></td>
-                            <td><?= h(allstat_number($campaign['cost'], $adsProviderName === 'Microsoft Ads' ? 2 : 0)) ?></td>
-                            <td><?= h(allstat_number($campaign['impressions'], 0)) ?></td>
-                            <td><?= h(allstat_number($campaign['clicks'], 0)) ?></td>
-                            <td><?= h($campaign['ctr'] !== null ? allstat_percent($campaign['ctr'], 2) : '—') ?></td>
-                            <td><?= h($campaign['cpc'] !== null ? allstat_number($campaign['cpc'], 2) : '—') ?></td>
-                            <?php if (empty($googleAdsNoConversions)): ?>
-                            <td><?= h(allstat_number($campaign['conversions'], 1)) ?></td>
-                            <td><?= h($campaign['cpa'] !== null ? allstat_number($campaign['cpa'], 2) : '—') ?></td>
-                            <td><?= h($campaign['roas'] !== null ? allstat_number($campaign['roas'], 2) . '×' : '—') ?></td>
-                            <?php endif; ?>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
-    </article>
-</section>
-<?php endif; ?>
 <?php if (!empty($googleAdsNoConversions)): ?>
-<section class="analytics-grid" aria-label="<?= h(t('Poznámka ke konverzím')) ?>">
-    <article class="panel panel-wide">
-        <div class="panel-header"><h2><?= h(t('Pozn.: tenhle účet nehlásí hodnotu konverzí')) ?></h2></div>
-        <p class="panel-help">
-            <?= str_replace('Google Ads', h($adsProviderName), t('Google Ads účet za toto období <strong>nehlásí konverze ani jejich hodnotu</strong> (chybí konverzní sledování / hodnota konverzí, nebo účet jede jen na provoz). Proto jsme dlaždice <strong>ROAS, PNO, Konverze, CPA a Hodnotu konverzí skryli</strong>, nemělo by smysl ukazovat samé nuly, <strong>není to chyba</strong>. Sleduj místo toho <strong>CTR, CPC, CPM</strong> a Kliknutí. Jakmile v Google Ads nastavíš sledování hodnoty konverzí, dopočítají se i ROAS / PNO / CPA.')) ?>
-        </p>
-    </article>
+<div class="callout tone-warn">
+    <?= allstat_icon('info', 'icon-sm') ?>
+    <span><strong><?= h(t('Pozn.: tenhle účet nehlásí hodnotu konverzí')) ?></strong> <?= str_replace('Google Ads', h($adsProviderName), t('Google Ads účet za toto období <strong>nehlásí konverze ani jejich hodnotu</strong> (chybí konverzní sledování / hodnota konverzí, nebo účet jede jen na provoz). Proto jsme dlaždice <strong>ROAS, PNO, Konverze, CPA a Hodnotu konverzí skryli</strong>, nemělo by smysl ukazovat samé nuly, <strong>není to chyba</strong>. Sleduj místo toho <strong>CTR, CPC, CPM</strong> a Kliknutí. Jakmile v Google Ads nastavíš sledování hodnoty konverzí, dopočítají se i ROAS / PNO / CPA.')) ?></span>
+</div>
+<?php endif; ?>
+<?php if (!empty($googleAdsCampaigns)): ?>
+<section class="card card-clip">
+    <?= allstat_ui_card_head(t('Kampaně'), $adsProviderName, h(str_replace('Google Ads', $adsProviderName, t('Kampaně za zvolené období seřazené podle útraty, součet dní s útratou. Částky v měně účtu Google Ads.'))) . (empty($googleAdsNoConversions) ? ' ' . h(t('ROAS a CPA dávají smysl jen u kampaní s měřením konverzí.')) : '')) ?>
+    <div class="table-wrap">
+        <table class="table table-wide">
+            <thead><tr><th scope="col"><?= h(t('Kampaň')) ?></th><th scope="col" style="width: 104px"><?= h(t('Útrata')) ?></th><th scope="col" style="width: 104px"><?= h(t('Zobrazení')) ?></th><th scope="col" style="width: 88px"><?= h(t('Kliknutí')) ?></th><th scope="col" style="width: 72px">CTR</th><th scope="col" style="width: 72px">CPC</th><?php if (empty($googleAdsNoConversions)): ?><th scope="col" style="width: 88px"><?= h(t('Konverze')) ?></th><th scope="col" style="width: 72px">CPA</th><th scope="col" style="width: 72px">ROAS</th><?php endif; ?></tr></thead>
+            <tbody>
+                <?php foreach ($googleAdsCampaigns as $campaign): ?>
+                    <tr>
+                        <td><div class="post"><span class="post-text"><?= h($campaign['name']) ?></span><span class="post-meta"><?= h($campaign['runLabel']) ?></span></div></td>
+                        <td class="num is-strong"><?= h(allstat_number($campaign['cost'], $adsProviderName === 'Microsoft Ads' ? 2 : 0)) ?></td>
+                        <td class="num"><?= h(allstat_number($campaign['impressions'], 0)) ?></td>
+                        <td class="num"><?= h(allstat_number($campaign['clicks'], 0)) ?></td>
+                        <td class="num"><?= h($campaign['ctr'] !== null ? allstat_percent($campaign['ctr'], 2) : '–') ?></td>
+                        <td class="num"><?= h($campaign['cpc'] !== null ? allstat_number($campaign['cpc'], 2) : '–') ?></td>
+                        <?php if (empty($googleAdsNoConversions)): ?>
+                        <td class="num"><?= h(allstat_number($campaign['conversions'], 1)) ?></td>
+                        <td class="num"><?= h($campaign['cpa'] !== null ? allstat_number($campaign['cpa'], 2) : '–') ?></td>
+                        <td class="num"><?= h($campaign['roas'] !== null ? allstat_number($campaign['roas'], 2) . '×' : '–') ?></td>
+                        <?php endif; ?>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
 </section>
 <?php endif; ?>
