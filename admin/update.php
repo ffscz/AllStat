@@ -63,159 +63,160 @@ $fmtDate = static fn (?string $value): string => $value ? allstat_date_label($va
 
 allstat_admin_header(t('Aktualizace'), 'update', $user, $config);
 ?>
-<div class="admin-card">
-    <div class="admin-card-header">
+<section class="card">
+    <div class="card-head">
         <div>
-            <h2><?= h(t('Verze aplikace')) ?></h2>
-            <p><?= h(t('Nové verze vydává autor na GitHubu. AllStat je kontroluje sám (nejvýš dvakrát denně) a nainstaluje je jedním tlačítkem.')) ?></p>
+            <h2 class="card-title"><?= h(t('Verze aplikace')) ?></h2>
+            <p class="card-desc"><?= h(t('Nové verze vydává autor na GitHubu. AllStat je kontroluje sám (nejvýš dvakrát denně) a nainstaluje je jedním tlačítkem.')) ?></p>
         </div>
         <?php if ($installed !== null): ?>
-            <span class="status-badge status-<?= $status['available'] ? 'warning' : 'ok' ?>"><?= h($status['available'] ? t('Je nová verze') : t('Aktuální')) ?></span>
+            <?= allstat_status_pill($status['available'] ? 'warning' : 'ok', $status['available'] ? t('Je nová verze') : t('Aktuální')) ?>
         <?php endif; ?>
     </div>
-    <div class="admin-card-body">
+    <div class="card-body section">
         <?php if ($installed === null): ?>
-            <p><?= t('Tahle instalace nepochází z veřejného balíčku (chybí soubor <code>VERSION</code>), aktualizace do ní nasazuje vývojář. Automatická aktualizace je jen pro instalace z <a href="https://github.com/ffscz/AllStat/releases" target="_blank" rel="noopener">vydání na GitHubu</a>.') ?></p>
+            <p class="is-muted"><?= t('Tahle instalace nepochází z veřejného balíčku (chybí soubor <code>VERSION</code>), aktualizace do ní nasazuje vývojář. Automatická aktualizace je jen pro instalace z <a href="https://github.com/ffscz/AllStat/releases" target="_blank" rel="noopener">vydání na GitHubu</a>.') ?></p>
         <?php else: ?>
-            <dl class="update-facts">
-                <div><dt><?= h(t('Nainstalovaná verze')) ?></dt><dd><?= h($installed) ?></dd></div>
-                <div><dt><?= h(t('Nejnovější verze')) ?></dt><dd><?= h($latest['version'] ?? t('neznámá')) ?></dd></div>
-                <div><dt><?= h(t('Poslední kontrola')) ?></dt><dd><?= h($fmtDate($status['checked_at'])) ?></dd></div>
-                <div><dt><?= h(t('Databáze')) ?></dt><dd><?= h($schemaOk ? t('aktuální') : t('čeká na doplnění')) ?></dd></div>
-            </dl>
-            <?php if ($status['error']): ?><p class="notice notice-error"><?= h(t($status['error'])) ?></p><?php endif; ?>
+            <div class="grid grid-kpis">
+                <div class="card kpi"><span class="metric-label"><?= h(t('Nainstalovaná verze')) ?></span><span class="metric-value num"><?= h($installed) ?></span></div>
+                <div class="card kpi"><span class="metric-label"><?= h(t('Nejnovější verze')) ?></span><span class="metric-value num"><?= h($latest['version'] ?? t('neznámá')) ?></span></div>
+                <div class="card kpi"><span class="metric-label"><?= h(t('Poslední kontrola')) ?></span><span class="metric-value num"><?= h($fmtDate($status['checked_at'])) ?></span></div>
+                <div class="card kpi"><span class="metric-label"><?= h(t('Databáze')) ?></span><span class="metric-value num"><?= h($schemaOk ? t('aktuální') : t('čeká na doplnění')) ?></span></div>
+            </div>
+            <?php if ($status['error']): ?><div class="callout tone-down"><?= allstat_icon('info', 'icon-sm') ?><div><?= h(t($status['error'])) ?></div></div><?php endif; ?>
             <form method="post" class="form-actions">
                 <?= allstat_csrf_field() ?>
                 <input type="hidden" name="action" value="check">
-                <button class="button-secondary" type="submit"><?= h(t('Zkontrolovat teď')) ?></button>
+                <button class="btn btn-secondary" type="submit"><?= h(t('Zkontrolovat teď')) ?></button>
             </form>
         <?php endif; ?>
     </div>
-</div>
+</section>
 
 <?php foreach ($protectedPending as $item): ?>
-<div class="admin-card">
-    <div class="admin-card-header">
+<section class="card">
+    <div class="card-head">
         <div>
-            <h2><?= h(t('Soubor {file}: pravidla k doplnění', ['file' => $item['file']])) ?></h2>
-            <p><?= t('AllStat funguje, tohle není chyba. Soubor <code>{file}</code> (pravidla webového serveru) má na hostingu vlastní úpravy, třeba od hostingu nebo blokování robotů, proto ho aktualizace nepřepsala. Automaticky pravidla doplnit nešlo, nová verze je proto vedle jako <code>{file}.new</code> a v tvém souboru z ní chybí bloky níže.', ['file' => h($item['file'])]) ?> <?= allstat_help_link('htaccess', t('Co s tím')) ?></p>
+            <h2 class="card-title"><?= h(t('Soubor {file}: pravidla k doplnění', ['file' => $item['file']])) ?></h2>
+            <p class="card-desc"><?= t('AllStat funguje, tohle není chyba. Soubor <code>{file}</code> (pravidla webového serveru) má na hostingu vlastní úpravy, třeba od hostingu nebo blokování robotů, proto ho aktualizace nepřepsala. Automaticky pravidla doplnit nešlo, nová verze je proto vedle jako <code>{file}.new</code> a v tvém souboru z ní chybí bloky níže.', ['file' => h($item['file'])]) ?> <?= allstat_help_link('htaccess', t('Co s tím')) ?></p>
         </div>
-        <span class="status-badge status-warning"><?= h(t('Ke kontrole')) ?></span>
+        <?= allstat_status_pill('warning', t('Ke kontrole')) ?>
     </div>
-    <div class="admin-card-body">
+    <div class="card-body section">
         <?php foreach ($item['blocks'] as $block): ?>
-            <?php if ($block['title'] !== ''): ?><h3 class="update-subhead"><?= h($block['title']) ?></h3><?php endif; ?>
-            <pre class="update-code"><code><?= h($block['code']) ?></code></pre>
+            <?php if ($block['title'] !== ''): ?><h3 class="block-title"><?= h($block['title']) ?></h3><?php endif; ?>
+            <pre class="code"><?= h($block['code']) ?></pre>
         <?php endforeach; ?>
         <p class="field-help"><?= t('Jak na to: přes FTP nebo správce souborů na hostingu otevři <code>{file}</code> a z <code>{file}.new</code> do něj zkopíruj celý blok od <code># BEGIN AllStat</code> po <code># END AllStat</code> (místo starších pravidel AllStatu), vlastní úpravy nech. Když žádné vlastní úpravy nepotřebuješ, smaž <code>{file}</code> a <code>{file}.new</code> přejmenuj na <code>{file}</code>. Jakmile pravidla v souboru budou, karta zmizí sama.', ['file' => h($item['file'])]) ?></p>
         <form method="post" class="form-actions" data-confirm="<?= h(t('Nechat svůj {file} a smazat {file}.new?', ['file' => $item['file']])) ?>">
             <?= allstat_csrf_field() ?>
             <input type="hidden" name="action" value="dismiss_new">
             <input type="hidden" name="file" value="<?= h($item['file']) ?>">
-            <button class="button-secondary" type="submit"><?= h(t('Nechat svůj soubor a smazat {file}.new', ['file' => $item['file']])) ?></button>
+            <button class="btn btn-secondary" type="submit"><?= h(t('Nechat svůj soubor a smazat {file}.new', ['file' => $item['file']])) ?></button>
         </form>
     </div>
-</div>
+</section>
 <?php endforeach; ?>
 
 <?php if ($status['available'] && $latest && $preflight): ?>
-<div class="admin-card">
-    <div class="admin-card-header">
+<section class="card">
+    <div class="card-head">
         <div>
-            <h2><?= h(t('Nová verze {version}', ['version' => $latest['version']])) ?></h2>
-            <p><?= $latest['published'] ? h(t('Vydáno {date}.', ['date' => $fmtDate($latest['published'])])) . ' ' : '' ?><?php if ($latest['html_url']): ?><a href="<?= h($latest['html_url']) ?>" target="_blank" rel="noopener"><?= h(t('Podrobnosti na GitHubu')) ?></a><?php endif; ?></p>
+            <h2 class="card-title"><?= h(t('Nová verze {version}', ['version' => $latest['version']])) ?></h2>
+            <p class="card-desc"><?= $latest['published'] ? h(t('Vydáno {date}.', ['date' => $fmtDate($latest['published'])])) . ' ' : '' ?><?php if ($latest['html_url']): ?><a class="link-more" href="<?= h($latest['html_url']) ?>" target="_blank" rel="noopener"><?= h(t('Podrobnosti na GitHubu')) ?></a><?php endif; ?></p>
         </div>
     </div>
-    <div class="admin-card-body">
+    <div class="card-body section">
         <?php if ($latest['notes'] !== ''): ?>
-            <h3 class="update-subhead"><?= h(t('Co je nového')) ?></h3>
-            <div class="update-notes"><?= nl2br(h($latest['notes'])) ?></div>
+            <h3 class="block-title"><?= h(t('Co je nového')) ?></h3>
+            <div class="callout"><div><?= nl2br(h($latest['notes'])) ?></div></div>
         <?php endif; ?>
 
-        <h3 class="update-subhead"><?= h(t('Kontrola serveru')) ?></h3>
-        <ul class="update-checks">
+        <h3 class="block-title"><?= h(t('Kontrola serveru')) ?></h3>
+        <ul class="rows">
             <?php foreach ($preflight['checks'] as $check): ?>
-                <li class="<?= $check['ok'] ? 'is-ok' : 'is-bad' ?>"><span aria-hidden="true"><?= $check['ok'] ? '✓' : '✕' ?></span> <?= h(t($check['label'])) ?></li>
+                <li class="row"><span class="row-label"><span class="<?= $check['ok'] ? 'is-up' : 'is-down' ?>" aria-hidden="true"><?= $check['ok'] ? '✓' : '✕' ?></span> <?= h(t($check['label'])) ?></span></li>
             <?php endforeach; ?>
         </ul>
         <?php if ($preflight['modified']): ?>
-            <details class="update-modified">
-                <summary><?= h(t('Ručně upravené soubory ({count}): přepíšou se, původní verze zůstanou v záloze', ['count' => count($preflight['modified'])])) ?></summary>
-                <ul><?php foreach ($preflight['modified'] as $rel): ?><li><code><?= h($rel) ?></code></li><?php endforeach; ?></ul>
+            <details class="card note">
+                <summary><?= allstat_icon('info', 'icon') ?><span><?= h(t('Ručně upravené soubory ({count}): přepíšou se, původní verze zůstanou v záloze', ['count' => count($preflight['modified'])])) ?></span><?= allstat_icon('chevron-down', 'note-chev') ?></summary>
+                <div class="note-body"><ul><?php foreach ($preflight['modified'] as $rel): ?><li><code><?= h($rel) ?></code></li><?php endforeach; ?></ul></div>
             </details>
         <?php endif; ?>
 
-        <h3 class="update-subhead"><?= h(t('Co se stane')) ?></h3>
+        <h3 class="block-title"><?= h(t('Co se stane')) ?></h3>
         <p class="field-help"><?= t('Balíček se stáhne a ověří jeho podpis (bez platného podpisu se nic nenainstaluje). Soubory, které se přepíšou, se zálohují, pak se vymění a databáze se při dalším načtení sama doplní (nové tabulky a sloupce, data se nemažou). Soubory <code>config.php</code> a <code>config-keys.php</code> zůstanou beze změny, v upraveném <code>.htaccess</code> se přepíše jen blok pravidel AllStatu, vlastní úpravy zůstanou (a když by pak AllStat neodpovídal, změna se sama vrátí). Trvá to pár sekund a předchozí verzi jde vrátit.') ?></p>
 
         <?php if ($preflight['ok']): ?>
-            <form method="post" class="form-stack update-install" data-confirm="<?= h(t('Nainstalovat AllStat {version}?', ['version' => $latest['version']])) ?>">
+            <form method="post" class="section" data-confirm="<?= h(t('Nainstalovat AllStat {version}?', ['version' => $latest['version']])) ?>">
                 <?= allstat_csrf_field() ?>
                 <input type="hidden" name="action" value="install">
-                <label class="update-confirm"><input type="checkbox" name="backup_ok" value="1" required> <?= h(t('Mám zálohu databáze (administrace hostingu, phpMyAdmin, Exportovat).')) ?></label>
-                <div class="form-actions"><button class="button-primary" type="submit"><?= h(t('Aktualizovat na {version}', ['version' => $latest['version']])) ?></button></div>
+                <label class="check"><input type="checkbox" name="backup_ok" value="1" required><span><?= h(t('Mám zálohu databáze (administrace hostingu, phpMyAdmin, Exportovat).')) ?></span></label>
+                <div class="form-actions"><button class="btn btn-primary" type="submit"><?= h(t('Aktualizovat na {version}', ['version' => $latest['version']])) ?></button></div>
             </form>
         <?php else: ?>
-            <p class="notice notice-error"><?= h(t('Server zatím aktualizaci nesplňuje, oprav prosím položky označené ✕.')) ?></p>
+            <div class="callout tone-down"><?= allstat_icon('info', 'icon-sm') ?><div><?= h(t('Server zatím aktualizaci nesplňuje, oprav prosím položky označené ✕.')) ?></div></div>
         <?php endif; ?>
     </div>
-</div>
+</section>
 <?php endif; ?>
 
 <?php if ($installed !== null && !$status['available'] && $latest && $preflight): ?>
-<div class="admin-card">
-    <div class="admin-card-header">
+<section class="card">
+    <div class="card-head">
         <div>
-            <h2><?= h(t('Obnovit z GitHubu')) ?></h2>
-            <p><?= h(t('Přeinstaluje soubory aplikace z vydání {version} na GitHubu, třeba když se nepovede ruční nasazení nebo se poškodí soubory.', ['version' => $latest['version']])) ?></p>
+            <h2 class="card-title"><?= h(t('Obnovit z GitHubu')) ?></h2>
+            <p class="card-desc"><?= h(t('Přeinstaluje soubory aplikace z vydání {version} na GitHubu, třeba když se nepovede ruční nasazení nebo se poškodí soubory.', ['version' => $latest['version']])) ?></p>
         </div>
     </div>
-    <div class="admin-card-body">
+    <div class="card-body section">
         <p class="field-help"><?= t('Postup je stejný jako u aktualizace: ověření podpisu, záloha přepisovaných souborů, výměna, předchozí stav jde vrátit tlačítkem v historii. Data, <code>config.php</code>, <code>config-keys.php</code> a upravený <code>.htaccess</code> zůstanou.') ?><?php if (version_compare($latest['version'], $installed, '<')): ?> <?= h(t('Nainstalovaná verze {installed} je novější než vydání na GitHubu, kód se tedy vrátí na {version} (databáze zůstane, starší verze s ní funguje).', ['installed' => $installed, 'version' => $latest['version']])) ?><?php endif; ?></p>
         <?php if ($preflight['ok']): ?>
-            <form method="post" class="form-stack update-install" data-confirm="<?= h(t('Přeinstalovat AllStat z vydání {version} na GitHubu?', ['version' => $latest['version']])) ?>">
+            <form method="post" class="section" data-confirm="<?= h(t('Přeinstalovat AllStat z vydání {version} na GitHubu?', ['version' => $latest['version']])) ?>">
                 <?= allstat_csrf_field() ?>
                 <input type="hidden" name="action" value="reinstall">
-                <label class="update-confirm"><input type="checkbox" name="backup_ok" value="1" required> <?= h(t('Mám zálohu databáze (administrace hostingu, phpMyAdmin, Exportovat).')) ?></label>
-                <div class="form-actions"><button class="button-secondary" type="submit"><?= h(t('Přeinstalovat {version} z GitHubu', ['version' => $latest['version']])) ?></button></div>
+                <label class="check"><input type="checkbox" name="backup_ok" value="1" required><span><?= h(t('Mám zálohu databáze (administrace hostingu, phpMyAdmin, Exportovat).')) ?></span></label>
+                <div class="form-actions"><button class="btn btn-secondary" type="submit"><?= h(t('Přeinstalovat {version} z GitHubu', ['version' => $latest['version']])) ?></button></div>
             </form>
         <?php else: ?>
-            <p class="notice notice-error"><?= h(t('Server zatím přeinstalaci nesplňuje: {checks}.', ['checks' => implode(', ', array_map('t', array_column(array_filter($preflight['checks'], static fn (array $c): bool => !$c['ok']), 'label')))])) ?></p>
+            <div class="callout tone-down"><?= allstat_icon('info', 'icon-sm') ?><div><?= h(t('Server zatím přeinstalaci nesplňuje: {checks}.', ['checks' => implode(', ', array_map('t', array_column(array_filter($preflight['checks'], static fn (array $c): bool => !$c['ok']), 'label')))])) ?></div></div>
         <?php endif; ?>
     </div>
-</div>
+</section>
 <?php endif; ?>
 
 <?php if ($history): ?>
-<div class="admin-card">
-    <div class="admin-card-header">
+<section class="card">
+    <div class="card-head">
         <div>
-            <h2><?= h(t('Historie aktualizací')) ?></h2>
-            <p><?= h(t('Záloha souborů zůstává pro poslední dvě aktualizace. Návrat vrátí soubory, databáze zůstane (starší verze s ní funguje).')) ?></p>
+            <h2 class="card-title"><?= h(t('Historie aktualizací')) ?></h2>
+            <p class="card-desc"><?= h(t('Záloha souborů zůstává pro poslední dvě aktualizace. Návrat vrátí soubory, databáze zůstane (starší verze s ní funguje).')) ?></p>
         </div>
         <?php if ($canRollback): ?>
             <form method="post" data-confirm="<?= h(t('Vrátit AllStat na verzi {version}?', ['version' => $history[0]['from']])) ?>">
                 <?= allstat_csrf_field() ?>
                 <input type="hidden" name="action" value="rollback">
-                <button class="button-secondary" type="submit"><?= h(t('Vrátit na {version}', ['version' => $history[0]['from']])) ?></button>
+                <button class="btn btn-secondary" type="submit"><?= h(t('Vrátit na {version}', ['version' => $history[0]['from']])) ?></button>
             </form>
         <?php endif; ?>
     </div>
-    <div class="admin-card-body table-scroll">
-        <table class="admin-table update-history">
-            <thead><tr><th><?= h(t('Kdy')) ?></th><th><?= h(t('Z verze')) ?></th><th><?= h(t('Na verzi')) ?></th><th><?= h(t('Poznámka')) ?></th></tr></thead>
+    <div class="table-wrap">
+        <table class="table table-data">
+            <colgroup><col class="col-lg"><col class="col-md"><col class="col-md"><col></colgroup>
+            <thead><tr><th scope="col"><?= h(t('Kdy')) ?></th><th scope="col"><?= h(t('Z verze')) ?></th><th scope="col"><?= h(t('Na verzi')) ?></th><th scope="col"><?= h(t('Poznámka')) ?></th></tr></thead>
             <tbody>
             <?php foreach ($history as $item): ?>
                 <tr>
                     <td><?= h($fmtDate($item['at'] ?? null)) ?></td>
                     <td><?= h($item['from'] ?? '') ?></td>
                     <td><?= h($item['to'] ?? '') ?></td>
-                    <td><?= !empty($item['rollback']) ? h(t('návrat na předchozí verzi')) : h(trim((!empty($item['reinstall']) ? t('obnova z GitHubu.') . ' ' : '') . implode(' ', array_map('t', $item['warnings'] ?? [])))) ?></td>
+                    <td class="is-wrap"><?= !empty($item['rollback']) ? h(t('návrat na předchozí verzi')) : h(trim((!empty($item['reinstall']) ? t('obnova z GitHubu.') . ' ' : '') . implode(' ', array_map('t', $item['warnings'] ?? [])))) ?></td>
                 </tr>
             <?php endforeach; ?>
             </tbody>
         </table>
     </div>
-</div>
+</section>
 <?php endif; ?>
 <?php allstat_admin_footer($config); ?>

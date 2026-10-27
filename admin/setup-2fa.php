@@ -55,32 +55,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 allstat_admin_header(t('Dvoufaktorové ověření'), '2fa', $user, $config);
 ?>
-<div class="admin-card">
-    <div class="admin-card-header">
+<section class="card">
+    <div class="card-head">
         <div>
-            <h2><?= h(t('2FA pro váš účet')) ?></h2>
-            <p><?= h(t('Podporuje aplikace jako Microsoft Authenticator, Google Authenticator, 1Password nebo Bitwarden.')) ?></p>
+            <h2 class="card-title"><?= h(t('2FA pro váš účet')) ?></h2>
+            <p class="card-desc"><?= h(t('Podporuje aplikace jako Microsoft Authenticator, Google Authenticator, 1Password nebo Bitwarden.')) ?></p>
         </div>
-        <span class="secret-state <?= allstat_user_has_totp($user) ? 'on' : 'warn' ?>"><?= h(allstat_user_has_totp($user) ? t('Zapnuto') : t('Čeká na nastavení')) ?></span>
+        <?= allstat_status_pill(allstat_user_has_totp($user) ? 'ok' : 'warning', allstat_user_has_totp($user) ? t('Zapnuto') : t('Čeká na nastavení')) ?>
     </div>
-    <div class="admin-card-body">
-        <?php if ($error): ?><div class="notice notice-error"><?= h($error) ?></div><?php endif; ?>
+    <div class="card-body section">
+        <?php if ($error): ?><div class="callout tone-down"><?= allstat_icon('info', 'icon-sm') ?><div><?= h($error) ?></div></div><?php endif; ?>
         <?php if (allstat_user_has_totp($user)): ?>
-            <p class="form-help"><?= h(t('2FA je pro tento účet aktivní. Reset může provést administrátor na stránce uživatelů.')) ?></p>
+            <p class="field-help"><?= h(t('2FA je pro tento účet aktivní. Reset může provést administrátor na stránce uživatelů.')) ?></p>
         <?php else: ?>
-            <div class="qr-box"><div id="totpQr"></div></div>
-            <div class="code-box" data-totp-uri="<?= h($uri) ?>"><?= h($secret) ?></div>
-            <form method="post" class="form-stack" style="margin-top:16px">
+            <div class="card"><div class="card-body"><div id="totpQr"></div></div></div>
+            <code class="code" data-totp-uri="<?= h($uri) ?>"><?= h($secret) ?></code>
+            <form method="post" class="form-grid">
                 <?= allstat_csrf_field() ?>
-                <label><span><?= h(t('Ověřovací kód')) ?></span><input type="text" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required autocomplete="one-time-code"></label>
-                <div class="form-actions">
-                    <button class="button-primary" type="submit"><?= h(t('Zapnout 2FA')) ?></button>
-                    <button class="button-secondary" type="submit" name="reset_pending_secret" value="1"><?= h(t('Vygenerovat nový kód')) ?></button>
+                <label class="field field-full"><span class="field-label"><?= h(t('Ověřovací kód')) ?></span><input class="input" type="text" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required autocomplete="one-time-code"></label>
+                <div class="form-actions field-full">
+                    <button class="btn btn-primary" type="submit"><?= h(t('Zapnout 2FA')) ?></button>
+                    <button class="btn btn-secondary" type="submit" name="reset_pending_secret" value="1"><?= h(t('Vygenerovat nový kód')) ?></button>
                 </div>
             </form>
         <?php endif; ?>
     </div>
-</div>
+</section>
 <?php if (!allstat_user_has_totp($user)): ?>
 <?php $nonce = allstat_nonce(); ?>
 <script src="<?= h(allstat_url($config, 'assets/vendor/qrcode.min.js')) ?>?v=<?= @filemtime(__DIR__ . '/../assets/vendor/qrcode.min.js') ?: '1' ?>" nonce="<?= h($nonce) ?>"></script>

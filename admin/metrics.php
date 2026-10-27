@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $domains = allstat_admin_domains($pdo, false);
 
-// "Tečou data?" — souhrn per web: poslední den se záznamem, pokrytí posledních 30 dní a trend návštěv.
+// "Tečou data?" - souhrn per web: poslední den se záznamem, pokrytí posledních 30 dní a trend návštěv.
 $today = new DateTimeImmutable('today');
 $d7 = $today->modify('-6 days')->format('Y-m-d');
 $d14 = $today->modify('-13 days')->format('Y-m-d');
@@ -51,7 +51,7 @@ $health = allstat_fetch_all($pdo, '
 foreach ($health as &$hRow) {
     if ($hRow['last_date'] === null) {
         $hRow['status'] = ['error', t('Bez dat')];
-        $hRow['lagLabel'] = '—';
+        $hRow['lagLabel'] = '–';
     } else {
         $lag = (int) $today->diff(new DateTimeImmutable($hRow['last_date']))->days;
         $hRow['status'] = $lag <= 1 ? ['ok', t('Aktuální')] : ($lag <= 3 ? ['warning', t('Zpoždění')] : ['error', t('Neteče')]);
@@ -94,104 +94,104 @@ $weekdays = match (allstat_locale()) {
 
 allstat_admin_header(t('Metriky'), 'metrics', $user, $config);
 ?>
-<div class="admin-card">
-    <div class="admin-card-header">
+<section class="card card-clip">
+    <div class="card-head">
         <div>
-            <h2><?= h(t('Tečou data správně?')) ?></h2>
-            <p><?= h(t('Denní agregace návštěv, uživatelů, kliknutí, zobrazení a konverzí plní automaticky synci napojených providerů (GA4, GSC). Tady na první pohled vidíš, jestli sync běží a data jsou čerstvá.')) ?></p>
+            <h2 class="card-title"><?= h(t('Tečou data správně?')) ?></h2>
+            <p class="card-desc"><?= h(t('Denní agregace návštěv, uživatelů, kliknutí, zobrazení a konverzí plní automaticky synci napojených providerů (GA4, GSC). Tady na první pohled vidíš, jestli sync běží a data jsou čerstvá.')) ?></p>
         </div>
     </div>
-    <div class="admin-card-body table-scroll">
-        <table class="admin-table">
-            <thead><tr><th><?= h(t('Web')) ?></th><th><?= h(t('Stav')) ?></th><th><?= h(t('Poslední den s daty')) ?></th><th><?= h(t('Pokrytí 30 dní')) ?></th><th class="num"><?= h(t('Návštěvy (7 dní)')) ?></th><th><?= h(t('Trend vs. předchozích 7')) ?></th><th class="num"><?= h(t('Konverze (30 dní)')) ?></th></tr></thead>
+    <div class="table-wrap">
+        <table class="table table-data">
+            <colgroup><col><col class="col-md"><col class="col-xl"><col class="col-xl"><col class="col-md"><col class="col-lg"><col class="col-md"></colgroup>
+            <thead><tr><th scope="col"><?= h(t('Web')) ?></th><th scope="col"><?= h(t('Stav')) ?></th><th scope="col"><?= h(t('Poslední den s daty')) ?></th><th scope="col"><?= h(t('Pokrytí 30 dní')) ?></th><th scope="col"><?= h(t('Návštěvy (7 dní)')) ?></th><th scope="col"><?= h(t('Trend vs. předchozích 7')) ?></th><th scope="col"><?= h(t('Konverze (30 dní)')) ?></th></tr></thead>
             <tbody>
             <?php foreach ($health as $hRow): ?>
                 <tr>
-                    <td><strong><?= h($hRow['url']) ?></strong></td>
-                    <td><span class="status-badge status-<?= h($hRow['status'][0]) ?>"><?= h(t($hRow['status'][1])) ?></span></td>
-                    <td><?= $hRow['last_date'] ? h(allstat_date_label($hRow['last_date'])) . ' <span class="table-muted">(' . h($hRow['lagLabel']) . ')</span>' : '<span class="table-muted">—</span>' ?></td>
+                    <td><span class="name-main ellipsis"><?= h($hRow['url']) ?></span></td>
+                    <td><?= allstat_status_pill($hRow['status'][0], $hRow['status'][1]) ?></td>
+                    <td><?= $hRow['last_date'] ? h(allstat_date_label($hRow['last_date'])) . ' <span class="is-muted">(' . h($hRow['lagLabel']) . ')</span>' : '<span class="is-muted">–</span>' ?></td>
                     <td>
-                        <div class="coverage-cell">
-                            <div class="quota-bar"><div class="quota-bar-fill <?= $hRow['coverage'] >= 90 ? 'quota-bar-ok' : ($hRow['coverage'] >= 50 ? 'quota-bar-warn' : 'quota-bar-danger') ?>" style="width: <?= round($hRow['coverage']) ?>%;"></div></div>
-                            <span class="table-muted"><?= h(t('{count}/30 dní', ['count' => (int) $hRow['days30']])) ?></span>
+                        <div class="cell">
+                            <div class="name-stack">
+                                <div class="track"><div class="track-fill <?= $hRow['coverage'] >= 90 ? 'is-up' : ($hRow['coverage'] >= 50 ? 'is-warn' : 'is-down') ?>" style="width: <?= round($hRow['coverage']) ?>%;"></div></div>
+                                <span class="name-sub num"><?= h(t('{count}/30 dní', ['count' => (int) $hRow['days30']])) ?></span>
+                            </div>
                         </div>
                     </td>
-                    <td class="num"><strong><?= h(allstat_number((int) $hRow['visits7'])) ?></strong></td>
-                    <td><?php if ($hRow['trend'] === null): ?><span class="table-muted"<span><?= h(t('bez srovnání')) ?></span><?php else: ?><span class="<?= $hRow['trend'] >= 0 ? 'positive' : 'negative' ?>"><?= $hRow['trend'] >= 0 ? '&uarr;' : '&darr;' ?> <?= h(allstat_percent(abs($hRow['trend']), 1)) ?></span><?php endif; ?></td>
+                    <td class="num is-strong"><?= h(allstat_number((int) $hRow['visits7'])) ?></td>
+                    <td><?php if ($hRow['trend'] === null): ?><span class="is-muted"><?= h(t('bez srovnání')) ?></span><?php else: ?><span class="<?= $hRow['trend'] >= 0 ? 'is-up' : 'is-down' ?>"><?= $hRow['trend'] >= 0 ? '&uarr;' : '&darr;' ?> <?= h(allstat_percent(abs($hRow['trend']), 1)) ?></span><?php endif; ?></td>
                     <td class="num"><?= h(allstat_number((int) $hRow['conv30'])) ?></td>
                 </tr>
             <?php endforeach; ?>
             </tbody>
         </table>
     </div>
-</div>
+</section>
 
-<div class="admin-card">
-    <div class="admin-card-header">
+<section class="card card-clip">
+    <div class="card-head">
         <div>
-            <h2><?= h(t('Denní řádky')) ?></h2>
-            <p><?= h(t('Surová data po dnech, ze kterých dashboard počítá. Slouží ke kontrole konkrétního dne, např. když číslo na dashboardu nesedí s GA4.')) ?></p>
+            <h2 class="card-title"><?= h(t('Denní řádky')) ?></h2>
+            <p class="card-desc"><?= h(t('Surová data po dnech, ze kterých dashboard počítá. Slouží ke kontrole konkrétního dne, např. když číslo na dashboardu nesedí s GA4.')) ?></p>
         </div>
-        <form method="get" class="card-header-actions metrics-filter">
-            <label><span class="table-muted"><?= h(t('Web')) ?></span>
-                <select name="domain_id" data-autosubmit>
-                    <option value="0"><?= h(t('Všechny weby')) ?></option>
-                    <?php foreach ($domains as $domain): ?><option value="<?= (int) $domain['id'] ?>"<?= $filterDomain === (int) $domain['id'] ? ' selected' : '' ?>><?= h($domain['url']) ?></option><?php endforeach; ?>
-                </select>
-            </label>
-            <label><span class="table-muted"><?= h(t('Období')) ?></span>
-                <select name="days" data-autosubmit>
-                    <?php foreach ([14, 30, 90] as $d): ?><option value="<?= $d ?>"<?= $filterDays === $d ? ' selected' : '' ?>><?= h(t('posledních {count} dní', ['count' => $d])) ?></option><?php endforeach; ?>
-                </select>
-            </label>
-        </form>
     </div>
-    <div class="admin-card-body table-scroll">
-        <table class="admin-table">
-            <thead><tr><th><?= h(t('Datum')) ?></th><?php if ($filterDomain === 0): ?><th><?= h(t('Web')) ?></th><?php endif; ?><th><?= h(t('Návštěvy')) ?></th><th class="num"><?= h(t('Uživatelé')) ?></th><th class="num"><?= h(t('Kliknutí')) ?></th><th class="num"><?= h(t('Zobrazení')) ?></th><th class="num"><?= h(t('Konverze')) ?></th></tr></thead>
+    <form method="get" class="filterbar">
+        <label class="field"><span class="field-label"><?= h(t('Web')) ?></span>
+            <select class="input" name="domain_id" data-autosubmit>
+                <option value="0"><?= h(t('Všechny weby')) ?></option>
+                <?php foreach ($domains as $domain): ?><option value="<?= (int) $domain['id'] ?>"<?= $filterDomain === (int) $domain['id'] ? ' selected' : '' ?>><?= h($domain['url']) ?></option><?php endforeach; ?>
+            </select>
+        </label>
+        <label class="field"><span class="field-label"><?= h(t('Období')) ?></span>
+            <select class="input" name="days" data-autosubmit>
+                <?php foreach ([14, 30, 90] as $d): ?><option value="<?= $d ?>"<?= $filterDays === $d ? ' selected' : '' ?>><?= h(t('posledních {count} dní', ['count' => $d])) ?></option><?php endforeach; ?>
+            </select>
+        </label>
+    </form>
+    <div class="table-wrap">
+        <table class="table table-data">
+            <colgroup><col class="col-lg"><?php if ($filterDomain === 0): ?><col class="col-xl"><?php endif; ?><col class="col-xl"><col class="col-md"><col class="col-md"><col class="col-md"><col class="col-md"></colgroup>
+            <thead><tr><th scope="col"><?= h(t('Datum')) ?></th><?php if ($filterDomain === 0): ?><th scope="col"><?= h(t('Web')) ?></th><?php endif; ?><th scope="col"><?= h(t('Návštěvy')) ?></th><th scope="col"><?= h(t('Uživatelé')) ?></th><th scope="col"><?= h(t('Kliknutí')) ?></th><th scope="col"><?= h(t('Zobrazení')) ?></th><th scope="col"><?= h(t('Konverze')) ?></th></tr></thead>
             <tbody>
             <?php foreach ($rows as $row): $dt = strtotime($row['metric_date']); ?>
                 <tr>
-                    <td><span class="table-muted"><?= h($weekdays[(int) date('w', $dt)]) ?></span> <strong><?= h(allstat_date_label($dt)) ?></strong></td>
-                    <?php if ($filterDomain === 0): ?><td><?= h($row['domain_url']) ?></td><?php endif; ?>
+                    <td><span class="is-muted"><?= h($weekdays[(int) date('w', $dt)]) ?></span> <span class="name-main"><?= h(allstat_date_label($dt)) ?></span></td>
+                    <?php if ($filterDomain === 0): ?><td class="ellipsis"><?= h($row['domain_url']) ?></td><?php endif; ?>
                     <td>
-                        <div class="visits-cell">
-                            <span class="visits-cell-value"><?= h(allstat_number($row['visits'])) ?></span>
-                            <div class="quota-bar visits-cell-bar"><div class="quota-bar-fill quota-bar-neutral" style="width: <?= round(max(2, (int) $row['visits'] / $maxVisits * 100)) ?>%;"></div></div>
+                        <div class="cell">
+                            <span class="num"><?= h(allstat_number($row['visits'])) ?></span>
+                            <div class="name-stack"><div class="track"><div class="track-fill" style="width: <?= round(max(2, (int) $row['visits'] / $maxVisits * 100)) ?>%;"></div></div></div>
                         </div>
                     </td>
                     <td class="num"><?= h(allstat_number($row['users_count'])) ?></td>
                     <td class="num"><?= h(allstat_number($row['clicks'])) ?></td>
                     <td class="num"><?= h(allstat_number($row['impressions'])) ?></td>
-                    <td class="num"><?= (int) $row['conversions'] > 0 ? '<strong>' . h(allstat_number($row['conversions'])) . '</strong>' : '<span class="table-muted">0</span>' ?></td>
+                    <td class="num"><?= (int) $row['conversions'] > 0 ? '<span class="name-main">' . h(allstat_number($row['conversions'])) . '</span>' : '<span class="is-muted">0</span>' ?></td>
                 </tr>
             <?php endforeach; ?>
-            <?php if (!$rows): ?>
-                <tr><td colspan="7" class="table-muted"><?= t('Za zvolené období nejsou žádné denní řádky, zkontroluj sync ve <a href="sources.php">Zdrojích dat</a>.') ?></td></tr>
-            <?php endif; ?>
             </tbody>
         </table>
+        <?php if (!$rows): ?>
+            <div class="empty"><span class="empty-desc"><?= t('Za zvolené období nejsou žádné denní řádky, zkontroluj sync ve <a href="sources.php">Zdrojích dat</a>.') ?></span></div>
+        <?php endif; ?>
     </div>
-</div>
+</section>
 
-<details class="admin-card admin-card-collapsible">
-    <summary class="admin-card-header">
-        <div>
-            <h2><?= h(t('Pokročilé: ručně vložit / přepsat denní řádek')) ?></h2>
-            <p><?= h(t('Pro testování dashboardu nebo dočasný import před napojením API. Běžně nepotřebné, sync to dělá automaticky.')) ?></p>
-        </div>
-    </summary>
-    <div class="admin-card-body">
-        <form method="post" class="form-grid form-grid-3">
+<details class="card note">
+    <summary><?= allstat_icon('info', 'icon') ?><span><?= h(t('Pokročilé: ručně vložit / přepsat denní řádek')) ?></span><?= allstat_icon('chevron-down', 'note-chev') ?></summary>
+    <div class="note-body">
+        <p><?= h(t('Pro testování dashboardu nebo dočasný import před napojením API. Běžně nepotřebné, sync to dělá automaticky.')) ?></p>
+        <form method="post" class="form-grid">
             <?= allstat_csrf_field() ?>
-            <label><span><?= h(t('Web')) ?></span><select name="domain_id" required><?php foreach ($domains as $domain): ?><option value="<?= (int) $domain['id'] ?>"><?= h($domain['url']) ?></option><?php endforeach; ?></select></label>
-            <label><span><?= h(t('Datum')) ?></span><input type="date" name="metric_date" required value="<?= h(date('Y-m-d')) ?>"></label>
-            <label><span><?= h(t('Návštěvy')) ?></span><input type="number" name="visits" min="0" value="0"></label>
-            <label><span><?= h(t('Uživatelé')) ?></span><input type="number" name="users_count" min="0" value="0"></label>
-            <label><span><?= h(t('Kliknutí')) ?></span><input type="number" name="clicks" min="0" value="0"></label>
-            <label><span><?= h(t('Zobrazení')) ?></span><input type="number" name="impressions" min="0" value="0"></label>
-            <label><span><?= h(t('Konverze')) ?></span><input type="number" name="conversions" min="0" value="0"></label>
-            <div class="form-actions"><button class="button-primary" type="submit"><?= h(t('Uložit metriky')) ?></button></div>
+            <label class="field"><span class="field-label"><?= h(t('Web')) ?></span><select class="input" name="domain_id" required><?php foreach ($domains as $domain): ?><option value="<?= (int) $domain['id'] ?>"><?= h($domain['url']) ?></option><?php endforeach; ?></select></label>
+            <label class="field"><span class="field-label"><?= h(t('Datum')) ?></span><input class="input" type="date" name="metric_date" required value="<?= h(date('Y-m-d')) ?>"></label>
+            <label class="field"><span class="field-label"><?= h(t('Návštěvy')) ?></span><input class="input" type="number" name="visits" min="0" value="0"></label>
+            <label class="field"><span class="field-label"><?= h(t('Uživatelé')) ?></span><input class="input" type="number" name="users_count" min="0" value="0"></label>
+            <label class="field"><span class="field-label"><?= h(t('Kliknutí')) ?></span><input class="input" type="number" name="clicks" min="0" value="0"></label>
+            <label class="field"><span class="field-label"><?= h(t('Zobrazení')) ?></span><input class="input" type="number" name="impressions" min="0" value="0"></label>
+            <label class="field"><span class="field-label"><?= h(t('Konverze')) ?></span><input class="input" type="number" name="conversions" min="0" value="0"></label>
+            <div class="form-actions field-full"><button class="btn btn-primary" type="submit"><?= h(t('Uložit metriky')) ?></button></div>
         </form>
     </div>
 </details>

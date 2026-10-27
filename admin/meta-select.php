@@ -36,21 +36,29 @@ $dbg = $disc['debug'] ?? [];
 $igCount = 0;
 foreach ($pages as $p) { if (!empty($p['instagram_business_account']['id'])) { $igCount++; } }
 
-allstat_admin_header(t('Vyber účty Meta'), 'sources', $user, $config, 'meta');
+allstat_admin_header(t('Vyber účty Meta'), 'sources', $user, $config, 'meta', [
+    'actions' => '<a class="btn btn-secondary" href="meta-connect.php"><span>' . h(t('Zrušit')) . '</span></a>',
+]);
 ?>
 <?php if (!empty($dbg)): ?>
-<div class="admin-card">
-    <div class="admin-card-header"><div><h2><?= h(t('Diagnostika připojení')) ?></h2><p><?= h(t('Co vrátilo Meta Graph API, pomáhá zjistit, proč se případně stránka nenačetla.')) ?></p></div></div>
-    <div class="admin-card-body table-scroll">
-        <table class="admin-table">
-            <thead><tr><th><?= h(t('Volání')) ?></th><th>HTTP</th><th><?= h(t('Počet')) ?></th><th><?= h(t('Detail / chyba')) ?></th></tr></thead>
+<section class="card card-clip" aria-labelledby="meta-diag-title">
+    <div class="card-head">
+        <div>
+            <h2 class="card-title" id="meta-diag-title"><?= h(t('Diagnostika připojení')) ?></h2>
+            <p class="card-desc"><?= h(t('Co vrátilo Meta Graph API, pomáhá zjistit, proč se případně stránka nenačetla.')) ?></p>
+        </div>
+    </div>
+    <div class="table-wrap">
+        <table class="table table-data">
+            <colgroup><col class="col-xl"><col class="col-sm"><col class="col-sm"><col></colgroup>
+            <thead><tr><th scope="col"><?= h(t('Volání')) ?></th><th scope="col">HTTP</th><th scope="col"><?= h(t('Počet')) ?></th><th scope="col"><?= h(t('Detail / chyba')) ?></th></tr></thead>
             <tbody>
             <?php foreach ($dbg as $key => $info): ?>
                 <tr>
-                    <td><code><?= h((string) $key) ?></code></td>
-                    <td><?= is_array($info) ? (int) ($info['status'] ?? 0) : '' ?></td>
-                    <td><?= is_array($info) ? (isset($info['count']) ? (int) $info['count'] : '') : h((string) $info) ?></td>
-                    <td><?php
+                    <td><code class="ellipsis"><?= h((string) $key) ?></code></td>
+                    <td class="num"><?= is_array($info) ? (int) ($info['status'] ?? 0) : '' ?></td>
+                    <td class="num"><?= is_array($info) ? (isset($info['count']) ? (int) $info['count'] : '') : h((string) $info) ?></td>
+                    <td class="is-wrap"><?php
                         if (is_array($info)) {
                             $bits = [];
                             if (!empty($info['name'])) { $bits[] = 'me=' . $info['name']; }
@@ -64,74 +72,84 @@ allstat_admin_header(t('Vyber účty Meta'), 'sources', $user, $config, 'meta');
             </tbody>
         </table>
     </div>
-</div>
+</section>
 <?php endif; ?>
-<div class="admin-card">
-    <div class="admin-card-header">
-        <div>
-            <h2><?= h(t('Vyber, co připojit')) ?></h2>
-            <p><?= t('Našli jsme <strong>{pages}</strong> FB stránek, <strong>{ig}</strong> Instagram účtů a <strong>{ads}</strong> reklamních účtů. Zaškrtni, co chceš na webu sledovat.', ['pages' => count($pages), 'ig' => $igCount, 'ads' => count($adaccounts)]) ?></p>
+
+<form method="post" class="section">
+    <?= allstat_csrf_field() ?>
+    <div class="section-head">
+        <h2 class="h2"><?= h(t('Vyber, co připojit')) ?></h2>
+        <span class="section-desc"><?= t('Našli jsme <strong>{pages}</strong> FB stránek, <strong>{ig}</strong> Instagram účtů a <strong>{ads}</strong> reklamních účtů. Zaškrtni, co chceš na webu sledovat.', ['pages' => count($pages), 'ig' => $igCount, 'ads' => count($adaccounts)]) ?></span>
+    </div>
+
+    <section class="card card-clip" aria-labelledby="meta-pages-title">
+        <div class="card-head">
+            <div><h3 class="card-title" id="meta-pages-title"><?= h(t('Facebook stránky')) ?></h3></div>
         </div>
-        <a class="button-secondary" href="meta-connect.php"><?= h(t('Zrušit')) ?></a>
+        <?php if ($pages): ?>
+        <div class="table-wrap">
+            <table class="table table-data">
+                <colgroup><col class="col-xs"><col><col class="col-lg"><col class="col-lg"></colgroup>
+                <thead><tr><th scope="col" data-no-sort><span class="sr-only"><?= h(t('Připojit vybrané')) ?></span></th><th scope="col"><?= h(t('Stránka')) ?></th><th scope="col">Page ID</th><th scope="col">Instagram</th></tr></thead>
+                <tbody>
+                    <?php foreach ($pages as $p):
+                        $pid = (string) ($p['id'] ?? '');
+                        $ig = $p['instagram_business_account'] ?? null;
+                    ?>
+                    <tr>
+                        <td><input type="checkbox" name="pages[]" value="<?= h($pid) ?>" checked aria-label="<?= h((string) ($p['name'] ?? $pid)) ?>"></td>
+                        <td><span class="name-main ellipsis"><?= h((string) ($p['name'] ?? '')) ?></span></td>
+                        <td class="is-muted mono"><?= h($pid) ?></td>
+                        <td>
+                            <?php if ($ig && !empty($ig['id'])): ?>
+                                <label class="check">
+                                    <input type="checkbox" name="ig[]" value="<?= h($pid) ?>" checked>
+                                    <span>@<?= h((string) ($ig['username'] ?? $ig['id'])) ?></span>
+                                </label>
+                            <?php else: ?>
+                                <span class="is-muted">–</span>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+        <?php else: ?>
+        <div class="empty"><span class="empty-title"><?= h(t('Žádné FB stránky pod tímto účtem (nebo chybí oprávnění/role).')) ?></span></div>
+        <?php endif; ?>
+    </section>
+
+    <section class="card card-clip" aria-labelledby="meta-ads-title">
+        <div class="card-head">
+            <div><h3 class="card-title" id="meta-ads-title"><?= h(t('Reklamní účty (Meta Ads)')) ?></h3></div>
+        </div>
+        <?php if ($adaccounts): ?>
+        <div class="table-wrap">
+            <table class="table table-data">
+                <colgroup><col class="col-xs"><col><col class="col-xl"></colgroup>
+                <thead><tr><th scope="col" data-no-sort><span class="sr-only"><?= h(t('Připojit vybrané')) ?></span></th><th scope="col"><?= h(t('Účet')) ?></th><th scope="col">ID</th></tr></thead>
+                <tbody>
+                    <?php foreach ($adaccounts as $a):
+                        $aid = (string) ($a['id'] ?? '');
+                    ?>
+                    <tr>
+                        <td><input type="checkbox" name="ads[]" value="<?= h($aid) ?>" checked aria-label="<?= h((string) ($a['name'] ?? $aid)) ?>"></td>
+                        <td><span class="name-main ellipsis"><?= h((string) ($a['name'] ?? $aid)) ?></span></td>
+                        <td class="is-muted mono"><?= h($aid) ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+        <?php else: ?>
+        <div class="empty"><span class="empty-title"><?= h(t('Žádné reklamní účty (nebo chybí scope ads_read / role).')) ?></span></div>
+        <?php endif; ?>
+    </section>
+
+    <div class="form-actions">
+        <button class="btn btn-primary" type="submit"><?= h(t('Připojit vybrané')) ?></button>
+        <a class="btn btn-secondary" href="meta-connect.php"><?= h(t('Zrušit')) ?></a>
     </div>
-    <div class="admin-card-body">
-        <form method="post" class="form-stack">
-            <?= allstat_csrf_field() ?>
-
-            <h3 style="margin:6px 0;font-size:14px;"><?= h(t('Facebook stránky')) ?></h3>
-            <div class="table-scroll">
-                <table class="admin-table">
-                    <thead><tr><th></th><th><?= h(t('Stránka')) ?></th><th>Page ID</th><th>Instagram</th></tr></thead>
-                    <tbody>
-                        <?php foreach ($pages as $p):
-                            $pid = (string) ($p['id'] ?? '');
-                            $ig = $p['instagram_business_account'] ?? null;
-                        ?>
-                        <tr>
-                            <td><input type="checkbox" name="pages[]" value="<?= h($pid) ?>" checked></td>
-                            <td><strong><?= h((string) ($p['name'] ?? '')) ?></strong></td>
-                            <td class="table-muted"><?= h($pid) ?></td>
-                            <td>
-                                <?php if ($ig && !empty($ig['id'])): ?>
-                                    <label style="display:inline-flex;gap:6px;align-items:center;">
-                                        <input type="checkbox" name="ig[]" value="<?= h($pid) ?>" checked>
-                                        @<?= h((string) ($ig['username'] ?? $ig['id'])) ?>
-                                    </label>
-                                <?php else: ?>
-                                    <span class="table-muted">–</span>
-                                <?php endif; ?>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                        <?php if (!$pages): ?><tr><td colspan="4" class="table-muted"><?= h(t('Žádné FB stránky pod tímto účtem (nebo chybí oprávnění/role).')) ?></td></tr><?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-
-            <h3 style="margin:16px 0 6px;font-size:14px;"><?= h(t('Reklamní účty (Meta Ads)')) ?></h3>
-            <div class="table-scroll">
-                <table class="admin-table">
-                    <thead><tr><th></th><th><?= h(t('Účet')) ?></th><th>ID</th></tr></thead>
-                    <tbody>
-                        <?php foreach ($adaccounts as $a):
-                            $aid = (string) ($a['id'] ?? '');
-                        ?>
-                        <tr>
-                            <td><input type="checkbox" name="ads[]" value="<?= h($aid) ?>" checked></td>
-                            <td><strong><?= h((string) ($a['name'] ?? $aid)) ?></strong></td>
-                            <td class="table-muted"><?= h($aid) ?></td>
-                        </tr>
-                        <?php endforeach; ?>
-                        <?php if (!$adaccounts): ?><tr><td colspan="3" class="table-muted"><?= h(t('Žádné reklamní účty (nebo chybí scope ads_read / role).')) ?></td></tr><?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="form-actions" style="margin-top:16px;">
-                <button class="button-primary" type="submit"><?= h(t('Připojit vybrané')) ?></button>
-                <a class="button-secondary" href="meta-connect.php"><?= h(t('Zrušit')) ?></a>
-            </div>
-        </form>
-    </div>
-</div>
+</form>
 <?php allstat_admin_footer($config); ?>

@@ -113,57 +113,61 @@ $usesDefault = allstat_crypto_uses_default_key($config);
 $keystoreExists = is_file($keyFilePath);
 $suggestedKey = bin2hex(random_bytes(32));
 ?>
-<div class="admin-card">
-    <div class="admin-card-header"><h2><?= h(t('Šifrovací klíč')) ?></h2></div>
-    <div class="admin-card-body">
-        <?php foreach ($messages as $m): ?><div class="notice notice-ok"><?= h($m) ?></div><?php endforeach; ?>
-        <?php foreach ($errors as $e): ?><div class="notice notice-error"><?= h($e) ?></div><?php endforeach; ?>
+<section class="card">
+    <div class="card-head"><h2 class="card-title"><?= h(t('Šifrovací klíč')) ?></h2></div>
+    <div class="card-body section">
+        <?php foreach ($messages as $m): ?><div class="callout tone-up"><?= allstat_icon('check', 'icon-sm') ?><div><?= h($m) ?></div></div><?php endforeach; ?>
+        <?php foreach ($errors as $e): ?><div class="callout tone-down"><?= allstat_icon('info', 'icon-sm') ?><div><?= h($e) ?></div></div><?php endforeach; ?>
 
         <p><strong><?= h(t('Aktuální stav:')) ?></strong>
             <?php if ($usesDefault): ?>
-                <span style="color:#dc2626"><?= h(t('⚠ DEFAULTNÍ klíč. Všechny secrets jsou dešifrovatelné kýmkoli s přístupem ke zdrojovému kódu (open-source).')) ?></span>
+                <span class="is-down"><?= h(t('⚠ DEFAULTNÍ klíč. Všechny secrets jsou dešifrovatelné kýmkoli s přístupem ke zdrojovému kódu (open-source).')) ?></span>
             <?php else: ?>
-                <span style="color:#16a34a"><?= h(t('✓ Vlastní klíč')) ?></span> <?= h($keystoreExists ? t('(z config-keys.php)') : t('(z config.php / env var)')) ?>
+                <span class="is-up"><?= h(t('✓ Vlastní klíč')) ?></span> <?= h($keystoreExists ? t('(z config-keys.php)') : t('(z config.php / env var)')) ?>
             <?php endif; ?>
         </p>
 
         <p><?= t('Šifrované sloupce: <code>domain_sources.client_secret_enc</code>, <code>access_token_enc</code>, <code>refresh_token_enc</code>, <code>config_json_enc</code>, <code>allstat_users.totp_secret_enc</code>, <code>allstat_oauth_accounts.access_token_enc</code>, <code>refresh_token_enc</code> a nastavení <code>meta.app_secret_enc</code>, <code>google.client_secret_enc</code>.') ?></p>
 
-        <h3 style="margin-top: 24px;"><?= h(t('Rotace klíče')) ?></h3>
-        <p><?= h(t('Tlačítko níže provede atomicky:')) ?></p>
-        <ol style="margin-bottom: 16px;">
+        <div>
+            <h3 class="block-title"><?= h(t('Rotace klíče')) ?></h3>
+            <p class="block-desc"><?= h(t('Tlačítko níže provede atomicky:')) ?></p>
+        </div>
+        <ol class="steps">
             <li><?= h(t('Dešifruje všechny secrets aktuálním klíčem (do RAM, ne na disk).')) ?></li>
             <li><?= t('Zapíše <code>config-keys.php</code> s <strong>oběma</strong> klíči (nový + starý). Aplikace v tu chvíli umí dešifrovat data v obou stavech.') ?></li>
             <li><?= h(t('Re-šifruje všechny secrets v DB novým klíčem (transakční).')) ?></li>
             <li><?= t('Přepíše <code>config-keys.php</code> jen s novým klíčem (starý už nebude potřeba).') ?></li>
         </ol>
-        <p style="font-size: 13px; color: var(--muted);"><?= h(t('Pokud krok 3 selže, transakce se vrátí a v keystore zůstanou oba klíče, aplikace dál funguje s daty zašifrovanými starým. Můžeš rotaci spustit znovu.')) ?></p>
+        <p class="field-help"><?= h(t('Pokud krok 3 selže, transakce se vrátí a v keystore zůstanou oba klíče, aplikace dál funguje s daty zašifrovanými starým. Můžeš rotaci spustit znovu.')) ?></p>
 
-        <form method="post" class="form-stack" data-confirm="<?= h(t('Spustit rotaci klíče?')) ?>">
+        <form method="post" class="form-grid" data-confirm="<?= h(t('Spustit rotaci klíče?')) ?>">
             <?= allstat_csrf_field() ?>
             <input type="hidden" name="action" value="rotate">
-            <label>
-                <span><?= h(t('Nový klíč (předvyplněn náhodný 64 hex, můžeš nahradit vlastním)')) ?></span>
-                <input type="text" name="new_key" required minlength="32" autocomplete="off" value="<?= h($suggestedKey) ?>" style="font-family: ui-monospace, monospace;">
+            <label class="field field-full">
+                <span class="field-label"><?= h(t('Nový klíč (předvyplněn náhodný 64 hex, můžeš nahradit vlastním)')) ?></span>
+                <input class="input mono" type="text" name="new_key" required minlength="32" autocomplete="off" value="<?= h($suggestedKey) ?>">
             </label>
-            <label>
-                <span><?= t('Potvrzení, napiš velkými písmeny: <strong>ROTUJ</strong>') ?></span>
-                <input type="text" name="confirm" required pattern="ROTUJ" autocomplete="off" placeholder="ROTUJ">
+            <label class="field field-full">
+                <span class="field-label"><?= t('Potvrzení, napiš velkými písmeny: <strong>ROTUJ</strong>') ?></span>
+                <input class="input" type="text" name="confirm" required pattern="ROTUJ" autocomplete="off" placeholder="ROTUJ">
             </label>
-            <div class="form-actions">
-                <button class="button-primary" type="submit"><?= h(t('Rotovat klíč')) ?></button>
+            <div class="form-actions field-full">
+                <button class="btn btn-primary" type="submit"><?= h(t('Rotovat klíč')) ?></button>
             </div>
         </form>
 
-        <details style="margin-top: 20px;">
-            <summary><?= h(t('Manuální cesta (bez UI)')) ?></summary>
-            <p><?= h(t('Pokud nechceš použít tento formulář, klíč můžeš nastavit přímo:')) ?></p>
-            <ol>
-                <li><?= t('V hosting panelu nastav env proměnnou <code>ALLSTAT_ENCRYPTION_KEY=&lt;64 hex znaků&gt;</code>.') ?></li>
-                <li><?= t('Nebo natvrdo v <code>config.php</code> přepiš <code>encryption_key</code>.') ?></li>
-            </ol>
-            <p><?= h(t('POZOR: pokud změníš klíč touto cestou bez re-encryptu, ZTRATÍŠ přístup k existujícím tokenům v DB (budou ve starém šifrování).')) ?></p>
+        <details class="card note">
+            <summary><?= allstat_icon('info', 'icon') ?><span><?= h(t('Manuální cesta (bez UI)')) ?></span><?= allstat_icon('chevron-down', 'note-chev') ?></summary>
+            <div class="note-body">
+                <p><?= h(t('Pokud nechceš použít tento formulář, klíč můžeš nastavit přímo:')) ?></p>
+                <ol class="steps">
+                    <li><?= t('V hosting panelu nastav env proměnnou <code>ALLSTAT_ENCRYPTION_KEY=&lt;64 hex znaků&gt;</code>.') ?></li>
+                    <li><?= t('Nebo natvrdo v <code>config.php</code> přepiš <code>encryption_key</code>.') ?></li>
+                </ol>
+                <p><?= h(t('POZOR: pokud změníš klíč touto cestou bez re-encryptu, ZTRATÍŠ přístup k existujícím tokenům v DB (budou ve starém šifrování).')) ?></p>
+            </div>
         </details>
     </div>
-</div>
+</section>
 <?php allstat_admin_footer($config); ?>
