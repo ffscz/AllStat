@@ -13,7 +13,7 @@ return [
     'Microsoft Ads: API Base URL musí být oficiální Reporting API host.' => 'Microsoft Ads: API Base URL musí byť oficiálny hostiteľ Reporting API.',
     'Microsoft Ads: Account ID musí obsahovat jen číslice.' => 'Microsoft Ads: Account ID musí obsahovať iba číslice.',
     'Microsoft Ads: při změně způsobu přihlášení vyplň nový Client ID a Client secret.' => 'Microsoft Ads: pri zmene spôsobu prihlásenia vyplň nový Client ID a Client secret.',
-    'Vytvoř Client secret a zkopíruj Client ID. Developer Token vyžádej v Microsoft Advertising API Center.' => 'Vytvor Client secret a skopíruj Client ID. Developer Token si vyžiadaj v Microsoft Advertising API Center.',
+    'Vytvoř Client secret a zkopíruj Client ID. Developer Token vyžádej v Microsoft Advertising Developer Portalu (developers.ads.microsoft.com).' => 'Vytvor Client secret a skopíruj Client ID. Developer Token si vyžiadaj v Microsoft Advertising Developer Portali (developers.ads.microsoft.com).',
     'Vyplň Account ID, Customer ID, Client ID, Client secret a Developer Token. Ulož napojení a spusť OAuth.' => 'Vyplň Account ID, Customer ID, Client ID, Client secret a Developer Token. Ulož napojenie a spusti OAuth.',
     'Otestuj napojení a potom stáhni historii. Údaje se ukládají v měně reklamního účtu.' => 'Otestuj napojenie a potom stiahni históriu. Údaje sa ukladajú v mene reklamného účtu.',
     'Denní výkon účtu a kampaní Microsoft Ads.' => 'Denný výkon účtu a kampaní Microsoft Ads.',
@@ -497,4 +497,7 @@ return [
     'nepřipojovat' => 'nepripájať',
     'web v Search Console nenalezen' => 'web sa v Search Console nenašiel',
     'Nové weby dostanou název podle domény, přejmenujete je ve Webech. Property, která už je v AllStatu napojená (i u jiného webu), se nezaloží podruhé, jen se přepne na tento účet a data zůstanou.' => 'Nové weby dostanú názov podľa domény, premenujete ich vo Weboch. Property, ktorá je už v AllStat napojená (aj pri inom webe), sa nezaloží druhýkrát, len sa prepne na tento účet a dáta zostanú.',
+    'Microsoft Entra → App registrations → Application (client) ID.' => 'Microsoft Entra → App registrations → Application (client) ID.',
+    'Account ID' => 'Account ID',
+    'Customer ID' => 'Customer ID',
 ];

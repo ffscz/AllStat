@@ -315,14 +315,14 @@ function allstat_provider_setup_guide(string $providerKey): array
         'microsoft_ads' => [
             'console_url' => 'https://console.cloud.google.com/apis/credentials',
             'console_label' => 'Google Cloud Console',
-            'enable_apis' => ['Reporting API v13'],
+            'enable_apis' => [],
             'property_id_format' => t('Číselné Account ID'),
             'property_id_where' => t('Microsoft Advertising → nastavení účtu → číslo účtu (Account ID). Customer ID je samostatné číslo zákazníka.'),
             'pricing_note' => t('Reporting API vyžaduje Developer Token. Dostupnost a limity závisejí na schváleném přístupu.'),
             'token_note' => t('Pro přihlášení Google účtem založ Google OAuth webovou aplikaci. Redirect URI je callback AllStatu. Google OAuth žádá profile, email a offline přístup; uživatel musí mít přístup k reklamnímu účtu. Varianta Microsoft Entra zůstává dostupná přes Pokročilé nastavení.'),
             'steps' => [
                 t('V Google Cloud Console vytvoř OAuth client typu Web application a nastav přesnou adresu callbacku z AllStatu jako Authorized redirect URI.'),
-                t('Vytvoř Client secret a zkopíruj Client ID. Developer Token vyžádej v Microsoft Advertising API Center.'),
+                t('Vytvoř Client secret a zkopíruj Client ID. Developer Token vyžádej v Microsoft Advertising Developer Portalu (developers.ads.microsoft.com).'),
                 t('Pro Microsoft Entra nastav Authorization URL https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize a Token URL https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token. V obou použij stejný tenant: common, organizations, consumers, GUID nebo doménu.'),
                 t('Vyplň Account ID, Customer ID, Client ID, Client secret a Developer Token. Ulož napojení a spusť OAuth.'),
                 t('Otestuj napojení a potom stáhni historii. Údaje se ukládají v měně reklamního účtu.'),

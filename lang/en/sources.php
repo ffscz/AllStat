@@ -13,7 +13,7 @@ return [
     'Microsoft Ads: API Base URL musí být oficiální Reporting API host.' => 'Microsoft Ads: API Base URL must be an official Reporting API host.',
     'Microsoft Ads: Account ID musí obsahovat jen číslice.' => 'Microsoft Ads: Account ID must contain digits only.',
     'Microsoft Ads: při změně způsobu přihlášení vyplň nový Client ID a Client secret.' => 'Microsoft Ads: enter a new Client ID and Client secret when switching sign-in providers.',
-    'Vytvoř Client secret a zkopíruj Client ID. Developer Token vyžádej v Microsoft Advertising API Center.' => 'Create a Client secret and copy the Client ID. Request a Developer Token in Microsoft Advertising API Center.',
+    'Vytvoř Client secret a zkopíruj Client ID. Developer Token vyžádej v Microsoft Advertising Developer Portalu (developers.ads.microsoft.com).' => 'Create a Client secret and copy the Client ID. Request a Developer Token in the Microsoft Advertising Developer Portal (developers.ads.microsoft.com).',
     'Vyplň Account ID, Customer ID, Client ID, Client secret a Developer Token. Ulož napojení a spusť OAuth.' => 'Enter the Account ID, Customer ID, Client ID, Client secret and Developer Token. Save the connection and start OAuth.',
     'Otestuj napojení a potom stáhni historii. Údaje se ukládají v měně reklamního účtu.' => 'Test the connection and then download the history. Data is stored in the ad account currency.',
     'Denní výkon účtu a kampaní Microsoft Ads.' => 'Daily account and campaign performance from Microsoft Ads.',
@@ -497,4 +497,7 @@ return [
     'nepřipojovat' => 'do not connect',
     'web v Search Console nenalezen' => 'website not found in Search Console',
     'Nové weby dostanou název podle domény, přejmenujete je ve Webech. Property, která už je v AllStatu napojená (i u jiného webu), se nezaloží podruhé, jen se přepne na tento účet a data zůstanou.' => 'New websites get a name based on the domain, you can rename them in Websites. A property that is already connected in AllStat (even at another website) is not created a second time, it is only switched to this account and the data stays.',
+    'Microsoft Entra → App registrations → Application (client) ID.' => 'Microsoft Entra → App registrations → Application (client) ID.',
+    'Account ID' => 'Account ID',
+    'Customer ID' => 'Customer ID',
 ];
