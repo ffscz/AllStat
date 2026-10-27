@@ -114,7 +114,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
   <div class="brand"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span> AllStat<nav class="lang no-print" aria-label="Jazyk"><span aria-current="page" lang="cs">Čeština</span><a href="en/" hreflang="en" lang="en">English</a></nav></div>
   <h1>Instalační příručka</h1>
   <p class="lead">AllStat sbírá na jednom místě statistiky vašeho webu a sociálních sítí a ukládá je do vaší vlastní databáze. Tahle příručka vás provede instalací na běžný webhosting, krok za krokem. Počítejte s 30 minutami.</p>
-  <p class="meta">Návod k verzi 1.3.0 · <a href="https://github.com/ffscz/AllStat/releases/latest">Stáhnout AllStat</a> · <a href="https://github.com/ffscz/AllStat">Zdrojový kód na GitHubu</a><span class="no-print"> · <button type="button" class="print-btn" data-print>Vytisknout nebo uložit jako PDF</button></span></p>
+  <p class="meta">Návod k verzi 1.4.0 · <a href="https://github.com/ffscz/AllStat/releases/latest">Stáhnout AllStat</a> · <a href="https://github.com/ffscz/AllStat">Zdrojový kód na GitHubu</a><span class="no-print"> · <button type="button" class="print-btn" data-print>Vytisknout nebo uložit jako PDF</button></span></p>
 </header>
 
 <nav class="toc" aria-label="Obsah">
@@ -185,6 +185,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
     <tr><td>Facebook, Instagram, Meta Ads</td><td>dosah, příspěvky, reklamy</td><td>vlastní aplikace na Meta for Developers</td><td>náročnější, asi 30 minut</td></tr>
     <tr><td>LinkedIn</td><td>statistiky firemní stránky</td><td>aplikace na LinkedIn Developers a její schválení</td><td>nejnáročnější, schválení trvá dny</td></tr>
     <tr><td>Google Ads</td><td>výkon reklam</td><td>projekt v Google Cloud se schváleným přístupem k Google Ads API</td><td>náročnější, schválení do 10 pracovních dnů</td></tr>
+    <tr><td>Microsoft Ads</td><td>výkon účtu a kampaní</td><td>OAuth klient (Google nebo Microsoft Entra) a Developer Token</td><td>náročnější, asi 30 minut</td></tr>
     <tr><td>Seznam Webmaster</td><td>stav indexace</td><td>API klíč z reporter.seznam.cz</td><td>snadná</td></tr>
   </tbody>
 </table>
@@ -242,7 +243,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
 
 <ol class="steps">
   <li><h4>Rozbalte balíček v počítači</h4>
-    <p>Balíček <code>allstat-1.3.0.zip</code> rozbalte (ve Windows: pravé tlačítko, „Extrahovat vše“). Vznikne složka <code>allstat</code>.</p></li>
+    <p>Balíček <code>allstat-1.4.0.zip</code> rozbalte (ve Windows: pravé tlačítko, „Extrahovat vše“). Vznikne složka <code>allstat</code>.</p></li>
   <li><h4>Připojte se k hostingu</h4>
     <p>V programu FileZilla (nebo jiném FTP klientu) zadejte server, uživatele, heslo a port, které jste dostali od poskytovatele hostingu. Když hosting nabízí šifrované spojení (FTPS nebo SFTP), zvolte ho.</p></li>
   <li><h4>Otevřete složku webu</h4>
@@ -441,6 +442,15 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
   <li>Použijete stejného OAuth klienta jako u Google Analytics, jen v Google Cloud Console navíc zapnete „Google Ads API“.</li>
   <li>Developer token už není potřeba, Google ho v září 2026 zrušil. Přístup teď určuje projekt v Google Cloud a nový projekt smí jen na testovací účty. Na stránce Google Ads API, Overview klikněte na „Upgrade access level“ a požádejte o úroveň Explorer. Schválení trvá obvykle do 10 pracovních dnů.</li>
   <li>Spravujete-li účet přes manažerský (MCC) účet, vyplňte v AllStatu i „MCC / Login customer ID“.</li>
+</ul>
+
+<h4 id="microsoft-ads">Microsoft Ads</h4>
+<ul>
+  <li>Napojení čte denní výkon účtu a kampaní (zobrazení, kliknutí, útrata, konverze, hodnota konverzí) přes Reporting API. Do účtu nic nezapisuje.</li>
+  <li>Přihlásit se můžete Google účtem, kterým se přihlašujete do Microsoft Advertising: stačí OAuth klient z Google Cloud Console (typ Web application, Authorized redirect URI je adresa callbacku, kterou AllStat ukáže ve formuláři). Kdo se přihlašuje účtem Microsoftu, nastaví v Pokročilém nastavení adresy Microsoft Entra. V obou musí být stejný tenant: <code>common</code>, <code>organizations</code>, <code>consumers</code>, ID nebo doména tenanta.</li>
+  <li>Potřebujete Developer Token z Microsoft Advertising Developer Portalu (developers.ads.microsoft.com) a dvě čísla z nastavení účtu: Account ID (číslo reklamního účtu) a Customer ID (číslo zákazníka).</li>
+  <li>„Otestovat napojení“ jen ověří, že Microsoft přijme požadavek na report. Data načte až synchronizace. Microsoft report připravuje i několik minut: když nestihne, synchronizace skončí hláškou, že report ještě není připravený, a další běh si ho vyzvedne.</li>
+  <li>Částky jsou v měně reklamního účtu. Report se počítá v časové zóně Praha, účet v jiné zóně ji nastaví ve formuláři.</li>
 </ul>
 
 <h4 id="clarity">Microsoft Clarity</h4>
@@ -727,7 +737,7 @@ location ~ ^/allstat/(lib|views|docs)/ { deny all; }</code></pre>
 <table>
   <thead><tr><th>Údaj</th><th>Hodnota</th></tr></thead>
   <tbody>
-    <tr><td>Verze balíčku</td><td>1.3.0</td></tr>
+    <tr><td>Verze balíčku</td><td>1.4.0</td></tr>
     <tr><td>Licence</td><td>GNU GPL verze 3 (soubor <code>LICENSE</code>), zdrojový kód a aktualizace na github.com/ffscz/AllStat</td></tr>
     <tr><td>Jazyk aplikace</td><td>čeština, slovenština a angličtina</td></tr>
     <tr><td>Požadavky na server</td><td>PHP 8.1 a novější (doporučeno 8.3), MySQL 5.7.8 a novější nebo MariaDB 10.3 a novější, Apache nebo LiteSpeed (nginx s vlastními pravidly, viz kapitola 10)</td></tr>
@@ -763,7 +773,7 @@ location ~ ^/allstat/(lib|views|docs)/ { deny all; }</code></pre>
 </main>
 
 <footer>
-  AllStat, verze 1.3.0 · Instalační příručka. Obrázky ukazují ukázková data.
+  AllStat, verze 1.4.0 · Instalační příručka. Obrázky ukazují ukázková data.
 </footer>
 
 </div>

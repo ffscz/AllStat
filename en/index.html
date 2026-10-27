@@ -114,7 +114,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
   <div class="brand"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span> AllStat<nav class="lang no-print" aria-label="Language"><a href="../" hreflang="cs" lang="cs">Čeština</a><span aria-current="page" lang="en">English</span></nav></div>
   <h1>Installation guide</h1>
   <p class="lead">AllStat collects the statistics of your website and social networks in one place and stores them in your own database. This guide walks you through installing it on ordinary web hosting, step by step. Allow 30 minutes.</p>
-  <p class="meta">Guide for version 1.3.0 · <a href="https://github.com/ffscz/AllStat/releases/latest">Download AllStat</a> · <a href="https://github.com/ffscz/AllStat">Source code on GitHub</a><span class="no-print"> · <button type="button" class="print-btn" data-print>Print or save as PDF</button></span></p>
+  <p class="meta">Guide for version 1.4.0 · <a href="https://github.com/ffscz/AllStat/releases/latest">Download AllStat</a> · <a href="https://github.com/ffscz/AllStat">Source code on GitHub</a><span class="no-print"> · <button type="button" class="print-btn" data-print>Print or save as PDF</button></span></p>
 </header>
 
 <nav class="toc" aria-label="Contents">
@@ -185,6 +185,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
     <tr><td>Facebook, Instagram, Meta Ads</td><td>reach, posts, ads</td><td>your own app on Meta for Developers</td><td>harder, about 30 minutes</td></tr>
     <tr><td>LinkedIn</td><td>company page statistics</td><td>an app on LinkedIn Developers and its approval</td><td>hardest, approval takes days</td></tr>
     <tr><td>Google Ads</td><td>ad performance</td><td>a Google Cloud project with approved access to the Google Ads API</td><td>harder, approval within 10 business days</td></tr>
+    <tr><td>Microsoft Ads</td><td>account and campaign performance</td><td>an OAuth client (Google or Microsoft Entra) and a Developer Token</td><td>harder, about 30 minutes</td></tr>
     <tr><td>Seznam Webmaster</td><td>indexing status</td><td>an API key from reporter.seznam.cz</td><td>easy</td></tr>
   </tbody>
 </table>
@@ -242,7 +243,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
 
 <ol class="steps">
   <li><h4>Unpack the package on your computer</h4>
-    <p>Unpack the <code>allstat-1.3.0.zip</code> package (in Windows: right-click, “Extract All…”). This creates an <code>allstat</code> folder.</p></li>
+    <p>Unpack the <code>allstat-1.4.0.zip</code> package (in Windows: right-click, “Extract All…”). This creates an <code>allstat</code> folder.</p></li>
   <li><h4>Connect to your hosting</h4>
     <p>In FileZilla (or another FTP client), enter the host, user, password and port you got from your hosting provider. If your hosting offers an encrypted connection (FTPS or SFTP), choose it.</p></li>
   <li><h4>Open the website folder</h4>
@@ -441,6 +442,15 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
   <li>You use the same OAuth client as for Google Analytics, you just also enable the “Google Ads API” in Google Cloud Console.</li>
   <li>A developer token is no longer needed, Google abolished it in September 2026. Access is now determined by the project in Google Cloud, and a new project is allowed to use test accounts only. On the Google Ads API, Overview page, click “Upgrade access level” and apply for the Explorer level. Approval usually takes up to 10 business days.</li>
   <li>If you manage the account through a manager (MCC) account, also fill in “MCC / Login customer ID” in AllStat.</li>
+</ul>
+
+<h4 id="microsoft-ads">Microsoft Ads</h4>
+<ul>
+  <li>The connection reads the daily performance of the account and its campaigns (impressions, clicks, spend, conversions, conversion value) through the Reporting API. It never writes anything to the account.</li>
+  <li>You can sign in with the Google account you use for Microsoft Advertising: all you need is an OAuth client from Google Cloud Console (type Web application, with the callback address that AllStat shows in the form as the Authorized redirect URI). If you sign in with a Microsoft account, set the Microsoft Entra addresses in Advanced settings. Both must use the same tenant: <code>common</code>, <code>organizations</code>, <code>consumers</code>, or the tenant ID or domain.</li>
+  <li>You need a Developer Token from the Microsoft Advertising Developer Portal (developers.ads.microsoft.com) and two numbers from the account settings: the Account ID (the ad account number) and the Customer ID (the customer number).</li>
+  <li>“Test connection” only checks that Microsoft accepts a report request. The data is loaded by a sync. Microsoft can take several minutes to prepare a report: if it is not ready in time, the sync ends with a message saying so, and the next run picks the report up.</li>
+  <li>Amounts are in the ad account’s currency. The report uses the Prague time zone; for an account in another zone, change it in the form.</li>
 </ul>
 
 <h4 id="clarity">Microsoft Clarity</h4>
@@ -727,7 +737,7 @@ location ~ ^/allstat/(lib|views|docs)/ { deny all; }</code></pre>
 <table>
   <thead><tr><th>Item</th><th>Value</th></tr></thead>
   <tbody>
-    <tr><td>Package version</td><td>1.3.0</td></tr>
+    <tr><td>Package version</td><td>1.4.0</td></tr>
     <tr><td>License</td><td>GNU GPL version 3 (the <code>LICENSE</code> file), source code and updates at github.com/ffscz/AllStat</td></tr>
     <tr><td>Application language</td><td>Czech, Slovak and English</td></tr>
     <tr><td>Server requirements</td><td>PHP 8.1 or newer (8.3 recommended), MySQL 5.7.8 or newer or MariaDB 10.3 or newer, Apache or LiteSpeed (nginx with custom rules, see chapter 10)</td></tr>
@@ -763,7 +773,7 @@ location ~ ^/allstat/(lib|views|docs)/ { deny all; }</code></pre>
 </main>
 
 <footer>
-  AllStat, version 1.3.0 · Installation guide. The screenshots show sample data.
+  AllStat, version 1.4.0 · Installation guide. The screenshots show sample data.
 </footer>
 
 </div>
