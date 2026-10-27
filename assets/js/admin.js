@@ -3,52 +3,6 @@
         window.lucide?.createIcons();
     }
 
-    function bindTheme() {
-        const button = document.getElementById('themeToggle');
-
-        if (!button) {
-            return;
-        }
-
-        const sync = () => {
-            const dark = document.documentElement.dataset.theme === 'dark';
-            button.innerHTML = `<i data-lucide="${dark ? 'sun' : 'moon'}"></i>`;
-            refreshIcons();
-        };
-
-        button.addEventListener('click', () => {
-            const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-            document.documentElement.dataset.theme = next;
-            localStorage.setItem('allstat-theme', next);
-            sync();
-        });
-
-        sync();
-    }
-
-    function bindSidebar() {
-        const shell = document.querySelector('[data-admin-shell]');
-        const button = document.querySelector('[data-sidebar-toggle]');
-
-        if (!shell || !button) {
-            return;
-        }
-
-        const backdrop = document.querySelector('[data-admin-backdrop]');
-        const setOpen = (open) => {
-            shell.classList.toggle('sidebar-open', open);
-            button.setAttribute('aria-expanded', open ? 'true' : 'false');
-            document.body.classList.toggle('nav-locked', open); // app.css: overflow hidden při otevřeném draweru
-        };
-
-        button.addEventListener('click', () => setOpen(!shell.classList.contains('sidebar-open')));
-        backdrop?.addEventListener('click', () => setOpen(false));
-        shell.querySelectorAll('.admin-nav a').forEach((a) => a.addEventListener('click', () => setOpen(false)));
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape') { setOpen(false); }
-        });
-    }
-
     // "Synchronizovat vše" na sources.php: projede všechna napojení SEKVENČNĚ (šetrné k API limitům)
     // stejným incremental syncem (7 dní) jako tlačítko na detailu napojení, s průběžným výpisem výsledků.
     function bindSyncAll() {
@@ -790,8 +744,6 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        bindTheme();
-        bindSidebar();
         bindSyncAll();
         bindProviderDefaults();
         bindConnectionActions();

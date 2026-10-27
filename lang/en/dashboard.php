@@ -24,7 +24,6 @@ return [
     'Uživatelé' => 'Users',
     'Odhlásit' => 'Sign out',
     'Nová verze {version}' => 'New version {version}',
-    'Máš {version}, klikni pro aktualizaci' => 'You have {version}, click to update',
     'Demo data jsou aktivní' => 'Demo data is active',
     'Zdroje zatím nejsou napojené' => 'No sources connected yet',
     'Všechny zdroje jsou synchronizované' => 'All sources are in sync',
@@ -32,8 +31,6 @@ return [
     'Přes 48 h bez dat: {names}. Zkontroluj cron.' => 'No data for over 48 h: {names}. Check the cron job.',
     'Obnovit data' => 'Refresh data',
     'Sdílet pro AI (dočasný odkaz)' => 'Share with AI (temporary link)',
-    'Sdílet pro AI' => 'Share with AI',
-    'Motiv' => 'Theme',
     'Dnes' => 'Today',
     'Včera' => 'Yesterday',
     '3 dny' => '3 days',
@@ -609,4 +606,6 @@ return [
     'typický měsíc (medián) prvních 3 měsíců' => 'the typical month (median) of the first 3 months',
     'a další {count}' => 'and {count} more',
     'a dalších {count}' => 'and {count} more',
+    'Jak rostou kanály webu {url} · uzavřené měsíce {range}' => 'How the channels of {url} grow · closed months {range}',
+    'Analyzovat s AI' => 'Analyze with AI',
 ];

@@ -1,0 +1,119 @@
+/*
+ * AllStat – základ: reset, písmo, ikony a drobné utility. Nic tady nezná konkrétní stránku.
+ * Resety jsou v :where(), takže je přebije jakákoli třída komponenty.
+ */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    min-height: 100%;
+}
+
+body {
+    min-height: 100vh;
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 20px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+:where(button) {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: inherit;
+    cursor: pointer;
+}
+
+:where(input, select, textarea) {
+    margin: 0;
+    color: inherit;
+    font: inherit;
+}
+
+:where(a) {
+    color: inherit;
+    text-decoration: none;
+}
+
+:where(h1, h2, h3, h4, p, dl, dd, figure) {
+    margin: 0;
+}
+
+:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* Ikony: inline SVG z allstat_icon() i <i data-lucide> nahrazené knihovnou Lucide. */
+.icon {
+    width: 18px;
+    height: 18px;
+    flex: none;
+}
+
+.icon-sm {
+    width: 16px;
+    height: 16px;
+    flex: none;
+}
+
+/* Utility */
+.num {
+    font-variant-numeric: tabular-nums;
+}
+
+.mono {
+    font-family: var(--font-mono);
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+.ellipsis {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Barva čísla podle směru změny (růst / pokles / beze změny / varování / tlumené). */
+.is-up { color: var(--pos); }
+.is-down { color: var(--neg); }
+.is-flat { color: var(--text-2); }
+.is-warn { color: var(--warn); }
+.is-muted { color: var(--muted); }
+
+.spin {
+    animation: spin .9s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        transition: none !important;
+        animation: none !important;
+    }
+}

@@ -1,0 +1,404 @@
+/*
+ * AllStat – rozvržení: shell (postranní panel + horní lišta), stránka, záhlaví stránky, sekce a mřížky.
+ * Markup shellu skládá lib/layout.php, stejný pro přehled i správu.
+ */
+
+/* ---------- Shell ---------- */
+.shell {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    min-height: 100vh;
+}
+
+.shell-side {
+    display: flex;
+    flex: 0 0 var(--side-w);
+    flex-direction: column;
+    gap: 20px;
+    width: var(--side-w);
+    padding: 16px 12px 24px;
+    background: var(--surface);
+    box-shadow: inset -1px 0 0 var(--border);
+}
+
+.shell-main {
+    display: flex;
+    flex: 999 1 560px;
+    flex-direction: column;
+    min-width: 0;
+}
+
+/* ---------- Logo ---------- */
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 32px;
+    padding: 0 8px;
+    border-radius: var(--radius-sm);
+}
+
+.logo-mark {
+    width: 22px;
+    height: 22px;
+    flex: none;
+    color: var(--accent);
+}
+
+.logo-name {
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 650;
+    letter-spacing: -.01em;
+}
+
+/* ---------- Přepínač webu ---------- */
+.site-switch {
+    position: relative;
+}
+
+.site-switch-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    height: 52px;
+    padding: 0 10px 0 8px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
+    transition: border-color .15s;
+}
+
+.site-switch-btn:hover {
+    border-color: var(--border-strong);
+}
+
+.site-switch-text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.site-switch-name {
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 600;
+}
+
+.site-switch-url {
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--muted);
+}
+
+.site-switch-btn > .icon-sm {
+    color: var(--muted);
+}
+
+/* ---------- Navigace ---------- */
+.nav {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.nav-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.nav-label {
+    padding: 0 10px 6px;
+    font-size: 11px;
+    line-height: 16px;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    height: 36px;
+    padding: 0 10px;
+    border-radius: var(--radius);
+    color: var(--text-2);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    transition: background-color .12s, color .12s;
+}
+
+.nav-item .icon {
+    color: var(--muted);
+}
+
+.nav-item:hover {
+    background: var(--hover);
+    color: var(--text);
+}
+
+.nav-item[aria-current="page"] {
+    background: var(--accent-soft);
+    color: var(--accent-text);
+}
+
+.nav-item[aria-current="page"] .icon {
+    color: var(--accent-text);
+}
+
+.shell-side-foot {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: auto;
+    padding: 0 10px;
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--muted);
+}
+
+/* ---------- Horní lišta ---------- */
+.shell-top {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    height: 56px;
+    padding: 0 32px;
+    background: var(--surface);
+    box-shadow: inset 0 -1px 0 var(--border);
+}
+
+.crumbs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    font-size: 13px;
+    line-height: 20px;
+    color: var(--muted);
+}
+
+.crumb {
+    border-radius: 4px;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+a.crumb:hover {
+    color: var(--text);
+}
+
+.crumb-sep {
+    color: var(--border-strong);
+}
+
+.crumb[aria-current="page"] {
+    color: var(--text);
+    font-weight: 500;
+}
+
+.shell-top-end {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+}
+
+.vsep {
+    width: 1px;
+    height: 20px;
+    margin: 0 8px 0 4px;
+    background: var(--border);
+}
+
+.user-menu {
+    margin-left: 8px;
+}
+
+/* Přepínač motivu ukazuje měsíc ve světlém a slunce v tmavém motivu, bez čekání na JS. */
+.theme-icon-dark,
+:root[data-theme="dark"] .theme-icon-light {
+    display: none;
+}
+
+:root[data-theme="dark"] .theme-icon-dark {
+    display: block;
+}
+
+/* ---------- Stránka ---------- */
+.page {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    width: 100%;
+    max-width: var(--page-max);
+    margin: 0 auto;
+    padding: 28px 32px 64px;
+}
+
+.page-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px 24px;
+}
+
+.page-title {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-width: 0;
+}
+
+.h1 {
+    font-size: 24px;
+    line-height: 32px;
+    font-weight: 650;
+    letter-spacing: -.02em;
+}
+
+.h2 {
+    font-size: 18px;
+    line-height: 28px;
+    font-weight: 600;
+    letter-spacing: -.01em;
+}
+
+.page-sub {
+    margin-top: 4px;
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--text-2);
+}
+
+.page-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ---------- Sekce ---------- */
+.section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.section-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    min-height: 32px;
+}
+
+.section-icon {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    flex: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text-2);
+}
+
+.section-desc {
+    font-size: 13px;
+    line-height: 20px;
+    color: var(--muted);
+}
+
+/* ---------- Mřížky ---------- */
+.grid {
+    display: grid;
+    gap: 24px;
+}
+
+/* Souhrnné dlaždice (KPI) a záložky metrik */
+.grid-kpis {
+    grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
+}
+
+/* Karty kanálů a služeb */
+.grid-cards {
+    grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
+}
+
+.grid-tiles {
+    grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr));
+}
+
+.grid-2 {
+    grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr));
+}
+
+.grid-3 {
+    grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+}
+
+/* ---------- Mobil: panel se mění v pruh nahoře, navigace jde vodorovně ---------- */
+@media (max-width: 807px) {
+    .shell-side {
+        flex-basis: 100%;
+        gap: 12px;
+        width: 100%;
+        padding: 12px 16px;
+        box-shadow: inset 0 -1px 0 var(--border);
+    }
+
+    .nav {
+        flex-direction: row;
+        gap: 4px;
+        margin: 0 -16px;
+        padding: 0 16px 4px;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .nav-group {
+        flex-direction: row;
+        gap: 4px;
+    }
+
+    .nav-label,
+    .shell-side-foot {
+        display: none;
+    }
+
+    .nav-item {
+        width: auto;
+        white-space: nowrap;
+    }
+
+    .shell-top {
+        padding: 0 16px;
+    }
+
+    .vsep {
+        display: none;
+    }
+
+    .page {
+        gap: 24px;
+        padding: 20px 16px 48px;
+    }
+}
+
+@media (pointer: coarse) {
+    .nav-item {
+        min-height: 44px;
+    }
+}
