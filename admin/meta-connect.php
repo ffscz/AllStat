@@ -52,84 +52,95 @@ if (($_GET['action'] ?? '') === 'start') {
     exit;
 }
 
-allstat_admin_header(t('Připojit Meta'), 'sources', $user, $config, 'meta');
+allstat_admin_header(t('Připojit Meta'), 'sources', $user, $config, 'meta', [
+    'sub' => t('Jedním přihlášením přes Facebook se připojí tvoje FB stránky, Instagram účty i reklamní účty. App ID a Secret se zadávají jen jednou.'),
+    'actions' => '<a class="btn btn-secondary" href="sources.php"><span>' . h(t('Zpět na zdroje')) . '</span></a>',
+]);
 ?>
-<div class="admin-card">
-    <div class="admin-card-header">
+<section class="card" aria-labelledby="meta-title">
+    <div class="card-head">
         <div>
-            <h2><?= h(t('Připojit Meta (Facebook + Instagram + Ads)')) ?></h2>
-            <p><?= h(t('Jedním přihlášením přes Facebook se připojí tvoje FB stránky, Instagram účty i reklamní účty. App ID a Secret se zadávají jen jednou.')) ?></p>
-        </div>
-        <a class="button-secondary" href="sources.php"><?= h(t('Zpět na zdroje')) ?></a>
-    </div>
-    <div class="admin-card-body">
-        <div class="code-box">
-            <?= t('<strong>OAuth callback URL</strong> (musí být v Meta App → Facebook Login → Settings → Valid OAuth Redirect URIs):') ?><br>
-            <?= h($redirectUri) ?>
+            <h2 class="card-title" id="meta-title"><?= h(t('Připojit Meta (Facebook + Instagram + Ads)')) ?></h2>
+            <p class="card-desc"><?= t('<strong>OAuth callback URL</strong> (musí být v Meta App → Facebook Login → Settings → Valid OAuth Redirect URIs):') ?></p>
         </div>
     </div>
-</div>
-
-<div class="admin-card">
-    <div class="admin-card-header"><div><h2><?= h(t('1) Meta App údaje')) ?></h2><p><?= h(t('Z developers.facebook.com → tvoje appka → Settings → Basic. Secret se ukládá šifrovaně.')) ?></p></div></div>
-    <div class="admin-card-body">
-        <form method="post" class="form-stack">
-            <?= allstat_csrf_field() ?>
-            <input type="hidden" name="action" value="save_app">
-            <div class="form-grid">
-                <label><span>App ID</span><input type="text" name="app_id" value="<?= h($app['app_id']) ?>" placeholder="1234567890" autocomplete="off"></label>
-                <label><span>App Secret</span><input type="password" name="app_secret" value="" autocomplete="new-password" placeholder="<?= $app['configured'] ? h(t('uloženo, nechte prázdné pro zachování')) : '' ?>"></label>
-            </div>
-            <label><span><?= h(t('Požadovaná oprávnění (scopes)')) ?></span><textarea name="scopes" rows="2"><?= h(allstat_meta_scopes($pdo)) ?></textarea></label>
-            <p class="form-help"><?= t('Čárkou/řádky oddělené. Žádej jen ta, která máš v Meta App skutečně povolená, když jedno chybí, Facebook odmítne <strong>všechna naráz</strong> („Invalid Scopes"). Pro samotnou FB stránku stačí <code>pages_show_list, pages_read_engagement, read_insights</code>; pro <strong>Instagram</strong> přidej navíc <code>instagram_basic, instagram_manage_insights</code> (bez nich se IG účty vůbec nenabídnou); pro <strong>reklamy</strong> <code>ads_read</code>.') ?></p>
-            <div class="form-actions">
-                <button class="button-primary" type="submit"><?= h(t('Uložit Meta App')) ?></button>
-                <?php if ($app['configured']): ?><span class="status-badge status-ok"><?= h(t('App nastavená')) ?></span><?php endif; ?>
-            </div>
-        </form>
+    <div class="card-body">
+        <code class="code"><?= h($redirectUri) ?></code>
     </div>
-</div>
+</section>
 
-<details class="admin-card-collapsible">
+<section class="card" aria-labelledby="meta-app-title">
+    <div class="card-head">
+        <div>
+            <h2 class="card-title" id="meta-app-title"><?= h(t('1) Meta App údaje')) ?></h2>
+            <p class="card-desc"><?= h(t('Z developers.facebook.com → tvoje appka → Settings → Basic. Secret se ukládá šifrovaně.')) ?></p>
+        </div>
+    </div>
+    <form method="post" class="card-body form-grid">
+        <?= allstat_csrf_field() ?>
+        <input type="hidden" name="action" value="save_app">
+        <label class="field"><span class="field-label">App ID</span><input class="input" type="text" name="app_id" value="<?= h($app['app_id']) ?>" placeholder="1234567890" autocomplete="off"></label>
+        <label class="field"><span class="field-label">App Secret</span><input class="input" type="password" name="app_secret" value="" autocomplete="new-password" placeholder="<?= $app['configured'] ? h(t('uloženo, nechte prázdné pro zachování')) : '' ?>"></label>
+        <label class="field field-full">
+            <span class="field-label"><?= h(t('Požadovaná oprávnění (scopes)')) ?></span>
+            <textarea class="input" name="scopes" rows="2"><?= h(allstat_meta_scopes($pdo)) ?></textarea>
+            <span class="field-help"><?= t('Čárkou/řádky oddělené. Žádej jen ta, která máš v Meta App skutečně povolená, když jedno chybí, Facebook odmítne <strong>všechna naráz</strong> („Invalid Scopes"). Pro samotnou FB stránku stačí <code>pages_show_list, pages_read_engagement, read_insights</code>; pro <strong>Instagram</strong> přidej navíc <code>instagram_basic, instagram_manage_insights</code> (bez nich se IG účty vůbec nenabídnou); pro <strong>reklamy</strong> <code>ads_read</code>.') ?></span>
+        </label>
+        <div class="form-actions field-full">
+            <button class="btn btn-primary" type="submit"><?= h(t('Uložit Meta App')) ?></button>
+            <?php if ($app['configured']): ?><?= allstat_status_pill('ok', t('App nastavená')) ?><?php endif; ?>
+        </div>
+    </form>
+</section>
+
+<details class="card note">
     <summary>
-        <div>
-            <h2><?= h(t('Instagram se nenabízí? Co ověřit')) ?></h2>
-            <p><?= h(t('AllStat vidí IG jen přes propojenou FB stránku, když chybí jediná z podmínek, v nabídce nebude.')) ?></p>
-        </div>
+        <?= allstat_icon('info', 'icon') ?>
+        <span><?= h(t('Instagram se nenabízí? Co ověřit')) ?></span>
+        <?= allstat_icon('chevron-down', 'note-chev') ?>
     </summary>
-    <div class="admin-card-body">
-        <ol class="provider-guide-steps">
+    <div class="note-body">
+        <p><?= h(t('AllStat vidí IG jen přes propojenou FB stránku, když chybí jediná z podmínek, v nabídce nebude.')) ?></p>
+        <ol class="steps">
             <li><?= t('<strong>Typ účtu:</strong> IG musí být <strong>Business nebo Creator</strong> (ne osobní). Přepneš v IG appce → Nastavení → Typ účtu / Přepnout na profesionální účet.') ?></li>
             <li><?= t('<strong>Propojení s FB stránkou:</strong> IG musí být <strong>propojený s FB stránkou</strong>, kterou spravuješ (Meta Business Suite → Nastavení → Účty, nebo IG appka → Nastavení → Propojené účty → Facebook). Stránka může být i „prázdná", slouží jen jako most pro API.') ?></li>
             <li><?= t('<strong>Oprávnění (scopes):</strong> v poli „Požadovaná oprávnění" výše musí být <code>instagram_basic</code> a <code>instagram_manage_insights</code>.') ?></li>
             <li><?= t('<strong>Meta App:</strong> v appce na developers.facebook.com přidej produkt <strong>Instagram</strong> a použij <strong>„API setup with Facebook login"</strong> (NE „Instagram login", ta je pro jiný typ napojení). V <strong>Development</strong> módu funguje pro tvoje vlastní účty bez App Review.') ?></li>
             <li><?= t('Pak dej <strong>„Připojit přes Facebook"</strong> níže a při přihlášení <strong>potvrď i Instagram</strong> oprávnění → IG se objeví pod svou stránkou → zaškrtni a ulož.') ?></li>
         </ol>
-        <p class="form-help"><?= t('Když je IG <strong>samostatný</strong> a nechceš ho párovat s FB stránkou, existuje i přímé „Instagram Login" napojení (bez FB stránky), to ale AllStat zatím neumí. Napiš a doděláme ho jako samostatného providera.') ?></p>
+        <p class="field-help"><?= t('Když je IG <strong>samostatný</strong> a nechceš ho párovat s FB stránkou, existuje i přímé „Instagram Login" napojení (bez FB stránky), to ale AllStat zatím neumí. Napiš a doděláme ho jako samostatného providera.') ?></p>
     </div>
 </details>
 
-<div class="admin-card">
-    <div class="admin-card-header"><div><h2><?= h(t('2) Připojit účty')) ?></h2><p><?= h(t('Vyber web a přihlas se přes Facebook. Pak vybereš, které stránky / IG / reklamní účty připojit.')) ?></p></div></div>
-    <div class="admin-card-body">
+<section class="card" aria-labelledby="meta-connect-title">
+    <div class="card-head">
+        <div>
+            <h2 class="card-title" id="meta-connect-title"><?= h(t('2) Připojit účty')) ?></h2>
+            <p class="card-desc"><?= h(t('Vyber web a přihlas se přes Facebook. Pak vybereš, které stránky / IG / reklamní účty připojit.')) ?></p>
+        </div>
+    </div>
+    <div class="card-body">
         <?php if (!$app['configured']): ?>
-            <p class="table-muted"><?= h(t('Nejdřív ulož Meta App ID a Secret výše.')) ?></p>
+            <p class="is-muted"><?= h(t('Nejdřív ulož Meta App ID a Secret výše.')) ?></p>
         <?php elseif (!$domains): ?>
-            <p class="table-muted"><?= t('Nejdřív přidej web ve <a href="domains.php">Weby</a>.') ?></p>
+            <p class="is-muted"><?= t('Nejdřív přidej web ve <a href="domains.php">Weby</a>.') ?></p>
         <?php else: ?>
-            <form method="get" class="toolbar" action="meta-connect.php">
+            <form method="get" class="form-grid" action="meta-connect.php">
                 <input type="hidden" name="action" value="start">
-                <label class="filter-control"><span><?= h(t('Web')) ?></span>
-                    <select name="domain_id" required>
+                <label class="field">
+                    <span class="field-label"><?= h(t('Web')) ?></span>
+                    <select class="input" name="domain_id" required>
                         <?php foreach ($domains as $domain): ?>
                             <option value="<?= (int) $domain['id'] ?>"<?= (int) $domain['id'] === $currentDomainId ? ' selected' : '' ?>><?= h($domain['name']) ?> (<?= h($domain['url']) ?>)</option>
                         <?php endforeach; ?>
                     </select>
+                    <span class="field-help"><?= h(t('Appka je v Development módu, funguje pro účty s rolí na appce (ty + případně klienti přidaní jako testeři). App Review není potřeba.')) ?></span>
                 </label>
-                <button class="button-primary" type="submit"><?= allstat_meta_button_icon() ?> <?= h(t('Připojit přes Facebook')) ?></button>
+                <div class="form-actions field-full">
+                    <button class="btn btn-primary" type="submit"><?= allstat_meta_button_icon() ?><span><?= h(t('Připojit přes Facebook')) ?></span></button>
+                </div>
             </form>
-            <p class="form-help" style="margin-top:10px;"><?= h(t('Appka je v Development módu, funguje pro účty s rolí na appce (ty + případně klienti přidaní jako testeři). App Review není potřeba.')) ?></p>
         <?php endif; ?>
     </div>
-</div>
+</section>
 <?php allstat_admin_footer($config); ?>

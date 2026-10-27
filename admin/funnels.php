@@ -103,7 +103,7 @@ if ($isPost) {
 
 if (!$domains) {
     allstat_admin_header(t('Trychtýře'), 'funnels', $user, $config);
-    echo '<div class="admin-card"><div class="admin-card-body"><p class="table-muted">' . t('Zatím není žádný aktivní web. Nejdřív ho přidej v části <a href="domains.php">Weby</a>.') . '</p></div></div>';
+    echo '<div class="callout"><div>' . t('Zatím není žádný aktivní web. Nejdřív ho přidej v části <a href="domains.php">Weby</a>.') . '</div></div>';
     allstat_admin_footer($config);
     exit;
 }
@@ -174,17 +174,17 @@ $renderStepRow = static function (string $index, array $step, ?int $activity, in
     }
     ob_start();
     ?>
-    <li class="funnel-step-row" data-funnel-row>
-        <button type="button" class="funnel-step-handle" data-funnel-handle title="<?= h(t('Přetáhni pro změnu pořadí (nebo použij šipky nahoru a dolů)')) ?>" aria-label="<?= h(t('Přetáhnout krok, pořadí lze měnit i šipkami nahoru a dolů')) ?>"><?= $iconGrip ?></button>
-        <span class="funnel-step-no" data-funnel-no><?= (int) $position ?></span>
-        <label class="funnel-step-label">
-            <span class="funnel-step-caption"><?= h(t('Popisek kroku')) ?></span>
-            <input type="text" name="steps[<?= h($index) ?>][label]" maxlength="<?= (int) $limits['label_length'] ?>" value="<?= h($step['label'] ?? '') ?>" placeholder="<?= h(t('Např. Odeslání formuláře')) ?>">
+    <li class="card funnel-step-row" data-funnel-row>
+        <button type="button" class="btn-icon btn-sm funnel-step-handle" data-funnel-handle title="<?= h(t('Přetáhni pro změnu pořadí (nebo použij šipky nahoru a dolů)')) ?>" aria-label="<?= h(t('Přetáhnout krok, pořadí lze měnit i šipkami nahoru a dolů')) ?>"><?= $iconGrip ?></button>
+        <span class="tile tile-sm tile-round funnel-step-no" data-funnel-no><?= (int) $position ?></span>
+        <label class="field funnel-step-label">
+            <span class="field-label funnel-step-caption"><?= h(t('Popisek kroku')) ?></span>
+            <input class="input" type="text" name="steps[<?= h($index) ?>][label]" maxlength="<?= (int) $limits['label_length'] ?>" value="<?= h($step['label'] ?? '') ?>" placeholder="<?= h(t('Např. Odeslání formuláře')) ?>">
         </label>
         <div class="funnel-step-event">
-            <label>
-                <span class="funnel-step-caption">GA4 event</span>
-                <select name="steps[<?= h($index) ?>][event]" data-funnel-event>
+            <label class="field">
+                <span class="field-label funnel-step-caption">GA4 event</span>
+                <select class="input" name="steps[<?= h($index) ?>][event]" data-funnel-event>
                     <option value=""<?= $event === '' ? ' selected' : '' ?>><?= h(t('Vyber event…')) ?></option>
                     <?php foreach ($eventNames as $row): ?>
                         <option value="<?= h($row['event']) ?>"<?= $row['event'] === $event ? ' selected' : '' ?>><?= h($row['event']) ?> (<?= h(t('{count} za 90 dní', ['count' => allstat_number($row['count'])])) ?>)</option>
@@ -195,16 +195,16 @@ $renderStepRow = static function (string $index, array $step, ?int $activity, in
                     <option value="<?= h($customEventValue) ?>"><?= h(t('Vlastní název eventu…')) ?></option>
                 </select>
             </label>
-            <input type="text" class="funnel-step-custom" name="steps[<?= h($index) ?>][event_custom]" data-funnel-custom maxlength="<?= (int) $limits['event_length'] ?>" pattern="[A-Za-z][A-Za-z0-9_]*" title="<?= h(t('Začíná písmenem, dál jen písmena, číslice a podtržítko')) ?>" placeholder="<?= h(t('nebo napiš vlastní název eventu')) ?>" aria-label="<?= h(t('Vlastní název eventu')) ?>" autocomplete="off">
+            <input type="text" class="input funnel-step-custom" name="steps[<?= h($index) ?>][event_custom]" data-funnel-custom maxlength="<?= (int) $limits['event_length'] ?>" pattern="[A-Za-z][A-Za-z0-9_]*" title="<?= h(t('Začíná písmenem, dál jen písmena, číslice a podtržítko')) ?>" placeholder="<?= h(t('nebo napiš vlastní název eventu')) ?>" aria-label="<?= h(t('Vlastní název eventu')) ?>" autocomplete="off">
         </div>
         <span class="funnel-step-activity" data-funnel-activity><?php
         if ($event !== '' && $activity !== null):
-            if ($activity > 0): ?><span class="status-badge status-ok"><?= h(t('{count} za 28 dní', ['count' => allstat_number($activity)])) ?></span><?php else: ?><span class="status-badge status-warning" title="<?= h(t('Event za posledních 28 dní nepřišel, zkontroluj měření (GTM).')) ?>"><?= h(t('za 28 dní nepřišel')) ?></span><?php endif;
+            if ($activity > 0): ?><span class="status tone-up"><?= h(t('{count} za 28 dní', ['count' => allstat_number($activity)])) ?></span><?php else: ?><span class="status tone-warn" title="<?= h(t('Event za posledních 28 dní nepřišel, zkontroluj měření (GTM).')) ?>"><?= h(t('za 28 dní nepřišel')) ?></span><?php endif;
         endif; ?></span>
         <div class="funnel-step-controls">
-            <button type="button" class="funnel-icon-btn" data-funnel-up title="<?= h(t('Posunout nahoru')) ?>" aria-label="<?= h(t('Posunout krok nahoru')) ?>"><?= $iconUp ?></button>
-            <button type="button" class="funnel-icon-btn" data-funnel-down title="<?= h(t('Posunout dolů')) ?>" aria-label="<?= h(t('Posunout krok dolů')) ?>"><?= $iconDown ?></button>
-            <button type="button" class="funnel-icon-btn funnel-icon-btn-danger" data-funnel-remove title="<?= h(t('Odebrat krok')) ?>" aria-label="<?= h(t('Odebrat krok')) ?>"><?= $iconRemove ?></button>
+            <button type="button" class="btn-icon btn-sm" data-funnel-up title="<?= h(t('Posunout nahoru')) ?>" aria-label="<?= h(t('Posunout krok nahoru')) ?>"><?= $iconUp ?></button>
+            <button type="button" class="btn-icon btn-sm" data-funnel-down title="<?= h(t('Posunout dolů')) ?>" aria-label="<?= h(t('Posunout krok dolů')) ?>"><?= $iconDown ?></button>
+            <button type="button" class="btn-icon btn-sm funnel-icon-btn-danger" data-funnel-remove title="<?= h(t('Odebrat krok')) ?>" aria-label="<?= h(t('Odebrat krok')) ?>"><?= $iconRemove ?></button>
         </div>
     </li>
     <?php
@@ -212,66 +212,75 @@ $renderStepRow = static function (string $index, array $step, ?int $activity, in
     return (string) ob_get_clean();
 };
 
-allstat_admin_header(t('Trychtýře'), 'funnels', $user, $config);
+$headActions = '';
+if (!$atLimit) {
+    $headActions = '<a class="btn btn-primary" href="funnels.php?domain_id=' . (int) $domainId . '&amp;new=1">' . allstat_icon('plus', 'icon-sm') . '<span>' . h(t('Nový trychtýř')) . '</span></a>';
+}
+allstat_admin_header(t('Trychtýře'), 'funnels', $user, $config, null, [
+    'sub' => t('Konverzní cesty z GA4 eventů. Aktivní trychtýře se nabízejí v Přehledu ve výběru „Zdroj dat“, vidí je i běžní uživatelé (jen čtení).'),
+    'actions' => $headActions,
+]);
 ?>
 <?php if ($mode === 'pick'): ?>
-<div class="admin-card">
-    <div class="admin-card-header">
+<section class="card">
+    <div class="card-head">
         <div>
-            <h2><?= h(t('Nový trychtýř: vyber šablonu')) ?></h2>
-            <p><?= h(t('Šablona jen předvyplní kroky, všechno můžeš ve formuláři upravit. Eventy, které na webu nechodí, se označí varováním.')) ?></p>
+            <h2 class="card-title"><?= h(t('Nový trychtýř: vyber šablonu')) ?></h2>
+            <p class="card-desc"><?= h(t('Šablona jen předvyplní kroky, všechno můžeš ve formuláři upravit. Eventy, které na webu nechodí, se označí varováním.')) ?></p>
         </div>
-        <a class="button-secondary" href="funnels.php?domain_id=<?= (int) $domainId ?>"><?= h(t('Zpět na seznam')) ?></a>
+        <div class="form-actions">
+            <a class="btn btn-secondary" href="funnels.php?domain_id=<?= (int) $domainId ?>"><span><?= h(t('Zpět na seznam')) ?></span></a>
+        </div>
     </div>
-    <div class="admin-card-body">
-        <div class="funnel-templates">
+    <div class="card-body">
+        <div class="grid grid-cards">
             <?php foreach ($templates as $key => $template): ?>
-                <a class="funnel-template" href="funnels.php?domain_id=<?= (int) $domainId ?>&amp;new=1&amp;template=<?= h($key) ?>">
-                    <strong><?= h($template['name']) ?></strong>
-                    <span><?= h($template['description']) ?></span>
-                    <small><?= h(implode(' → ', array_column($template['steps'], 'label'))) ?></small>
+                <a class="card channel funnel-template" href="funnels.php?domain_id=<?= (int) $domainId ?>&amp;new=1&amp;template=<?= h($key) ?>">
+                    <span class="channel-name"><?= h($template['name']) ?></span>
+                    <span class="card-desc"><?= h($template['description']) ?></span>
+                    <span class="channel-meta"><?= h(implode(' → ', array_column($template['steps'], 'label'))) ?></span>
                 </a>
             <?php endforeach; ?>
-            <a class="funnel-template" href="funnels.php?domain_id=<?= (int) $domainId ?>&amp;new=1&amp;template=blank">
-                <strong><?= h(t('Prázdný trychtýř')) ?></strong>
-                <span><?= h(t('Kroky si poskládáš sám z eventů, které na webu chodí.')) ?></span>
-                <small><?= h(t('Začneš se dvěma prázdnými kroky')) ?></small>
+            <a class="card channel funnel-template" href="funnels.php?domain_id=<?= (int) $domainId ?>&amp;new=1&amp;template=blank">
+                <span class="channel-name"><?= h(t('Prázdný trychtýř')) ?></span>
+                <span class="card-desc"><?= h(t('Kroky si poskládáš sám z eventů, které na webu chodí.')) ?></span>
+                <span class="channel-meta"><?= h(t('Začneš se dvěma prázdnými kroky')) ?></span>
             </a>
         </div>
     </div>
-</div>
+</section>
 <?php endif; ?>
 
 <?php if ($mode === 'form'): $isNew = $formState['id'] === null; ?>
-<div class="admin-card">
-    <div class="admin-card-header">
+<section class="card">
+    <div class="card-head">
         <div>
-            <h2><?= h($isNew ? t('Nový trychtýř') : t('Upravit trychtýř')) ?> <span class="table-muted">(<?= h($currentDomain['url'] ?? '') ?>)</span></h2>
-            <p><?= h(t('Trychtýř je řada GA4 eventů od vstupu až po cíl. Počty kroků se berou z denních součtů eventů, takže fungují hned i zpětně.')) ?></p>
+            <h2 class="card-title"><?= h($isNew ? t('Nový trychtýř') : t('Upravit trychtýř')) ?> <small>(<?= h($currentDomain['url'] ?? '') ?>)</small></h2>
+            <p class="card-desc"><?= h(t('Trychtýř je řada GA4 eventů od vstupu až po cíl. Počty kroků se berou z denních součtů eventů, takže fungují hned i zpětně.')) ?></p>
         </div>
-        <div class="card-header-actions">
-            <?php if (!$isNew): ?><a class="button-secondary" href="../?view=funnel&amp;funnel_id=<?= (int) $formState['id'] ?>&amp;domain_id=<?= (int) $domainId ?>"><?= h(t('Zobrazit v přehledu')) ?></a><?php endif; ?>
-            <a class="button-secondary" href="funnels.php?domain_id=<?= (int) $domainId ?>"><?= h(t('Zpět na seznam')) ?></a>
+        <div class="form-actions">
+            <?php if (!$isNew): ?><a class="btn btn-secondary" href="../?view=funnel&amp;funnel_id=<?= (int) $formState['id'] ?>&amp;domain_id=<?= (int) $domainId ?>"><span><?= h(t('Zobrazit v přehledu')) ?></span></a><?php endif; ?>
+            <a class="btn btn-secondary" href="funnels.php?domain_id=<?= (int) $domainId ?>"><span><?= h(t('Zpět na seznam')) ?></span></a>
         </div>
     </div>
-    <div class="admin-card-body">
-        <form method="post" class="funnel-form" data-funnel-form>
+    <div class="card-body">
+        <form method="post" class="funnel-form section" data-funnel-form>
             <?= allstat_csrf_field() ?>
             <input type="hidden" name="action" value="save">
             <input type="hidden" name="domain_id" value="<?= (int) $domainId ?>">
             <input type="hidden" name="id" value="<?= (int) ($formState['id'] ?? 0) ?>">
-            <div class="form-grid form-grid-3">
-                <label><span><?= h(t('Název')) ?></span><input type="text" name="name" required maxlength="<?= (int) $limits['name_length'] ?>" value="<?= h($formState['name']) ?>" placeholder="<?= h(t('Např. Poptávkový formulář')) ?>"></label>
-                <label>
-                    <span><?= h(t('Rozpad podle')) ?></span>
-                    <select name="breakdown">
+            <div class="form-grid">
+                <label class="field"><span class="field-label"><?= h(t('Název')) ?></span><input class="input" type="text" name="name" required maxlength="<?= (int) $limits['name_length'] ?>" value="<?= h($formState['name']) ?>" placeholder="<?= h(t('Např. Poptávkový formulář')) ?>"></label>
+                <label class="field">
+                    <span class="field-label"><?= h(t('Rozpad podle')) ?></span>
+                    <select class="input" name="breakdown">
                         <?php foreach ($breakdowns as $key => $label): ?><option value="<?= h($key) ?>"<?= $formState['breakdown'] === $key ? ' selected' : '' ?>><?= h($label) ?></option><?php endforeach; ?>
                     </select>
                     <span class="field-help"><?= h(t('Výchozí rozpad v přehledu, přepnout ho tam jde i později.')) ?></span>
                 </label>
-                <label>
-                    <span><?= h(t('Stav')) ?></span>
-                    <select name="is_active">
+                <label class="field">
+                    <span class="field-label"><?= h(t('Stav')) ?></span>
+                    <select class="input" name="is_active">
                         <option value="1"<?= $formState['is_active'] ? ' selected' : '' ?>><?= h(t('Aktivní')) ?></option>
                         <option value="0"<?= !$formState['is_active'] ? ' selected' : '' ?>><?= h(t('Vypnutý')) ?></option>
                     </select>
@@ -279,9 +288,9 @@ allstat_admin_header(t('Trychtýře'), 'funnels', $user, $config);
                 </label>
             </div>
 
-            <div class="funnel-editor" data-funnel-editor data-min="<?= (int) $limits['min_steps'] ?>" data-max="<?= (int) $limits['max_steps'] ?>" data-activity="<?= h(allstat_json($activityMap)) ?>">
+            <div class="funnel-editor section" data-funnel-editor data-min="<?= (int) $limits['min_steps'] ?>" data-max="<?= (int) $limits['max_steps'] ?>" data-activity="<?= h(allstat_json($activityMap)) ?>">
                 <div class="funnel-editor-head">
-                    <h3><?= h(t('Kroky trychtýře')) ?></h3>
+                    <h3 class="block-title"><?= h(t('Kroky trychtýře')) ?></h3>
                     <p class="field-help"><?= h(t('Pořadí shora dolů je pořadí v trychtýři. Změníš ho přetažením úchytu vlevo nebo šipkami. Kroků může být {min} až {max}.', ['min' => (int) $limits['min_steps'], 'max' => (int) $limits['max_steps']])) ?></p>
                 </div>
                 <ol class="funnel-steps" data-funnel-steps>
@@ -290,91 +299,90 @@ allstat_admin_header(t('Trychtýře'), 'funnels', $user, $config);
                     <?php endforeach; ?>
                 </ol>
                 <template data-funnel-template><?= $renderStepRow('__INDEX__', ['label' => '', 'event' => ''], null, 0) ?></template>
-                <div class="funnel-editor-foot">
-                    <button type="button" class="button-secondary" data-funnel-add><?= h(t('Přidat krok')) ?></button>
+                <div class="form-actions funnel-editor-foot">
+                    <button type="button" class="btn btn-secondary btn-sm" data-funnel-add><?= allstat_icon('plus', 'icon-sm') ?><span><?= h(t('Přidat krok')) ?></span></button>
                     <span class="field-help" data-funnel-count></span>
                 </div>
             </div>
 
             <div class="form-actions">
-                <button class="button-primary" type="submit"><?= h(t('Uložit trychtýř')) ?></button>
-                <a class="button-secondary" href="funnels.php?domain_id=<?= (int) $domainId ?>"><?= h(t('Zrušit')) ?></a>
+                <button class="btn btn-primary" type="submit"><?= h(t('Uložit trychtýř')) ?></button>
+                <a class="btn btn-secondary" href="funnels.php?domain_id=<?= (int) $domainId ?>"><?= h(t('Zrušit')) ?></a>
             </div>
         </form>
     </div>
-</div>
+</section>
 <?php endif; ?>
 
-<div class="admin-card">
-    <div class="admin-card-header">
+<section class="card" aria-labelledby="funnels-title">
+    <div class="card-head">
         <div>
-            <h2><?= h(t('Trychtýře webu')) ?></h2>
-            <p><?= h(t('Konverzní cesty z GA4 eventů. Aktivní trychtýře se nabízejí v Přehledu ve výběru „Zdroj dat“, vidí je i běžní uživatelé (jen čtení).')) ?></p>
-        </div>
-        <div class="card-header-actions">
-            <form method="get" class="metrics-filter">
-                <label><span class="table-muted"><?= h(t('Web')) ?></span>
-                    <select name="domain_id" data-autosubmit aria-label="<?= h(t('Web')) ?>">
-                        <?php foreach ($domains as $domain): ?><option value="<?= (int) $domain['id'] ?>"<?= (int) $domain['id'] === $domainId ? ' selected' : '' ?>><?= h($domain['url']) ?></option><?php endforeach; ?>
-                    </select>
-                </label>
-            </form>
-            <?php if (!$atLimit): ?>
-                <a class="button-primary" href="funnels.php?domain_id=<?= (int) $domainId ?>&amp;new=1"><?= h(t('Nový trychtýř')) ?></a>
-            <?php endif; ?>
+            <h2 class="card-title" id="funnels-title"><?= h(t('Trychtýře webu')) ?></h2>
         </div>
     </div>
-    <div class="admin-card-body table-scroll">
-        <table class="admin-table">
-            <thead><tr><th><?= h(t('Název')) ?></th><th><?= h(t('Kroky')) ?></th><th><?= h(t('Rozpad')) ?></th><th><?= h(t('Stav')) ?></th><th></th></tr></thead>
+    <div class="filterbar">
+        <form method="get">
+            <label class="sr-only" for="funnels-domain"><?= h(t('Web')) ?></label>
+            <select class="input" id="funnels-domain" name="domain_id" data-autosubmit aria-label="<?= h(t('Web')) ?>">
+                <?php foreach ($domains as $domain): ?><option value="<?= (int) $domain['id'] ?>"<?= (int) $domain['id'] === $domainId ? ' selected' : '' ?>><?= h($domain['url']) ?></option><?php endforeach; ?>
+            </select>
+        </form>
+    </div>
+    <?php if ($funnels): ?>
+    <div class="table-wrap">
+        <table class="table table-data">
+            <colgroup><col class="col-lg"><col><col class="col-md"><col class="col-sm"><col class="col-sm"></colgroup>
+            <thead><tr><th scope="col"><?= h(t('Název')) ?></th><th scope="col"><?= h(t('Kroky')) ?></th><th scope="col"><?= h(t('Rozpad')) ?></th><th scope="col"><?= h(t('Stav')) ?></th><th scope="col" data-no-sort><span class="sr-only"><?= h(t('Akce')) ?></span></th></tr></thead>
             <tbody>
-            <?php foreach ($funnels as $funnel): ?>
+            <?php foreach ($funnels as $funnel): $fid = (int) $funnel['id']; ?>
                 <tr>
-                    <td><strong><?= h($funnel['name']) ?></strong></td>
-                    <td>
-                        <span class="table-muted"><?= h(tn(count($funnel['steps']), '{count} krok', '{count} kroky', '{count} kroků')) ?></span><br>
-                        <span class="funnel-list-steps" title="<?= h(implode(' → ', array_column($funnel['steps'], 'event'))) ?>"><?= h(implode(' → ', array_column($funnel['steps'], 'label'))) ?></span>
+                    <td class="ellipsis" title="<?= h($funnel['name']) ?>"><span class="name-main"><?= h($funnel['name']) ?></span></td>
+                    <td class="is-wrap">
+                        <div class="name-stack">
+                            <span class="is-muted"><?= h(tn(count($funnel['steps']), '{count} krok', '{count} kroky', '{count} kroků')) ?></span>
+                            <span class="funnel-list-steps" title="<?= h(implode(' → ', array_column($funnel['steps'], 'event'))) ?>"><?= h(implode(' → ', array_column($funnel['steps'], 'label'))) ?></span>
+                        </div>
                     </td>
-                    <td><?= h($breakdowns[$funnel['breakdown']] ?? $funnel['breakdown']) ?></td>
-                    <td><?= $funnel['is_active'] ? '<span class="status-badge status-ok">' . h(t('Aktivní')) . '</span>' : '<span class="status-badge status-info">' . h(t('Vypnutý')) . '</span>' ?></td>
+                    <td class="ellipsis"><?= h($breakdowns[$funnel['breakdown']] ?? $funnel['breakdown']) ?></td>
+                    <td><?= $funnel['is_active'] ? allstat_status_pill('ok', t('Aktivní')) : allstat_status_pill('off', t('Vypnutý')) ?></td>
                     <td>
-                        <div class="table-actions">
-                            <a class="button-secondary" href="funnels.php?domain_id=<?= (int) $domainId ?>&amp;edit=<?= (int) $funnel['id'] ?>"><?= h(t('Upravit')) ?></a>
-                            <a class="button-secondary" href="../?view=funnel&amp;funnel_id=<?= (int) $funnel['id'] ?>&amp;domain_id=<?= (int) $domainId ?>"><?= h(t('Zobrazit v přehledu')) ?></a>
-                            <form method="post" data-confirm="<?= h(t('Smazat trychtýř „{name}“? Nastavení se nedá vrátit, naměřená data zůstanou.', ['name' => $funnel['name']])) ?>">
-                                <?= allstat_csrf_field() ?>
-                                <input type="hidden" name="action" value="delete">
-                                <input type="hidden" name="domain_id" value="<?= (int) $domainId ?>">
-                                <input type="hidden" name="id" value="<?= (int) $funnel['id'] ?>">
-                                <button class="button-danger" type="submit"><?= h(t('Smazat')) ?></button>
-                            </form>
+                        <div class="cell-actions dropdown">
+                            <a class="btn-icon btn-sm" href="funnels.php?domain_id=<?= (int) $domainId ?>&amp;edit=<?= $fid ?>" title="<?= h(t('Upravit')) ?>" aria-label="<?= h(t('Upravit')) ?>: <?= h($funnel['name']) ?>"><?= allstat_icon('pencil', 'icon-sm') ?></a>
+                            <button type="button" class="btn-icon btn-sm" aria-label="<?= h(t('Další akce pro {name}', ['name' => $funnel['name']])) ?>" aria-haspopup="true" aria-expanded="false" data-menu-toggle="funnel-menu-<?= $fid ?>"><?= allstat_icon('ellipsis', 'icon-sm') ?></button>
+                            <div class="menu menu-end" id="funnel-menu-<?= $fid ?>" hidden>
+                                <a class="menu-item" href="../?view=funnel&amp;funnel_id=<?= $fid ?>&amp;domain_id=<?= (int) $domainId ?>"><?= allstat_icon('line-chart', 'icon-sm') ?><span><?= h(t('Zobrazit v přehledu')) ?></span></a>
+                                <div class="menu-sep"></div>
+                                <form method="post" data-confirm="<?= h(t('Smazat trychtýř „{name}“? Nastavení se nedá vrátit, naměřená data zůstanou.', ['name' => $funnel['name']])) ?>">
+                                    <?= allstat_csrf_field() ?>
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="domain_id" value="<?= (int) $domainId ?>">
+                                    <input type="hidden" name="id" value="<?= $fid ?>">
+                                    <button class="menu-item is-danger" type="submit"><?= allstat_icon('trash-2', 'icon-sm') ?><span><?= h(t('Smazat')) ?></span></button>
+                                </form>
+                            </div>
                         </div>
                     </td>
                 </tr>
             <?php endforeach; ?>
-            <?php if (!$funnels): ?>
-                <tr><td colspan="5" class="table-muted"><?= h(t('Tento web zatím nemá žádný trychtýř. Klikni na „Nový trychtýř“ a vyber šablonu, třeba poptávkový formulář.')) ?></td></tr>
-            <?php endif; ?>
             </tbody>
         </table>
-        <?php if ($atLimit): ?><p class="table-muted"><?= h(t('Web má maximální počet trychtýřů ({count}). Nový přidáš po smazání některého ze stávajících.', ['count' => (int) $limits['max_funnels']])) ?></p><?php endif; ?>
     </div>
-</div>
+    <?php else: ?>
+    <div class="empty">
+        <span class="empty-desc"><?= h(t('Tento web zatím nemá žádný trychtýř. Klikni na „Nový trychtýř“ a vyber šablonu, třeba poptávkový formulář.')) ?></span>
+    </div>
+    <?php endif; ?>
+    <?php if ($atLimit): ?><div class="card-foot"><?= h(t('Web má maximální počet trychtýřů ({count}). Nový přidáš po smazání některého ze stávajících.', ['count' => (int) $limits['max_funnels']])) ?></div><?php endif; ?>
+</section>
 
-<div class="admin-card">
-    <div class="admin-card-header">
-        <div>
-            <h2><?= h(t('Jak nastavit měření')) ?></h2>
-            <p><?= h(t('Trychtýř je jen tak dobrý, jak dobře se měří jeho kroky.')) ?></p>
-        </div>
+<details class="card note">
+    <summary><?= allstat_icon('info', 'icon') ?><span><?= h(t('Jak nastavit měření')) ?></span><?= allstat_icon('chevron-down', 'note-chev') ?></summary>
+    <div class="note-body">
+        <p><?= h(t('Trychtýř je jen tak dobrý, jak dobře se měří jeho kroky.')) ?></p>
+        <p><?= t('<strong>Kroky jsou GA4 eventy.</strong> Event musí chodit do Google Analytics 4, typicky přes Google Tag Manager. Názvy piš malými písmeny s podtržítky, například <code>form_submit</code>. U každého kroku vidíš, kolikrát event za posledních 28 dní přišel; když nepřišel vůbec, zkontroluj měření.') ?></p>
+        <p><?= t('<strong>Rozpad podle zdroje se plní od dalšího syncu GA4.</strong> Počty kroků fungují hned i zpětně, ale rozpad podle kanálu, zdroje a média nebo kampaně se začne ukládat až při příští synchronizaci GA4 po vytvoření trychtýře. Starší období doplníš přes „Stáhnout historii“ u zdroje GA4 (Zdroje dat, úprava napojení).') ?></p>
+        <p><?= t('<strong>Obchodní krok z CRM přidáš jako event.</strong> Když chceš na konec trychtýře krok, který se děje mimo web (například podepsaná smlouva), pošli ho z CRM do GA4 jako event přes Measurement Protocol a pak ho vyber jako poslední krok.') ?></p>
+        <p><?= t('<strong>Čísla jsou počty událostí, ne lidí.</strong> Jeden návštěvník může event vyvolat vícekrát, proto může být pozdější krok vyšší než předchozí. Takový případ trychtýř označí upozorněním.') ?></p>
     </div>
-    <div class="admin-card-body">
-        <ul class="funnel-help">
-            <li><?= t('<strong>Kroky jsou GA4 eventy.</strong> Event musí chodit do Google Analytics 4, typicky přes Google Tag Manager. Názvy piš malými písmeny s podtržítky, například <code>form_submit</code>. U každého kroku vidíš, kolikrát event za posledních 28 dní přišel; když nepřišel vůbec, zkontroluj měření.') ?></li>
-            <li><?= t('<strong>Rozpad podle zdroje se plní od dalšího syncu GA4.</strong> Počty kroků fungují hned i zpětně, ale rozpad podle kanálu, zdroje a média nebo kampaně se začne ukládat až při příští synchronizaci GA4 po vytvoření trychtýře. Starší období doplníš přes „Stáhnout historii“ u zdroje GA4 (Zdroje dat, úprava napojení).') ?></li>
-            <li><?= t('<strong>Obchodní krok z CRM přidáš jako event.</strong> Když chceš na konec trychtýře krok, který se děje mimo web (například podepsaná smlouva), pošli ho z CRM do GA4 jako event přes Measurement Protocol a pak ho vyber jako poslední krok.') ?></li>
-            <li><?= t('<strong>Čísla jsou počty událostí, ne lidí.</strong> Jeden návštěvník může event vyvolat vícekrát, proto může být pozdější krok vyšší než předchozí. Takový případ trychtýř označí upozorněním.') ?></li>
-        </ul>
-    </div>
-</div>
+</details>
 <?php allstat_admin_footer($config); ?>

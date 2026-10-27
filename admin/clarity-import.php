@@ -168,63 +168,68 @@ $recent = $claritySourceId ? allstat_fetch_all($pdo, "
 
 allstat_admin_header(t('Import Clarity CSV'), 'sources', $user, $config, 'clarity');
 ?>
-<div class="admin-card">
-    <div class="admin-card-header">
+<section class="card" aria-labelledby="clarity-import-title">
+    <div class="card-head">
         <div>
-            <h2><?= h(t('Import Microsoft Clarity CSV')) ?></h2>
-            <p><?= t('Clarity API neumí historii (jen poslední 1–3 dny), proto jde data doplnit ručně z exportu. Nahraj <strong>jednodenní</strong> export (Clarity → zvol „Dnes" nebo „Včera" → Export CSV). Uloží se návštěvy, boti, průměry (aktivní čas, scroll, stránky/relace) i rozpady (referrery, stránky, prohlížeče, smart events). Vícedenní souhrny (3 dny, celé období) nelze rozpadnout na dny.') ?></p>
+            <h2 class="card-title" id="clarity-import-title"><?= h(t('Import Microsoft Clarity CSV')) ?></h2>
+            <p class="card-desc"><?= t('Clarity API neumí historii (jen poslední 1–3 dny), proto jde data doplnit ručně z exportu. Nahraj <strong>jednodenní</strong> export (Clarity → zvol „Dnes" nebo „Včera" → Export CSV). Uloží se návštěvy, boti, průměry (aktivní čas, scroll, stránky/relace) i rozpady (referrery, stránky, prohlížeče, smart events). Vícedenní souhrny (3 dny, celé období) nelze rozpadnout na dny.') ?></p>
         </div>
     </div>
-    <div class="admin-card-body">
-        <form method="post" enctype="multipart/form-data" class="form-grid form-grid-3">
-            <?= allstat_csrf_field() ?>
-            <label><span><?= h(t('Web')) ?></span>
-                <select name="domain_id" required>
-                    <?php foreach ($domains as $domain): ?>
-                        <option value="<?= (int) $domain['id'] ?>" <?= $preselect === (int) $domain['id'] ? 'selected' : '' ?>><?= h($domain['url']) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </label>
-            <label><span><?= h(t('Clarity CSV (jeden den)')) ?></span><input type="file" name="csv" accept=".csv,text/csv" required></label>
-            <div class="form-actions"><button class="button-primary" type="submit"><?= h(t('Importovat')) ?></button></div>
-        </form>
-    </div>
-</div>
+    <form method="post" enctype="multipart/form-data" class="card-body form-grid">
+        <?= allstat_csrf_field() ?>
+        <label class="field">
+            <span class="field-label"><?= h(t('Web')) ?></span>
+            <select class="input" name="domain_id" required>
+                <?php foreach ($domains as $domain): ?>
+                    <option value="<?= (int) $domain['id'] ?>" <?= $preselect === (int) $domain['id'] ? 'selected' : '' ?>><?= h($domain['url']) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </label>
+        <label class="field"><span class="field-label"><?= h(t('Clarity CSV (jeden den)')) ?></span><input class="input" type="file" name="csv" accept=".csv,text/csv" required></label>
+        <div class="form-actions field-full"><button class="btn btn-primary" type="submit"><?= h(t('Importovat')) ?></button></div>
+    </form>
+</section>
 
-<div class="admin-card">
-    <div class="admin-card-header">
+<section class="card" aria-labelledby="clarity-clean-title">
+    <div class="card-head">
         <div>
-            <h2><?= h(t('Údržba dat')) ?></h2>
-            <p><?= h(t('Smaže stará nepoužívaná Clarity data (pozůstatky z dřívějšího syncu přes starý engine). Návštěvy, boti, průměry a rozpady zůstanou.')) ?></p>
+            <h2 class="card-title" id="clarity-clean-title"><?= h(t('Údržba dat')) ?></h2>
+            <p class="card-desc"><?= h(t('Smaže stará nepoužívaná Clarity data (pozůstatky z dřívějšího syncu přes starý engine). Návštěvy, boti, průměry a rozpady zůstanou.')) ?></p>
         </div>
         <form method="post" data-confirm="<?= h(t('Smazat stará nepoužívaná Clarity data? Čisté metriky (návštěvy, boti, rozpady) zůstanou.')) ?>">
             <?= allstat_csrf_field() ?>
             <input type="hidden" name="action" value="cleanup">
-            <button class="button-secondary" type="submit"><?= h(t('Vyčistit stará Clarity data')) ?></button>
+            <button class="btn btn-secondary" type="submit"><?= h(t('Vyčistit stará Clarity data')) ?></button>
         </form>
     </div>
-</div>
+</section>
 
-<div class="admin-card">
-    <div class="admin-card-header"><h2><?= h(t('Naimportované dny (Clarity)')) ?></h2></div>
-    <div class="admin-card-body table-scroll">
-        <table class="admin-table">
-            <thead><tr><th><?= h(t('Datum')) ?></th><th><?= h(t('Web')) ?></th><th><?= h(t('Návštěvy')) ?></th><th><?= h(t('Boti')) ?></th><th><?= h(t('Metriky/rozpady (řádků)')) ?></th></tr></thead>
+<section class="card card-clip" aria-labelledby="clarity-days-title">
+    <div class="card-head">
+        <div><h2 class="card-title" id="clarity-days-title"><?= h(t('Naimportované dny (Clarity)')) ?></h2></div>
+    </div>
+    <?php if ($recent): ?>
+    <div class="table-wrap">
+        <table class="table table-data">
+            <colgroup><col class="col-md"><col><col class="col-md"><col class="col-md"><col class="col-lg"></colgroup>
+            <thead><tr><th scope="col"><?= h(t('Datum')) ?></th><th scope="col"><?= h(t('Web')) ?></th><th scope="col"><?= h(t('Návštěvy')) ?></th><th scope="col"><?= h(t('Boti')) ?></th><th scope="col"><?= h(t('Metriky/rozpady (řádků)')) ?></th></tr></thead>
             <tbody>
                 <?php foreach ($recent as $row): ?>
                     <tr>
-                        <td><?= h($row['metric_date']) ?></td>
-                        <td><?= h($row['domain_url']) ?></td>
-                        <td><?= h(allstat_number((float) ($row['sessions'] ?? 0))) ?></td>
-                        <td><?= h(allstat_number((float) ($row['bot_sessions'] ?? 0))) ?></td>
-                        <td><?= h(allstat_number((int) ($row['dim_rows'] ?? 0))) ?></td>
+                        <td class="num"><?= h($row['metric_date']) ?></td>
+                        <td class="ellipsis"><?= h($row['domain_url']) ?></td>
+                        <td class="num"><?= h(allstat_number((float) ($row['sessions'] ?? 0))) ?></td>
+                        <td class="num"><?= h(allstat_number((float) ($row['bot_sessions'] ?? 0))) ?></td>
+                        <td class="num"><?= h(allstat_number((int) ($row['dim_rows'] ?? 0))) ?></td>
                     </tr>
                 <?php endforeach; ?>
-                <?php if (!$recent): ?>
-                    <tr><td colspan="5" class="table-muted"><?= h(t('Zatím nic naimportováno. Nahraj jednodenní Clarity CSV výše.')) ?></td></tr>
-                <?php endif; ?>
             </tbody>
         </table>
     </div>
-</div>
+    <?php else: ?>
+    <div class="empty">
+        <span class="empty-title"><?= h(t('Zatím nic naimportováno. Nahraj jednodenní Clarity CSV výše.')) ?></span>
+    </div>
+    <?php endif; ?>
+</section>
 <?php allstat_admin_footer($config); ?>

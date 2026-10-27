@@ -3,6 +3,49 @@
         window.lucide?.createIcons();
     }
 
+    // Štítek stavu (.status + tón), stejný jako allstat_status_pill() v admin/_layout.php.
+    const TONES = { ok: 'tone-up', error: 'tone-down', warning: 'tone-warn', pending: 'tone-accent' };
+    const esc = (value) => String(value).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const statusPill = (state, label) => `<span class="status ${TONES[state] || 'tone-flat'}"><span class="dot"></span>${esc(label)}</span>`;
+
+    // Hláška výsledku akce (.callout s tónem podle stavu: pending | ok | error).
+    function showResult(box, state, text) {
+        box.hidden = false;
+        box.className = 'callout ' + (TONES[state] || '');
+        box.textContent = text;
+    }
+
+    // Výpis synchronizace po napojeních do .callout: řádek = dlaždice služby (klon z tabulky) + název + hláška + stav.
+    function renderSyncList(box, items, headHtml) {
+        const itemHtml = (item) => {
+            const badge = item.state === 'pending'
+                ? statusPill('pending', window.allstatT('Běží…'))
+                : (item.state === 'ok' ? statusPill('ok', 'OK') : statusPill('error', window.allstatT('Chyba')));
+            return `
+                <div class="row">
+                    ${item.icon}
+                    <div class="name-stack"><span class="name-main">${esc(item.label)}</span>${item.msg ? `<span class="name-sub">${esc(item.msg)}</span>` : ''}</div>
+                    ${badge}
+                </div>
+            `;
+        };
+        box.hidden = false;
+        box.className = 'callout';
+        box.innerHTML = `<div class="name-stack">${headHtml ? `<div>${headHtml}</div>` : ''}<div class="rows rows-compact">${items.map(itemHtml).join('')}</div></div>`;
+    }
+
+    async function postSync(body) {
+        const res = await fetch('connection-sync.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body,
+        });
+        if (!(res.headers.get('content-type') || '').includes('application/json')) {
+            throw new Error(window.allstatT('relace vypršela, obnov stránku (F5) a přihlas se znovu'));
+        }
+        return res.json();
+    }
+
     // "Synchronizovat vše" na sources.php: projede všechna napojení SEKVENČNĚ (šetrné k API limitům)
     // stejným incremental syncem (7 dní) jako tlačítko na detailu napojení, s průběžným výpisem výsledků.
     function bindSyncAll() {
@@ -13,32 +56,8 @@
             return;
         }
 
-        // Strukturovaný výpis místo prostého textu — řádek = ikona služby (klon z tabulky) + název
-        // + badge stavu + hláška; ladí s admin designem (status-badge, source-picker-ic).
-        const esc = (value) => String(value).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-
-        const itemHtml = (item) => {
-            const badge = item.state === 'pending'
-                ? '<span class="status-badge status-warning">' + window.allstatT('Běží…') + '</span>'
-                : (item.state === 'ok' ? '<span class="status-badge status-ok">OK</span>' : '<span class="status-badge status-error">' + window.allstatT('Chyba') + '</span>');
-            return `
-                <div class="sync-result-item">
-                    ${item.icon || '<span class="source-picker-ic"></span>'}
-                    <div class="sync-result-text">
-                        <strong>${esc(item.label)}</strong>
-                        ${item.msg ? `<small>${esc(item.msg)}</small>` : ''}
-                    </div>
-                    ${badge}
-                </div>
-            `;
-        };
-
-        const render = (items, headHtml) => {
-            box.innerHTML = `<div class="sync-result-head">${headHtml}</div><div class="sync-result-list">${items.map(itemHtml).join('')}</div>`;
-        };
-
         btn.addEventListener('click', async () => {
-            const rows = [...document.querySelectorAll('tr[data-conn-id]')];
+            const rows = [...document.querySelectorAll('tr[data-conn-id]')].filter((row) => !row.hidden);
             if (!rows.length) {
                 return;
             }
@@ -48,28 +67,17 @@
             const items = [];
             let okCount = 0;
             let failCount = 0;
-            box.hidden = false;
-            box.className = 'connection-result sync-all-result connection-result-pending';
 
             for (let i = 0; i < rows.length; i++) {
                 const id = rows[i].getAttribute('data-conn-id');
                 const label = rows[i].getAttribute('data-conn-label') || ('#' + id);
-                const icon = rows[i].querySelector('.source-picker-ic')?.outerHTML || '';
+                const icon = rows[i].querySelector('.tile')?.outerHTML || '';
                 btn.textContent = window.allstatT('Synchronizuji {i}/{n}…', { i: i + 1, n: rows.length });
                 items.push({ icon, label, msg: '', state: 'pending' });
-                render(items, window.allstatT('Synchronizuji {i}/{n}…', { i: i + 1, n: rows.length }));
+                renderSyncList(box, items, esc(window.allstatT('Synchronizuji {i}/{n}…', { i: i + 1, n: rows.length })));
                 const item = items[items.length - 1];
                 try {
-                    const res = await fetch('connection-sync.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: 'id=' + encodeURIComponent(id) + '&mode=incremental&csrf=' + encodeURIComponent(csrf),
-                    });
-                    const ct = res.headers.get('content-type') || '';
-                    if (!ct.includes('application/json')) {
-                        throw new Error(window.allstatT('relace vypršela, obnov stránku (F5) a přihlas se znovu'));
-                    }
-                    const data = await res.json();
+                    const data = await postSync('id=' + encodeURIComponent(id) + '&mode=incremental&csrf=' + encodeURIComponent(csrf));
                     if (data.ok) { okCount++; item.state = 'ok'; item.msg = data.message || 'OK'; }
                     else { failCount++; item.state = 'error'; item.msg = data.message || window.allstatT('chyba bez hlášky'); }
                 } catch (err) {
@@ -77,19 +85,150 @@
                     item.state = 'error';
                     item.msg = err.message;
                 }
-                render(items, window.allstatT('Synchronizuji {i}/{n}…', { i: Math.min(i + 2, rows.length), n: rows.length }));
+                renderSyncList(box, items, esc(window.allstatT('Synchronizuji {i}/{n}…', { i: Math.min(i + 2, rows.length), n: rows.length })));
             }
 
-            box.className = 'connection-result sync-all-result ' + (failCount ? 'connection-result-error' : 'connection-result-ok');
             // České skloňování: 1 chyba, 2-4 chyby, 5+ (a 0) chyb.
             const chybaWord = (n) => (n === 1 ? window.allstatT('chyba') : (n >= 2 && n <= 4 ? window.allstatT('chyby') : window.allstatT('chyb')));
             const headBadge = failCount
-                ? `<span class="status-badge status-error">${failCount === 1 ? window.allstatT('Chyba') : window.allstatT('Chyby')}</span>`
-                : '<span class="status-badge status-ok">' + window.allstatT('Hotovo') + '</span>';
-            render(items, `${headBadge} <strong>${okCount} OK</strong>${failCount ? `, ${failCount} ${chybaWord(failCount)}` : ''}`);
+                ? statusPill('error', failCount === 1 ? window.allstatT('Chyba') : window.allstatT('Chyby'))
+                : statusPill('ok', window.allstatT('Hotovo'));
+            renderSyncList(box, items, `${headBadge} <strong>${okCount} OK</strong>${failCount ? `, ${failCount} ${chybaWord(failCount)}` : ''}`);
             btn.disabled = false;
             btn.innerHTML = originalHtml;
             refreshIcons();
+        });
+    }
+
+    // Zdroje dat: tlačítko synchronizace v řádku (incremental 7 dní), výsledek do stejného výpisu jako „Synchronizovat vše".
+    function bindRowSync() {
+        const box = document.querySelector('[data-sync-all-result]');
+
+        document.querySelectorAll('[data-row-sync]').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+                const row = btn.closest('tr');
+                const csrf = btn.closest('table')?.getAttribute('data-csrf') || '';
+                const item = { icon: row.querySelector('.tile')?.outerHTML || '', label: row.getAttribute('data-conn-label') || '', msg: '', state: 'pending' };
+                btn.disabled = true;
+                btn.querySelector('svg')?.classList.add('spin');
+                try {
+                    const data = await postSync('id=' + encodeURIComponent(btn.getAttribute('data-row-sync')) + '&mode=incremental&csrf=' + encodeURIComponent(csrf));
+                    item.state = data.ok ? 'ok' : 'error';
+                    item.msg = data.message || (data.ok ? 'OK' : window.allstatT('chyba bez hlášky'));
+                } catch (err) {
+                    item.state = 'error';
+                    item.msg = err.message;
+                }
+                if (box) { renderSyncList(box, [item], ''); }
+                btn.disabled = false;
+                btn.querySelector('svg')?.classList.remove('spin');
+            });
+        });
+    }
+
+    // Filtr tabulky: hledání ([data-table-filter="id tabulky nebo mřížky"], položky s data-filter-text) a stav
+    // (.seg [data-status-filter-for] s tlačítky data-status-filter, řádky s data-status). Skupinové řádky
+    // (tr.table-group[data-group]) se schovají, když v nich nic nezbylo; prázdný stav [data-filter-empty].
+    function bindTableFilters() {
+        const tables = new Map();
+        const stateOf = (id) => {
+            if (!tables.has(id)) { tables.set(id, { q: '', status: 'all' }); }
+            return tables.get(id);
+        };
+        const apply = (id) => {
+            const table = document.getElementById(id);
+            if (!table) { return; }
+            const state = stateOf(id);
+            const rows = [...table.querySelectorAll('[data-filter-text]')];
+            let visible = 0;
+            rows.forEach((row) => {
+                const okText = state.q === '' || row.getAttribute('data-filter-text').includes(state.q);
+                const okStatus = state.status === 'all' || row.getAttribute('data-status') === state.status;
+                row.hidden = !(okText && okStatus);
+                if (!row.hidden) { visible += 1; }
+            });
+            table.querySelectorAll('tr.table-group[data-group]').forEach((group) => {
+                const shown = rows.filter((row) => row.dataset.group === group.dataset.group && !row.hidden).length;
+                group.hidden = shown === 0;
+                const count = group.querySelector('[data-group-count]');
+                if (count) { count.textContent = String(shown); }
+            });
+            const empty = table.closest('section, .card')?.querySelector('[data-filter-empty]');
+            if (empty) {
+                empty.hidden = visible > 0;
+                table.closest('.table-wrap')?.toggleAttribute('hidden', visible === 0);
+            }
+        };
+
+        document.querySelectorAll('[data-table-filter]').forEach((input) => {
+            const id = input.getAttribute('data-table-filter');
+            input.addEventListener('input', () => {
+                stateOf(id).q = input.value.trim().toLowerCase();
+                apply(id);
+            });
+        });
+
+        document.querySelectorAll('[data-status-filter-for]').forEach((seg) => {
+            const id = seg.getAttribute('data-status-filter-for');
+            seg.addEventListener('click', (event) => {
+                const btn = event.target.closest('[data-status-filter]');
+                if (!btn) { return; }
+                seg.querySelectorAll('[data-status-filter]').forEach((b) => b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'));
+                stateOf(id).status = btn.getAttribute('data-status-filter');
+                apply(id);
+            });
+        });
+    }
+
+    // Nabídka akcí v řádku tabulky (.cell-actions): když by přetekla dolů z nejbližšího ořezávajícího předka nebo okna
+    // a nahoře je pro ni místo, otevře se nahoru. Když se nevejde ani tam (krátká tabulka v posuvném obalu na úzkém
+    // displeji), vyskočí z obalu jako position: fixed u tlačítka a při posunu stránky se zavře.
+    // Otevírá ji shell.js (tento posluchač běží po něm).
+    function bindMenuFlip() {
+        let floating = null;
+        const closeFloating = () => {
+            if (!floating) { return; }
+            floating.menu.hidden = true;
+            floating.toggle.setAttribute('aria-expanded', 'false');
+            floating = null;
+        };
+        window.addEventListener('scroll', closeFloating, true);
+        window.addEventListener('resize', closeFloating);
+        document.addEventListener('click', (event) => {
+            const toggle = event.target.closest('.cell-actions [data-menu-toggle]');
+            const menu = toggle && document.getElementById(toggle.dataset.menuToggle);
+            if (!menu || menu.hidden) { return; }
+            menu.classList.remove('menu-up');
+            menu.style.position = menu.style.top = menu.style.right = menu.style.bottom = '';
+            floating = null;
+            let top = 0;
+            let bottom = window.innerHeight;
+            for (let el = toggle.parentElement; el && el !== document.body; el = el.parentElement) {
+                if (getComputedStyle(el).overflowY !== 'visible') {
+                    const rect = el.getBoundingClientRect();
+                    top = Math.max(top, rect.top);
+                    bottom = Math.min(bottom, rect.bottom);
+                    break;
+                }
+            }
+            const menuRect = menu.getBoundingClientRect();
+            const toggleRect = toggle.getBoundingClientRect();
+            if (menuRect.bottom <= bottom) { return; }
+            if (toggleRect.top - top >= menuRect.height + 6) {
+                menu.classList.add('menu-up');
+                return;
+            }
+            const up = toggleRect.bottom + menuRect.height + 6 > window.innerHeight && toggleRect.top >= menuRect.height + 6;
+            menu.style.position = 'fixed';
+            menu.style.right = (document.documentElement.clientWidth - toggleRect.right) + 'px';
+            if (up) {
+                menu.style.top = 'auto';
+                menu.style.bottom = (window.innerHeight - toggleRect.top + 4) + 'px';
+            } else {
+                menu.style.top = (toggleRect.bottom + 4) + 'px';
+                menu.style.bottom = 'auto';
+            }
+            floating = { menu, toggle };
         });
     }
 
@@ -144,9 +283,7 @@
         if (!resultBox) return;
 
         const show = (cls, text) => {
-            resultBox.hidden = false;
-            resultBox.className = 'connection-result connection-result-' + cls;
-            resultBox.textContent = text;
+            showResult(resultBox, cls, text);
             resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         };
 
@@ -264,8 +401,8 @@
         document.addEventListener('click', (event) => {
             const btn = event.target.closest('[data-show-more]');
             if (!btn) { return; }
-            btn.closest('.admin-card')?.querySelectorAll('tr.row-extra').forEach((row) => row.classList.remove('row-extra'));
-            btn.remove();
+            btn.closest('.card')?.querySelectorAll('tr.row-extra').forEach((row) => row.classList.remove('row-extra'));
+            (btn.closest('.card-foot') || btn).remove();
         });
     }
 
@@ -284,8 +421,6 @@
         const nav = card.querySelector('[data-lp-nav]');
         const prev = card.querySelector('[data-lp-prev]');
         const next = card.querySelector('[data-lp-next]');
-        const esc = (value) => String(value).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-
         let page = parseInt(card.querySelector('[data-lp-page]')?.textContent || '1', 10) || 1;
         let pageCount = parseInt(card.querySelector('[data-lp-pages]')?.textContent || '1', 10) || 1;
         let loading = false;
@@ -307,14 +442,14 @@
                 pageCount = d.pageCount;
                 rowsEl.innerHTML = d.rows.length ? d.rows.map((r) => `
                     <tr><td>${esc(r.path)}</td><td>${esc(r.sessions)}</td><td>${esc(r.conversions)}</td></tr>
-                `).join('') : '<tr><td colspan="3" class="table-muted">' + window.allstatT('Žádná data pro toto období.') + '</td></tr>';
+                `).join('') : '<tr><td colspan="3" class="is-muted">' + window.allstatT('Žádná data pro toto období.') + '</td></tr>';
                 card.querySelectorAll('[data-lp-page]').forEach((el) => { el.textContent = String(d.page); });
                 card.querySelectorAll('[data-lp-pages]').forEach((el) => { el.textContent = String(d.pageCount); });
                 const total = card.querySelector('[data-lp-total]');
                 if (total) { total.textContent = String(d.total); }
                 if (nav) { nav.hidden = d.pageCount <= 1; }
-                prev?.classList.toggle('is-disabled', page <= 1);
-                next?.classList.toggle('is-disabled', page >= pageCount);
+                prev?.setAttribute('aria-disabled', page <= 1 ? 'true' : 'false');
+                next?.setAttribute('aria-disabled', page >= pageCount ? 'true' : 'false');
             } catch (e) { /* při chybě zůstává aktuální stránka */ } finally {
                 loading = false;
                 card.removeAttribute('aria-busy');
@@ -339,7 +474,7 @@
 
         const activate = (key) => {
             nav.querySelectorAll('[data-report-tab-btn]').forEach((btn) => {
-                btn.classList.toggle('is-active', btn.dataset.reportTabBtn === key);
+                btn.setAttribute('aria-pressed', btn.dataset.reportTabBtn === key ? 'true' : 'false');
             });
             cards.forEach((card) => {
                 card.hidden = key !== 'all' && card.dataset.reportTab !== key;
@@ -470,7 +605,7 @@
             const count = Number(activity[event.toLowerCase()] || 0);
             const badge = document.createElement('span');
 
-            badge.className = `status-badge ${count > 0 ? 'status-ok' : 'status-warning'}`;
+            badge.className = `status ${count > 0 ? 'tone-up' : 'tone-warn'}`;
             if (count > 0) {
                 badge.textContent = window.allstatT('{count} za 28 dní', { count: count.toLocaleString(window.allstatLocale) });
             } else {
@@ -676,20 +811,9 @@
         refresh();
     }
 
-    // Import webů z Google účtu: hledání v tabulce, výběr všech řádků a stažení historie všech nových napojení
+    // Import webů z Google účtu: výběr všech řádků (hledání dělá bindTableFilters) a stažení historie všech nových napojení
     // (napojení po napojení, každé po měsících přes connection-sync.php jako tlačítko „Stáhnout historii“).
     function bindGoogleImport() {
-        document.querySelectorAll('[data-table-filter]').forEach((input) => {
-            const table = document.getElementById(input.getAttribute('data-table-filter'));
-            if (!table) return;
-            input.addEventListener('input', () => {
-                const needle = input.value.trim().toLowerCase();
-                table.querySelectorAll('[data-filter-text]').forEach((row) => {
-                    row.hidden = needle !== '' && !row.getAttribute('data-filter-text').includes(needle);
-                });
-            });
-        });
-
         document.querySelectorAll('[data-check-all]').forEach((master) => {
             const form = master.closest('form');
             const boxes = () => Array.from(form ? form.querySelectorAll('input[type="checkbox"][name="' + master.getAttribute('data-check-all') + '"]') : [])
@@ -701,11 +825,7 @@
         const status = document.querySelector('[data-bulk-backfill-status]');
         if (!button || !status) return;
 
-        const show = (cls, text) => {
-            status.hidden = false;
-            status.className = 'connection-result connection-result-' + cls;
-            status.textContent = text;
-        };
+        const show = (cls, text) => showResult(status, cls, text);
         const post = async (body) => {
             const res = await fetch('connection-sync.php', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body });
             if (!(res.headers.get('content-type') || '').includes('application/json')) {
@@ -745,6 +865,9 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         bindSyncAll();
+        bindRowSync();
+        bindTableFilters();
+        bindMenuFlip();
         bindProviderDefaults();
         bindConnectionActions();
         bindInlineReplacements();
