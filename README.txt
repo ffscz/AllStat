@@ -3,7 +3,7 @@ AllStat
 
 Přehledný nástroj, který na jednom místě sbírá statistiky vašeho webu a sociálních sítí
 (Google Analytics 4, Search Console, Microsoft Clarity, Facebook, Instagram, LinkedIn,
-YouTube, Meta Ads) a ukládá je do vaší vlastní databáze. Data zůstávají u vás na hostingu.
+YouTube, Meta Ads, Google Ads, Microsoft Ads) a ukládá je do vaší vlastní databáze. Data zůstávají u vás na hostingu.
 Součástí je i připojení AI: asistenti Claude a ChatGPT si z AllStatu mohou číst data (jen ke čtení,
 zapíná a ruší ho administrátor).
 
@@ -42,6 +42,20 @@ Návod s obrázky, nastavením cronu, napojením služeb, aktualizací a řešen
 https://ffscz.github.io/AllStat/
 Je vždy pro nejnovější verzi a jde vytisknout nebo uložit jako PDF. Tento soubor můžete
 po instalaci ze serveru smazat.
+
+
+Změny ve verzi 1.4.0
+--------------------
+ * Nový zdroj Microsoft Ads: denní výkon účtu a kampaní (zobrazení, kliknutí, útrata, konverze,
+   hodnota konverzí) přes Reporting API, jen ke čtení. Přihlášení Google účtem nebo účtem Microsoftu
+   (Microsoft Entra, i s vlastním tenantem). Data jsou v přehledu, v Růstu kanálů, v reportech pro AI
+   i v připojení AI. Připravený report si další synchronizace vyzvedne, i když ho Microsoft
+   generuje déle. Funkci přispěl proseo (pull request #1), děkujeme.
+ * Odkazy Nápověda vedou uživatele s anglickým rozhraním na anglický návod
+   (https://ffscz.github.io/AllStat/en/). Doplněné překlady v instalačním průvodci a bočním panelu.
+ * Cron: napojení se označí jako zpracované už před synchronizací, takže pád jednoho napojení
+   (například došlá paměť) nezablokuje další běhy pro ostatní.
+ * Bezpečnost: složka tests se do balíčku nedává a v .htaccess je z webu zakázaná.
 
 
 Změny ve verzi 1.3.0
