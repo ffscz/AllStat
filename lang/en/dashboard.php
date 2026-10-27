@@ -579,6 +579,7 @@ return [
     'a dalších {count}' => 'and {count} more',
     'Jak rostou kanály webu {url} · uzavřené měsíce {range}' => 'How the channels of {url} grow · closed months {range}',
     'Analyzovat s AI' => 'Analyze with AI',
+    'za {period}' => 'over {period}',
     'Růst o' => 'Up by',
     'Pokles o' => 'Down by',
     'Stabilní' => 'Stable',
