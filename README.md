@@ -1,77 +1,80 @@
 # AllStat
 
-[![Poslední verze](https://img.shields.io/github/v/release/ffscz/AllStat?label=verze)](https://github.com/ffscz/AllStat/releases/latest)
-[![Licence GPLv3](https://img.shields.io/github/license/ffscz/AllStat?label=licence)](LICENSE)
-[![Návod](https://img.shields.io/badge/n%C3%A1vod-online-2563eb)](https://ffscz.github.io/AllStat/)
+**English** | [Čeština](README.cs.md)
 
-![AllStat: statistiky webu a sociálních sítí na jednom místě, ve vaší vlastní databázi](.github/social-preview.png)
+[![Latest version](https://img.shields.io/github/v/release/ffscz/AllStat?label=version)](https://github.com/ffscz/AllStat/releases/latest)
+[![License GPLv3](https://img.shields.io/github/license/ffscz/AllStat?label=license)](LICENSE)
+[![Guide](https://img.shields.io/badge/guide-online-2563eb)](https://ffscz.github.io/AllStat/en/)
 
-Unifikovaný analytický dashboard: na jednom místě sbírá statistiky webu a sociálních sítí
-a ukládá je do **vaší vlastní databáze**. Běží na běžném webhostingu s PHP a MySQL.
+![AllStat: website and social media statistics in one place, in your own database](.github/social-preview.en.png)
 
-*A self-hosted analytics dashboard (PHP + MySQL) that unifies website and social media statistics
-in your own database, with a read-only AI connector (MCP) for Claude and ChatGPT. UI in Czech, Slovak and English.*
+A self-hosted analytics dashboard (PHP + MySQL) that collects the statistics of your website and social
+networks in one place and stores them in **your own database**. It runs on ordinary web hosting with PHP and
+MySQL, and it includes a read-only AI connector (MCP) for Claude and ChatGPT. The interface is available in
+Czech, Slovak and English.
 
-**Návod k instalaci, napojení služeb, připojení AI a aktualizaci: https://ffscz.github.io/AllStat/**
+**Guide to installing, connecting services, connecting AI and updating: https://ffscz.github.io/AllStat/en/**
 
-## Co umí
+## Features
 
-- **Zdroje dat:** Google Analytics 4, Google Search Console, Microsoft Clarity, Facebook, Instagram,
-  Meta Ads, LinkedIn, YouTube, Google Ads, Seznam Webmaster, import CSV z Meta Business Suite.
-- **Více webů** pod jednou instalací, u každého uživatele lze omezit, které weby vidí.
-- **Google účty:** jeden nebo víc Google účtů (agentura, klienti) a výběr webů z jejich GA4 a Search Console,
-  bez opisování Property ID a Client ID.
-- **Všechny weby** na jedné stránce: návštěvy, klíčové události, tržby a kliknutí z Googlu se srovnáním
-  s předchozím obdobím.
-- **Růst kanálů**, reporty, sdílené odkazy pro AI analýzu, datové feedy.
-- **Jazyk rozhraní:** čeština, slovenština a angličtina, každý uživatel si vybere sám.
-- **Připojení AI (MCP)** pro Claude a ChatGPT: jen ke čtení, souhrnná data bez osobních údajů,
-  zapíná a ruší administrátor.
-- **Bezpečnost:** šifrované přístupové tokeny (AES-256-GCM), dvoufázové ověření, audit log.
+- **Data sources:** Google Analytics 4, Google Search Console, Microsoft Clarity, Facebook, Instagram,
+  Meta Ads, LinkedIn, YouTube, Google Ads, Seznam Webmaster, CSV import from Meta Business Suite.
+- **Multiple websites** under one installation, and for each user you can limit which websites they see.
+- **Google accounts:** one or more Google accounts (an agency, clients) and a choice of websites from their
+  GA4 and Search Console, with no need to copy Property IDs and Client IDs.
+- **All websites** on one page: sessions, key events, revenue and clicks from Google, compared with the
+  previous period.
+- **Channel growth**, reports, shared links for AI analysis, data feeds.
+- **Interface language:** Czech, Slovak and English, and each user chooses their own.
+- **AI connection (MCP)** for Claude and ChatGPT: read-only, aggregated data without personal data,
+  turned on and revoked by an administrator.
+- **Security:** encrypted access tokens (AES-256-GCM), two-factor authentication, audit log.
 
-## Požadavky
+## Requirements
 
-- PHP 8.1 nebo novější (doporučeno 8.3) s rozšířeními `pdo_mysql`, `curl`, `openssl`, `mbstring`, `json`, `ctype`
-- MySQL 5.7.8+ nebo MariaDB 10.3+
-- Apache nebo LiteSpeed (pravidla v `.htaccess`), HTTPS
-- cron (stačí jednou denně)
+- PHP 8.1 or newer (8.3 recommended) with the extensions `pdo_mysql`, `curl`, `openssl`, `mbstring`, `json`, `ctype`
+- MySQL 5.7.8+ or MariaDB 10.3+
+- Apache or LiteSpeed (rules in `.htaccess`), HTTPS
+- cron (once a day is enough)
 
-## Instalace
+## Installation
 
-1. Stáhněte poslední verzi z [Releases](https://github.com/ffscz/AllStat/releases): v části Assets soubor
-   `allstat-X.Y.Z.zip`, ne „Source code“ (a ověřte ho podle `.sha256`).
-2. Rozbalte ho a složku `allstat` nahrajte přes FTP na hosting.
-3. Otevřete adresu složky v prohlížeči, spustí se instalační průvodce.
-4. Průvodce vytvoří ve složce soubor `install-token.php`. Otevřete ho přes FTP nebo správce souborů
-   a kód z řádku `KOD:` zadejte do pole Instalační kód. Bez něj instalaci nikdo cizí nedokončí.
+1. Download the latest version from [Releases](https://github.com/ffscz/AllStat/releases): under Assets, the file
+   `allstat-X.Y.Z.zip`, not “Source code” (and verify it against the `.sha256` file).
+2. Unpack it and upload the `allstat` folder to your hosting over FTP.
+3. Open the folder’s address in a browser and the installation wizard starts.
+4. The wizard creates an `install-token.php` file in the folder. Open it over FTP or in a file manager
+   and enter the code from the `KOD:` line into the Installation code field. Without it, nobody else can
+   finish the installation.
 
-Podrobný návod s obrázky je na [ffscz.github.io/AllStat](https://ffscz.github.io/AllStat/), vždy pro nejnovější
-verzi. Celou instalaci na jedné stránce shrnuje [kontrolní karta](https://ffscz.github.io/AllStat/#karta),
-návod jde vytisknout nebo uložit jako PDF.
+A detailed guide with screenshots is at [ffscz.github.io/AllStat/en](https://ffscz.github.io/AllStat/en/), always for
+the latest version. The whole installation is summarized on one page in the
+[checklist](https://ffscz.github.io/AllStat/en/#karta), and the guide can be printed or saved as a PDF.
 
-## Aktualizace
+## Updating
 
-**Od verze 1.2.0 jedním tlačítkem.** AllStat sám zjistí novou verzi (feed [`update.json`](update.json)),
-administrátor ji uvidí v bočním panelu a nainstaluje ze stránky Aktualizace. Balíček je podepsaný
-(ECDSA P-256, veřejný klíč je v `lib/updater.php`), bez platného podpisu se nic nenainstaluje.
-Přepisované soubory se zálohují a předchozí verzi jde vrátit.
+**With one button since version 1.2.0.** AllStat detects a new version by itself (the [`update.json`](update.json) feed),
+an administrator sees it in the sidebar and installs it from the Updates page. The package is signed
+(ECDSA P-256, the public key is in `lib/updater.php`), and nothing is installed without a valid signature.
+The files that get overwritten are backed up, and you can roll back to the previous version.
 
-**Ručně (verze 1.1.0 a starší, nebo když PHP nesmí zapisovat do složky aplikace):** novou verzi nahrajte
-přes stávající instalaci (stejné místo, přepsat soubory). Soubory `config.php` a `config-keys.php`
-balíček neobsahuje, takže zůstanou beze změny. Databáze se při prvním otevření doplní sama (migrace jen
-přidávají tabulky a sloupce, data nemažou). Postup je v [kapitole 8 návodu](https://ffscz.github.io/AllStat/#aktualizace).
+**Manually (version 1.1.0 and older, or when PHP is not allowed to write to the application folder):** upload the
+new version over the existing installation (the same place, overwrite files). The package does not contain the
+`config.php` and `config-keys.php` files, so they stay unchanged. The database is completed by itself the first
+time you open the application (migrations only add tables and columns, they do not delete data). The procedure is
+in [chapter 8 of the guide](https://ffscz.github.io/AllStat/en/#aktualizace).
 
-## Repozitář
+## Repository
 
-Repozitář obsahuje přesně to, co instalační balíček: žádné přístupové údaje ani klíče.
-Každá verze je tag `vX.Y.Z` a vydání s instalačním ZIPem a kontrolním součtem (do verze 1.2.5 i s PDF
-příručkou). Návod je ve větvi `gh-pages` a běží na GitHub Pages.
-Konce řádků se v gitu nemění (`.gitattributes`), aby seděly kontrolní součty v `lib/manifest.json`.
+The repository contains exactly what the installation package contains: no credentials or keys.
+Each version is a `vX.Y.Z` tag and a release with the installation ZIP and a checksum (up to version 1.2.5 also with
+a PDF guide). The guide lives in the `gh-pages` branch and runs on GitHub Pages.
+Line endings are not changed in git (`.gitattributes`), so that the checksums in `lib/manifest.json` match.
 
-Chyby a nápady hlaste přes [Issues](https://github.com/ffscz/AllStat/issues/new/choose), formulář se zeptá
-na verzi a hosting. Bezpečnostní chybu prosím nehlaste veřejně, ale přes
-[soukromé hlášení zranitelnosti](https://github.com/ffscz/AllStat/security/advisories/new), viz [SECURITY.md](.github/SECURITY.md).
+Report bugs and ideas through [Issues](https://github.com/ffscz/AllStat/issues/new/choose), and the form will ask
+for your version and hosting. Please do not report a security vulnerability publicly, but through a
+[private vulnerability report](https://github.com/ffscz/AllStat/security/advisories/new), see [SECURITY.md](.github/SECURITY.md).
 
-## Licence
+## License
 
-[GNU GPL verze 3](LICENSE).
+[GNU GPL version 3](LICENSE).
