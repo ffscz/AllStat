@@ -113,7 +113,7 @@ allstat_admin_header(t('Uživatelé'), 'users', $user, $config);
                     <p class="field-help"><?= h(t('Zatím tu není žádný web. Přidejte ho ve Weby.')) ?></p>
                 <?php else: ?>
                     <div class="form-actions">
-                        <?php if (count($allDomains) > 8): ?><input class="input" type="search" placeholder="<?= h(t('Hledat web')) ?>" aria-label="<?= h(t('Hledat web')) ?>" data-domain-filter><?php endif; ?>
+                        <?php if (count($allDomains) >= 8): ?><input class="input" type="search" placeholder="<?= h(t('Hledat web')) ?>" aria-label="<?= h(t('Hledat web')) ?>" data-domain-filter><?php endif; ?>
                         <button class="btn btn-secondary btn-sm" type="button" data-domain-check="all"><?= h(t('Vybrat vše')) ?></button>
                         <button class="btn btn-secondary btn-sm" type="button" data-domain-check="none"><?= h(t('Zrušit výběr')) ?></button>
                         <span class="is-muted" data-domain-count></span>

@@ -287,7 +287,7 @@ function allstat_layout_start(?PDO $pdo, array $config, array $user, array $page
                         <?php if ((int) $d['id'] === (int) $current['id']): ?><?= allstat_icon('check', 'menu-check') ?><?php endif; ?>
                     </a>
                     <?php endforeach; ?>
-                    <p class="menu-empty" data-menu-empty hidden><?= h(t('Žádný web neodpovídá hledání.')) ?></p>
+                    <p class="menu-empty" role="status" data-menu-empty hidden><?= h(t('Žádný web neodpovídá hledání.')) ?></p>
                 </div>
                 <?php if ($isAdmin): ?>
                 <div class="menu-sep"></div>

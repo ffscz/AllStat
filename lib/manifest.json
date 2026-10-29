@@ -74,8 +74,8 @@
             "h": "f1fe5c5104ef6795605465f2ebbd93975d5dca077069ece2fe8589e554e6eca8"
         },
         "admin/mcp.php": {
-            "s": 95041,
-            "h": "475d8cbe4dfeef2035f264bc71f51b4448db38dd5624d06e77388669accab73b"
+            "s": 95031,
+            "h": "0bcaca6d23087543fa426ea4dcb730dee96f7f01ec9cfe4e7490027a5a6c0f9b"
         },
         "admin/meta-connect.php": {
             "s": 9281,
@@ -138,8 +138,8 @@
             "h": "b222330520bbfcdbf1ad8c9e1f03b1810d11c48f5d1bd8fe1f3e38adac9e1626"
         },
         "admin/users.php": {
-            "s": 14757,
-            "h": "2538b6edb98462bfbe7d241393d3ee0b6c49392520418d9958ef5906a4cfec39"
+            "s": 14758,
+            "h": "9fff09490959a2bd38e85e9df19d90223f81f0c7a62c0cef3b61df3e9404745d"
         },
         "allstat-mcp/app-path.php": {
             "s": 31,
@@ -158,8 +158,8 @@
             "h": "79949d8468b77692012aa7542c2274ca80428ab0d451649027a72266fb9705ff"
         },
         "assets/css/components.css": {
-            "s": 53119,
-            "h": "40230c3c85f176914c779212e6583d66c38c5e633b893fa97dd59a21ac30f44c"
+            "s": 53161,
+            "h": "3e82a6ec03c0463516a3714c3b08d04e878375462259e61d66c08c4408011b10"
         },
         "assets/css/layout.css": {
             "s": 9161,
@@ -239,7 +239,7 @@
         },
         "assets/js/shell.js": {
             "s": 6288,
-            "h": "7c35349a537a278571d0493ce3579d43db265c8a2e0264ed06d30fd87511329f"
+            "h": "89f7f16398048825e22e155fa5746f35c9faf8aa952fa4321243f3e3317051cd"
         },
         "assets/js/table-sort.js": {
             "s": 8303,
@@ -270,8 +270,8 @@
             "h": "022db8e5654038717679670df38d18b4587f6e9870d054ce3f67e962fda2885f"
         },
         "index.php": {
-            "s": 19894,
-            "h": "cfb01590d6427d15a73e265af59b55dfbae585cc09b8c868d2f75d4564bce351"
+            "s": 19916,
+            "h": "e633c7d4f83c9404dec3a07a7dfd7496362c3a7f9aea1b6ca4ec4c59224435ac"
         },
         "install.php": {
             "s": 1987,
@@ -282,8 +282,8 @@
             "h": "407cd57fb1b9bf7168e87f3569f690bbf78df58d1a1b2630bc15164bca5d84b4"
         },
         "lang/en/ai.php": {
-            "s": 71400,
-            "h": "5f3a73bbe5dc4a7c42fdf9cc3ec6ff8b19b4f438bd9a37003e1cee3639c63a31"
+            "s": 71390,
+            "h": "9809eae445bcdc878387fbfc1cdd88b7a4a0d88b3fa3bc811823f4462314f418"
         },
         "lang/en/core.php": {
             "s": 56962,
@@ -314,8 +314,8 @@
             "h": "43dda6dda491ef7c44e50d91c1ca9b120e4bdea8d50af05e8858fe95347ae2b1"
         },
         "lang/sk/ai.php": {
-            "s": 72553,
-            "h": "d8b5c63649d165378ee2b3c6776ed9e664d500e79bddb23c02d88a02ce3de2fe"
+            "s": 72543,
+            "h": "225be1afb812862477de1b0b98f4c753048263a5d4d5c98ff55c3614a495fa34"
         },
         "lang/sk/core.php": {
             "s": 58416,
@@ -394,12 +394,12 @@
             "h": "9c933eea2ba9608d228d59d2388034154182f8e1932ce67d82bdfe807ab2f891"
         },
         "lib/install-wizard.php": {
-            "s": 89213,
-            "h": "e5628f5e543ecce7ce3cc95a089efed90aa795d24cf0c0b8bc120025f39177ae"
+            "s": 89224,
+            "h": "02da8469e802bd2e8ad3bc8ba7a0e8d4ededeb21444a9598f06a08dc2de6b5dd"
         },
         "lib/layout.php": {
-            "s": 21273,
-            "h": "4200031fa581842b92ee794e49c699ad61b94e8c76981822449d3eae5028458b"
+            "s": 21287,
+            "h": "91dffef625e8e58cbb28ada01afb5c0259b3fae8f68f6bd1bb3c086630a9be8a"
         },
         "lib/mcp-oauth.php": {
             "s": 113103,
@@ -426,8 +426,8 @@
             "h": "cfa93fcec2fd43bb2446993047966645d321d679300665b6532ff45bca24d655"
         },
         "lib/migrations.php": {
-            "s": 57171,
-            "h": "da4346b25df7b8c7ba09f7468e2d81f6ed5ed688928e50240dff7b9496e683f7"
+            "s": 57490,
+            "h": "dc4a993c04008113ac17ee3214f17889aebb12cca9518823e48e1b17924a5f83"
         },
         "lib/oauth.php": {
             "s": 30659,
@@ -506,8 +506,8 @@
             "h": "f95ad0a1b8247f8f939f09c7992793f9eefa6c3808cd5b39947a771591938623"
         },
         "views/funnel.php": {
-            "s": 12008,
-            "h": "4e0de3a048adea4293b4063788906567d1440f38bb63adfb423e277850227fa7"
+            "s": 12019,
+            "h": "bd8a269f6b9163cbaa4c8322041ce2814d4a7757f33322010e7c9826b3307562"
         },
         "views/growth.php": {
             "s": 26971,

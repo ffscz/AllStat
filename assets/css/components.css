@@ -194,13 +194,9 @@
 
 /* Přepínač webů: od 8 webů hledání, seznam se posouvá uvnitř (.menu-scroll níže; lib/layout.php, assets/js/shell.js). */
 .menu-search {
+    display: block;
     width: auto;
     margin: 2px 4px 6px;
-}
-
-.menu-search > .icon-sm {
-    top: 50%;
-    transform: translateY(-50%);
 }
 
 .menu-empty {
@@ -1783,6 +1779,11 @@ textarea.input {
     max-height: min(480px, 70vh);
     overflow-y: auto;
     overscroll-behavior: contain;
+}
+
+/* overflow by ořízl obrys fokusu na okrajích položek, proto dovnitř. */
+.menu-scroll .menu-item:focus-visible {
+    outline-offset: -2px;
 }
 
 .menu-item[aria-current],
