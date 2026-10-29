@@ -226,7 +226,7 @@ function allstat_mcp_admin_check_redirect_uris(string $raw): array
             continue;
         }
         if (preg_match('#^(https?)://([^/]*)(/.*)?$#', $line, $m) !== 1) {
-            $errors[] = $where . t('musí začínat https:// (http:// jen pro localhost a 127.0.0.1), malými písmeny, například https://aplikace.example.com/oauth/callback.');
+            $errors[] = $where . t('musí začínat https:// (http:// jen pro localhost a 127.0.0.1), malými písmeny, například https://app.example.com/oauth/callback.');
             continue;
         }
         $scheme = $m[1];
@@ -1197,7 +1197,7 @@ allstat_admin_header(t('AI konektory (MCP)'), 'mcp', $user, $config, null, [
                 </label>
                 <label class="field field-full">
                     <span class="field-label"><?= h(t('Další povolené návratové adresy (volitelné)')) ?></span>
-                    <textarea class="input" name="mcp_extra_redirect_uris" rows="4" placeholder="https://aplikace.example.com/oauth/callback" spellcheck="false" autocomplete="off"><?= h($form['extra']) ?></textarea>
+                    <textarea class="input" name="mcp_extra_redirect_uris" rows="4" placeholder="https://app.example.com/oauth/callback" spellcheck="false" autocomplete="off"><?= h($form['extra']) ?></textarea>
                     <span class="field-help"><?= h(t('Jedna přesná adresa na řádek ve tvaru https://server/cesta (bez parametrů, server malými písmeny, http:// jen pro localhost a 127.0.0.1). Claude, ChatGPT a Claude Code jsou povolené automaticky, sem patří jen výjimky pro jiné aplikace.')) ?></span>
                 </label>
                 <?php if ($curEnabled): ?>

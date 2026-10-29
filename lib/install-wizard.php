@@ -1552,7 +1552,7 @@ function installer_render_success(array $r, string $version): void
         echo '<p class="card-desc">' . h(t('Instalace proběhla. Přihlaste se a projděte čtyři kroky níže, aby AllStat fungoval dlouhodobě.')) . '</p>'
             . '<div class="form-actions"><a class="btn btn-primary" href="' . h($loginUrl) . '">' . h(t('Přihlásit se do AllStatu')) . '</a></div>';
     } else {
-        echo '<div class="callout tone-warn">' . t('Server nedovolil instalátoru zapsat soubory do složky aplikace. Databáze je připravená, ale aplikace se spustí až po nahrání souborů níže. <strong>Tuto stránku nezavírejte ani neobnovujte</strong>, klíč z ní už podruhé neuvidíte.') . '</div>';
+        echo '<div class="callout tone-warn"><div>' . t('Server nedovolil instalátoru zapsat soubory do složky aplikace. Databáze je připravená, ale aplikace se spustí až po nahrání souborů níže. <strong>Tuto stránku nezavírejte ani neobnovujte</strong>, klíč z ní už podruhé neuvidíte.') . '</div></div>';
         foreach ($manual as $name => $content) {
             $id = 'file-' . preg_replace('/[^a-z0-9]/', '', strtolower($name));
             echo '<h2 class="h2 wizard-h2 wizard-gap">' . h($name) . '</h2>'

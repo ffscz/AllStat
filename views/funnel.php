@@ -159,7 +159,7 @@ $fSeg .= '</div>';
     <?= allstat_ui_card_head(t('Rozpad podle: {value}', ['value' => $fBreak['label']]), '', t('Kolik událostí každého kroku přišlo z jednotlivých {dimension}. Řazeno podle prvního kroku, <strong>celková konverze</strong> je poslední krok ku prvnímu. Zdroj a kampaň se berou ze zdroje <em>relace</em> (GA4), ne z posledního kliknutí.', ['dimension' => h($dimensionOf)]), $fSeg) ?>
     <div class="card-body">
         <?php if (!$fBreak['available']): ?>
-            <p class="callout tone-warn"><?= h(t('Rozpad podle zdrojů zatím nemáme. Plní se od příští synchronizace GA4 po vytvoření trychtýře')) ?><?php if ($fIsAdmin): ?>; <?= t('starší období jde doplnit přes „Stáhnout historii“ u zdroje GA4 ve {link}', ['link' => '<a href="admin/sources.php?domain_id=' . $fDomainId . '">' . h(t('Zdrojích dat')) . '</a>']) ?><?php endif; ?>. <?= h(t('Počty kroků výše jsou přesto kompletní.')) ?></p>
+            <div class="callout tone-warn"><p><?= h(t('Rozpad podle zdrojů zatím nemáme. Plní se od příští synchronizace GA4 po vytvoření trychtýře')) ?><?php if ($fIsAdmin): ?>; <?= t('starší období jde doplnit přes „Stáhnout historii“ u zdroje GA4 ve {link}', ['link' => '<a href="admin/sources.php?domain_id=' . $fDomainId . '">' . h(t('Zdrojích dat')) . '</a>']) ?><?php endif; ?>. <?= h(t('Počty kroků výše jsou přesto kompletní.')) ?></p></div>
         <?php else: ?>
             <?php if ($coveredLate): ?>
                 <p class="callout tone-warn"><?= h(t('Rozpad je k dispozici od {date}, dřívější část zvoleného období v něm chybí. Součty řádků proto mohou být nižší než počty kroků výše.', ['date' => $fmtDate($fBreak['coveredFrom'])])) ?></p>

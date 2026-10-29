@@ -23,7 +23,7 @@ return [
     'adresa je příliš dlouhá nebo obsahuje mezery či ovládací znaky.' => 'the address is too long or contains spaces or control characters.',
     'adresa obsahuje nepovolený znak (středník, čárku, uvozovky, zpětné lomítko, hvězdičku apod.).' => 'the address contains a disallowed character (semicolon, comma, quotes, backslash, asterisk, etc.).',
     'návratová adresa nesmí obsahovat parametry (za znakem ?) ani kotvu (za znakem #).' => 'the return address must not contain parameters (after ?) or an anchor (after #).',
-    'musí začínat https:// (http:// jen pro localhost a 127.0.0.1), malými písmeny, například https://aplikace.example.com/oauth/callback.' => 'must start with https:// (http:// only for localhost and 127.0.0.1), in lowercase, for example https://aplikace.example.com/oauth/callback.',
+    'musí začínat https:// (http:// jen pro localhost a 127.0.0.1), malými písmeny, například https://app.example.com/oauth/callback.' => 'must start with https:// (http:// only for localhost and 127.0.0.1), in lowercase, for example https://app.example.com/oauth/callback.',
     'adresa nesmí obsahovat uživatelské jméno ani heslo.' => 'the address must not contain a username or password.',
     'název serveru smí obsahovat jen malá písmena bez diakritiky, číslice, tečky a pomlčky (nebo IPv6 v hranatých závorkách), za ním volitelně :port.' => 'the server name may contain only lowercase letters without diacritics, digits, dots and hyphens (or IPv6 in square brackets), optionally followed by :port.',
     'IPv6 adresa v hranatých závorkách není platná.' => 'the IPv6 address in square brackets is not valid.',
