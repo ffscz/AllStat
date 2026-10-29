@@ -59,9 +59,12 @@ Změny ve verzi 1.5.0
    neposkočí (ani v angličtině).
  * Vybraná záložka metriky nad grafem je podbarvená a má odznak „V grafu“. Dlouhé hodnoty se v záložce
    nezalamují: u Clarity je dovětek „relací (111×)“ a u YouTube minuty sledovaného času menším písmem.
- * Kontext pro AI má každý web vlastní (Administrace, AI konektory, karta Kontext pro AI). Dosavadní
+ * Kontext pro AI má každý web vlastní (Administrace, AI konektory, karta Kontext pro AI): seznam webů
+   s náhledem a stavem, úprava a uložení u každého webu zvlášť, při více webech hledání a filtr. Dosavadní
    společný popis z Nastavení se při aktualizaci zkopíruje ke všem webům, pak ho stačí u každého upravit.
    Připojení AI ho dostane u každého webu i na začátku reportu.
+ * Graf v detailu Clarity, Meta Ads, Google Ads a Microsoft Ads se u delšího období sčítá po týdnech
+   nebo měsících jako u ostatních zdrojů (dřív zůstal po dnech a nesouhlasil s nadpisem).
  * Report pro AI (tlačítko Analyzovat s AI i report v připojení AI) upozorní na neúplné dny, týdny
    a měsíce na konci období (zpoždění Search Console a YouTube, poslední synchronizace), uvádí, do kdy
    jsou data k dispozici, a u napojených zdrojů i názvy účtů.

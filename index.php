@@ -154,7 +154,8 @@ $youtubeAudience = null;
 $youtubeCatalog = null;
 if ($isGenericView) {
     if (($selectedProvider['provider_key'] ?? '') === 'clarity') {
-        $clarityKpis = allstat_get_clarity_kpis($pdo, (int) $domainId, $viewSourceId, $start, $end);
+        // Graf po dnech/týdnech/měsících podle délky období jako u ostatních zdrojů (dlaždice počítají ze součtů, nezmění se).
+        $clarityKpis = allstat_get_clarity_kpis($pdo, (int) $domainId, $viewSourceId, $start, $end, $granularity);
         $clarityBreakdowns = allstat_get_clarity_breakdowns($pdo, (int) $domainId, $viewSourceId, $start, $end);
         $providerPayload = [
             'labels' => $clarityKpis['labels'],
@@ -165,7 +166,7 @@ if ($isGenericView) {
         ];
     } elseif (($selectedProvider['provider_key'] ?? '') === 'meta_ads') {
         // Meta Ads gets its own rich view: derived ROAS/CPC/CPM/CTR/frequency/CPA KPIs + campaigns.
-        $adsKpis = allstat_get_meta_ads_kpis($pdo, (int) $domainId, $viewSourceId, $start, $end);
+        $adsKpis = allstat_get_meta_ads_kpis($pdo, (int) $domainId, $viewSourceId, $start, $end, $granularity);
         $metaAdsBreakdown = allstat_get_meta_ads_breakdowns($pdo, (int) $domainId, $viewSourceId, $start, $end);
         $metaAdsAdsets = allstat_get_meta_ads_subbreakdown($pdo, (int) $domainId, $viewSourceId, $start, $end, 'adset');
         $metaAdsCreatives = allstat_get_meta_ads_subbreakdown($pdo, (int) $domainId, $viewSourceId, $start, $end, 'ad');
@@ -183,7 +184,7 @@ if ($isGenericView) {
     } elseif (in_array(($selectedProvider['provider_key'] ?? ''), ['google_ads', 'microsoft_ads'], true)) {
         // Google Ads gets its own rich PPC view: derived ROAS/PNO/CPA/CPC/CTR/CPM KPIs from the synced
         // cost/clicks/impressions/conversions/conversion_value (account-level).
-        $adsKpis = allstat_get_google_ads_kpis($pdo, (int) $domainId, $viewSourceId, $start, $end, 'day', (string) $selectedProvider['name']);
+        $adsKpis = allstat_get_google_ads_kpis($pdo, (int) $domainId, $viewSourceId, $start, $end, $granularity, (string) $selectedProvider['name']);
         $googleAdsNoConversions = !empty($adsKpis['noConversions']);
         $googleAdsCampaigns = allstat_get_google_ads_campaigns($pdo, (int) $domainId, $viewSourceId, $start, $end, 15);
         $providerPayload = [
@@ -202,6 +203,7 @@ if ($isGenericView) {
             'chartKeys' => ['indexed', 'content', 'error'],
             'showChart' => count($wmtKpis['labels']) > 1,
             'hasData' => $wmtKpis['hasData'],
+            'granularity' => 'day', // stav indexace je denní snímek, nesčítá se do týdnů ani měsíců
         ];
     } elseif (($selectedProvider['provider_key'] ?? '') === 'linkedin_company') {
         // LinkedIn organická page view: počty (Zobrazení/Prokliky/reakce) + dopočítaný Celkový engagement

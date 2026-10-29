@@ -541,4 +541,9 @@ return [
     'Kontext pro AI byl uložen.' => 'Kontext pre AI bol uložený.',
     'Kontext pro AI se nezměnil.' => 'Kontext pre AI sa nezmenil.',
     'Kontext pro AI u webu {name} obsahuje neplatné znaky (očekává se UTF-8), nic se neuložilo.' => 'Kontext pre AI pri webe {name} obsahuje neplatné znaky (očakáva sa UTF-8), nič sa neuložilo.',
+    'Webů s vlastním kontextem: {filled} z {count}.' => 'Webov s vlastným kontextom: {filled} z {count}.',
+    'Nevyplněno, AI dostane obecný kontext.' => 'Nevyplnené, AI dostane všeobecný kontext.',
+    'Vlastní kontext' => 'Vlastný kontext',
+    'Obecný kontext' => 'Všeobecný kontext',
+    'Kontext pro AI: {name}' => 'Kontext pre AI: {name}',
 ];

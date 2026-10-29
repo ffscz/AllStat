@@ -541,4 +541,9 @@ return [
     'Kontext pro AI byl uložen.' => 'The AI context has been saved.',
     'Kontext pro AI se nezměnil.' => 'The AI context has not changed.',
     'Kontext pro AI u webu {name} obsahuje neplatné znaky (očekává se UTF-8), nic se neuložilo.' => 'The AI context for {name} contains invalid characters (UTF-8 expected), nothing was saved.',
+    'Webů s vlastním kontextem: {filled} z {count}.' => 'Websites with their own context: {filled} of {count}.',
+    'Nevyplněno, AI dostane obecný kontext.' => 'Not filled in, the AI gets a general context.',
+    'Vlastní kontext' => 'Own context',
+    'Obecný kontext' => 'General context',
+    'Kontext pro AI: {name}' => 'Context for AI: {name}',
 ];
