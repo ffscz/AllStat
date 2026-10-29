@@ -192,7 +192,7 @@
     right: 0;
 }
 
-/* Přepínač webů: od 9 webů hledání, seznam se posouvá uvnitř nabídky (lib/layout.php, assets/js/shell.js). */
+/* Přepínač webů: od 8 webů hledání, seznam se posouvá uvnitř (.menu-scroll níže; lib/layout.php, assets/js/shell.js). */
 .menu-search {
     width: auto;
     margin: 2px 4px 6px;
@@ -201,12 +201,6 @@
 .menu-search > .icon-sm {
     top: 50%;
     transform: translateY(-50%);
-}
-
-.menu-scroll {
-    max-height: min(420px, calc(100dvh - 240px));
-    overflow-y: auto;
-    overscroll-behavior: contain;
 }
 
 .menu-empty {
@@ -1784,10 +1778,11 @@ textarea.input {
     transition: opacity .15s;
 }
 
-/* Dlouhá nabídka (výběr zdroje) se posouvá uvnitř. */
+/* Dlouhá nabídka (výběr zdroje, seznam webů v přepínači) se posouvá uvnitř. */
 .menu-scroll {
     max-height: min(480px, 70vh);
     overflow-y: auto;
+    overscroll-behavior: contain;
 }
 
 .menu-item[aria-current],
