@@ -1220,7 +1220,7 @@ allstat_admin_header(t('AI konektory (MCP)'), 'mcp', $user, $config, null, [
             <h2 class="card-title"><?= h(t('Kontext pro AI')) ?></h2>
             <p class="card-desc"><?= h(t('Popis organizace a cíle webu. AllStat ho dá na začátek každého reportu pro AI (tlačítko Analyzovat s AI) a AI konektor ho dostane u daného webu. Každý web má vlastní text, prázdné pole znamená obecný kontext.')) ?></p>
         </div>
-        <?php if (count($aiContextDomains) > 8): ?>
+        <?php if (count($aiContextDomains) >= 8): ?>
             <label class="search">
                 <span class="sr-only"><?= h(t('Hledat web')) ?></span>
                 <?= allstat_icon('search', 'icon-sm') ?>
@@ -1239,7 +1239,7 @@ allstat_admin_header(t('AI konektory (MCP)'), 'mcp', $user, $config, null, [
         $ctxOpenId = count($aiContextDomains) === 1 ? (int) $aiContextDomains[0]['id'] : (int) ($ctxNotice['id'] ?? $_GET['ctx'] ?? 0);
     ?>
         <div class="card-body ctx-list" id="ai-context-list">
-            <?php if (count($aiContextDomains) > 8): ?>
+            <?php if (count($aiContextDomains) >= 8): ?>
                 <div class="seg ctx-filter" role="group" aria-label="<?= h(t('Filtr podle stavu')) ?>" data-status-filter-for="ai-context-list">
                     <button type="button" class="seg-item" aria-pressed="true" data-status-filter="all"><span><?= h(t('Vše')) ?></span><span class="seg-count num"><?= count($aiContextDomains) ?></span></button>
                     <button type="button" class="seg-item" aria-pressed="false" data-status-filter="own"><span><?= h(t('Vlastní kontext')) ?></span><span class="seg-count num"><?= $ctxFilled ?></span></button>

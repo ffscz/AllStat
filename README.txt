@@ -46,9 +46,9 @@ po instalaci ze serveru smazat.
 
 Změny ve verzi 1.5.0
 --------------------
- * Nový vzhled celé administrace: postranní panel s přepínačem webu, horní lišta s drobečkovou
-   navigací, stavem dat a uživatelskou nabídkou, světlý i tmavý motiv a písmo Geist (z vlastního
-   serveru, bez externích služeb).
+ * Nový vzhled celé administrace: postranní panel s přepínačem webu (od 8 webů s hledáním), horní
+   lišta s drobečkovou navigací, stavem dat a uživatelskou nabídkou, světlý i tmavý motiv a písmo Geist
+   (z vlastního serveru, bez externích služeb).
  * Přehled (Růst kanálů): souhrnné dlaždice, karty kanálů ve skupinách Web, Sociální sítě a Reklama,
    tabulka Měsíc po měsíci a vysvětlení výpočtu růstu.
  * Detaily zdrojů, Trychtýř a stránky správy jsou postavené ze stejných prvků; grafy berou barvy
