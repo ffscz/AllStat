@@ -74,8 +74,8 @@
             "h": "f1fe5c5104ef6795605465f2ebbd93975d5dca077069ece2fe8589e554e6eca8"
         },
         "admin/mcp.php": {
-            "s": 90008,
-            "h": "2d9aaef1b2f9dc01b2c27bed0604b81fd327142131dfabbb839ecfd9353bd121"
+            "s": 95039,
+            "h": "ae08dca2b53c977f80e37ab2bdd93deba29bd61405962af6c3de76c4162e60cf"
         },
         "admin/meta-connect.php": {
             "s": 9281,
@@ -158,8 +158,8 @@
             "h": "79949d8468b77692012aa7542c2274ca80428ab0d451649027a72266fb9705ff"
         },
         "assets/css/components.css": {
-            "s": 50669,
-            "h": "29d7c8aa2d018d6b67c09673d5a15f05dfd9e506e23b377320a0960d12f9f737"
+            "s": 52629,
+            "h": "67a638ce8f7b3986ba7818a95184f462b89a96f438b2ddcfeeec8a935febbe9a"
         },
         "assets/css/layout.css": {
             "s": 9161,
@@ -270,16 +270,16 @@
             "h": "022db8e5654038717679670df38d18b4587f6e9870d054ce3f67e962fda2885f"
         },
         "index.php": {
-            "s": 19604,
-            "h": "4835c5d5bbb935e87944156a2a12d81f9ce39f866aed1103b6bf80f92da4cb1c"
+            "s": 19894,
+            "h": "cfb01590d6427d15a73e265af59b55dfbae585cc09b8c868d2f75d4564bce351"
         },
         "install.php": {
             "s": 1987,
             "h": "dfea701c561eeadff113d629cd900772e16cc1cdb42152b31f87948f11376845"
         },
         "lang/en/admin.php": {
-            "s": 58508,
-            "h": "d9f2b7c85a5e79a6f91340fea6fc965acd8cd47f35fdc25dfcbb04a1c1c02c74"
+            "s": 58865,
+            "h": "407cd57fb1b9bf7168e87f3569f690bbf78df58d1a1b2630bc15164bca5d84b4"
         },
         "lang/en/ai.php": {
             "s": 71400,
@@ -310,8 +310,8 @@
             "h": "653f4ede8f618951f0d403587d4db2a28f01f0ff1eeef307193c50eb1cbdbe93"
         },
         "lang/sk/admin.php": {
-            "s": 59437,
-            "h": "5e349dc5351f2e26f59516edf9fb15dac9283bec3db5e63133ddc4809bca6621"
+            "s": 59797,
+            "h": "43dda6dda491ef7c44e50d91c1ca9b120e4bdea8d50af05e8858fe95347ae2b1"
         },
         "lang/sk/ai.php": {
             "s": 72553,
@@ -522,8 +522,8 @@
             "h": "3aa5d5f718b4772ef2621b212bab5c04fa285d773eb0303c6882ff0adee9a6f5"
         },
         "views/provider.php": {
-            "s": 4659,
-            "h": "b9973f17cea6f599f15eebf1503294a2a800f09943320491d758eccb0809335f"
+            "s": 4694,
+            "h": "52e259f5cb3518c2bfb0459342134255620f5e33362d0dcd35ccbaa759beb729"
         },
         "views/provider/_followers.php": {
             "s": 2671,
