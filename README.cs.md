@@ -70,6 +70,7 @@ Konce řádků se v gitu nemění (`.gitattributes`), aby seděly kontrolní sou
 Chyby a nápady hlaste přes [Issues](https://github.com/ffscz/AllStat/issues/new/choose), formulář se zeptá
 na verzi a hosting. Bezpečnostní chybu prosím nehlaste veřejně, ale přes
 [soukromé hlášení zranitelnosti](https://github.com/ffscz/AllStat/security/advisories/new), viz [SECURITY.md](.github/SECURITY.md).
+Když chcete přispět kódem, přečtěte si nejdřív [CONTRIBUTING.md](.github/CONTRIBUTING.md) (česky v druhé půlce).
 
 ## Licence
 

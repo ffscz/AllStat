@@ -346,6 +346,19 @@ function allstat_mcp_admin_show_more(int $total, int $visible = 10): string
     return '<div class="card-foot"><button type="button" class="btn btn-secondary btn-sm show-more-btn" data-show-more>' . h($label) . '</button></div>';
 }
 
+/**
+ * Výsledek uložení kontextu pro AI. U jednoho webu se ukáže v jeho rozbaleném formuláři (stránka po uložení
+ * skočí na něj, horní hláška by nebyla vidět), $text vrátí do pole neuložený text. Jinak běžná hláška nahoře.
+ */
+function allstat_mcp_admin_context_notice(int $domainId, string $type, string $message, ?string $text = null): void
+{
+    if ($domainId > 0) {
+        $_SESSION['ai_context_notice'] = ['id' => $domainId, 'type' => $type, 'message' => $message, 'text' => $text];
+        return;
+    }
+    allstat_flash($type, $message);
+}
+
 function allstat_mcp_admin_bytes(mixed $bytes): string
 {
     $bytes = max(0, (int) $bytes);
@@ -996,6 +1009,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($action === 'save_ai_context') {
         // Kontext pro AI u každého webu (domains.ai_context). Prázdné pole = NULL, tedy obecný kontext z lib/share.php.
         $posted = is_array($_POST['ai_context'] ?? null) ? $_POST['ai_context'] : [];
+        // Formulář je u každého webu zvlášť: po uložení zpět na ten web (rozbalený).
+        $ctxIds = array_map('intval', array_keys($posted));
+        $ctxOne = count($ctxIds) === 1 && $ctxIds[0] > 0 ? $ctxIds[0] : 0;
+        $ctxBack = $ctxOne > 0 ? 'admin/mcp.php?ctx=' . $ctxOne . '#kontext-ai-' . $ctxOne : 'admin/mcp.php#kontext-ai';
         $knownDomains = [];
         foreach ($pdo->query('SELECT id, name FROM domains')->fetchAll(PDO::FETCH_ASSOC) as $domainRow) {
             $knownDomains[(int) $domainRow['id']] = (string) $domainRow['name'];
@@ -1008,12 +1025,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $text = trim(str_replace("\r\n", "\n", $text));
             if (!mb_check_encoding($text, 'UTF-8')) {
-                allstat_flash('error', t('Kontext pro AI u webu {name} obsahuje neplatné znaky (očekává se UTF-8), nic se neuložilo.', ['name' => $knownDomains[$domainId]]));
-                allstat_redirect($config, 'admin/mcp.php#kontext-ai');
+                allstat_mcp_admin_context_notice($ctxOne, 'error', t('Kontext pro AI u webu {name} obsahuje neplatné znaky (očekává se UTF-8), nic se neuložilo.', ['name' => $knownDomains[$domainId]]), mb_scrub($text, 'UTF-8'));
+                allstat_redirect($config, $ctxBack);
             }
             if (mb_strlen($text) > ALLSTAT_AI_CONTEXT_MAX) {
-                allstat_flash('error', t('Kontext pro AI u webu {name} je delší než {max} znaků, nic se neuložilo.', ['name' => $knownDomains[$domainId], 'max' => ALLSTAT_AI_CONTEXT_MAX]));
-                allstat_redirect($config, 'admin/mcp.php#kontext-ai');
+                allstat_mcp_admin_context_notice($ctxOne, 'error', t('Kontext pro AI u webu {name} je delší než {max} znaků, nic se neuložilo.', ['name' => $knownDomains[$domainId], 'max' => ALLSTAT_AI_CONTEXT_MAX]), $text);
+                allstat_redirect($config, $ctxBack);
             }
             $updates[$domainId] = $text !== '' ? $text : null;
         }
@@ -1028,8 +1045,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($changed) {
             allstat_audit($pdo, (int) $user['id'], null, 'ai_context_updated', 'domains=' . implode(',', $changed));
         }
-        allstat_flash('ok', $changed ? t('Kontext pro AI byl uložen.') : t('Kontext pro AI se nezměnil.'));
-        allstat_redirect($config, 'admin/mcp.php#kontext-ai');
+        allstat_mcp_admin_context_notice($ctxOne, 'ok', $changed ? t('Kontext pro AI byl uložen.') : t('Kontext pro AI se nezměnil.'));
+        allstat_redirect($config, $ctxBack);
     } else {
         allstat_flash('error', t('Neznámá akce.'));
         allstat_redirect($config, 'admin/mcp.php');
@@ -1203,24 +1220,67 @@ allstat_admin_header(t('AI konektory (MCP)'), 'mcp', $user, $config, null, [
             <h2 class="card-title"><?= h(t('Kontext pro AI')) ?></h2>
             <p class="card-desc"><?= h(t('Popis organizace a cíle webu. AllStat ho dá na začátek každého reportu pro AI (tlačítko Analyzovat s AI) a AI konektor ho dostane u daného webu. Každý web má vlastní text, prázdné pole znamená obecný kontext.')) ?></p>
         </div>
+        <?php if (count($aiContextDomains) > 8): ?>
+            <label class="search">
+                <span class="sr-only"><?= h(t('Hledat web')) ?></span>
+                <?= allstat_icon('search', 'icon-sm') ?>
+                <input class="input" type="search" data-table-filter="ai-context-list" placeholder="<?= h(t('název nebo doména')) ?>">
+            </label>
+        <?php endif; ?>
     </div>
     <?php if (!$aiContextDomains): ?>
         <div class="card-body"><p class="is-muted"><?= h(t('Zatím tu není žádný web.')) ?></p></div>
-    <?php else: ?>
-        <form method="post" class="card-body form-grid">
-            <?= allstat_csrf_field() ?>
-            <input type="hidden" name="action" value="save_ai_context">
-            <?php foreach ($aiContextDomains as $ctxDomain): ?>
-                <label class="field field-full">
-                    <span class="field-label"><?= h((string) $ctxDomain['name']) ?> <span class="is-muted"><?= h((string) $ctxDomain['url']) ?></span><?= (int) $ctxDomain['is_active'] === 1 ? '' : ' ' . allstat_status_pill('info', t('Vypnuto')) ?></span>
-                    <textarea class="input" name="ai_context[<?= (int) $ctxDomain['id'] ?>]" rows="5" maxlength="<?= ALLSTAT_AI_CONTEXT_MAX ?>" placeholder="<?= h(t('Například: Jsme e-shop s outdoorovým vybavením, hlavním cílem je prodej, marketing dělají dva lidé.')) ?>"><?= h((string) ($ctxDomain['ai_context'] ?? '')) ?></textarea>
-                </label>
+    <?php else:
+        // Seznam webů: řádek s náhledem a stavem, úprava se rozbalí u jednoho webu a ukládá se jen on
+        // (sbalený seznam zůstane přehledný a formulář nenarazí na max_input_vars).
+        $ctxFilled = count(array_filter($aiContextDomains, static fn (array $d): bool => trim((string) ($d['ai_context'] ?? '')) !== ''));
+        $ctxNotice = is_array($_SESSION['ai_context_notice'] ?? null) ? $_SESSION['ai_context_notice'] : null;
+        unset($_SESSION['ai_context_notice']);
+        $ctxOpenId = count($aiContextDomains) === 1 ? (int) $aiContextDomains[0]['id'] : (int) ($ctxNotice['id'] ?? $_GET['ctx'] ?? 0);
+    ?>
+        <div class="card-body ctx-list" id="ai-context-list">
+            <?php if (count($aiContextDomains) > 8): ?>
+                <div class="seg ctx-filter" role="group" aria-label="<?= h(t('Filtr podle stavu')) ?>" data-status-filter-for="ai-context-list">
+                    <button type="button" class="seg-item" aria-pressed="true" data-status-filter="all"><span><?= h(t('Vše')) ?></span><span class="seg-count num"><?= count($aiContextDomains) ?></span></button>
+                    <button type="button" class="seg-item" aria-pressed="false" data-status-filter="own"><span><?= h(t('Vlastní kontext')) ?></span><span class="seg-count num"><?= $ctxFilled ?></span></button>
+                    <button type="button" class="seg-item" aria-pressed="false" data-status-filter="general"><span><?= h(t('Obecný kontext')) ?></span><span class="seg-count num"><?= count($aiContextDomains) - $ctxFilled ?></span></button>
+                </div>
+            <?php endif; ?>
+            <p class="field-help"><?= h(t('Webů s vlastním kontextem: {filled} z {count}.', ['filled' => $ctxFilled, 'count' => count($aiContextDomains)])) ?> <?= h(t('Stručně napište, kdo jste, komu web slouží, co je jeho cíl (prodej, registrace, povědomí) a jaké máte možnosti (velikost týmu, rozpočet). Nejvýše {max} znaků na web.', ['max' => ALLSTAT_AI_CONTEXT_MAX])) ?></p>
+            <?php foreach ($aiContextDomains as $ctxDomain):
+                $ctxId = (int) $ctxDomain['id'];
+                $ctxText = trim((string) ($ctxDomain['ai_context'] ?? ''));
+                $ctxPreview = $ctxText !== '' ? mb_substr(preg_replace('/\s+/u', ' ', $ctxText) ?? $ctxText, 0, 160) : t('Nevyplněno, AI dostane obecný kontext.');
+                $ctxItemNotice = $ctxNotice !== null && (int) ($ctxNotice['id'] ?? 0) === $ctxId ? $ctxNotice : null;
+            ?>
+                <details class="ctx-item" id="kontext-ai-<?= $ctxId ?>" data-filter-text="<?= h(mb_strtolower($ctxDomain['name'] . ' ' . $ctxDomain['url'])) ?>" data-status="<?= $ctxText !== '' ? 'own' : 'general' ?>"<?= $ctxId === $ctxOpenId ? ' open' : '' ?>>
+                    <summary>
+                        <span class="ctx-name"><strong class="ellipsis"><?= h((string) $ctxDomain['name']) ?></strong><span class="is-muted ellipsis"><?= h((string) $ctxDomain['url']) ?></span></span>
+                        <span class="ctx-preview"><?= h($ctxPreview) ?></span>
+                        <span class="ctx-status">
+                            <?= $ctxText !== '' ? allstat_status_pill('ok', t('Vlastní kontext')) : allstat_status_pill('off', t('Obecný kontext')) ?>
+                            <?= (int) $ctxDomain['is_active'] === 1 ? '' : allstat_status_pill('off', t('Vypnuto')) ?>
+                        </span>
+                        <?= allstat_icon('chevron-down', 'note-chev') ?>
+                    </summary>
+                    <form method="post" class="ctx-form">
+                        <?= allstat_csrf_field() ?>
+                        <input type="hidden" name="action" value="save_ai_context">
+                        <?php if ($ctxItemNotice !== null): ?>
+                            <div class="callout <?= ($ctxItemNotice['type'] ?? '') === 'error' ? 'tone-down' : 'tone-up' ?>" role="status"><?= h((string) ($ctxItemNotice['message'] ?? '')) ?></div>
+                        <?php endif; ?>
+                        <label class="field">
+                            <span class="sr-only"><?= h(t('Kontext pro AI: {name}', ['name' => (string) $ctxDomain['name']])) ?></span>
+                            <textarea class="input" name="ai_context[<?= $ctxId ?>]" rows="6" maxlength="<?= ALLSTAT_AI_CONTEXT_MAX ?>" placeholder="<?= h(t('Například: Jsme e-shop s outdoorovým vybavením, hlavním cílem je prodej, marketing dělají dva lidé.')) ?>"><?= h(isset($ctxItemNotice['text']) ? (string) $ctxItemNotice['text'] : $ctxText) ?></textarea>
+                        </label>
+                        <div class="form-actions">
+                            <button class="btn btn-primary" type="submit"><span><?= h(t('Uložit kontext')) ?></span></button>
+                        </div>
+                    </form>
+                </details>
             <?php endforeach; ?>
-            <p class="field-help field-full"><?= h(t('Stručně napište, kdo jste, komu web slouží, co je jeho cíl (prodej, registrace, povědomí) a jaké máte možnosti (velikost týmu, rozpočet). Nejvýše {max} znaků na web.', ['max' => ALLSTAT_AI_CONTEXT_MAX])) ?></p>
-            <div class="form-actions field-full">
-                <button class="btn btn-primary" type="submit"><span><?= h(t('Uložit kontext')) ?></span></button>
-            </div>
-        </form>
+            <div class="empty" data-filter-empty hidden><p class="is-muted"><?= h(t('Žádný web neodpovídá hledání.')) ?></p></div>
+        </div>
     <?php endif; ?>
 </section>
 

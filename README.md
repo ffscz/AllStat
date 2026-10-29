@@ -74,6 +74,7 @@ Line endings are not changed in git (`.gitattributes`), so that the checksums in
 Report bugs and ideas through [Issues](https://github.com/ffscz/AllStat/issues/new/choose), and the form will ask
 for your version and hosting. Please do not report a security vulnerability publicly, but through a
 [private vulnerability report](https://github.com/ffscz/AllStat/security/advisories/new), see [SECURITY.md](.github/SECURITY.md).
+If you want to contribute code, read [CONTRIBUTING.md](.github/CONTRIBUTING.md) first.
 
 ## License
 

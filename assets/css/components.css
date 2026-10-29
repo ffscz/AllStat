@@ -1404,6 +1404,116 @@ a.pill:hover {
     transform: rotate(180deg);
 }
 
+/* Seznam webů s rozbalovací úpravou (Kontext pro AI v admin/mcp.php): řádek = název, náhled, stav */
+.ctx-list {
+    display: flex;
+    flex-direction: column;
+    padding-top: 12px;
+}
+
+.ctx-list > .field-help {
+    margin-bottom: 12px;
+}
+
+.ctx-filter {
+    align-self: flex-start;
+    margin-bottom: 12px;
+}
+
+.ctx-item {
+    border-top: 1px solid var(--border);
+}
+
+.ctx-item > summary {
+    display: grid;
+    grid-template-columns: minmax(0, 200px) minmax(0, 1fr) auto 16px;
+    align-items: center;
+    gap: 16px;
+    min-height: 56px;
+    padding: 8px 0;
+    list-style: none;
+    cursor: pointer;
+}
+
+.ctx-item > summary::-webkit-details-marker {
+    display: none;
+}
+
+.ctx-name {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    font-size: 14px;
+    line-height: 20px;
+}
+
+.ctx-name .is-muted {
+    font-size: 12px;
+    line-height: 16px;
+}
+
+.ctx-preview {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 20px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Rozbalený web má celý text v poli, náhled by se opakoval (místo zůstane, řádek neposkočí). */
+.ctx-item[open] .ctx-preview {
+    visibility: hidden;
+}
+
+.ctx-status {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 6px;
+}
+
+.ctx-item[open] .note-chev {
+    transform: rotate(180deg);
+}
+
+.ctx-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 4px 0 20px;
+}
+
+.card-head > .search {
+    flex: 0 1 300px;
+    min-width: 0;
+}
+
+@media (max-width: 640px) {
+    .card-head:has(> .search) {
+        flex-wrap: wrap;
+    }
+
+    .card-head > .search {
+        flex-basis: 100%;
+    }
+
+    .ctx-item > summary {
+        grid-template-columns: minmax(0, 1fr) auto 16px;
+        gap: 4px 12px;
+    }
+
+    .ctx-preview {
+        grid-row: 2;
+        grid-column: 1 / -1;
+    }
+
+    .ctx-item[open] .ctx-preview {
+        display: none;
+    }
+}
+
 .note-body {
     display: flex;
     flex-direction: column;
