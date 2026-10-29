@@ -755,14 +755,17 @@ function allstat_migrate(PDO $pdo): void
     allstat_add_index($pdo, 'domain_sources', 'domain_sources_oauth_account_idx', 'KEY domain_sources_oauth_account_idx (oauth_account_id)');
 
     // Kontext pro AI u každého webu (2026-10-29.1, Administrace → AI konektory). Dřívější společný text z Nastavení
-    // (share.org_context) se zkopíruje k webům, které vlastní ještě nemají, a smaže se, takže se chování nezmění.
+    // (share.org_context) se jednou zkopíruje k webům, které vlastní ještě nemají, takže se chování nezmění.
+    // Nastavení zůstává kvůli návratu na 1.4 (čte jen ho); příznak brání tomu, aby pozdější migrace vrátila
+    // text k webu, u kterého ho správce smazal.
     allstat_add_column($pdo, 'domains', 'ai_context', 'ai_context TEXT NULL AFTER url');
-    $legacyContext = $pdo->query("SELECT setting_value FROM allstat_settings WHERE setting_key = 'share.org_context' LIMIT 1")->fetchColumn();
-    if ($legacyContext !== false) {
-        if (trim((string) $legacyContext) !== '') {
+    $contextCopied = $pdo->query("SELECT 1 FROM allstat_settings WHERE setting_key = 'share.org_context_copied' LIMIT 1")->fetchColumn();
+    if ($contextCopied === false) {
+        $legacyContext = $pdo->query("SELECT setting_value FROM allstat_settings WHERE setting_key = 'share.org_context' LIMIT 1")->fetchColumn();
+        if ($legacyContext !== false && trim((string) $legacyContext) !== '') {
             $pdo->prepare('UPDATE domains SET ai_context = ? WHERE ai_context IS NULL')->execute([trim((string) $legacyContext)]);
         }
-        $pdo->exec("DELETE FROM allstat_settings WHERE setting_key = 'share.org_context'");
+        allstat_setting_default($pdo, 'share.org_context_copied', '1');
     }
 
     allstat_migrate_mcp($pdo); // izolované: selhání DDL MCP nesmí zastavit zbytek migrace ani aplikaci

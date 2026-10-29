@@ -43,7 +43,7 @@
         });
     }
 
-    // Hledání v nabídce (přepínač webů od 9 webů): pole [data-menu-filter] skryje položky [data-filter-text],
+    // Hledání v nabídce (přepínač webů od 8 webů): pole [data-menu-filter] skryje položky [data-filter-text],
     // které hledaný text neobsahují; Enter otevře první nalezenou.
     function bindMenuFilters() {
         document.querySelectorAll('[data-menu-filter]').forEach((input) => {

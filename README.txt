@@ -75,6 +75,8 @@ Změny ve verzi 1.5.0
  * Demografie (Facebook, Instagram, Meta Ads, LinkedIn) má věk, pohlaví, země a města v samostatných
    blocích.
  * Na mobilu se navigace otevírá tlačítkem v horní liště a široké tabulky se posouvají uvnitř karty.
+ * Styly jsou v nových souborech. Dosavadní assets/css/app.css a admin.css aktualizace odstraní; pokud
+   v nich byly vaše úpravy, soubor zůstane a aktualizace na to upozorní, nová verze ho ale nenačítá.
 
 
 Změny ve verzi 1.4.0
