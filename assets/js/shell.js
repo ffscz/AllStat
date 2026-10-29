@@ -24,7 +24,12 @@
                 closeAll(menu);
                 menu.hidden = !open;
                 toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-                if (open) { menu.querySelector('a, button')?.focus({ preventScroll: true }); }
+                if (open) {
+                    // Nabídka s hledáním: fokus do pole (na dotykových zařízeních ne, vyskočila by klávesnice).
+                    const filter = window.matchMedia('(pointer: fine)').matches ? menu.querySelector('[data-menu-filter]') : null;
+                    (filter || menu.querySelector('a, button'))?.focus({ preventScroll: true });
+                    menu.querySelector('[aria-current="true"]')?.scrollIntoView({ block: 'nearest' });
+                }
                 return;
             }
             if (!event.target.closest('.menu')) { closeAll(null); }
@@ -35,6 +40,30 @@
             const open = [...toggles()].find((t) => t.getAttribute('aria-expanded') === 'true');
             closeAll(null);
             open?.focus();
+        });
+    }
+
+    // Hledání v nabídce (přepínač webů od 9 webů): pole [data-menu-filter] skryje položky [data-filter-text],
+    // které hledaný text neobsahují; Enter otevře první nalezenou.
+    function bindMenuFilters() {
+        document.querySelectorAll('[data-menu-filter]').forEach((input) => {
+            const menu = input.closest('.menu');
+            const items = [...menu.querySelectorAll('[data-filter-text]')];
+            const empty = menu.querySelector('[data-menu-empty]');
+            input.addEventListener('input', () => {
+                const q = input.value.trim().toLowerCase();
+                let shown = 0;
+                items.forEach((item) => {
+                    item.hidden = q !== '' && !item.dataset.filterText.includes(q);
+                    if (!item.hidden) { shown += 1; }
+                });
+                if (empty) { empty.hidden = shown > 0; }
+            });
+            input.addEventListener('keydown', (event) => {
+                if (event.key !== 'Enter') { return; }
+                event.preventDefault();
+                items.find((item) => !item.hidden)?.click();
+            });
         });
     }
 
@@ -97,6 +126,7 @@
     }
 
     bindMenus();
+    bindMenuFilters();
     bindNav();
     bindTheme();
     window.lucide?.createIcons();

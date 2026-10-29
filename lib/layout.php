@@ -272,13 +272,23 @@ function allstat_layout_start(?PDO $pdo, array $config, array $user, array $page
             </button>
             <div class="menu menu-wide" id="site-menu" hidden>
                 <div class="menu-label"><?= h(t('Weby')) ?></div>
-                <?php foreach ($domains as $d): ?>
-                <a class="menu-item" href="<?= h(allstat_layout_site_url((int) $d['id'])) ?>"<?= (int) $d['id'] === (int) $current['id'] ? ' aria-current="true"' : '' ?>>
-                    <span class="tile tile-sm"><?= h(allstat_site_initial($d)) ?></span>
-                    <span class="menu-text"><span class="ellipsis"><?= h((string) ($d['name'] ?: $hostOf($d))) ?></span><span class="menu-sub ellipsis"><?= h($hostOf($d)) ?> · <?= h($sourceLabel((int) $d['id'])) ?></span></span>
-                    <?php if ((int) $d['id'] === (int) $current['id']): ?><?= allstat_icon('check', 'menu-check') ?><?php endif; ?>
-                </a>
-                <?php endforeach; ?>
+                <?php if (count($domains) >= 8): // Od 8 webů hledání (jako výběr webu ve správě), seznam se posouvá uvnitř nabídky. ?>
+                <label class="search menu-search">
+                    <span class="sr-only"><?= h(t('Hledat web')) ?></span>
+                    <?= allstat_icon('search', 'icon-sm') ?>
+                    <input class="input" type="search" placeholder="<?= h(t('název nebo doména')) ?>" autocomplete="off" data-menu-filter>
+                </label>
+                <?php endif; ?>
+                <div class="menu-scroll">
+                    <?php foreach ($domains as $d): ?>
+                    <a class="menu-item" href="<?= h(allstat_layout_site_url((int) $d['id'])) ?>" data-filter-text="<?= h(mb_strtolower((string) $d['name'] . ' ' . $hostOf($d))) ?>"<?= (int) $d['id'] === (int) $current['id'] ? ' aria-current="true"' : '' ?>>
+                        <span class="tile tile-sm"><?= h(allstat_site_initial($d)) ?></span>
+                        <span class="menu-text"><span class="ellipsis"><?= h((string) ($d['name'] ?: $hostOf($d))) ?></span><span class="menu-sub ellipsis"><?= h($hostOf($d)) ?> · <?= h($sourceLabel((int) $d['id'])) ?></span></span>
+                        <?php if ((int) $d['id'] === (int) $current['id']): ?><?= allstat_icon('check', 'menu-check') ?><?php endif; ?>
+                    </a>
+                    <?php endforeach; ?>
+                    <p class="menu-empty" data-menu-empty hidden><?= h(t('Žádný web neodpovídá hledání.')) ?></p>
+                </div>
                 <?php if ($isAdmin): ?>
                 <div class="menu-sep"></div>
                 <a class="menu-item" href="<?= h(allstat_url($config, 'admin/domains.php')) ?>"><?= allstat_icon('globe', 'icon-sm') ?><span><?= h(t('Spravovat weby')) ?></span></a>

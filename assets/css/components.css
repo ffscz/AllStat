@@ -192,6 +192,30 @@
     right: 0;
 }
 
+/* Přepínač webů: od 9 webů hledání, seznam se posouvá uvnitř nabídky (lib/layout.php, assets/js/shell.js). */
+.menu-search {
+    width: auto;
+    margin: 2px 4px 6px;
+}
+
+.menu-search > .icon-sm {
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.menu-scroll {
+    max-height: min(420px, calc(100dvh - 240px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.menu-empty {
+    padding: 8px 10px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 18px;
+}
+
 .menu-label {
     padding: 6px 10px 4px;
     font-size: 11px;
