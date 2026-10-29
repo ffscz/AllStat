@@ -9,20 +9,35 @@
 $today = (new DateTimeImmutable('today'))->format('Y-m-d');
 $curStart = $data['range']['start'];
 $curEnd = $data['range']['end'];
+
+// Popisek tlačítka s rezervovanou šířkou: viditelný text (jeho atribut hlídá JS) + skryté „sizery" (aria-hidden)
+// ve stejné buňce mřížky .label-stack. Tlačítko tak drží šířku nejdelší varianty a prvky za ním neposkakují.
+$labelStack = static function (string $attr, string $label, array $sizers): string {
+    $html = '<span class="label-stack"><span ' . $attr . '>' . h($label) . '</span>';
+    foreach (array_unique($sizers) as $sizer) {
+        $html .= '<span aria-hidden="true">' . h($sizer) . '</span>';
+    }
+
+    return $html . '</span>';
+};
 ?>
 <div class="page-head<?= $isGrowthView ? '' : ' page-head-stack' ?>">
     <div class="page-title">
         <?php if ($isGenericView): ?><?= allstat_source_tile((string) $selectedProvider['provider_key'], 'lg') ?><?php endif; ?>
         <div>
             <h1 class="h1"><?= h($pageTitle) ?></h1>
-            <?php if ($pageSubtitle !== ''): ?><p class="page-sub" data-page-sub><?= h($pageSubtitle) ?></p><?php endif; ?>
+            <?php if ($pageSubtitle !== '' && $pageSubtitleSizers !== []): ?><p class="page-sub"><?= $labelStack('data-page-sub', $pageSubtitle, $pageSubtitleSizers) ?></p>
+            <?php elseif ($pageSubtitle !== ''): ?><p class="page-sub" data-page-sub><?= h($pageSubtitle) ?></p><?php endif; ?>
         </div>
     </div>
     <?php if ($isGrowthView):
         $gwHead = $growth['window'];
         // „Říj 2025 – Zář 2026": zkratky měsíců jako v tabulce, rok celý.
-        $growthRangeShort = preg_replace('/ (\d{2})$/', ' 20$1', allstat_growth_month_label($gwHead['months'][0])) . ' – '
-            . preg_replace('/ (\d{2})$/', ' 20$1', allstat_growth_month_label($gwHead['months'][$gwHead['n'] - 1]));
+        $growthRangeFor = static fn (array $w): string => preg_replace('/ (\d{2})$/', ' 20$1', allstat_growth_month_label($w['months'][0])) . ' – '
+            . preg_replace('/ (\d{2})$/', ' 20$1', allstat_growth_month_label($w['months'][$w['n'] - 1]));
+        $growthRangeShort = $growthRangeFor($gwHead);
+        // Sizery: popisky všech tří oken (3, 6, 12 měsíců), tlačítko tak nemění šířku při přepnutí.
+        $growthSizers = array_map(static fn (int $n): string => $growthRangeFor(allstat_growth_window($n)), [3, 6, 12]);
     ?>
     <div class="page-actions">
         <nav class="seg" aria-label="<?= h(t('Období (uzavřené měsíce)')) ?>" data-growth-months>
@@ -30,7 +45,7 @@ $curEnd = $data['range']['end'];
                 <a class="seg-item" href="?<?= h(http_build_query(['view' => 'growth', 'months' => $gm, 'domain_id' => (int) $data['domain']['id']])) ?>" data-months="<?= $gm ?>"<?= $gwHead['n'] === $gm ? ' aria-current="true"' : '' ?>><?= h($gmLabel) ?></a>
             <?php endforeach; ?>
         </nav>
-        <span class="btn btn-secondary" title="<?= h(t('Počítají se jen uzavřené měsíce, rozběhnutý měsíc je v tabulce zvlášť jako „zatím“.')) ?>"><?= allstat_icon('calendar', 'icon-sm') ?><span data-growth-range><?= h($growthRangeShort) ?></span></span>
+        <span class="btn btn-secondary" title="<?= h(t('Počítají se jen uzavřené měsíce, rozběhnutý měsíc je v tabulce zvlášť jako „zatím“.')) ?>"><?= allstat_icon('calendar', 'icon-sm') ?><?= $labelStack('data-growth-range', $growthRangeShort, $growthSizers) ?></span>
     <?php else:
         if ($selectedProvider !== null && !empty($selectedProvider['rolling'])) {
             // Clarity-style rolling provider: day-scale ranges (its API only covers the last 1-3 days;
@@ -51,16 +66,22 @@ $curEnd = $data['range']['end'];
                 t('Vše') => [(new DateTimeImmutable('today'))->modify('-16 months')->format('Y-m-d'), $today],
             ];
         }
-        // Label rozsahu pro tlačítko kalendáře (JS ho pak aktualizuje). En-pomlčka „–" u rozsahu.
-        $rlS = new DateTimeImmutable($curStart);
-        $rlE = new DateTimeImmutable($curEnd);
-        if ($curStart === $curEnd) {
-            $rangeLabel = allstat_date_label($curStart);
-        } elseif ($rlS->format('Y') === $rlE->format('Y')) {
-            $rangeLabel = $rlS->format(allstat_locale() === 'en' ? 'j M' : 'j. n.') . ' – ' . allstat_date_label($curEnd);
-        } else {
-            $rangeLabel = allstat_date_label($curStart) . ' – ' . allstat_date_label($curEnd);
-        }
+        // Label rozsahu pro tlačítko kalendáře (JS ho pak aktualizuje, stejný zápis má czRange() v assets/js/app.js). En-pomlčka „–" u rozsahu.
+        $rangeLabelFor = static function (string $from, string $to): string {
+            if ($from === $to) {
+                return allstat_date_label($from);
+            }
+            $sameYear = (new DateTimeImmutable($from))->format('Y') === (new DateTimeImmutable($to))->format('Y');
+
+            return ($sameYear ? (new DateTimeImmutable($from))->format(allstat_locale() === 'en' ? 'j M' : 'j. n.') : allstat_date_label($from))
+                . ' – ' . allstat_date_label($to);
+        };
+        $rangeLabel = $rangeLabelFor($curStart, $curEnd);
+        // Sizer = nejdelší možný popisek (přes rok, dvouciferné dny a měsíce; číslice jsou tabulární). V angličtině se šířka liší
+        // podle zkratky měsíce, proto sizer pro každý měsíc (nejdelší vyhraje).
+        $rangeSizers = allstat_locale() === 'en'
+            ? array_map(static fn (int $m): string => $rangeLabelFor(sprintf('2025-%02d-28', $m), sprintf('2026-%02d-28', $m)), range(1, 12))
+            : [$rangeLabelFor('2025-10-28', '2026-12-29')];
         // Rychlé volby období se mají vracet na stejný pohled (přehled / trychtýř se zvoleným rozpadem).
         $rangeLinkTail = $isGenericView ? '' : ($isFunnelView ? '&view=funnel&funnel_id=' . (int) $funnel['id'] . '&breakdown=' . rawurlencode($funnelBreakdownKey) : '&view=overview');
 
@@ -91,7 +112,7 @@ $curEnd = $data['range']['end'];
 
         <div class="dropdown" data-date-range>
             <button type="button" class="btn btn-secondary" data-date-range-trigger aria-haspopup="dialog" aria-expanded="false">
-                <?= allstat_icon('calendar', 'icon-sm') ?><span data-date-range-label><?= h($rangeLabel) ?></span><?= allstat_icon('chevron-down', 'icon-sm') ?>
+                <?= allstat_icon('calendar', 'icon-sm') ?><?= $labelStack('data-date-range-label', $rangeLabel, $rangeSizers) ?><?= allstat_icon('chevron-down', 'icon-sm') ?>
             </button>
             <input type="hidden" name="start" value="<?= h($curStart) ?>" data-date-start>
             <input type="hidden" name="end" value="<?= h($curEnd) ?>" data-date-end>

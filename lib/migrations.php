@@ -11,7 +11,7 @@ require_once __DIR__ . '/providers.php';
  * v allstat_default_providers, nové výchozí settings) ZVEDNI tuhle konstantu — jinak se změna na
  * produkci neprovede. Formát: YYYY-MM-DD.N.
  */
-const ALLSTAT_SCHEMA_VERSION = '2026-10-26.1';
+const ALLSTAT_SCHEMA_VERSION = '2026-10-29.1';
 
 function allstat_schema_is_current(PDO $pdo): bool
 {
@@ -753,6 +753,17 @@ function allstat_migrate(PDO $pdo): void
     allstat_add_column($pdo, 'allstat_users', 'locale', 'locale VARCHAR(5) NULL AFTER domain_access');
     allstat_setting_default($pdo, 'app.locale', 'cs');
     allstat_add_index($pdo, 'domain_sources', 'domain_sources_oauth_account_idx', 'KEY domain_sources_oauth_account_idx (oauth_account_id)');
+
+    // Kontext pro AI u každého webu (2026-10-29.1, Administrace → AI konektory). Dřívější společný text z Nastavení
+    // (share.org_context) se zkopíruje k webům, které vlastní ještě nemají, a smaže se, takže se chování nezmění.
+    allstat_add_column($pdo, 'domains', 'ai_context', 'ai_context TEXT NULL AFTER url');
+    $legacyContext = $pdo->query("SELECT setting_value FROM allstat_settings WHERE setting_key = 'share.org_context' LIMIT 1")->fetchColumn();
+    if ($legacyContext !== false) {
+        if (trim((string) $legacyContext) !== '') {
+            $pdo->prepare('UPDATE domains SET ai_context = ? WHERE ai_context IS NULL')->execute([trim((string) $legacyContext)]);
+        }
+        $pdo->exec("DELETE FROM allstat_settings WHERE setting_key = 'share.org_context'");
+    }
 
     allstat_migrate_mcp($pdo); // izolované: selhání DDL MCP nesmí zastavit zbytek migrace ani aplikaci
 

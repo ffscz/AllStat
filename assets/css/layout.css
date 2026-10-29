@@ -302,6 +302,16 @@ a.crumb:hover {
     min-width: 0;
 }
 
+/* Ovládání vedle názvu (Přehled): dlouhý podtitul se zalomí v názvu a lišta zůstane na místě v každém jazyce i okně
+   (zarovnaná k hornímu okraji názvu, takže ji neposune ani podtitul, který po přepnutí období přeteče na druhý řádek). */
+.page-head:not(.page-head-stack) > .page-title {
+    flex: 1 1 320px;
+}
+
+.page-head:not(.page-head-stack) > .page-title + .page-actions {
+    align-self: flex-start;
+}
+
 /* Záhlaví s mnoha ovládacími prvky: lišta vždy pod názvem, takže se po přepnutí období nepřeskupuje. */
 .page-head-stack {
     flex-direction: column;

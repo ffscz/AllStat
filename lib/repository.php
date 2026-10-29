@@ -2255,6 +2255,12 @@ function allstat_get_provider_view(PDO $pdo, int $domainId, int $connectionId, s
             foreach ($metrics as &$m) {
                 if ($m['key'] === 'watch_time_min') {
                     $m['totalLabel'] = allstat_watch_time_label((int) round($watchMin * 60));
+                    // Záložka: hodiny velkým a zbylé minuty menším písmem, ať se „333 h 43 min" v úzké kartě nezalomí.
+                    $watchSec = (int) round($watchMin * 60);
+                    if ($watchSec >= 3600) {
+                        $m['displayMain'] = allstat_number(intdiv($watchSec, 3600), 0) . ' h';
+                        $m['displaySuffix'] = intdiv($watchSec % 3600, 60) . ' min';
+                    }
                     $m['seriesMinutes'] = $m['series']; // pro MCP: stejná jednotka jako total (minuty)
                     $m['series'] = array_map(static fn (float $v): float => round($v / 60, 1), $m['series']); // graf v hodinách
                 }
@@ -2545,6 +2551,9 @@ function allstat_get_clarity_kpis(PDO $pdo, int $domainId, int $connectionId, st
         ];
         if (isset($def['count']) && $value !== null) {
             $metric['count'] = (int) round($count);
+            // displayValue zůstává celé (čte ho report pro AI i MCP); záložka kreslí displayMain velkým a displaySuffix menším písmem.
+            $metric['displayMain'] = $metric['displayValue'];
+            $metric['displaySuffix'] = t('relací ({count}×)', ['count' => allstat_number($count, 0)]);
             $metric['displayValue'] = t('{value} relací ({count}×)', ['value' => $metric['displayValue'], 'count' => allstat_number($count, 0)]);
         }
         $metrics[] = $metric;

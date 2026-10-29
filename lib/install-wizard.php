@@ -1093,9 +1093,6 @@ function installer_install(array $f, array $state, string $root): array
             'address' => $f['org_address'], 'ico' => $f['org_ico'], 'effective' => $today] as $key => $value) {
             allstat_set_setting($pdo, 'legal.' . $key, $value);
         }
-        if ($f['org_context'] !== '') {
-            allstat_set_setting($pdo, 'share.org_context', $f['org_context']);
-        }
         // Zvolený jazyk průvodce je výchozím jazykem instalace
         allstat_set_setting($pdo, 'app.locale', allstat_locale());
 
@@ -1103,6 +1100,10 @@ function installer_install(array $f, array $state, string $root): array
         $domainRow = allstat_fetch_one($pdo, 'SELECT id FROM domains ORDER BY id ASC LIMIT 1');
         if ($domainRow) {
             allstat_set_setting($pdo, 'app.primary_domain_id', (string) (int) $domainRow['id']);
+            // Popis organizace z průvodce je kontext pro AI prvního webu (další weby mají vlastní v AI konektorech).
+            if ($f['org_context'] !== '') {
+                $pdo->prepare('UPDATE domains SET ai_context = ? WHERE id = ? AND ai_context IS NULL')->execute([$f['org_context'], (int) $domainRow['id']]);
+            }
         }
     } catch (Throwable $e) {
         throw new InstallerError(t('Uložení nastavení organizace selhalo: {detail} Instalaci můžete zopakovat.', ['detail' => trim((string) preg_replace('/\s+/', ' ', $e->getMessage()))]));

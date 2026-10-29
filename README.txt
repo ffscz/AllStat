@@ -55,7 +55,17 @@ Změny ve verzi 1.5.0
    z motivu a po jeho přepnutí se překreslí.
  * Přihlášení, dvoufázové ověření, souhlas pro připojení AI a instalační průvodce mají nový vzhled.
  * Obsah stránek je zarovnaný k levému panelu a na širokém monitoru využije víc místa. Ovládání období
-   v detailech zdrojů je pod názvem, takže se po přepnutí období nic nepřeskupuje.
+   v detailech zdrojů je pod názvem a popisek období má pevnou šířku, takže po přepnutí období nic
+   neposkočí (ani v angličtině).
+ * Vybraná záložka metriky nad grafem je podbarvená a má odznak „V grafu“. Dlouhé hodnoty se v záložce
+   nezalamují: u Clarity je dovětek „relací (111×)“ a u YouTube minuty sledovaného času menším písmem.
+ * Kontext pro AI má každý web vlastní (Administrace, AI konektory, karta Kontext pro AI). Dosavadní
+   společný popis z Nastavení se při aktualizaci zkopíruje ke všem webům, pak ho stačí u každého upravit.
+   Připojení AI ho dostane u každého webu i na začátku reportu.
+ * Report pro AI (tlačítko Analyzovat s AI i report v připojení AI) upozorní na neúplné dny, týdny
+   a měsíce na konci období (zpoždění Search Console a YouTube, poslední synchronizace), uvádí, do kdy
+   jsou data k dispozici, a u napojených zdrojů i názvy účtů.
+ * Databáze: k webům přibyl sloupec pro kontext pro AI, doplní se sám po aktualizaci.
  * Tabulky jdou řadit kliknutím na záhlaví i v přehledu Měsíc po měsíci a ve Zdrojích dat (ve skupinách
    zvlášť), záhlaví se už nepřekrývají.
  * Facebook: rozpad reakcí za období s emoji a u každého příspěvku emoji s počtem reakcí.

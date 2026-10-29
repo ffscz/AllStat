@@ -60,16 +60,25 @@ function allstat_mcp_srv_third_party_warning(): string
  */
 function allstat_mcp_server_instructions(PDO $pdo): string
 {
+    // Kontext pro AI má každý web vlastní (domains.ai_context). S jedním webem jde rovnou do instrukcí,
+    // s více weby instrukce jen odkážou na pole ai_context v list_websites (a na začátek get_report).
     $org = '';
     try {
-        if (function_exists('allstat_share_org_context')) {
-            $org = allstat_share_org_context($pdo);
-        } else {
-            $st = $pdo->query("SELECT setting_value FROM allstat_settings WHERE setting_key = 'share.org_context' LIMIT 1");
-            $org = (string) ($st ? $st->fetchColumn() : '');
+        $active = $pdo->query('SELECT id, ai_context FROM domains WHERE is_active = 1 ORDER BY id ASC LIMIT 2')->fetchAll(PDO::FETCH_ASSOC);
+        if (count($active) === 1) {
+            $org = function_exists('allstat_share_org_context')
+                ? allstat_share_org_context($pdo, (int) $active[0]['id'])
+                : (string) ($active[0]['ai_context'] ?? '');
+        } elseif (count($active) > 1) {
+            $org = 'KONTEXT ORGANIZACE: Každý web má vlastní popis organizace a cílů (pole ai_context u webu v list_websites, je i na začátku get_report). '
+                . 'Před hodnocením a doporučeními ho přečti a řiď se jím; u webu bez něj nevymýšlej obor ani cíle organizace.';
         }
     } catch (Throwable) {
         $org = '';
+    }
+    // Text od administrátora bez neviditelných a řídicích znaků (stejně jako ai_context v list_websites).
+    if (function_exists('allstat_mcp_tool_scrub_string')) {
+        $org = allstat_mcp_tool_scrub_string($org);
     }
     // Prose only: en dash instead of the long dash, single line breaks collapsed.
     $org = trim((string) preg_replace('/\s+/u', ' ', str_replace("\u{2014}", "\u{2013}", $org)));

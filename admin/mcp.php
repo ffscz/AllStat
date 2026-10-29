@@ -20,6 +20,9 @@ foreach (['mcp-oauth.php', 'mcp-server.php', 'mcp-tools.php'] as $mcpLibFile) {
 }
 unset($mcpLibFile, $mcpLibPath);
 
+/** Nejvyšší délka kontextu pro AI u jednoho webu (stejný limit má pole v instalačním průvodci). */
+const ALLSTAT_AI_CONTEXT_MAX = 4000;
+
 /** localhost, 127.0.0.1 a ::1 jsou jediní hostitelé, kde je povolené http:// (lokální vývoj a testy). */
 function allstat_mcp_admin_is_local_host(string $host): bool
 {
@@ -990,6 +993,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $checkStatuses = array_count_values(array_column($checkItems, 'status'));
         allstat_audit($pdo, (int) $user['id'], null, 'mcp_check_run', 'host=' . $checkHost . ' errors=' . ($checkStatuses['error'] ?? 0) . ' warnings=' . ($checkStatuses['warning'] ?? 0));
         allstat_redirect($config, 'admin/mcp.php#kontrola');
+    } elseif ($action === 'save_ai_context') {
+        // Kontext pro AI u každého webu (domains.ai_context). Prázdné pole = NULL, tedy obecný kontext z lib/share.php.
+        $posted = is_array($_POST['ai_context'] ?? null) ? $_POST['ai_context'] : [];
+        $knownDomains = [];
+        foreach ($pdo->query('SELECT id, name FROM domains')->fetchAll(PDO::FETCH_ASSOC) as $domainRow) {
+            $knownDomains[(int) $domainRow['id']] = (string) $domainRow['name'];
+        }
+        $updates = [];
+        foreach ($posted as $domainId => $text) {
+            $domainId = (int) $domainId;
+            if (!isset($knownDomains[$domainId]) || !is_string($text)) {
+                continue;
+            }
+            $text = trim(str_replace("\r\n", "\n", $text));
+            if (!mb_check_encoding($text, 'UTF-8')) {
+                allstat_flash('error', t('Kontext pro AI u webu {name} obsahuje neplatné znaky (očekává se UTF-8), nic se neuložilo.', ['name' => $knownDomains[$domainId]]));
+                allstat_redirect($config, 'admin/mcp.php#kontext-ai');
+            }
+            if (mb_strlen($text) > ALLSTAT_AI_CONTEXT_MAX) {
+                allstat_flash('error', t('Kontext pro AI u webu {name} je delší než {max} znaků, nic se neuložilo.', ['name' => $knownDomains[$domainId], 'max' => ALLSTAT_AI_CONTEXT_MAX]));
+                allstat_redirect($config, 'admin/mcp.php#kontext-ai');
+            }
+            $updates[$domainId] = $text !== '' ? $text : null;
+        }
+        $changed = [];
+        $statement = $pdo->prepare('UPDATE domains SET ai_context = ? WHERE id = ? AND NOT (ai_context <=> ?)');
+        foreach ($updates as $domainId => $text) {
+            $statement->execute([$text, $domainId, $text]);
+            if ($statement->rowCount() > 0) {
+                $changed[] = $domainId;
+            }
+        }
+        if ($changed) {
+            allstat_audit($pdo, (int) $user['id'], null, 'ai_context_updated', 'domains=' . implode(',', $changed));
+        }
+        allstat_flash('ok', $changed ? t('Kontext pro AI byl uložen.') : t('Kontext pro AI se nezměnil.'));
+        allstat_redirect($config, 'admin/mcp.php#kontext-ai');
     } else {
         allstat_flash('error', t('Neznámá akce.'));
         allstat_redirect($config, 'admin/mcp.php');
@@ -1082,6 +1122,8 @@ if (function_exists('allstat_mcp_tool_definitions')) {
     }
 }
 
+$aiContextDomains = $pdo->query('SELECT id, name, url, is_active, ai_context FROM domains ORDER BY is_active DESC, name ASC')->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
 $canCheck = $isOn;
 $check = $_SESSION['mcp_admin_check'] ?? null;
 if (!is_array($check) || ($check['host'] ?? '') !== $curHost || ($check['app'] ?? '') !== $curApp || !is_array($check['items'] ?? null)) {
@@ -1153,6 +1195,33 @@ allstat_admin_header(t('AI konektory (MCP)'), 'mcp', $user, $config, null, [
             </form>
         </div>
     </div>
+</section>
+
+<section class="card" id="kontext-ai">
+    <div class="card-head">
+        <div>
+            <h2 class="card-title"><?= h(t('Kontext pro AI')) ?></h2>
+            <p class="card-desc"><?= h(t('Popis organizace a cíle webu. AllStat ho dá na začátek každého reportu pro AI (tlačítko Analyzovat s AI) a AI konektor ho dostane u daného webu. Každý web má vlastní text, prázdné pole znamená obecný kontext.')) ?></p>
+        </div>
+    </div>
+    <?php if (!$aiContextDomains): ?>
+        <div class="card-body"><p class="is-muted"><?= h(t('Zatím tu není žádný web.')) ?></p></div>
+    <?php else: ?>
+        <form method="post" class="card-body form-grid">
+            <?= allstat_csrf_field() ?>
+            <input type="hidden" name="action" value="save_ai_context">
+            <?php foreach ($aiContextDomains as $ctxDomain): ?>
+                <label class="field field-full">
+                    <span class="field-label"><?= h((string) $ctxDomain['name']) ?> <span class="is-muted"><?= h((string) $ctxDomain['url']) ?></span><?= (int) $ctxDomain['is_active'] === 1 ? '' : ' ' . allstat_status_pill('info', t('Vypnuto')) ?></span>
+                    <textarea class="input" name="ai_context[<?= (int) $ctxDomain['id'] ?>]" rows="5" maxlength="<?= ALLSTAT_AI_CONTEXT_MAX ?>" placeholder="<?= h(t('Například: Jsme e-shop s outdoorovým vybavením, hlavním cílem je prodej, marketing dělají dva lidé.')) ?>"><?= h((string) ($ctxDomain['ai_context'] ?? '')) ?></textarea>
+                </label>
+            <?php endforeach; ?>
+            <p class="field-help field-full"><?= h(t('Stručně napište, kdo jste, komu web slouží, co je jeho cíl (prodej, registrace, povědomí) a jaké máte možnosti (velikost týmu, rozpočet). Nejvýše {max} znaků na web.', ['max' => ALLSTAT_AI_CONTEXT_MAX])) ?></p>
+            <div class="form-actions field-full">
+                <button class="btn btn-primary" type="submit"><span><?= h(t('Uložit kontext')) ?></span></button>
+            </div>
+        </form>
+    <?php endif; ?>
 </section>
 
 <section class="card">

@@ -1207,6 +1207,19 @@ function allstat_mcp_tool_list_websites(PDO $pdo, array $config, array $a): arra
             // the data range is only informational
         }
     }
+    // Kontext pro AI u každého webu (Administrace → AI konektory); text píše administrátor, proto se jen čistí, nezkracuje.
+    $aiContext = [];
+    if ($ids) {
+        try {
+            $ph = implode(',', array_fill(0, count($ids), '?'));
+            foreach (allstat_fetch_all($pdo, "SELECT id, ai_context FROM domains WHERE id IN ($ph)", $ids) as $r) {
+                $text = trim(allstat_mcp_tool_scrub_string((string) ($r['ai_context'] ?? '')));
+                $aiContext[(int) $r['id']] = $text !== '' ? $text : null;
+            }
+        } catch (Throwable) {
+            // před migrací sloupec ještě není
+        }
+    }
 
     $now = time();
     $websites = [];
@@ -1242,6 +1255,7 @@ function allstat_mcp_tool_list_websites(PDO $pdo, array $config, array $a): arra
             'website_id' => $id,
             'name' => allstat_mcp_tool_sanitize($d['name']),
             'url' => allstat_mcp_tool_sanitize($d['url']),
+            'ai_context' => $aiContext[$id] ?? null,
             'google_accounts' => array_map('allstat_mcp_tool_sanitize', $byAccount['accounts'][$id] ?? []),
             'data_from' => $range[$id][0] ?? null,
             'data_to' => $range[$id][1] ?? null,
@@ -1253,6 +1267,7 @@ function allstat_mcp_tool_list_websites(PDO $pdo, array $config, array $a): arra
     $today = new DateTimeImmutable('today');
     $hints = [
         'Ostatní nástroje berou website_id a případně source_id z tohoto seznamu.',
+        'ai_context je popis organizace a cílů webu od administrátora: řiď se jím při hodnocení a doporučeních. U webu bez něj (null) nevymýšlej obor ani cíle organizace.',
         'Poslední kompletní den je ' . $today->modify('-1 day')->format('Y-m-d') . '; relativní období (last_30_days apod.) končí právě jím, dnešní den je neúplný.',
         'Pro hotový analytický report použijte get_report, pro růst kanálů get_channel_growth.',
     ];
@@ -1545,14 +1560,13 @@ function allstat_mcp_tool_get_report(PDO $pdo, array $config, array $a): array
         $envelope['notes'] = $notes;
     }
 
-    // Upozornění na zpoždění a poznámka o zkrácení se přidávají až za ořez, proto se pro ně nechá místo.
-    $prefix = $delays ? '> **Neúplná data:** ' . implode("\n> ", array_column($delays, 'note')) . "\n\n" : '';
-    $fit = allstat_mcp_tool_fit($payload, max(2000, $maxChars - mb_strlen($prefix) - 500), static fn (array $p): string => $renderMd($p, $includeInstructions));
+    // Upozornění na neúplná data má report sám (sekce za Kontextem, lib/share.php); data_delays zůstávají v obálce.
+    // Poznámka o zkrácení se přidává až za ořez, proto se pro ni nechá místo.
+    $fit = allstat_mcp_tool_fit($payload, max(2000, $maxChars - 500), static fn (array $p): string => $renderMd($p, $includeInstructions));
     if ($fit === null) {
         return allstat_mcp_tool_error('Report se nevešel do limitu ' . $maxChars . ' znaků ani po zkrácení tabulek. Zvyšte max_chars (nejvýše 150000), zúžte období nebo zvolte konkrétní zdroj.');
     }
     [$payload, $text, $log] = $fit;
-    $text = $prefix . $text;
     $truncated = $log !== [];
     if ($truncated) {
         $text .= "\n> Pozn.: Report byl zkrácen na limit " . $maxChars . ' znaků (' . implode('; ', $log) . '). Zúžte období, zvolte konkrétní zdroj (source_id) nebo zvyšte max_chars (nejvýše 150000).' . "\n";
@@ -2496,10 +2510,10 @@ function allstat_mcp_tool_data_delays(PDO $pdo, int $domainId, string $start, st
             'missing_days' => $days,
             'typical_delay' => $meta[$provider]['typical'],
             'note' => $outage
-                ? $meta[$provider]['label'] . ' má data jen do ' . allstat_mcp_tool_cz_date($date) . '; ' . $range . ' chybí (' . $days . ($days === 1 ? ' den' : ' dny') . ').'
+                ? $meta[$provider]['label'] . ' má data jen do ' . allstat_mcp_tool_cz_date($date) . '; ' . $range . ' chybí (' . $days . ($days === 1 ? ' den' : ($days < 5 ? ' dny' : ' dní')) . ').'
                     . ' Na běžné zpoždění zdroje (' . $meta[$provider]['typical'] . ') je to moc dlouho, nejspíš výpadek synchronizace (ověřte get_sync_status). Chybějící dny nejsou pokles; hodnoťte zdroj jen za dny s daty, nebo ho vynechte.'
                 : $meta[$provider]['label'] . ' má data jen do ' . allstat_mcp_tool_cz_date($date) . '; ' . $range
-                    . ($days === 1 ? ' zatím chybí' : ' zatím chybí (' . $days . ' dny)') . ', zdroj je dodává se zpožděním ' . $meta[$provider]['typical']
+                    . ($days === 1 ? ' zatím chybí' : ' zatím chybí (' . $days . ($days < 5 ? ' dny)' : ' dní)')) . ', zdroj je dodává se zpožděním ' . $meta[$provider]['typical']
                     . '. Součty a změny proti předchozímu období jsou proto u tohoto zdroje neúplné, nejde o pokles. Hodnoťte ho za období, které končí ' . allstat_mcp_tool_cz_date($date) . ', nebo ho vynechte.',
         ];
     }
