@@ -114,7 +114,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
   <div class="brand"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span> AllStat<nav class="lang no-print" aria-label="Jazyk"><span aria-current="page" lang="cs">Čeština</span><a href="en/" hreflang="en" lang="en">English</a></nav></div>
   <h1>Instalační příručka</h1>
   <p class="lead">AllStat sbírá na jednom místě statistiky vašeho webu a sociálních sítí a ukládá je do vaší vlastní databáze. Tahle příručka vás provede instalací na běžný webhosting, krok za krokem. Počítejte s 30 minutami.</p>
-  <p class="meta">Návod k verzi 1.4.0 · <a href="https://github.com/ffscz/AllStat/releases/latest">Stáhnout AllStat</a> · <a href="https://github.com/ffscz/AllStat">Zdrojový kód na GitHubu</a><span class="no-print"> · <button type="button" class="print-btn" data-print>Vytisknout nebo uložit jako PDF</button></span></p>
+  <p class="meta">Návod k verzi 1.5.0 · <a href="https://github.com/ffscz/AllStat/releases/latest">Stáhnout AllStat</a> · <a href="https://github.com/ffscz/AllStat">Zdrojový kód na GitHubu</a><span class="no-print"> · <button type="button" class="print-btn" data-print>Vytisknout nebo uložit jako PDF</button></span></p>
 </header>
 
 <nav class="toc" aria-label="Obsah">
@@ -243,7 +243,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
 
 <ol class="steps">
   <li><h4>Rozbalte balíček v počítači</h4>
-    <p>Balíček <code>allstat-1.4.0.zip</code> rozbalte (ve Windows: pravé tlačítko, „Extrahovat vše“). Vznikne složka <code>allstat</code>.</p></li>
+    <p>Balíček <code>allstat-1.5.0.zip</code> rozbalte (ve Windows: pravé tlačítko, „Extrahovat vše“). Vznikne složka <code>allstat</code>.</p></li>
   <li><h4>Připojte se k hostingu</h4>
     <p>V programu FileZilla (nebo jiném FTP klientu) zadejte server, uživatele, heslo a port, které jste dostali od poskytovatele hostingu. Když hosting nabízí šifrované spojení (FTPS nebo SFTP), zvolte ho.</p></li>
   <li><h4>Otevřete složku webu</h4>
@@ -273,7 +273,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
 
 <h3>Kontrola serveru</h3>
 <p>Průvodce nejdřív zkontroluje verzi PHP, rozšíření, práva zápisu, HTTPS, přístup na internet a úplnost nahraných souborů. Když je vše v pořádku, ukáže jednu zelenou větu. Kdyby něco chybělo, zobrazí konkrétní položku s vysvětlením, co udělat (viz kapitola <a href="#problemy">Když se něco nepovede</a>).</p>
-<figure class="narrow"><a class="zoom" href="img/01-kontrola-serveru.webp" title="Otevřít v plné velikosti"><img src="img/01-kontrola-serveru.webp" alt="Kontrola serveru: zelená věta o splněných požadavcích" width="748" height="199" loading="lazy" decoding="async"></a><figcaption>Kontrola serveru bez problémů. Tlačítkem „Zobrazit všechny kontroly“ rozbalíte podrobnosti.</figcaption></figure>
+<figure class="narrow"><a class="zoom" href="img/01-kontrola-serveru.webp" title="Otevřít v plné velikosti"><img src="img/01-kontrola-serveru.webp" alt="Kontrola serveru: zelená věta o splněných požadavcích" width="748" height="198" loading="lazy" decoding="async"></a><figcaption>Kontrola serveru bez problémů. Tlačítkem „Zobrazit všechny kontroly“ rozbalíte podrobnosti.</figcaption></figure>
 
 <h3>Instalační kód</h3>
 <p>Aby rozpracovanou instalaci nemohl dokončit nikdo cizí, kdo by na průvodce narazil dřív než vy, průvodce při prvním otevření vytvoří ve složce AllStatu soubor <code>install-token.php</code>. Otevřete ho přes FTP nebo správce souborů hostingu (v prohlížeči je prázdný) a kód z řádku <code>KOD:</code> opište do pole „Instalační kód“. Malá písmena a pomlčky nevadí. Bez kódu průvodce neotestuje databázi ani nic nenainstaluje.</p>
@@ -286,7 +286,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
 
 <h3>Krok 1: Databáze</h3>
 <p>Opište údaje o databázi, které jste si poznamenali v kapitole 2, a klikněte na „Otestovat připojení“. Průvodce zkusí připojení a zkontroluje verzi databáze, práva a úložiště. Když je vše v pořádku, ukáže zelenou hlášku.</p>
-<figure><a class="zoom" href="img/02b-databaze-ok.webp" title="Otevřít v plné velikosti"><img src="img/02b-databaze-ok.webp" alt="Krok 1, databáze: úspěšný test připojení" width="748" height="765" loading="lazy" decoding="async"></a><figcaption>Úspěšný test připojení. Heslo se z bezpečnostních důvodů zobrazuje jako tečky.</figcaption></figure>
+<figure><a class="zoom" href="img/02b-databaze-ok.webp" title="Otevřít v plné velikosti"><img src="img/02b-databaze-ok.webp" alt="Krok 1, databáze: úspěšný test připojení" width="748" height="676" loading="lazy" decoding="async"></a><figcaption>Úspěšný test připojení. Heslo se z bezpečnostních důvodů zobrazuje jako tečky.</figcaption></figure>
 
 <p>Když test selže, průvodce napíše česky, co je špatně:</p>
 <table>
@@ -299,21 +299,21 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
     <tr><td>V této databázi už AllStat s uživateli existuje</td><td>Databáze už obsahuje hotovou instalaci. Průvodce ji záměrně nepřepíše. Použijte prázdnou databázi, nebo obnovte původní soubory (kapitola <a href="#zaloha">Záloha</a>).</td></tr>
   </tbody>
 </table>
-<figure><a class="zoom" href="img/02a-databaze-chyba.webp" title="Otevřít v plné velikosti"><img src="img/02a-databaze-chyba.webp" alt="Krok 1, databáze: chybné heslo" width="748" height="655" loading="lazy" decoding="async"></a><figcaption>Takhle vypadá chybné heslo. Za hláškou najdete i technický detail pro poskytovatele hostingu.</figcaption></figure>
+<figure><a class="zoom" href="img/02a-databaze-chyba.webp" title="Otevřít v plné velikosti"><img src="img/02a-databaze-chyba.webp" alt="Krok 1, databáze: chybné heslo" width="748" height="574" loading="lazy" decoding="async"></a><figcaption>Takhle vypadá chybné heslo. Za hláškou najdete i technický detail pro poskytovatele hostingu.</figcaption></figure>
 
 <h3>Krok 2: Organizace a web</h3>
 <p>Vyplňte, kdo AllStat provozuje a jaký web chcete sledovat.</p>
 <ul>
   <li><strong>Název organizace nebo firmy</strong> a <strong>Kontaktní e-mail</strong> se zobrazí na veřejných stránkách o ochraně osobních údajů. Google, Meta a LinkedIn je při napojení vyžadují. Údaje později změníte v Nastavení.</li>
   <li><strong>Adresa sledovaného webu</strong> je první web, jehož statistiky chcete sledovat. Další weby přidáte později.</li>
-  <li>V části <strong>Další údaje</strong> můžete doplnit sídlo, IČO a krátký popis organizace pro AI analýzy. Popis se hodí, když budete data z AllStatu posílat AI asistentovi k rozboru: napište třeba, jestli jste e-shop, nebo organizace, a co je cílem vašeho webu. Prázdné pole znamená obecný kontext.</li>
-  <li>V části <strong>Pokročilé</strong> najdete časové pásmo (výchozí je Europe/Prague) a cestu aplikace na serveru. Cestu průvodce zjistí sám, měňte ji jen ve výjimečném případě.</li>
+  <li>V části <strong>Další údaje (nepovinné)</strong> můžete doplnit sídlo, IČO a krátký popis organizace pro AI analýzy. Uloží se jako <a href="#kontext-ai">kontext pro AI</a> prvního webu, u dalších webů ho doplníte v menu „AI konektory“. Popis se hodí, když budete data z AllStatu posílat AI asistentovi k rozboru: napište třeba, jestli jste e-shop, nebo organizace, a co je cílem vašeho webu. Prázdné pole znamená obecný kontext.</li>
+  <li>V části <strong>Pokročilé (časové pásmo, cesta aplikace)</strong> najdete časové pásmo (výchozí je Europe/Prague) a cestu aplikace na serveru. Cestu průvodce zjistí sám, měňte ji jen ve výjimečném případě.</li>
 </ul>
-<figure><a class="zoom" href="img/03-organizace.webp" title="Otevřít v plné velikosti"><img src="img/03-organizace.webp" alt="Krok 2, organizace a web" width="748" height="738" loading="lazy" decoding="async"></a><figcaption>Krok 2 s rozbalenou částí „Další údaje“.</figcaption></figure>
+<figure><a class="zoom" href="img/03-organizace.webp" title="Otevřít v plné velikosti"><img src="img/03-organizace.webp" alt="Krok 2, organizace a web" width="748" height="710" loading="lazy" decoding="async"></a><figcaption>Krok 2 s rozbalenou částí „Další údaje“.</figcaption></figure>
 
 <h3>Krok 3: Administrátor</h3>
 <p>Založte první účet s plnými právy. Zadejte jméno, e-mail (bude sloužit k přihlášení) a heslo o délce nejméně 12 znaků. Tlačítko „Vygenerovat silné heslo“ vytvoří náhodné dvacetiznakové heslo. Uložte si ho hned do správce hesel, po instalaci ho už nikde neuvidíte.</p>
-<figure class="narrow"><a class="zoom" href="img/04b-administrator.webp" title="Otevřít v plné velikosti"><img src="img/04b-administrator.webp" alt="Krok 3, první administrátor" width="748" height="378" loading="lazy" decoding="async"></a><figcaption>Údaje prvního administrátora.</figcaption></figure>
+<figure class="narrow"><a class="zoom" href="img/04b-administrator.webp" title="Otevřít v plné velikosti"><img src="img/04b-administrator.webp" alt="Krok 3, první administrátor" width="748" height="332" loading="lazy" decoding="async"></a><figcaption>Údaje prvního administrátora.</figcaption></figure>
 
 <h3>Krok 4: Připojení AI</h3>
 <p>AllStat umí zpřístupnit svá data asistentům Claude a ChatGPT (podrobnosti v kapitole 7). V průvodci jen zvolíte, na jaké adrese bude běžet MCP server, tedy „vstupní dveře“ pro asistenty. O zapnutí rozhodnete až po instalaci. Máte tři možnosti:</p>
@@ -322,7 +322,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
   <li><strong>Na vlastní subdoméně.</strong> Zadáte adresu subdomény, například <code>https://mcp.vase-firma.cz</code>. V hostingu tuto subdoménu vytvoříte a jako její složku nastavíte složku, ve které je AllStat. Pravidlo v kořeni domény pak není potřeba.</li>
   <li><strong>Nastavit později.</strong> Adresy vyplníte sami v menu „AI konektory“.</li>
 </ul>
-<figure><a class="zoom" href="img/04c-pripojeni-ai.webp" title="Otevřít v plné velikosti"><img src="img/04c-pripojeni-ai.webp" alt="Krok 4, připojení AI" width="748" height="522" loading="lazy" decoding="async"></a><figcaption>Krok 4 s předvolenou první možností. Adresa vychází z toho, kam jste AllStat nahráli.</figcaption></figure>
+<figure><a class="zoom" href="img/04c-pripojeni-ai.webp" title="Otevřít v plné velikosti"><img src="img/04c-pripojeni-ai.webp" alt="Krok 4, připojení AI" width="748" height="437" loading="lazy" decoding="async"></a><figcaption>Krok 4 s předvolenou první možností. Adresa vychází z toho, kam jste AllStat nahráli.</figcaption></figure>
 
 <h3>Spuštění instalace</h3>
 <p>Klikněte na „Nainstalovat AllStat“. Za několik sekund průvodce udělá tohle:</p>
@@ -336,11 +336,11 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
   <li>založí administrátora a sám se smaže.</li>
 </ul>
 <p>Na konci se zobrazí stránka „AllStat je nainstalovaný“ se čtyřmi kroky, které popisuje následující kapitola, a s kartou „Připojení AI: další krok“. Ta ukazuje adresu MCP serveru a podle vaší volby i pravidlo pro kořen domény.</p>
-<figure><a class="zoom" href="img/05-hotovo.webp" title="Otevřít v plné velikosti"><img src="img/05-hotovo.webp" alt="Závěrečná stránka instalace" width="1100" height="1965" loading="lazy" decoding="async"></a><figcaption>Závěrečná stránka. Adresy a klíč v příkladu jsou vymyšlené, vy uvidíte své.</figcaption></figure>
+<figure><a class="zoom" href="img/05-hotovo.webp" title="Otevřít v plné velikosti"><img src="img/05-hotovo.webp" alt="Závěrečná stránka instalace" width="1100" height="1840" loading="lazy" decoding="async"></a><figcaption>Závěrečná stránka. Adresy a klíč v příkladu jsou vymyšlené, vy uvidíte své.</figcaption></figure>
 
 <div class="tip callout"><span class="label">Když server zakáže zápis souborů</span>
 <p>Na některých hostinzích nesmí PHP zapisovat do složky. Průvodce to pozná, databázi přesto připraví a na konci vám zobrazí obsah souborů <code>config.php</code> a <code>config-keys.php</code>. Uložte je do složky s <code>install.php</code> (přes FTP nebo správce souborů). Stránku přitom nezavírejte, klíč z ní už podruhé neuvidíte. Potom ze složky smažte i soubor <code>install-token.php</code> s instalačním kódem.</p></div>
-<figure class="narrow"><a class="zoom" href="img/16-rucni-nahrani.webp" title="Otevřít v plné velikosti"><img src="img/16-rucni-nahrani.webp" alt="Ruční nahrání souborů config.php a config-keys.php" width="748" height="1059" loading="lazy" decoding="async"></a><figcaption>Ruční nahrání souborů. Místo hodnot v okně uvidíte skutečný obsah svých souborů.</figcaption></figure>
+<figure class="narrow"><a class="zoom" href="img/16-rucni-nahrani.webp" title="Otevřít v plné velikosti"><img src="img/16-rucni-nahrani.webp" alt="Ruční nahrání souborů config.php a config-keys.php" width="748" height="970" loading="lazy" decoding="async"></a><figcaption>Ruční nahrání souborů. Místo hodnot v okně uvidíte skutečný obsah svých souborů.</figcaption></figure>
 
 
 <h2 id="po-instalaci" class="pb"><span class="n">5</span>Po instalaci: čtyři kroky</h2>
@@ -357,7 +357,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
 
 <h3 id="cron">2. Nastavte automatické stahování dat (cron)</h3>
 <p>Bez tohoto kroku AllStat stahuje data jen ručně. Cron jednou denně stáhne nová data za posledních sedm dní pro všechna napojení. Historii za 16 měsíců stáhnete ručně tlačítkem u každého zdroje.</p>
-<figure><a class="zoom" href="img/10a-nastaveni-cron.webp" title="Otevřít v plné velikosti"><img src="img/10a-nastaveni-cron.webp" alt="Nastavení, blok Automatický denní sync" width="780" height="799" loading="lazy" decoding="async"></a><figcaption>Stránka Nastavení ukazuje hotový příkaz s vaším tajným klíčem a stav posledního běhu.</figcaption></figure>
+<figure><a class="zoom" href="img/10a-nastaveni-cron.webp" title="Otevřít v plné velikosti"><img src="img/10a-nastaveni-cron.webp" alt="Nastavení, blok Automatický denní sync" width="780" height="748" loading="lazy" decoding="async"></a><figcaption>Stránka Nastavení ukazuje hotový příkaz s vaším tajným klíčem a stav posledního běhu.</figcaption></figure>
 
 <p>Postup v cPanelu:</p>
 <ol class="steps">
@@ -379,12 +379,12 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
 <p>Druhý den otevřete Nastavení. Vedle nadpisu „Automatický denní sync“ musí svítit stav „Běží“ a musí se zobrazit čas posledního běhu. Když AllStat cron 26 hodin neuvidí, změní stav na „Neběžel přes 26 h“. Adresu s tajným klíčem můžete vyzkoušet i v prohlížeči, odpoví stručným textem začínajícím <code>{"ok":true</code>.</p></div>
 
 <h3 id="dvoufazove-overeni">3. Zapněte dvoufázové ověření (2FA)</h3>
-<p>Dvoufázové ověření znamená, že kromě hesla zadáváte šestimístný kód z telefonu. V menu otevřete „2FA“, naskenujte QR kód aplikací (Microsoft Authenticator, Google Authenticator, 1Password nebo Bitwarden) a potvrďte kód. V Nastavení pak můžete zapnout povinné 2FA pro všechny uživatele. Doporučujeme to, jakmile bude mít AllStat víc než jednoho uživatele.</p>
-<figure class="narrow"><a class="zoom" href="img/13-2fa.webp" title="Otevřít v plné velikosti"><img src="img/13-2fa.webp" alt="Nastavení dvoufázového ověření" width="1100" height="900" loading="lazy" decoding="async"></a><figcaption>Stránka 2FA v menu.</figcaption></figure>
+<p>Dvoufázové ověření znamená, že kromě hesla zadáváte šestimístný kód z telefonu. Klikněte vpravo nahoře na kolečko se svými iniciálami, zvolte „Dvoufaktorové ověření“, naskenujte QR kód aplikací (Microsoft Authenticator, Google Authenticator, 1Password nebo Bitwarden) a potvrďte kód. V Nastavení pak můžete zapnout povinné 2FA pro všechny uživatele. Doporučujeme to, jakmile bude mít AllStat víc než jednoho uživatele.</p>
+<figure class="narrow"><a class="zoom" href="img/13-2fa.webp" title="Otevřít v plné velikosti"><img src="img/13-2fa.webp" alt="Nastavení dvoufázového ověření" width="1100" height="900" loading="lazy" decoding="async"></a><figcaption>Stránka Dvoufaktorové ověření z uživatelské nabídky.</figcaption></figure>
 
 <h3 id="pravni-stranky">4. Zkontrolujte právní stránky</h3>
 <p>AllStat má tři veřejné stránky, které vyžaduje Meta a LinkedIn při vytváření aplikace: <code>privacy.php</code> (zásady ochrany osobních údajů), <code>terms.php</code> (podmínky) a <code>data-deletion.php</code> (smazání dat). Zobrazují údaje, které jste zadali v průvodci. Změníte je v Nastavení, v bloku „Právní stránky“.</p>
-<figure><a class="zoom" href="img/10b-nastaveni-pravni.webp" title="Otevřít v plné velikosti"><img src="img/10b-nastaveni-pravni.webp" alt="Nastavení, blok Právní stránky" width="780" height="756" loading="lazy" decoding="async"></a><figcaption>Údaje správce a popis organizace pro AI analýzy.</figcaption></figure>
+<figure><a class="zoom" href="img/10b-nastaveni-pravni.webp" title="Otevřít v plné velikosti"><img src="img/10b-nastaveni-pravni.webp" alt="Nastavení, blok Právní stránky" width="780" height="568" loading="lazy" decoding="async"></a><figcaption>Údaje správce pro právní stránky.</figcaption></figure>
 <div class="warn callout"><span class="label">Pozor</span>
 <p>Texty stránek popisují, jaká data AllStat zpracovává (souhrnné statistiky a šifrovaně uložené přístupové klíče). Doporučujeme je nechat projít osobou, která u vás odpovídá za ochranu osobních údajů.</p></div>
 
@@ -392,7 +392,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
 <h2 id="napojeni"><span class="n">6</span>Weby, uživatelé a napojení služeb</h2>
 
 <h3 id="weby">Další weby</h3>
-<p>V menu otevřete „Weby“ a přidejte název a doménu. Každý web má vlastní napojení, přehledy a historii. Mezi weby přepínáte v horní liště přehledu. Od osmi webů má výběr pole pro hledání, stačí napsat část názvu nebo domény.</p>
+<p>V menu otevřete „Weby“ a přidejte název a doménu. Každý web má vlastní napojení, přehledy a historii. Mezi weby přepínáte vlevo nahoře v postranním panelu (na mobilu ho otevře tlačítko se třemi čárkami v horní liště). Od osmi webů má nabídka pole pro hledání: napište část názvu nebo domény a Enterem otevřete první nalezený web.</p>
 <figure><a class="zoom" href="img/15-weby.webp" title="Otevřít v plné velikosti"><img src="img/15-weby.webp" alt="Seznam sledovaných webů" width="1100" height="900" loading="lazy" decoding="async"></a><figcaption>Správa webů.</figcaption></figure>
 <p>Spravujete-li víc webů v Google Analytics, nemusíte je přidávat ručně: použijte <a href="#google-ucty">Google účty</a>, kde weby vyberete ze seznamu.</p>
 
@@ -402,14 +402,15 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
 <h3 id="uzivatele">Uživatelé</h3>
 <p>V menu „Uživatelé“ založíte další účty. Role <strong>Administrátor</strong> smí všechno: spravovat weby, napojení, nastavení a uživatele. Role <strong>Uživatel</strong> smí prohlížet přehledy a reporty a nastavit si vlastní dvoufázové ověření. Každý člen týmu by měl mít svůj účet, hesla nesdílejte.</p>
 <p>U každého účtu nastavíte <strong>Přístup k webům</strong>. Volba „Všechny weby“ platí i pro weby přidané později. Při volbě „Jen vybrané weby“ zaškrtnete, které weby uživatel uvidí v přehledu, v reportech i ve sdílených odkazech. Ostatní weby se mu nezobrazí ani ve výběru a nedostane se k nim ani úpravou adresy. Hodí se to, když AllStat sdílíte s klienty nebo partnery a každý má vidět jen svůj web. Administrátor vidí vždy všechny weby.</p>
-<figure><a class="zoom" href="img/14-uzivatele.webp" title="Otevřít v plné velikosti"><img src="img/14-uzivatele.webp" alt="Správa uživatelů" width="1100" height="903" loading="lazy" decoding="async"></a><figcaption>Správa uživatelů a rolí.</figcaption></figure>
+<figure><a class="zoom" href="img/14-uzivatele.webp" title="Otevřít v plné velikosti"><img src="img/14-uzivatele.webp" alt="Správa uživatelů" width="1100" height="900" loading="lazy" decoding="async"></a><figcaption>Správa uživatelů a rolí.</figcaption></figure>
 
-<h3 id="jazyk">Jazyk rozhraní</h3>
-<p>AllStat umí česky, slovensky a anglicky. Každý uživatel si jazyk přepne v horní liště (CS, SK, EN), volba se uloží k jeho účtu. Výchozí jazyk pro přihlašovací stránku, veřejné stránky a uživatele bez vlastní volby nastavíte v „Nastavení“, při instalaci se převezme jazyk zvolený v průvodci. Data pro AI (připojení AI, Sdílet pro AI), datový feed a exporty zůstávají česky, protože je čtou jiné programy. Asistent AI přesto odpovídá v jazyce, ve kterém se ho ptáte.</p>
+<h3 id="jazyk">Jazyk a motiv rozhraní</h3>
+<p>AllStat umí česky, slovensky a anglicky. Každý uživatel si jazyk přepne v uživatelské nabídce vpravo nahoře (kolečko s iniciálami, část „Jazyk“), volba se uloží k jeho účtu. Výchozí jazyk pro přihlašovací stránku, veřejné stránky a uživatele bez vlastní volby nastavíte v „Nastavení“, při instalaci se převezme jazyk zvolený v průvodci. Data pro AI (připojení AI, Analyzovat s AI), datový feed a exporty zůstávají česky, protože je čtou jiné programy. Asistent AI přesto odpovídá v jazyce, ve kterém se ho ptáte.</p>
+<p>Světlý nebo tmavý motiv přepnete tlačítkem s měsícem vpravo nahoře (v tmavém motivu je na něm slunce). Volba platí v daném prohlížeči, grafy se přebarví hned.</p>
 
 <h3 id="sluzby">Napojení služeb</h3>
 <p>Otevřete „Zdroje dat“, u vybrané služby klikněte na „Přidat“ a vyplňte formulář. Každý formulář obsahuje rozbalovací část <strong>Podrobný návod krok za krokem</strong> s aktuálním postupem pro danou službu, včetně řešení běžných chyb. Návody v AllStatu se aktualizují s novými verzemi, proto je tady neopisujeme celé.</p>
-<figure><a class="zoom" href="img/11-napojeni-ga4-cele.webp" title="Otevřít v plné velikosti"><img src="img/11-napojeni-ga4-cele.webp" alt="Formulář napojení Google Analytics 4" width="1100" height="918" loading="lazy" decoding="async"></a><figcaption>Formulář napojení. Rámeček „OAuth callback URL“ obsahuje adresu, kterou vložíte do aplikace u poskytovatele.</figcaption></figure>
+<figure><a class="zoom" href="img/11-napojeni-ga4-cele.webp" title="Otevřít v plné velikosti"><img src="img/11-napojeni-ga4-cele.webp" alt="Formulář napojení Google Analytics 4" width="1100" height="1088" loading="lazy" decoding="async"></a><figcaption>Formulář napojení. Rámeček „OAuth callback URL“ obsahuje adresu, kterou vložíte do aplikace u poskytovatele.</figcaption></figure>
 
 <p>U všech služeb s přihlášením (Google, Meta, LinkedIn) platí jedno pravidlo: adresu z rámečku <strong>OAuth callback URL</strong> vložte do nastavení své aplikace u poskytovatele <strong>přesně tak, jak je napsaná</strong>, včetně <code>https://</code>. Vypadá takhle:</p>
 <pre><code>https://www.vase-firma.cz/allstat/admin/oauth-callback.php</code></pre>
@@ -429,7 +430,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
   <li>V režimu „Development“ aplikace funguje pro účty, které mají v aplikaci roli (administrátor, vývojář), a schvalování Metou není potřeba. Schvalování (App Review) potřebujete až pro cizí účty v ostrém provozu.</li>
   <li>Instagram musí být typu Business nebo Creator a propojený s Facebook stránkou.</li>
 </ul>
-<figure><a class="zoom" href="img/12-meta-pripojeni-cele.webp" title="Otevřít v plné velikosti"><img src="img/12-meta-pripojeni-cele.webp" alt="Stránka Připojit Meta" width="1100" height="1142" loading="lazy" decoding="async"></a><figcaption>Připojení přes Meta: nejdřív uložíte údaje aplikace, pak se přihlásíte a vyberete účty.</figcaption></figure>
+<figure><a class="zoom" href="img/12-meta-pripojeni-cele.webp" title="Otevřít v plné velikosti"><img src="img/12-meta-pripojeni-cele.webp" alt="Stránka Připojit Meta" width="1100" height="1164" loading="lazy" decoding="async"></a><figcaption>Připojení přes Meta: nejdřív uložíte údaje aplikace, pak se přihlásíte a vyberete účty.</figcaption></figure>
 
 <h4 id="linkedin">LinkedIn</h4>
 <ul>
@@ -477,7 +478,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
   <li>V menu „Trychtýře“ (jen administrátor) zvolte web a šablonu: Poptávkový formulář, Quick Check, E-shop, nebo začněte s prázdným trychtýřem.</li>
   <li>U každého kroku vyberte event ze seznamu. AllStat nabízí eventy, které u webu za posledních 90 dní opravdu přišly, i s jejich počtem. Pořadí kroků měníte přetažením nebo šipkami.</li>
   <li>Po uložení uvidíte počty kroků hned, z historie GA4. Rozpad podle zdroje se začne plnit od další synchronizace. Pro starší období spusťte u zdroje GA4 „Stáhnout historii“.</li>
-  <li>Trychtýř otevřete v přehledu v přepínači „Zdroj dat“, ve skupině Trychtýře. Vidí ho i uživatelé s rolí Uživatel (u webů, ke kterým mají přístup) a připojený AI asistent.</li>
+  <li>Trychtýř otevřete v přehledu tlačítkem „Přepnout zdroj“, ve skupině Trychtýře. Vidí ho i uživatelé s rolí Uživatel (u webů, ke kterým mají přístup) a připojený AI asistent.</li>
 </ul>
 <div class="tip callout"><span class="label">Jak připravit měření</span>
 <p>AllStat čísla čte z GA4, každý krok proto musí být v GA4 jako samostatný event:</p>
@@ -497,6 +498,17 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
 
 <div class="info callout"><span class="label">Co asistent smí</span>
 <p>Jen číst. Vidí souhrnná analytická data všech webů v AllStatu (návštěvnost, vyhledávání, sociální sítě, reklamy, stav synchronizace), nikdy přihlašovací údaje ani přístupové klíče ke službám. Přístup povoluje a kdykoli ruší administrátor.</p></div>
+
+<h3 id="analyzovat-s-ai">Bez připojení: tlačítko „Analyzovat s AI“</h3>
+<p>Rozbor jednoho webu získáte i bez připojení AI. Na Přehledu nebo v detailu zdroje klikněte vpravo nahoře na „Analyzovat s AI“. AllStat připraví report za web a období, které máte právě vybrané, a nabídne tlačítko „Kopírovat text pro AI“. Text vložte do ChatGPT, Claude nebo jiného asistenta a zeptejte se, co potřebujete vědět. Report je v Markdownu, pro vlastní zpracování i v JSON. Odkaz na report platí 15 minut a běžný chat ho sám neotevře, proto vkládejte text.</p>
+<p>Report upozorní na neúplné dny, týdny a měsíce na konci období, uvede, do kdy jsou data k dispozici, a začíná kontextem pro AI daného webu. Běžný uživatel vytvoří report jen pro weby, ke kterým má přístup.</p>
+
+<h3 id="kontext-ai">Kontext pro AI u každého webu</h3>
+<p>AI odpovídá přesněji, když ví, komu web patří a k čemu slouží. V menu „AI konektory“ je karta „Kontext pro AI“ se seznamem webů. U každého webu vidíte náhled textu a stav: „Vlastní kontext“, nebo „Obecný kontext“, když je pole prázdné. Kliknutím na web otevřete pole, napište pár vět a klikněte na „Uložit kontext“. Uloží se jen ten web a potvrzení se ukáže přímo u něj. Od osmi webů má karta hledání a filtr podle stavu.</p>
+<p>Napište, kdo jste, komu web slouží, co je jeho cílem (prodej, registrace, povědomí) a jaké máte možnosti (velikost týmu, rozpočet). Nejvýše 4 000 znaků na web. Text dostane report z tlačítka „Analyzovat s AI“ i asistent v připojení AI u daného webu.</p>
+<figure><a class="zoom" href="img/19-kontext-ai.webp" title="Otevřít v plné velikosti"><img src="img/19-kontext-ai.webp" alt="Karta Kontext pro AI se seznamem webů" width="780" height="549" loading="lazy" decoding="async"></a><figcaption>Seznam webů s náhledem a stavem, jeden web otevřený k úpravě.</figcaption></figure>
+<div class="info callout"><span class="label">Po aktualizaci z verze 1.4</span>
+<p>Do verze 1.4 měl AllStat jeden společný popis organizace v Nastavení. Aktualizace na 1.5.0 ho zkopíruje ke všem webům. Projděte seznam a u webů, kterým popis neodpovídá, ho upravte.</p></div>
 
 <h3>Kde bude připojení AI běžet</h3>
 <p>Asistent se k AllStatu připojuje přes dvě adresy: <strong>adresu MCP serveru</strong>, na které AllStat odpovídá asistentovi (končí <code>/mcp</code>), a <strong>adresu AllStatu</strong>, kde se administrátor přihlásí a přístup povolí. Zvolili jste je v kroku 4 průvodce, kdykoli je změníte v menu „AI konektory“. Podle toho, jak jste AllStat umístili, máte tři možnosti:</p>
@@ -527,10 +539,10 @@ RewriteRule ^\.well-known/oauth-protected-resource/allstat(?:/mcp)?/?$ /allstat/
     <p>Varianty A a C tento krok přeskočte. U varianty C v administraci hostingu vytvořte subdoménu (například <code>mcp.vase-firma.cz</code>) a jako její složku nastavte stejnou složku, ve které je AllStat.</p></li>
   <li><h4>Zapněte připojení AI</h4>
     <p>V menu otevřete „AI konektory“, u volby „Povolit připojení AI (MCP)“ vyberte „Ano“ a klikněte na „Uložit nastavení“. Zkontrolujte, že adresy v polích „Adresa MCP serveru“ a „Adresa AllStatu“ sedí a začínají <code>https://</code>.</p>
-    <figure><a class="zoom" href="img/17a-ai-konektory-nastaveni.webp" title="Otevřít v plné velikosti"><img src="img/17a-ai-konektory-nastaveni.webp" alt="AI konektory: stav a nastavení" width="780" height="530" loading="lazy" decoding="async"></a><figcaption>Zapnuté připojení AI s adresami z průvodce.</figcaption></figure></li>
+    <figure><a class="zoom" href="img/17a-ai-konektory-nastaveni.webp" title="Otevřít v plné velikosti"><img src="img/17a-ai-konektory-nastaveni.webp" alt="AI konektory: stav a nastavení" width="780" height="552" loading="lazy" decoding="async"></a><figcaption>Zapnuté připojení AI s adresami z průvodce.</figcaption></figure></li>
   <li><h4>Spusťte kontrolu</h4>
     <p>Dole na stránce klikněte na „Spustit kontrolu“. AllStat si sám zavolá své adresy tak, jak to udělá Claude nebo ChatGPT, a u každé napíše, jestli je v pořádku. Neposílá žádné skutečné klíče. Všechny položky mají být zelené. Upozornění vysvětluje, co ještě zbývá, například chybějící blok v kořeni domény u varianty B.</p>
-    <figure class="narrow"><a class="zoom" href="img/17c-ai-konektory-upozorneni.webp" title="Otevřít v plné velikosti"><img src="img/17c-ai-konektory-upozorneni.webp" alt="Upozornění z kontroly: chybí blok v kořeni domény" width="742" height="96" loading="lazy" decoding="async"></a><figcaption>Takhle kontrola upozorní, že u varianty B ještě chybí blok v kořeni domény. Po jeho vložení upozornění zmizí.</figcaption></figure></li>
+    <figure class="narrow"><a class="zoom" href="img/17c-ai-konektory-upozorneni.webp" title="Otevřít v plné velikosti"><img src="img/17c-ai-konektory-upozorneni.webp" alt="Upozornění z kontroly: chybí blok v kořeni domény" width="730" height="124" loading="lazy" decoding="async"></a><figcaption>Takhle kontrola upozorní, že u varianty B ještě chybí blok v kořeni domény. Po jeho vložení upozornění zmizí.</figcaption></figure></li>
   <li><h4>Přidejte konektor v Claude nebo ChatGPT</h4>
     <p>Stránka „AI konektory“ obsahuje návody s dosazenou adresou vašeho serveru. Stručně:</p>
     <ul>
@@ -538,7 +550,7 @@ RewriteRule ^\.well-known/oauth-protected-resource/allstat(?:/mcp)?/?$ /allstat/
       <li><strong>ChatGPT</strong> (webová verze): v Settings, Security and login zapněte Developer mode, otevřete Plugins, klikněte na plus a vyplňte název AllStat, MCP URL a Authentication OAuth. Pak se přihlaste do AllStatu jako administrátor a klikněte na „Povolit“.</li>
       <li><strong>Claude Code</strong> (příkazový řádek): <code>claude mcp add --transport http allstat https://www.vase-firma.cz/allstat/mcp</code> a pak v Claude Code příkaz <code>/mcp</code>, volba allstat a Authenticate.</li>
     </ul>
-    <figure><a class="zoom" href="img/17b-ai-konektory-navody.webp" title="Otevřít v plné velikosti"><img src="img/17b-ai-konektory-navody.webp" alt="Návody k připojení Claude, ChatGPT a Claude Code" width="780" height="1013" loading="lazy" decoding="async"></a><figcaption>Návody na stránce AI konektory. Adresa serveru je v nich už dosazená.</figcaption></figure>
+    <figure><a class="zoom" href="img/17b-ai-konektory-navody.webp" title="Otevřít v plné velikosti"><img src="img/17b-ai-konektory-navody.webp" alt="Návody k připojení Claude, ChatGPT a Claude Code" width="780" height="802" loading="lazy" decoding="async"></a><figcaption>Návody na stránce AI konektory. Adresa serveru je v nich už dosazená.</figcaption></figure>
     <p class="small">Dostupnost vlastních konektorů se podle předplatného u poskytovatelů mění. Aktuální přehled je v návodech přímo v AllStatu.</p></li>
   <li><h4>Vyzkoušejte</h4>
     <p>Napište asistentovi například „Udělej měsíční report webu za srpen.“ Asistent zavolá AllStat a odpoví z vašich dat.</p></li>
@@ -577,14 +589,14 @@ RewriteRule ^\.well-known/oauth-protected-resource/allstat(?:/mcp)?/?$ /allstat/
 <h2 id="aktualizace"><span class="n">8</span>Aktualizace na novější verzi</h2>
 <h3>Jedním tlačítkem (od verze 1.2.0)</h3>
 <p>AllStat si sám kontroluje, jestli na <a href="https://github.com/ffscz/AllStat/releases">github.com/ffscz/AllStat</a> nevyšla nová verze (při denním cronu, nejvýš dvakrát denně). Když ano, uvidí administrátor v bočním panelu kartu „Nová verze“. Běžní uživatelé ji nevidí.</p>
-<figure class="narrow"><a class="zoom" href="img/18a-aktualizace-karta.webp" title="Otevřít v plné velikosti"><img src="img/18a-aktualizace-karta.webp" alt="Karta Nová verze v bočním panelu" width="272" height="208" loading="lazy" decoding="async"></a><figcaption>Karta „Nová verze“ dole v bočním panelu. Vidí ji jen administrátor.</figcaption></figure>
+<figure class="narrow"><a class="zoom" href="img/18a-aktualizace-karta.webp" title="Otevřít v plné velikosti"><img src="img/18a-aktualizace-karta.webp" alt="Karta Nová verze v bočním panelu" width="224" height="120" loading="lazy" decoding="async"></a><figcaption>Karta „Nová verze“ dole v bočním panelu. Vidí ji jen administrátor.</figcaption></figure>
 <ul>
   <li>Klikněte na kartu (nebo Nastavení, Verze a aktualizace). Stránka Aktualizace ukáže, co je nového, a zkontroluje server.</li>
   <li>Potvrďte, že máte zálohu databáze, a klikněte na „Aktualizovat“. AllStat balíček stáhne, ověří jeho podpis, zálohuje soubory, které přepíše, a vymění je. Trvá to pár sekund. Databáze se doplní sama při dalším načtení.</li>
   <li>Bez platného podpisu autora se nic nenainstaluje. Soubory <code>config.php</code> a <code>config-keys.php</code> zůstanou beze změny. V upraveném <code>.htaccess</code> se přepíše jen blok pravidel AllStatu, viz <a href="#htaccess">Soubor .htaccess a vlastní úpravy</a>.</li>
   <li>Kdyby se po aktualizaci něco nelíbilo, na stejné stránce je tlačítko „Vrátit na předchozí verzi“. Vrátí soubory, databáze zůstane (starší verze s ní funguje).</li>
 </ul>
-<figure><a class="zoom" href="img/18b-aktualizace-stranka.webp" title="Otevřít v plné velikosti"><img src="img/18b-aktualizace-stranka.webp" alt="Stránka Aktualizace s nabídkou nové verze" width="780" height="638" loading="lazy" decoding="async"></a><figcaption>Stránka Aktualizace: co je nového, kontrola serveru a tlačítko „Aktualizovat“.</figcaption></figure>
+<figure><a class="zoom" href="img/18b-aktualizace-stranka.webp" title="Otevřít v plné velikosti"><img src="img/18b-aktualizace-stranka.webp" alt="Stránka Aktualizace s nabídkou nové verze" width="780" height="672" loading="lazy" decoding="async"></a><figcaption>Stránka Aktualizace: co je nového, kontrola serveru a tlačítko „Aktualizovat“.</figcaption></figure>
 <p>Automatická aktualizace potřebuje, aby PHP smělo zapisovat do složky aplikace (na běžných hostinzích to platí). Když to server nedovolí, stránka to ukáže a aktualizujete ručně podle postupu níže.</p>
 <h3 id="htaccess">Soubor .htaccess a vlastní úpravy</h3>
 <p>Soubor <code>.htaccess</code> obsahuje pravidla pro webový server: chrání citlivé soubory a směruje adresy pro připojení AI. Často do něj něco přidá hosting (například při volbě verze PHP) nebo správce webu (blokování robotů). Pravidla AllStatu jsou proto ohraničená řádky <code># BEGIN AllStat</code> a <code># END AllStat</code>.</p>
@@ -637,7 +649,7 @@ RewriteRule ^\.well-known/oauth-protected-resource/allstat(?:/mcp)?/?$ /allstat/
 
 <h3>Kontrola serveru hlásí chybějící nebo poškozené soubory</h3>
 <p>Průvodce porovnává nahrané soubory s věrným seznamem z balíčku a ukáže, které chybí nebo mají jinou velikost. Nahrajte je znovu, v režimu přenosu „Automaticky“ nebo „Binární“. Instalace se do opravy zablokuje, aby nevznikla poškozená aplikace.</p>
-<figure class="narrow"><a class="zoom" href="img/01b-kontrola-chyba.webp" title="Otevřít v plné velikosti"><img src="img/01b-kontrola-chyba.webp" alt="Kontrola serveru s chybějícími a poškozenými soubory" width="748" height="319" loading="lazy" decoding="async"></a><figcaption>Kontrola serveru našla dva chybějící a jeden poškozený soubor.</figcaption></figure>
+<figure class="narrow"><a class="zoom" href="img/01b-kontrola-chyba.webp" title="Otevřít v plné velikosti"><img src="img/01b-kontrola-chyba.webp" alt="Kontrola serveru s chybějícími a poškozenými soubory" width="748" height="326" loading="lazy" decoding="async"></a><figcaption>Kontrola serveru našla dva chybějící a jeden poškozený soubor.</figcaption></figure>
 
 <h3>Kontrola serveru hlásí jinou červenou položku</h3>
 <p>U každé položky je vysvětlení. Nejčastější jsou: <em>Verze PHP</em> (přepněte podle kapitoly 2), <em>Rozšíření PHP</em> (zapněte v nastavení PHP na hostingu nebo požádejte poskytovatele), <em>Šifra AES-256-GCM</em> (zastaralý OpenSSL, požádejte poskytovatele o novější PHP). Oranžový vykřičník je jen upozornění, instalaci nezastaví.</p>
@@ -737,7 +749,7 @@ location ~ ^/allstat/(lib|views|docs)/ { deny all; }</code></pre>
 <table>
   <thead><tr><th>Údaj</th><th>Hodnota</th></tr></thead>
   <tbody>
-    <tr><td>Verze balíčku</td><td>1.4.0</td></tr>
+    <tr><td>Verze balíčku</td><td>1.5.0</td></tr>
     <tr><td>Licence</td><td>GNU GPL verze 3 (soubor <code>LICENSE</code>), zdrojový kód a aktualizace na github.com/ffscz/AllStat</td></tr>
     <tr><td>Jazyk aplikace</td><td>čeština, slovenština a angličtina</td></tr>
     <tr><td>Požadavky na server</td><td>PHP 8.1 a novější (doporučeno 8.3), MySQL 5.7.8 a novější nebo MariaDB 10.3 a novější, Apache nebo LiteSpeed (nginx s vlastními pravidly, viz kapitola 10)</td></tr>
@@ -773,7 +785,7 @@ location ~ ^/allstat/(lib|views|docs)/ { deny all; }</code></pre>
 </main>
 
 <footer>
-  AllStat, verze 1.4.0 · Instalační příručka. Obrázky ukazují ukázková data.
+  AllStat, verze 1.5.0 · Instalační příručka. Obrázky ukazují ukázková data.
 </footer>
 
 </div>

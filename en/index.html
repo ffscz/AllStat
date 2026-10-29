@@ -114,7 +114,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
   <div class="brand"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span> AllStat<nav class="lang no-print" aria-label="Language"><a href="../" hreflang="cs" lang="cs">Čeština</a><span aria-current="page" lang="en">English</span></nav></div>
   <h1>Installation guide</h1>
   <p class="lead">AllStat collects the statistics of your website and social networks in one place and stores them in your own database. This guide walks you through installing it on ordinary web hosting, step by step. Allow 30 minutes.</p>
-  <p class="meta">Guide for version 1.4.0 · <a href="https://github.com/ffscz/AllStat/releases/latest">Download AllStat</a> · <a href="https://github.com/ffscz/AllStat">Source code on GitHub</a><span class="no-print"> · <button type="button" class="print-btn" data-print>Print or save as PDF</button></span></p>
+  <p class="meta">Guide for version 1.5.0 · <a href="https://github.com/ffscz/AllStat/releases/latest">Download AllStat</a> · <a href="https://github.com/ffscz/AllStat">Source code on GitHub</a><span class="no-print"> · <button type="button" class="print-btn" data-print>Print or save as PDF</button></span></p>
 </header>
 
 <nav class="toc" aria-label="Contents">
@@ -243,7 +243,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
 
 <ol class="steps">
   <li><h4>Unpack the package on your computer</h4>
-    <p>Unpack the <code>allstat-1.4.0.zip</code> package (in Windows: right-click, “Extract All…”). This creates an <code>allstat</code> folder.</p></li>
+    <p>Unpack the <code>allstat-1.5.0.zip</code> package (in Windows: right-click, “Extract All…”). This creates an <code>allstat</code> folder.</p></li>
   <li><h4>Connect to your hosting</h4>
     <p>In FileZilla (or another FTP client), enter the host, user, password and port you got from your hosting provider. If your hosting offers an encrypted connection (FTPS or SFTP), choose it.</p></li>
   <li><h4>Open the website folder</h4>
@@ -273,7 +273,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
 
 <h3>Server check</h3>
 <p>The wizard first checks the PHP version, the extensions, write permissions, HTTPS, internet access and whether the uploaded files are complete. If everything is fine, it shows a single green sentence. If something is missing, it shows the specific item with an explanation of what to do (see the chapter <a href="#problemy">When something goes wrong</a>).</p>
-<figure class="narrow"><a class="zoom" href="img/01-kontrola-serveru.webp" title="Open full size"><img src="img/01-kontrola-serveru.webp" alt="Server check: a green sentence about the requirements being met" width="748" height="199" loading="lazy" decoding="async"></a><figcaption>A server check with no problems. The “Show all checks” button expands the details.</figcaption></figure>
+<figure class="narrow"><a class="zoom" href="img/01-kontrola-serveru.webp" title="Open full size"><img src="img/01-kontrola-serveru.webp" alt="Server check: a green sentence about the requirements being met" width="748" height="198" loading="lazy" decoding="async"></a><figcaption>A server check with no problems. The “Show all checks” button expands the details.</figcaption></figure>
 
 <h3>Installation code</h3>
 <p>So that nobody else who finds the wizard before you can finish a half-done installation, the wizard creates an <code>install-token.php</code> file in the AllStat folder when you first open it. Open it over FTP or in your hosting file manager (it is blank in a browser) and copy the code from the <code>KOD:</code> line into the “Code from the file install-token.php” field. Lowercase letters and hyphens are fine. Without the code, the wizard will neither test the database nor install anything.</p>
@@ -286,7 +286,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
 
 <h3>Step 1: Database</h3>
 <p>Type in the database details you noted down in chapter 2 and click “Test connection”. The wizard tries to connect and checks the database version, privileges and storage. If everything is fine, it shows a green message.</p>
-<figure><a class="zoom" href="img/02b-databaze-ok.webp" title="Open full size"><img src="img/02b-databaze-ok.webp" alt="Step 1, database: a successful connection test" width="748" height="765" loading="lazy" decoding="async"></a><figcaption>A successful connection test. For security reasons, the password is shown as dots.</figcaption></figure>
+<figure><a class="zoom" href="img/02b-databaze-ok.webp" title="Open full size"><img src="img/02b-databaze-ok.webp" alt="Step 1, database: a successful connection test" width="748" height="696" loading="lazy" decoding="async"></a><figcaption>A successful connection test. For security reasons, the password is shown as dots.</figcaption></figure>
 
 <p>If the test fails, the wizard tells you what is wrong:</p>
 <table>
@@ -299,21 +299,21 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
     <tr><td>AllStat with users already exists in this database</td><td>The database already contains a finished installation. The wizard deliberately does not overwrite it. Use an empty database, or restore the original files (chapter <a href="#zaloha">Backup and moving</a>).</td></tr>
   </tbody>
 </table>
-<figure><a class="zoom" href="img/02a-databaze-chyba.webp" title="Open full size"><img src="img/02a-databaze-chyba.webp" alt="Step 1, database: a wrong password" width="748" height="655" loading="lazy" decoding="async"></a><figcaption>This is what a wrong password looks like. Below the message you will also find a technical detail for your hosting provider.</figcaption></figure>
+<figure><a class="zoom" href="img/02a-databaze-chyba.webp" title="Open full size"><img src="img/02a-databaze-chyba.webp" alt="Step 1, database: a wrong password" width="748" height="594" loading="lazy" decoding="async"></a><figcaption>This is what a wrong password looks like. Below the message you will also find a technical detail for your hosting provider.</figcaption></figure>
 
 <h3>Step 2: Organization and website</h3>
 <p>Fill in who runs AllStat and which website you want to track.</p>
 <ul>
   <li>The <strong>Organization or company name</strong> and the <strong>Contact email</strong> appear on the public privacy pages. Google, Meta and LinkedIn require them when you connect. You can change them later in Settings.</li>
   <li>The <strong>Tracked website address</strong> is the first website whose statistics you want to track. You add more websites later.</li>
-  <li>Under <strong>More details (optional)</strong> you can add the registered address, the company ID and a short description of the organization for AI analyses. The description is useful when you send AllStat data to an AI assistant for analysis: write, for example, whether you are an online shop or an organization, and what the goal of your website is. An empty field means a general context.</li>
+  <li>Under <strong>More details (optional)</strong> you can add the registered address, the company ID and a short description of the organization for AI analyses. It is saved as the <a href="#kontext-ai">context for AI</a> of the first website; for other websites you add it under “AI connectors”. The description is useful when you send AllStat data to an AI assistant for analysis: write, for example, whether you are an online shop or an organization, and what the goal of your website is. An empty field means a general context.</li>
   <li>Under <strong>Advanced (time zone, application path)</strong> you will find the time zone (the default is Europe/Prague) and the application’s path on the server. The wizard works out the path by itself, so change it only in exceptional cases.</li>
 </ul>
-<figure><a class="zoom" href="img/03-organizace.webp" title="Open full size"><img src="img/03-organizace.webp" alt="Step 2, organization and website" width="748" height="738" loading="lazy" decoding="async"></a><figcaption>Step 2 with the “More details (optional)” section expanded.</figcaption></figure>
+<figure><a class="zoom" href="img/03-organizace.webp" title="Open full size"><img src="img/03-organizace.webp" alt="Step 2, organization and website" width="748" height="710" loading="lazy" decoding="async"></a><figcaption>Step 2 with the “More details (optional)” section expanded.</figcaption></figure>
 
 <h3>Step 3: Administrator</h3>
 <p>Create the first account with full rights. Enter a name, an email (used to sign in) and a password at least 12 characters long. The “Generate a strong password” button creates a random twenty-character password. Save it in a password manager right away, you will not see it anywhere after the installation.</p>
-<figure class="narrow"><a class="zoom" href="img/04b-administrator.webp" title="Open full size"><img src="img/04b-administrator.webp" alt="Step 3, the first administrator" width="748" height="378" loading="lazy" decoding="async"></a><figcaption>The details of the first administrator.</figcaption></figure>
+<figure class="narrow"><a class="zoom" href="img/04b-administrator.webp" title="Open full size"><img src="img/04b-administrator.webp" alt="Step 3, the first administrator" width="748" height="332" loading="lazy" decoding="async"></a><figcaption>The details of the first administrator.</figcaption></figure>
 
 <h3>Step 4: AI connection</h3>
 <p>AllStat can give the Claude and ChatGPT assistants access to its data (details in chapter 7). In the wizard you only choose the address where the MCP server will run, that is, the “front door” for the assistants. You decide whether to turn it on after the installation. You have three options:</p>
@@ -322,7 +322,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
   <li><strong>On its own subdomain.</strong> You enter the subdomain’s address, for example <code>https://mcp.your-company.com</code>. You create this subdomain in your hosting and point its folder to the folder where AllStat is. The rule in the domain root is then not needed.</li>
   <li><strong>Set up later.</strong> You fill in the addresses yourself in the “AI connectors” menu.</li>
 </ul>
-<figure><a class="zoom" href="img/04c-pripojeni-ai.webp" title="Open full size"><img src="img/04c-pripojeni-ai.webp" alt="Step 4, AI connection" width="748" height="522" loading="lazy" decoding="async"></a><figcaption>Step 4 with the first option preselected. The address is based on where you uploaded AllStat.</figcaption></figure>
+<figure><a class="zoom" href="img/04c-pripojeni-ai.webp" title="Open full size"><img src="img/04c-pripojeni-ai.webp" alt="Step 4, AI connection" width="748" height="457" loading="lazy" decoding="async"></a><figcaption>Step 4 with the first option preselected. The address is based on where you uploaded AllStat.</figcaption></figure>
 
 <h3>Running the installation</h3>
 <p>Click “Install AllStat”. Within a few seconds, the wizard does the following:</p>
@@ -336,11 +336,11 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
   <li>creates the administrator and deletes itself.</li>
 </ul>
 <p>At the end you see the “AllStat is installed” page with the four steps described in the next chapter and an “AI connection: next step” card. It shows the MCP server address and, depending on your choice, the rule for the domain root.</p>
-<figure><a class="zoom" href="img/05-hotovo.webp" title="Open full size"><img src="img/05-hotovo.webp" alt="The final installation page" width="1100" height="1965" loading="lazy" decoding="async"></a><figcaption>The final page. The addresses and the key in the example are made up, you will see your own.</figcaption></figure>
+<figure><a class="zoom" href="img/05-hotovo.webp" title="Open full size"><img src="img/05-hotovo.webp" alt="The final installation page" width="1100" height="1841" loading="lazy" decoding="async"></a><figcaption>The final page. The addresses and the key in the example are made up, you will see your own.</figcaption></figure>
 
 <div class="tip callout"><span class="label">When the server forbids writing files</span>
 <p>On some hosting plans, PHP is not allowed to write to the folder. The wizard detects this, still prepares the database, and shows you the contents of the <code>config.php</code> and <code>config-keys.php</code> files at the end. Save them to the folder containing <code>install.php</code> (over FTP or in a file manager). Do not close the page in the meantime, you will not see the key from it a second time. Afterwards, also delete the <code>install-token.php</code> file with the installation code from the folder.</p></div>
-<figure class="narrow"><a class="zoom" href="img/16-rucni-nahrani.webp" title="Open full size"><img src="img/16-rucni-nahrani.webp" alt="Uploading the config.php and config-keys.php files manually" width="748" height="1059" loading="lazy" decoding="async"></a><figcaption>Uploading the files manually. Instead of the values in the window, you will see the real contents of your files.</figcaption></figure>
+<figure class="narrow"><a class="zoom" href="img/16-rucni-nahrani.webp" title="Open full size"><img src="img/16-rucni-nahrani.webp" alt="Uploading the config.php and config-keys.php files manually" width="748" height="1010" loading="lazy" decoding="async"></a><figcaption>Uploading the files manually. Instead of the values in the window, you will see the real contents of your files.</figcaption></figure>
 
 
 <h2 id="po-instalaci" class="pb"><span class="n">5</span>After installation: four steps</h2>
@@ -357,7 +357,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
 
 <h3 id="cron">2. Set up automatic data downloads (cron)</h3>
 <p>Without this step, AllStat downloads data only manually. Once a day, cron downloads the new data for the last seven days for all connections. You download the 16-month history manually with the button on each source.</p>
-<figure><a class="zoom" href="img/10a-nastaveni-cron.webp" title="Open full size"><img src="img/10a-nastaveni-cron.webp" alt="Settings, the Automatic daily sync block" width="780" height="799" loading="lazy" decoding="async"></a><figcaption>The Settings page shows the ready-made command with your secret key and the status of the last run.</figcaption></figure>
+<figure><a class="zoom" href="img/10a-nastaveni-cron.webp" title="Open full size"><img src="img/10a-nastaveni-cron.webp" alt="Settings, the Automatic daily sync block" width="780" height="728" loading="lazy" decoding="async"></a><figcaption>The Settings page shows the ready-made command with your secret key and the status of the last run.</figcaption></figure>
 
 <p>The procedure in cPanel:</p>
 <ol class="steps">
@@ -379,12 +379,12 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
 <p>The next day, open Settings. Next to the “Automatic daily sync (cron)” heading, the status “Running” must be shown, along with the time of the last run. If AllStat does not see cron for 26 hours, it changes the status to “Has not run for over 26 h”. You can also try the address with the secret key in a browser, it answers with a short text starting with <code>{"ok":true</code>.</p></div>
 
 <h3 id="dvoufazove-overeni">3. Turn on two-factor authentication (2FA)</h3>
-<p>Two-factor authentication means that in addition to your password, you enter a six-digit code from your phone. In the menu, open “2FA”, scan the QR code with an app (Microsoft Authenticator, Google Authenticator, 1Password or Bitwarden) and confirm the code. In Settings, you can then turn on “Require 2FA for all users”. We recommend this as soon as AllStat has more than one user.</p>
-<figure class="narrow"><a class="zoom" href="img/13-2fa.webp" title="Open full size"><img src="img/13-2fa.webp" alt="Setting up two-factor authentication" width="1100" height="900" loading="lazy" decoding="async"></a><figcaption>The 2FA page in the menu.</figcaption></figure>
+<p>Two-factor authentication means that in addition to your password, you enter a six-digit code from your phone. Click the circle with your initials in the top right corner, choose “Two-factor authentication”, scan the QR code with an app (Microsoft Authenticator, Google Authenticator, 1Password or Bitwarden) and confirm the code. In Settings, you can then turn on “Require 2FA for all users”. We recommend this as soon as AllStat has more than one user.</p>
+<figure class="narrow"><a class="zoom" href="img/13-2fa.webp" title="Open full size"><img src="img/13-2fa.webp" alt="Setting up two-factor authentication" width="1100" height="900" loading="lazy" decoding="async"></a><figcaption>The Two-factor authentication page from the user menu.</figcaption></figure>
 
 <h3 id="pravni-stranky">4. Check the legal pages</h3>
 <p>AllStat has three public pages that Meta and LinkedIn require when you create an app: <code>privacy.php</code> (privacy policy), <code>terms.php</code> (terms) and <code>data-deletion.php</code> (data deletion). They show the details you entered in the wizard. You change them in Settings, in the “Legal pages (Privacy / Terms / Data deletion)” block.</p>
-<figure><a class="zoom" href="img/10b-nastaveni-pravni.webp" title="Open full size"><img src="img/10b-nastaveni-pravni.webp" alt="Settings, the Legal pages block" width="780" height="756" loading="lazy" decoding="async"></a><figcaption>The controller details and the organization description for AI analyses.</figcaption></figure>
+<figure><a class="zoom" href="img/10b-nastaveni-pravni.webp" title="Open full size"><img src="img/10b-nastaveni-pravni.webp" alt="Settings, the Legal pages block" width="780" height="568" loading="lazy" decoding="async"></a><figcaption>The controller details for the legal pages.</figcaption></figure>
 <div class="warn callout"><span class="label">Caution</span>
 <p>The texts of the pages describe what data AllStat processes (aggregated statistics and encrypted access keys). We recommend having them reviewed by the person responsible for personal data protection in your organization.</p></div>
 
@@ -392,7 +392,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
 <h2 id="napojeni"><span class="n">6</span>Websites, users and connecting services</h2>
 
 <h3 id="weby">More websites</h3>
-<p>In the menu, open “Websites” and add a name and a domain. Each website has its own connections, overviews and history. You switch between websites in the top bar of the overview. From eight websites on, the selector has a search box, just type part of a name or domain.</p>
+<p>In the menu, open “Websites” and add a name and a domain. Each website has its own connections, overviews and history. You switch between websites in the top left corner of the sidebar (on a phone, the button with three lines in the top bar opens it). From eight websites on, the menu has a search box: type part of a name or domain and press Enter to open the first match.</p>
 <figure><a class="zoom" href="img/15-weby.webp" title="Open full size"><img src="img/15-weby.webp" alt="The list of tracked websites" width="1100" height="900" loading="lazy" decoding="async"></a><figcaption>Managing websites.</figcaption></figure>
 <p>If you manage several websites in Google Analytics, you do not have to add them by hand: use <a href="#google-ucty">Google accounts</a>, where you pick the websites from a list.</p>
 
@@ -402,14 +402,15 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
 <h3 id="uzivatele">Users</h3>
 <p>In the “Users” menu you create more accounts. The <strong>Admin</strong> role can do everything: manage websites, connections, settings and users. The <strong>User</strong> role can view overviews and reports and set up their own two-factor authentication. Each team member should have their own account, do not share passwords.</p>
 <p>For each account you set the <strong>Access to websites</strong>. The “All websites” option also covers websites added later. With “Selected websites only”, you tick which websites the user sees in the overview, in reports and in shared links. The other websites are not shown to them, not even in the selector, and they cannot reach them by editing the address. This is useful when you share AllStat with clients or partners and each of them should see only their own website. An administrator always sees all websites.</p>
-<figure><a class="zoom" href="img/14-uzivatele.webp" title="Open full size"><img src="img/14-uzivatele.webp" alt="Managing users" width="1100" height="903" loading="lazy" decoding="async"></a><figcaption>Managing users and roles.</figcaption></figure>
+<figure><a class="zoom" href="img/14-uzivatele.webp" title="Open full size"><img src="img/14-uzivatele.webp" alt="Managing users" width="1100" height="900" loading="lazy" decoding="async"></a><figcaption>Managing users and roles.</figcaption></figure>
 
-<h3 id="jazyk">Interface language</h3>
-<p>AllStat speaks Czech, Slovak and English. Each user switches the language in the top bar (CS, SK, EN), and the choice is saved to their account. You set the default language for the sign-in page, the public pages and users without their own choice in “Settings” (“Default language”). During installation, the language chosen in the wizard is taken over. The data for AI (the AI connection, Share with AI), the data feed and the exports stay in Czech, because other programs read them. The AI assistant still answers in the language you ask it in.</p>
+<h3 id="jazyk">Interface language and theme</h3>
+<p>AllStat speaks Czech, Slovak and English. Each user switches the language in the user menu in the top right corner (the circle with initials, the “Language” section), and the choice is saved to their account. You set the default language for the sign-in page, the public pages and users without their own choice in “Settings” (“Default language”). During installation, the language chosen in the wizard is taken over. The data for AI (the AI connection, Analyze with AI), the data feed and the exports stay in Czech, because other programs read them. The AI assistant still answers in the language you ask it in.</p>
+<p>You switch between the light and the dark theme with the moon button in the top right corner (in the dark theme it shows a sun). The choice applies in that browser, and the charts change colors right away.</p>
 
 <h3 id="sluzby">Connecting services</h3>
 <p>Open “Data sources”, click “Add” next to the service you want and fill in the form. Each form contains an expandable section, <strong>Detailed step-by-step guide</strong>, with the current procedure for that service, including solutions to common errors. The guides in AllStat are updated with new versions, so we do not copy them here in full.</p>
-<figure><a class="zoom" href="img/11-napojeni-ga4-cele.webp" title="Open full size"><img src="img/11-napojeni-ga4-cele.webp" alt="The Google Analytics 4 connection form" width="1100" height="918" loading="lazy" decoding="async"></a><figcaption>The connection form. The “OAuth callback URL” box contains the address you paste into the app at the provider.</figcaption></figure>
+<figure><a class="zoom" href="img/11-napojeni-ga4-cele.webp" title="Open full size"><img src="img/11-napojeni-ga4-cele.webp" alt="The Google Analytics 4 connection form" width="1100" height="1104" loading="lazy" decoding="async"></a><figcaption>The connection form. The “OAuth callback URL” box contains the address you paste into the app at the provider.</figcaption></figure>
 
 <p>One rule applies to all services with sign-in (Google, Meta, LinkedIn): paste the address from the <strong>OAuth callback URL</strong> box into the settings of your app at the provider <strong>exactly as it is written</strong>, including <code>https://</code>. It looks like this:</p>
 <pre><code>https://www.your-company.com/allstat/admin/oauth-callback.php</code></pre>
@@ -429,7 +430,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
   <li>In “Development” mode, the app works for accounts that have a role in the app (administrator, developer), and no review by Meta is needed. You need the review (App Review) only for other people’s accounts in live use.</li>
   <li>Instagram must be a Business or Creator account and linked to a Facebook page.</li>
 </ul>
-<figure><a class="zoom" href="img/12-meta-pripojeni-cele.webp" title="Open full size"><img src="img/12-meta-pripojeni-cele.webp" alt="The Connect Meta page" width="1100" height="1142" loading="lazy" decoding="async"></a><figcaption>Connecting through Meta: first you save the app details, then you sign in and choose the accounts.</figcaption></figure>
+<figure><a class="zoom" href="img/12-meta-pripojeni-cele.webp" title="Open full size"><img src="img/12-meta-pripojeni-cele.webp" alt="The Connect Meta page" width="1100" height="1180" loading="lazy" decoding="async"></a><figcaption>Connecting through Meta: first you save the app details, then you sign in and choose the accounts.</figcaption></figure>
 
 <h4 id="linkedin">LinkedIn</h4>
 <ul>
@@ -477,7 +478,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
   <li>In the “Funnels” menu (administrators only), choose a website and a template: Inquiry form, Quick Check, Online shop, or start with a blank funnel.</li>
   <li>For each step, pick an event from the list. AllStat offers the events that actually arrived for the website in the last 90 days, along with their counts. You change the order of the steps by dragging them or with the arrows.</li>
   <li>After saving, you see the step counts right away, from the GA4 history. The breakdown by source starts filling in from the next synchronization. For an older period, run “Download history” on the GA4 source.</li>
-  <li>You open a funnel in the overview in the “Data source” switcher, in the Funnels group. Users with the User role can see it too (for the websites they have access to), as can the connected AI assistant.</li>
+  <li>You open a funnel in the overview with the “Switch source” button, in the Funnels group. Users with the User role can see it too (for the websites they have access to), as can the connected AI assistant.</li>
 </ul>
 <div class="tip callout"><span class="label">How to prepare tracking</span>
 <p>AllStat reads the numbers from GA4, so each step must exist in GA4 as a separate event:</p>
@@ -497,6 +498,17 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
 
 <div class="info callout"><span class="label">What the assistant may do</span>
 <p>Read only. It sees the aggregated analytics data of all websites in AllStat (traffic, search, social networks, ads, synchronization status), but never the credentials or access keys to the services. An administrator grants access and can revoke it at any time.</p></div>
+
+<h3 id="analyzovat-s-ai">Without a connection: the “Analyze with AI” button</h3>
+<p>You can get an analysis of one website even without the AI connection. On the Overview or in a source detail, click “Analyze with AI” in the top right corner. AllStat prepares a report for the website and period you have selected and offers a “Copy text for AI” button. Paste the text into ChatGPT, Claude or another assistant and ask what you need to know. The report is in Markdown, and in JSON for your own processing. The link to the report is valid for 15 minutes and a regular chat does not open it by itself, so paste the text.</p>
+<p>The report flags incomplete days, weeks and months at the end of the period, says how far the data goes, and starts with the context for AI of that website. A regular user can create a report only for the websites they have access to. The report text is in Czech (see above), the assistant still answers in your language.</p>
+
+<h3 id="kontext-ai">Context for AI for each website</h3>
+<p>The AI answers more precisely when it knows who owns the website and what it is for. Under “AI connectors” there is a “Context for AI” card with a list of websites. For each website you see a preview of the text and its status: “Own context”, or “General context” when the field is empty. Click a website to open the field, write a few sentences and click “Save context”. Only that website is saved, and the confirmation appears right next to it. From eight websites on, the card has a search box and a status filter.</p>
+<p>Write who you are, who the website serves, what its goal is (sales, sign-ups, awareness) and what resources you have (team size, budget). At most 4,000 characters per website. The text goes to the report from the “Analyze with AI” button and to the assistant in the AI connection for that website.</p>
+<figure><a class="zoom" href="img/19-kontext-ai.webp" title="Open full size"><img src="img/19-kontext-ai.webp" alt="The Context for AI card with a list of websites" width="780" height="569" loading="lazy" decoding="async"></a><figcaption>The list of websites with a preview and status, one website open for editing.</figcaption></figure>
+<div class="info callout"><span class="label">After updating from version 1.4</span>
+<p>Up to version 1.4, AllStat had one shared organization description in Settings. The update to 1.5.0 copies it to all websites. Go through the list and edit it for websites it does not fit.</p></div>
 
 <h3>Where the AI connection will run</h3>
 <p>The assistant connects to AllStat through two addresses: the <strong>MCP server address</strong>, where AllStat answers the assistant (it ends in <code>/mcp</code>), and the <strong>AllStat address</strong>, where the administrator signs in and grants access. You chose them in step 4 of the wizard, and you can change them at any time in the “AI connectors” menu. Depending on where you put AllStat, you have three options:</p>
@@ -527,10 +539,10 @@ RewriteRule ^\.well-known/oauth-protected-resource/allstat(?:/mcp)?/?$ /allstat/
     <p>Skip this step for options A and C. For option C, create a subdomain in your hosting control panel (for example <code>mcp.your-company.com</code>) and set its folder to the same folder where AllStat is.</p></li>
   <li><h4>Turn on the AI connection</h4>
     <p>In the menu, open “AI connectors”, choose “Yes” for “Allow the AI connection (MCP)” and click “Save settings”. Check that the addresses in the “MCP server address” and “AllStat address” fields are right and start with <code>https://</code>.</p>
-    <figure><a class="zoom" href="img/17a-ai-konektory-nastaveni.webp" title="Open full size"><img src="img/17a-ai-konektory-nastaveni.webp" alt="AI connectors: status and settings" width="780" height="530" loading="lazy" decoding="async"></a><figcaption>The AI connection turned on, with the addresses from the wizard.</figcaption></figure></li>
+    <figure><a class="zoom" href="img/17a-ai-konektory-nastaveni.webp" title="Open full size"><img src="img/17a-ai-konektory-nastaveni.webp" alt="AI connectors: status and settings" width="780" height="552" loading="lazy" decoding="async"></a><figcaption>The AI connection turned on, with the addresses from the wizard.</figcaption></figure></li>
   <li><h4>Run the check</h4>
     <p>At the bottom of the page, click “Run check”. AllStat calls its own addresses the way Claude or ChatGPT would, and reports for each one whether it is fine. It sends no real keys. All items should be green. A warning explains what is still left to do, for example the missing block in the domain root for option B.</p>
-    <figure class="narrow"><a class="zoom" href="img/17c-ai-konektory-upozorneni.webp" title="Open full size"><img src="img/17c-ai-konektory-upozorneni.webp" alt="A warning from the check: the block in the domain root is missing" width="742" height="96" loading="lazy" decoding="async"></a><figcaption>This is how the check warns you that, for option B, the block in the domain root is still missing. After you add it, the warning disappears.</figcaption></figure></li>
+    <figure class="narrow"><a class="zoom" href="img/17c-ai-konektory-upozorneni.webp" title="Open full size"><img src="img/17c-ai-konektory-upozorneni.webp" alt="A warning from the check: the block in the domain root is missing" width="730" height="124" loading="lazy" decoding="async"></a><figcaption>This is how the check warns you that, for option B, the block in the domain root is still missing. After you add it, the warning disappears.</figcaption></figure></li>
   <li><h4>Add the connector in Claude or ChatGPT</h4>
     <p>The “AI connectors” page contains guides with your server’s address filled in. In short:</p>
     <ul>
@@ -538,7 +550,7 @@ RewriteRule ^\.well-known/oauth-protected-resource/allstat(?:/mcp)?/?$ /allstat/
       <li><strong>ChatGPT</strong> (web version): in Settings, Security and login, turn on Developer mode, open Plugins, click the plus and fill in the name AllStat, the MCP URL and Authentication OAuth. Then sign in to AllStat as an administrator and click “Allow”.</li>
       <li><strong>Claude Code</strong> (command line): <code>claude mcp add --transport http allstat https://www.your-company.com/allstat/mcp</code> and then, in Claude Code, the <code>/mcp</code> command, select allstat and choose Authenticate.</li>
     </ul>
-    <figure><a class="zoom" href="img/17b-ai-konektory-navody.webp" title="Open full size"><img src="img/17b-ai-konektory-navody.webp" alt="Guides to connecting Claude, ChatGPT and Claude Code" width="780" height="1013" loading="lazy" decoding="async"></a><figcaption>The guides on the AI connectors page. The server address is already filled in.</figcaption></figure>
+    <figure><a class="zoom" href="img/17b-ai-konektory-navody.webp" title="Open full size"><img src="img/17b-ai-konektory-navody.webp" alt="Guides to connecting Claude, ChatGPT and Claude Code" width="780" height="802" loading="lazy" decoding="async"></a><figcaption>The guides on the AI connectors page. The server address is already filled in.</figcaption></figure>
     <p class="small">The availability of custom connectors changes with the subscription at each provider. The current overview is in the guides inside AllStat.</p></li>
   <li><h4>Try it out</h4>
     <p>Write to the assistant, for example, “Make a monthly report of the website for August.” The assistant calls AllStat and answers from your data.</p></li>
@@ -577,14 +589,14 @@ RewriteRule ^\.well-known/oauth-protected-resource/allstat(?:/mcp)?/?$ /allstat/
 <h2 id="aktualizace"><span class="n">8</span>Updating to a newer version</h2>
 <h3>With one button (since version 1.2.0)</h3>
 <p>AllStat checks by itself whether a new version has been released at <a href="https://github.com/ffscz/AllStat/releases">github.com/ffscz/AllStat</a> (during the daily cron, at most twice a day). If it has, an administrator sees a “New version” card in the sidebar. Regular users do not see it.</p>
-<figure class="narrow"><a class="zoom" href="img/18a-aktualizace-karta.webp" title="Open full size"><img src="img/18a-aktualizace-karta.webp" alt="The New version card in the sidebar" width="272" height="208" loading="lazy" decoding="async"></a><figcaption>The “New version” card at the bottom of the sidebar. Only an administrator sees it.</figcaption></figure>
+<figure class="narrow"><a class="zoom" href="img/18a-aktualizace-karta.webp" title="Open full size"><img src="img/18a-aktualizace-karta.webp" alt="The New version card in the sidebar" width="224" height="120" loading="lazy" decoding="async"></a><figcaption>The “New version” card at the bottom of the sidebar. Only an administrator sees it.</figcaption></figure>
 <ul>
   <li>Click the card (or Settings, Version and updates). The Updates page shows what is new and checks the server.</li>
   <li>Confirm that you have a database backup and click “Update to” the new version. AllStat downloads the package, verifies its signature, backs up the files it will overwrite and replaces them. It takes a few seconds. The database is completed by itself on the next page load.</li>
   <li>Nothing is installed without a valid signature from the author. The <code>config.php</code> and <code>config-keys.php</code> files stay unchanged. In a modified <code>.htaccess</code>, only the block of AllStat rules is overwritten, see <a href="#htaccess">The .htaccess file and your own changes</a>.</li>
   <li>If you do not like something after the update, the same page has a “Roll back to” button with the previous version number. It restores the files, and the database stays (the older version works with it).</li>
 </ul>
-<figure><a class="zoom" href="img/18b-aktualizace-stranka.webp" title="Open full size"><img src="img/18b-aktualizace-stranka.webp" alt="The Updates page offering a new version" width="780" height="638" loading="lazy" decoding="async"></a><figcaption>The Updates page: what is new, the server check and the “Update to” button.</figcaption></figure>
+<figure><a class="zoom" href="img/18b-aktualizace-stranka.webp" title="Open full size"><img src="img/18b-aktualizace-stranka.webp" alt="The Updates page offering a new version" width="780" height="688" loading="lazy" decoding="async"></a><figcaption>The Updates page: what is new, the server check and the “Update to” button.</figcaption></figure>
 <p>The automatic update needs PHP to be allowed to write to the application folder (this is true on ordinary hosting). If the server does not allow it, the page tells you and you update manually using the procedure below.</p>
 <h3 id="htaccess">The .htaccess file and your own changes</h3>
 <p>The <code>.htaccess</code> file contains rules for the web server: it protects sensitive files and routes the addresses for the AI connection. Something is often added to it by your hosting (for example when you choose the PHP version) or by the website administrator (blocking robots). That is why AllStat’s rules are enclosed between the lines <code># BEGIN AllStat</code> and <code># END AllStat</code>.</p>
@@ -637,7 +649,7 @@ RewriteRule ^\.well-known/oauth-protected-resource/allstat(?:/mcp)?/?$ /allstat/
 
 <h3>The server check reports missing or damaged files</h3>
 <p>The wizard compares the uploaded files with an exact list from the package and shows which ones are missing or have a different size. Upload them again, in the “Auto” or “Binary” transfer mode. The installation is blocked until this is fixed, so that a damaged application cannot be created.</p>
-<figure class="narrow"><a class="zoom" href="img/01b-kontrola-chyba.webp" title="Open full size"><img src="img/01b-kontrola-chyba.webp" alt="A server check with missing and damaged files" width="748" height="319" loading="lazy" decoding="async"></a><figcaption>The server check found two missing files and one damaged file.</figcaption></figure>
+<figure class="narrow"><a class="zoom" href="img/01b-kontrola-chyba.webp" title="Open full size"><img src="img/01b-kontrola-chyba.webp" alt="A server check with missing and damaged files" width="748" height="326" loading="lazy" decoding="async"></a><figcaption>The server check found two missing files and one damaged file.</figcaption></figure>
 
 <h3>The server check reports another red item</h3>
 <p>Each item has an explanation. The most common ones are: <em>PHP version</em> (switch it as described in chapter 2), <em>PHP extension</em> (turn it on in the PHP settings of your hosting or ask your provider), <em>AES-256-GCM cipher</em> (an outdated OpenSSL, ask your provider for a newer PHP). An orange exclamation mark is only a warning and does not stop the installation.</p>
@@ -737,7 +749,7 @@ location ~ ^/allstat/(lib|views|docs)/ { deny all; }</code></pre>
 <table>
   <thead><tr><th>Item</th><th>Value</th></tr></thead>
   <tbody>
-    <tr><td>Package version</td><td>1.4.0</td></tr>
+    <tr><td>Package version</td><td>1.5.0</td></tr>
     <tr><td>License</td><td>GNU GPL version 3 (the <code>LICENSE</code> file), source code and updates at github.com/ffscz/AllStat</td></tr>
     <tr><td>Application language</td><td>Czech, Slovak and English</td></tr>
     <tr><td>Server requirements</td><td>PHP 8.1 or newer (8.3 recommended), MySQL 5.7.8 or newer or MariaDB 10.3 or newer, Apache or LiteSpeed (nginx with custom rules, see chapter 10)</td></tr>
@@ -773,7 +785,7 @@ location ~ ^/allstat/(lib|views|docs)/ { deny all; }</code></pre>
 </main>
 
 <footer>
-  AllStat, version 1.4.0 · Installation guide. The screenshots show sample data.
+  AllStat, version 1.5.0 · Installation guide. The screenshots show sample data.
 </footer>
 
 </div>
