@@ -74,8 +74,8 @@
             "h": "f1fe5c5104ef6795605465f2ebbd93975d5dca077069ece2fe8589e554e6eca8"
         },
         "admin/mcp.php": {
-            "s": 95039,
-            "h": "ae08dca2b53c977f80e37ab2bdd93deba29bd61405962af6c3de76c4162e60cf"
+            "s": 95041,
+            "h": "475d8cbe4dfeef2035f264bc71f51b4448db38dd5624d06e77388669accab73b"
         },
         "admin/meta-connect.php": {
             "s": 9281,
@@ -158,8 +158,8 @@
             "h": "79949d8468b77692012aa7542c2274ca80428ab0d451649027a72266fb9705ff"
         },
         "assets/css/components.css": {
-            "s": 52629,
-            "h": "67a638ce8f7b3986ba7818a95184f462b89a96f438b2ddcfeeec8a935febbe9a"
+            "s": 53119,
+            "h": "40230c3c85f176914c779212e6583d66c38c5e633b893fa97dd59a21ac30f44c"
         },
         "assets/css/layout.css": {
             "s": 9161,
@@ -238,8 +238,8 @@
             "h": "a5a9aa5d28aa6c0cec9351f86a9a7010230e0e2382ea3bbdacd1136be97f7689"
         },
         "assets/js/shell.js": {
-            "s": 4700,
-            "h": "bed315b72803bc38eca85aa81b26dfac2ecd46187af55e37f3a2e88096c871bf"
+            "s": 6288,
+            "h": "7c35349a537a278571d0493ce3579d43db265c8a2e0264ed06d30fd87511329f"
         },
         "assets/js/table-sort.js": {
             "s": 8303,
@@ -398,8 +398,8 @@
             "h": "e5628f5e543ecce7ce3cc95a089efed90aa795d24cf0c0b8bc120025f39177ae"
         },
         "lib/layout.php": {
-            "s": 20444,
-            "h": "e5e461911e41262a1886a70ab38be56474b4b0e59b22552bf7aa7ad5b1c4144d"
+            "s": 21273,
+            "h": "4200031fa581842b92ee794e49c699ad61b94e8c76981822449d3eae5028458b"
         },
         "lib/mcp-oauth.php": {
             "s": 113103,
