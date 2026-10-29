@@ -23,7 +23,7 @@ return [
     'adresa je příliš dlouhá nebo obsahuje mezery či ovládací znaky.' => 'adresa je príliš dlhá alebo obsahuje medzery či ovládacie znaky.',
     'adresa obsahuje nepovolený znak (středník, čárku, uvozovky, zpětné lomítko, hvězdičku apod.).' => 'adresa obsahuje nepovolený znak (bodkočiarku, čiarku, úvodzovky, spätnú lomku, hviezdičku a pod.).',
     'návratová adresa nesmí obsahovat parametry (za znakem ?) ani kotvu (za znakem #).' => 'návratová adresa nesmie obsahovať parametre (za znakom ?) ani kotvu (za znakom #).',
-    'musí začínat https:// (http:// jen pro localhost a 127.0.0.1), malými písmeny, například https://aplikace.example.com/oauth/callback.' => 'musí začínať https:// (http:// iba pre localhost a 127.0.0.1), malými písmenami, napríklad https://aplikace.example.com/oauth/callback.',
+    'musí začínat https:// (http:// jen pro localhost a 127.0.0.1), malými písmeny, například https://app.example.com/oauth/callback.' => 'musí začínať https:// (http:// iba pre localhost a 127.0.0.1), malými písmenami, napríklad https://app.example.com/oauth/callback.',
     'adresa nesmí obsahovat uživatelské jméno ani heslo.' => 'adresa nesmie obsahovať používateľské meno ani heslo.',
     'název serveru smí obsahovat jen malá písmena bez diakritiky, číslice, tečky a pomlčky (nebo IPv6 v hranatých závorkách), za ním volitelně :port.' => 'názov servera smie obsahovať iba malé písmená bez diakritiky, číslice, bodky a pomlčky (alebo IPv6 v hranatých zátvorkách), za ním voliteľne :port.',
     'IPv6 adresa v hranatých závorkách není platná.' => 'adresa IPv6 v hranatých zátvorkách nie je platná.',

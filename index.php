@@ -306,13 +306,13 @@ if ($isGenericView) {
     include __DIR__ . '/views/provider.php';
 } elseif ($isGrowthView) {
     if ($growthError) {
-        echo '<div class="callout tone-down" role="alert">' . t('Data pro Růst kanálů se nepodařilo načíst. Zkus obnovit stránku, případně otevři {link}.', ['link' => '<a href="?view=overview&amp;domain_id=' . (int) $data['domain']['id'] . '">' . h(t('Přehled (GA4 + GSC)')) . '</a>']) . '</div>';
+        echo '<div class="callout tone-down" role="alert"><div>' . t('Data pro Růst kanálů se nepodařilo načíst. Zkus obnovit stránku, případně otevři {link}.', ['link' => '<a href="?view=overview&amp;domain_id=' . (int) $data['domain']['id'] . '">' . h(t('Přehled (GA4 + GSC)')) . '</a>']) . '</div></div>';
     } else {
         include __DIR__ . '/views/growth.php';
     }
 } elseif ($isFunnelView) {
     if ($funnelError) {
-        echo '<div class="callout tone-down" role="alert">' . t('Data trychtýře se nepodařilo načíst. Zkus obnovit stránku, případně otevři {link}.', ['link' => '<a href="?view=overview&amp;domain_id=' . (int) $data['domain']['id'] . '">' . h(t('Přehled (GA4 + GSC)')) . '</a>']) . '</div>';
+        echo '<div class="callout tone-down" role="alert"><div>' . t('Data trychtýře se nepodařilo načíst. Zkus obnovit stránku, případně otevři {link}.', ['link' => '<a href="?view=overview&amp;domain_id=' . (int) $data['domain']['id'] . '">' . h(t('Přehled (GA4 + GSC)')) . '</a>']) . '</div></div>';
     } else {
         include __DIR__ . '/views/funnel.php';
     }
