@@ -268,6 +268,7 @@ if ($isGenericView) {
 // Název, drobečky a nápověda podle pohledu: Růst kanálů je úvodní Přehled, ostatní pohledy jsou pod ním.
 $overviewCrumb = ['label' => t('Přehled'), 'href' => 'index.php?domain_id=' . (int) $data['domain']['id']];
 $pageSubtitle = '';
+$pageSubtitleSizers = [];
 if ($isGenericView) {
     // name = služba (Facebook Pages), label = účet nebo stránka (KIC KK).
     $pageTitle = (string) $selectedProvider['name'];
@@ -278,7 +279,10 @@ if ($isGenericView) {
     $pageCrumbs = [$overviewCrumb, ['label' => $pageTitle, 'href' => null]];
 } elseif ($isGrowthView) {
     $pageTitle = t('Přehled');
-    $pageSubtitle = t('Jak rostou kanály webu {url} · uzavřené měsíce {range}', ['url' => $data['domain']['url'] ?? '', 'range' => $growth['window']['rangeLabel'] ?? '']);
+    $growthSubtitleFor = static fn (string $range): string => t('Jak rostou kanály webu {url} · uzavřené měsíce {range}', ['url' => $data['domain']['url'] ?? '', 'range' => $range]);
+    $pageSubtitle = $growthSubtitleFor((string) ($growth['window']['rangeLabel'] ?? ''));
+    // Podtitul drží výšku nejdelší varianty (3, 6, 12 měsíců), takže se po přepnutí období nezalomí jinak a obsah pod ním neposkočí.
+    $pageSubtitleSizers = array_map(static fn (int $n): string => $growthSubtitleFor((string) allstat_growth_window($n)['rangeLabel']), [3, 6, 12]);
     $pageCrumbs = [['label' => $pageTitle, 'href' => null]];
 } else {
     $pageTitle = t('Přehled (GA4 + GSC)');

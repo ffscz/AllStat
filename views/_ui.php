@@ -148,14 +148,23 @@ function allstat_ui_period_label(string $start, string $end): string
     return ($s->format('Y') === $e->format('Y') ? $s->format($short) : allstat_date_label($start)) . ' – ' . allstat_date_label($end);
 }
 
-/** Záložka metriky nad grafem (přehled i detail zdroje); klik přepne řadu v grafu (assets/js/app.js). */
-function allstat_ui_metric_tab(string $key, string $label, string $value, string $noteHtml, bool $selected, string $tooltip = ''): string
+/**
+ * Záložka metriky nad grafem (přehled i detail zdroje); klik přepne řadu v grafu (assets/js/app.js).
+ * Odznak „V grafu" je jen vizuální (aria-hidden), stav nese aria-selected; CSS ho ukáže u vybrané záložky.
+ * $suffix je dovětek menším písmem za hlavní hodnotou (Clarity: „relací (111×)"); mimo [data-kpi-value],
+ * protože AJAX obnova přehledu přepisuje jeho text.
+ */
+function allstat_ui_metric_tab(string $key, string $label, string $value, string $noteHtml, bool $selected, string $tooltip = '', string $suffix = ''): string
 {
+    $valueHtml = '<span class="metric-value num" data-kpi-value>' . h($value) . '</span>';
+
     return '<button type="button" class="tab" role="tab" aria-selected="' . ($selected ? 'true' : 'false') . '" tabindex="' . ($selected ? '0' : '-1') . '"'
         . ' aria-controls="metricChartPanel" data-metric-tab="' . h($key) . '" data-kpi-card="' . h($key) . '"'
         . ($tooltip !== '' ? ' title="' . h($tooltip) . '"' : '') . '>'
-        . '<span class="metric-label" data-metric-label>' . h($label) . '</span>'
-        . '<span class="metric-value num" data-kpi-value>' . h($value) . '</span>'
+        . '<span class="metric-head"><span class="metric-label" data-metric-label>' . h($label) . '</span>'
+        . '<span class="badge badge-sm badge-outline" aria-hidden="true">' . allstat_icon('line-chart', 'icon-sm') . '<span class="badge-text">' . h(t('V grafu')) . '</span></span></span>'
+        // Mezera mezi hodnotou a dovětkem: flex ji nevykreslí, ale čtečka obrazovky tak nečte „327 h35 min" dohromady.
+        . ($suffix !== '' ? '<span class="metric-line">' . $valueHtml . ' <span class="metric-unit">' . h($suffix) . '</span></span>' : $valueHtml)
         . ($noteHtml !== '' ? '<span class="metric-note">' . $noteHtml . '</span>' : '')
         . '</button>';
 }

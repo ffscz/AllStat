@@ -114,9 +114,13 @@ function allstat_share_weekly_section(PDO $pdo, int $domainId, int $connectionId
     if (count($groups) < 2) {
         return null; // jeden bod není trend
     }
+    // Poslední den s úplnými daty tohoto napojení: řádky, které za něj zasahují (nebo jsou zkrácené začátkem
+    // či koncem období), se označí „neúplný", aby je AI nečetla jako pokles.
+    $completeThrough = allstat_share_complete_through(allstat_share_connection_latest($pdo, $domainId, $connectionId, $end), $end);
     $tableRows = [];
     foreach ($groups as $g) {
         try { $lab = $byMonth ? (new DateTimeImmutable($g['start']))->format('n/Y') : ('od ' . allstat_iso_to_cz_date($g['start'])); } catch (Throwable) { $lab = $g['start']; }
+        $lab .= allstat_share_incomplete_suffix(allstat_share_bucket_days($g['start'], $byMonth ? 'month' : 'week', $start, $end, $completeThrough));
         $row = [$lab];
         foreach ($keys as $k) { $row[] = allstat_number((float) ($g['v'][$k] ?? 0)); }
         $tableRows[] = $row;
@@ -167,25 +171,43 @@ function allstat_share_best_slots(?array $heatmap, int $limit = 6): array
  * and the domain-specific problems to hunt for.
  */
 /**
- * Kontext organizace pro AI prompt. Bez něj AI hodnotí data optikou e-shopu/korporátu (ROAS, tržby,
- * enterprise playbooky), což pro veřejnou příspěvkovou organizaci nedává smysl. Přepsatelné přes
- * allstat_settings klíč `share.org_context` (stejný vzor jako právní stránky → snadný rebrand),
- * výchozí text je obecný.
+ * Vlastní kontext pro AI u webu (domains.ai_context), prázdný řetězec = nevyplněno. Před migrací na schéma
+ * s tímto sloupcem (chvíle mezi výměnou souborů a migrací při aktualizaci) platí starý společný text.
  */
-function allstat_share_org_context(PDO $pdo): string
+function allstat_domain_ai_context(PDO $pdo, int $domainId): string
 {
-    $text = '';
-    try {
-        $st = $pdo->query("SELECT setting_value FROM allstat_settings WHERE setting_key = 'share.org_context' LIMIT 1");
-        $text = trim((string) ($st ? $st->fetchColumn() : ''));
-    } catch (Throwable) {
-        // Setting je bonus; bez DB řádku se použije default níže.
+    if ($domainId <= 0) {
+        return '';
     }
+    try {
+        $st = $pdo->prepare('SELECT ai_context FROM domains WHERE id = ? LIMIT 1');
+        $st->execute([$domainId]);
+
+        return (string) ($st->fetchColumn() ?: '');
+    } catch (Throwable) {
+        try {
+            $st = $pdo->query("SELECT setting_value FROM allstat_settings WHERE setting_key = 'share.org_context' LIMIT 1");
+
+            return (string) ($st ? $st->fetchColumn() : '');
+        } catch (Throwable) {
+            return '';
+        }
+    }
+}
+
+/**
+ * Kontext organizace pro AI prompt. Bez něj AI hodnotí data optikou e-shopu/korporátu (ROAS, tržby,
+ * enterprise playbooky), což pro veřejnou příspěvkovou organizaci nedává smysl. Každý web má vlastní
+ * text (domains.ai_context, Administrace → AI konektory); výchozí text je obecný.
+ */
+function allstat_share_org_context(PDO $pdo, int $domainId): string
+{
+    $text = trim(allstat_domain_ai_context($pdo, $domainId));
     if ($text !== '') {
         return $text;
     }
 
-    return 'KONTEXT ORGANIZACE: Popis organizace nebyl vyplněn (Nastavení, sekce Právní stránky, pole Popis organizace pro AI analýzy). '
+    return 'KONTEXT ORGANIZACE: Popis organizace pro tento web nebyl vyplněn (Administrace, AI konektory, Kontext pro AI u webu). '
         . 'Nevymýšlej si informace o organizaci, jejím oboru ani cílech. Hodnoť data z reportu objektivně a u každého doporučení '
         . 'uveď, z jakého čísla vychází. Doporučení drž konkrétní, levná a zvládnutelná malým marketingovým týmem v řádu hodin '
         . 'týdně; nenavrhuj kroky vyžadující agenturu nebo velký reklamní rozpočet. Cíl webu (prodej, registrace, povědomí) '
@@ -199,9 +221,10 @@ function allstat_share_org_context(PDO $pdo): string
  */
 function allstat_share_methodology(): string
 {
-    return "JAK ČÍST REPORT: Vyhodnocuj výhradně období z řádku „Obdobi\" v Kontextu; sekce „Srovnání s předchozím obdobím\" porovnává celé kalendářní měsíce s předchozími celými měsíci, rozběhnutý měsíc se stejnými dny minulého měsíce a jiná období se stejně dlouhým obdobím těsně před ním. "
+    return "JAK ČÍST REPORT: Vyhodnocuj výhradně období z řádku „Období\" v Kontextu; sekce „Srovnání s předchozím obdobím\" porovnává celé kalendářní měsíce s předchozími celými měsíci, rozběhnutý měsíc se stejnými dny minulého měsíce a jiná období se stejně dlouhým obdobím těsně před ním. "
         . "Sloupec „Co přesně měří\" u metrik uvádí zdroj, definici a jmenovatel — řiď se jím: metriky „úroveň celé stránky\" a „součty přes příspěvky\" mají různý rozsah a nesmí se kombinovat v jednom výpočtu ani zaměňovat. "
-        . "Pomlčka „—\" znamená nedostupné/neměřené, ne nulu. Než prohlásíš metriku za chybějící, projdi celý report — může být v jiné sekci. Kde data reálně chybí, napiš přesně, co a jak doměřit.";
+        . "Pomlčka „—\" znamená nedostupné/neměřené, ne nulu. Než prohlásíš metriku za chybějící, projdi celý report, může být v jiné sekci. Kde data reálně chybí, napiš přesně, co a jak doměřit. "
+        . "Neúplné týdny a měsíce (v tabulkách označené „neúplný\") a dny bez dat (viz Upozornění a řádek „Data k dispozici do\" v Kontextu) nesrovnávej s celými; nejsou to poklesy.";
 }
 
 /**
@@ -445,7 +468,9 @@ function allstat_share_build(PDO $pdo, array $config, array $share): array
     $conn = $viewSourceId > 0 ? allstat_fetch_one($pdo, "SELECT ds.account_label, s.provider_key, s.name
         FROM domain_sources ds JOIN data_sources s ON s.id = ds.source_id WHERE ds.id = ? LIMIT 1", [$viewSourceId]) : null;
     $providerKey = (string) ($conn['provider_key'] ?? 'overview');
-    $viewLabel = $conn ? ((string) $conn['name'] . ', ' . (string) ($conn['account_label'] ?? '')) : 'Přehled (GA4 + GSC)';
+    // Prázdný název účtu (Clarity, GA4...) se vynechá, ať v nadpisu nevisí čárka.
+    $accountLabel = trim((string) ($conn['account_label'] ?? ''));
+    $viewLabel = $conn ? ((string) $conn['name'] . ($accountLabel !== '' ? ', ' . $accountLabel : '')) : 'Přehled (GA4 + GSC)';
     if ($granularity === 'growth') {
         // Růst kanálů: okno uzavřených měsíců (start = 1. den prvního, end = poslední den posledního).
         $providerKey = 'growth';
@@ -454,9 +479,12 @@ function allstat_share_build(PDO $pdo, array $config, array $share): array
             . ' (uzavřené měsíce, ' . allstat_iso_to_cz_date($start) . ' – ' . allstat_iso_to_cz_date($end) . ')';
     }
 
+    // Do kdy mají použité zdroje data a co v období chybí (dnešek, zpoždění zdroje, výpadek synchronizace).
+    $coverage = allstat_share_data_coverage($pdo, $domainId, allstat_share_data_targets($pdo, $domainId, $viewSourceId, $providerKey), $start, $end, $providerKey === 'growth');
+
     $payload = [
         'title' => sprintf('AllStat report, %s, %s', $domainName, $viewLabel),
-        'instructions' => allstat_share_org_context($pdo) . "\n\n"
+        'instructions' => allstat_share_org_context($pdo, $domainId) . "\n\n"
             . allstat_share_instructions($providerKey, $viewSourceId) . "\n\n"
             . allstat_share_output_format() . "\n\n"
             . allstat_share_methodology(),
@@ -465,11 +493,18 @@ function allstat_share_build(PDO $pdo, array $config, array $share): array
             'url' => $domainUrl,
             'pohled' => $viewLabel,
             'obdobi' => $periodLabel,
+            'data_do' => $coverage['line'],
             'vygenerovano' => (new DateTimeImmutable('now'))->format('Y-m-d H:i'),
         ],
         'sections' => [],
         'recommendations' => [],
     ];
+    if ($coverage['line'] === '') {
+        unset($payload['meta']['data_do']);
+    }
+    if ($coverage['warnings']) {
+        $payload = array_slice($payload, 0, 3, true) + ['upozorneni' => $coverage['warnings']] + array_slice($payload, 3, null, true);
+    }
 
     if ($providerKey === 'growth') {
         allstat_share_section_growth($pdo, $domainId, $start, $end, $payload);
@@ -505,6 +540,265 @@ function allstat_iso_to_cz_date(?string $value): string
     }
 }
 
+/**
+ * Neúplná data v reportu. Rychlé volby období končí dneškem (neúplný den), Search Console a YouTube mají
+ * zpoždění 2 až 3 dny a když synchronizace neproběhne, chybí dnů víc. AI by poslední týden s daty jen do
+ * středy jinak vyhodnotila jako propad. Vlastní pomocné funkce zde, protože share.php běží i ve veřejném
+ * share.php bez MCP (lib/mcp-tools.php se nenačítá); logika odpovídá allstat_mcp_tool_data_delays().
+ */
+function allstat_share_source_info(string $providerKey): ?array
+{
+    return match ($providerKey) {
+        'ga4' => ['label' => 'Google Analytics 4', 'typical' => 'nejvýš 1 den', 'max_lag' => 2],
+        'gsc' => ['label' => 'Google Search Console', 'typical' => '2 až 3 dny', 'max_lag' => 4],
+        'youtube' => ['label' => 'YouTube Analytics', 'typical' => '2 až 3 dny', 'max_lag' => 4],
+        'facebook_pages' => ['label' => 'Facebook', 'typical' => 'nejvýš 1 den', 'max_lag' => 2],
+        'instagram_business' => ['label' => 'Instagram', 'typical' => 'nejvýš 1 den', 'max_lag' => 2],
+        'linkedin_company' => ['label' => 'LinkedIn', 'typical' => 'nejvýš 1 den', 'max_lag' => 2],
+        'meta_ads' => ['label' => 'Meta Ads', 'typical' => 'nejvýš 1 den', 'max_lag' => 2],
+        'google_ads' => ['label' => 'Google Ads', 'typical' => 'nejvýš 1 den', 'max_lag' => 2],
+        'microsoft_ads' => ['label' => 'Microsoft Ads', 'typical' => 'nejvýš 1 den', 'max_lag' => 2],
+        'clarity' => ['label' => 'Microsoft Clarity', 'typical' => 'nejvýš 1 den', 'max_lag' => 2],
+        default => null,
+    };
+}
+
+/**
+ * Denní toky (ne snímky stavu jako počet sledujících, ty se ukládají v den synchronizace), podle kterých se
+ * pozná, do kdy má zdroj skutečná data.
+ */
+function allstat_share_flow_keys(string $providerKey): array
+{
+    return match ($providerKey) {
+        'facebook_pages' => ['page_impressions', 'reach', 'engagements'],
+        'instagram_business' => ['reach'],
+        'linkedin_company' => ['impressions', 'clicks'],
+        'meta_ads' => ['spend', 'impressions'],
+        'google_ads', 'microsoft_ads' => ['cost', 'impressions'],
+        'youtube' => ['views'],
+        'clarity' => ['sessions'],
+        default => [],
+    };
+}
+
+/** Poslední den s daty zdroje (nejvýš do $end), nebo null, když zdroj žádná denní data nemá. */
+function allstat_share_latest_data_date(PDO $pdo, int $domainId, string $providerKey, ?int $connectionId, string $end): ?string
+{
+    try {
+        if ($providerKey === 'ga4' || $providerKey === 'gsc') {
+            $col = $providerKey === 'ga4' ? 'visits' : 'impressions';
+            $row = allstat_fetch_one($pdo, "SELECT MAX(metric_date) AS d FROM metrics_daily WHERE domain_id = ? AND $col > 0 AND metric_date <= ?", [$domainId, $end]);
+
+            return !empty($row['d']) ? (string) $row['d'] : null;
+        }
+        $keys = allstat_share_flow_keys($providerKey);
+        if (!$keys || !$connectionId) {
+            return null;
+        }
+        $ph = implode(',', array_fill(0, count($keys), '?'));
+        // YouTube: dny bez zhlédnutí se ukládají jako nuly i tam, kam analytika ještě nedorazila, proto jen kladné.
+        $row = allstat_fetch_one($pdo, "SELECT MAX(metric_date) AS d FROM provider_metrics_daily
+            WHERE domain_id = ? AND connection_id = ? AND COALESCE(dimension, '') = '' AND metric_key IN ($ph)"
+            . ($providerKey === 'youtube' ? ' AND metric_value > 0' : '') . ' AND metric_date <= ?',
+            array_merge([$domainId, $connectionId], $keys, [$end]));
+        $latest = !empty($row['d']) ? (string) $row['d'] : null;
+        if (in_array($providerKey, ['meta_ads', 'google_ads', 'microsoft_ads'], true)) {
+            // Reklama zapisuje řádek jen ve dnech s provozem: bez kampaně nic nechybí. Důkazem, že se stahovalo,
+            // je den poslední synchronizace.
+            $sync = allstat_fetch_one($pdo, 'SELECT DATE(last_sync_at) AS d FROM domain_sources WHERE id = ?', [$connectionId]);
+            $syncDay = !empty($sync['d']) ? (string) $sync['d'] : null;
+            if ($syncDay !== null) {
+                $syncDay = $syncDay < $end ? $syncDay : $end;
+                if ($latest === null || $syncDay > $latest) {
+                    $latest = $syncDay;
+                }
+            }
+        }
+
+        return $latest;
+    } catch (Throwable) {
+        return null;
+    }
+}
+
+/** Totéž pro napojení zadané jeho id (domain_sources.id); provider se dohledá. */
+function allstat_share_connection_latest(PDO $pdo, int $domainId, int $connectionId, string $end): ?string
+{
+    try {
+        $row = allstat_fetch_one($pdo, 'SELECT s.provider_key FROM domain_sources ds JOIN data_sources s ON s.id = ds.source_id WHERE ds.id = ? LIMIT 1', [$connectionId]);
+    } catch (Throwable) {
+        return null;
+    }
+
+    return $row ? allstat_share_latest_data_date($pdo, $domainId, (string) $row['provider_key'], $connectionId, $end) : null;
+}
+
+/** Poslední den, který lze brát jako úplný: nejpozději včerejšek, nejpozději konec období, nejpozději poslední den s daty. */
+function allstat_share_complete_through(?string $latest, string $end): string
+{
+    $yesterday = (new DateTimeImmutable('today'))->modify('-1 day')->format('Y-m-d');
+    $limit = $end < $yesterday ? $end : $yesterday;
+
+    return ($latest !== null && $latest < $limit) ? $latest : $limit;
+}
+
+/**
+ * Kolik dní řádku (týdne / měsíce) je v období a má úplná data, nebo null, když je řádek úplný.
+ * $anchor je libovolný den řádku. Řádek je neúplný, když má v období méně dní než celý týden / měsíc
+ * (kraj období) nebo zasahuje za poslední úplný den.
+ */
+function allstat_share_bucket_days(string $anchor, string $gran, string $start, string $end, string $completeThrough): ?int
+{
+    try {
+        $d = new DateTimeImmutable($anchor);
+        if ($gran === 'month') {
+            $from = $d->modify('first day of this month');
+            $to = $d->modify('last day of this month');
+        } else {
+            $from = $d->modify('-' . ((int) $d->format('N') - 1) . ' days');
+            $to = $from->modify('+6 days');
+        }
+        $full = (int) $from->diff($to)->days + 1;
+        $a = $from->format('Y-m-d');
+        $b = $to->format('Y-m-d');
+        $a = $a > $start ? $a : $start;
+        $b = $b < $end ? $b : $end;
+        $b = $b < $completeThrough ? $b : $completeThrough;
+        $days = $b >= $a ? (int) (new DateTimeImmutable($a))->diff(new DateTimeImmutable($b))->days + 1 : 0;
+
+        return $days < $full ? $days : null;
+    } catch (Throwable) {
+        return null;
+    }
+}
+
+function allstat_share_days_word(int $n): string
+{
+    return $n === 1 ? 'den' : (($n >= 2 && $n <= 4) ? 'dny' : 'dní');
+}
+
+/** Dodatek k popisku řádku tabulky; prázdný, když je řádek úplný. */
+function allstat_share_incomplete_suffix(?int $days): string
+{
+    if ($days === null) {
+        return '';
+    }
+
+    return $days > 0 ? ' (neúplný: ' . $days . ' ' . allstat_share_days_word($days) . ')' : ' (neúplný: bez úplných dnů)';
+}
+
+/** Poslední úplný den zdrojů, ze kterých se skládá přehled webu (GA4), pro označení neúplných týdnů. */
+function allstat_share_overview_complete_through(PDO $pdo, int $domainId, string $end): string
+{
+    return allstat_share_complete_through(allstat_share_latest_data_date($pdo, $domainId, 'ga4', null, $end), $end);
+}
+
+/**
+ * Zdroje, ze kterých report čerpá: [[provider_key, connection_id|null, poznámka], ...]. Přehled = GA4 + Search
+ * Console, detail = napojení zdroje (u sítí a YouTube navíc GA4 kvůli sekci „Web z této sítě"), růst kanálů
+ * = všechna zapnutá napojení webu.
+ */
+function allstat_share_data_targets(PDO $pdo, int $domainId, int $viewSourceId, string $providerKey): array
+{
+    $targets = [];
+    try {
+        $conns = allstat_fetch_all($pdo, 'SELECT ds.id, s.provider_key FROM domain_sources ds JOIN data_sources s ON s.id = ds.source_id
+            WHERE ds.domain_id = ? AND ds.is_enabled = 1 ORDER BY s.id ASC, ds.id ASC', [$domainId]);
+    } catch (Throwable) {
+        return [];
+    }
+    $byProvider = [];
+    foreach ($conns as $c) {
+        $byProvider[(string) $c['provider_key']][] = (int) $c['id'];
+    }
+    if ($providerKey === 'growth') {
+        foreach ($conns as $c) {
+            if (allstat_share_source_info((string) $c['provider_key'])) {
+                $targets[] = [(string) $c['provider_key'], (int) $c['id'], ''];
+            }
+        }
+    } elseif ($viewSourceId === 0 || in_array($providerKey, ['overview', 'ga4', 'gsc'], true)) {
+        foreach (['ga4', 'gsc'] as $p) {
+            if (!empty($byProvider[$p])) {
+                $targets[] = [$p, null, ''];
+            }
+        }
+    } else {
+        $targets[] = [$providerKey, $viewSourceId, ''];
+        if (in_array($providerKey, ['facebook_pages', 'instagram_business', 'linkedin_company', 'youtube'], true) && !empty($byProvider['ga4'])) {
+            $targets[] = ['ga4', null, ' (sekce „Web z této sítě")'];
+        }
+    }
+
+    return array_values(array_filter($targets, static fn (array $t): bool => allstat_share_source_info($t[0]) !== null));
+}
+
+/**
+ * Pokrytí daty za období. Vrací řádek „Data k dispozici do" (string, '' když nic) a seznam upozornění
+ * (prázdný, když data sahají do konce období, nebo do včerejška, pokud období končí dneškem).
+ */
+function allstat_share_data_coverage(PDO $pdo, int $domainId, array $targets, string $start, string $end, bool $growth = false): array
+{
+    $today = new DateTimeImmutable('today');
+    $todayStr = $today->format('Y-m-d');
+    $target = $end < $today->modify('-1 day')->format('Y-m-d') ? $end : $today->modify('-1 day')->format('Y-m-d');
+    $cz = static fn (string $d): string => allstat_iso_to_cz_date($d);
+    $latestParts = [];
+    $warnings = [];
+    $delayed = 0;
+    $total = 0;
+    foreach ($targets as [$providerKey, $connectionId, $note]) {
+        $info = allstat_share_source_info($providerKey);
+        if (!$info) { continue; }
+        $latest = allstat_share_latest_data_date($pdo, $domainId, $providerKey, $connectionId, $end);
+        $total++;
+        $label = $info['label'] . $note;
+        if ($latest === null) {
+            if (!$growth) { $latestParts[] = $label . ': v tomto období žádná data'; }
+            continue;
+        }
+        $isCore = in_array($providerKey, ['ga4', 'gsc'], true);
+        if (!$growth || $isCore) {
+            $latestParts[] = $label . ': ' . $cz($latest) . ($latest >= $todayStr ? ' (dnešek, neúplný den)' : '');
+        }
+        if ($latest >= $target) { continue; }
+        $delayed++;
+        // Chybějící dny jen uvnitř období (zdroj mohl přestat posílat data dávno před jeho začátkem).
+        $from = max($start, (new DateTimeImmutable($latest))->modify('+1 day')->format('Y-m-d'));
+        $days = (int) (new DateTimeImmutable($from))->diff(new DateTimeImmutable($end))->days + 1;
+        $range = $from === $end ? $cz($end) : $cz($from) . ' až ' . $cz($end);
+        $lag = (int) (new DateTimeImmutable($latest))->diff($today)->days;
+        if ($lag <= $info['max_lag']) {
+            $reason = 'zdroj dodává data se zpožděním (' . $info['typical'] . ')';
+        } elseif ((allstat_share_latest_data_date($pdo, $domainId, $providerKey, $connectionId, $todayStr) ?? '') > $end) {
+            // Starší období: zdroj má novější data, takže jde o mezeru v datech, ne o zastavenou synchronizaci.
+            $reason = 'zdroj za toto období nedodal data (mezera v datech, novější data už má)';
+        } else {
+            $reason = 'chybí synchronizace (běžné zpoždění zdroje: ' . $info['typical'] . ', poslední dostupný den je před ' . $lag . ($lag === 1 ? ' dnem' : ' dny') . ')';
+        }
+        $warnings[] = $label . ' má data jen do ' . $cz($latest) . '; ' . $range . ' (' . $days . ' ' . allstat_share_days_word($days) . ') v reportu chybí, protože ' . $reason
+            . '. Chybějící dny NEJSOU pokles: součty a změny za tento zdroj jsou neúplné. Hodnoť ho jen za dny s daty, nebo ho vynech.';
+    }
+    if (!$growth && $end >= $todayStr) {
+        array_unshift($warnings, 'Období končí dnešním dnem (' . $cz($end) . '), který ještě neskončil: jeho čísla jsou neúplná. Nejde o pokles.');
+    }
+    if ($warnings) {
+        $warnings[] = $growth
+            ? 'Neúplné měsíce jsou v tabulkách označené hvězdičkou a změny m/m jsou počítané z průměru na den s daty.'
+            : 'Týdny a měsíce v tabulkách, které těchto dní zasahují (nebo jsou zkrácené začátkem či koncem období), jsou označené „neúplný". Nesrovnávej je s celými a nepovažuj je za pokles.';
+    }
+    if ($growth) {
+        $line = implode('; ', $latestParts);
+        if ($total > 0) {
+            $line .= ($line !== '' ? '; ' : '') . 'zdrojů s daty končícími před koncem okna: ' . $delayed . ' z ' . $total;
+        }
+    } else {
+        $line = implode('; ', $latestParts);
+    }
+
+    return ['line' => $line, 'warnings' => $warnings];
+}
+
 function allstat_share_section_overview(PDO $pdo, int $domainId, string $start, string $end, string $gran, array &$payload): void
 {
     $data = allstat_get_dashboard_data($pdo, $domainId, $start, $end, $gran);
@@ -522,9 +816,19 @@ function allstat_share_section_overview(PDO $pdo, int $domainId, string $start, 
     $wkSeries = allstat_query_series($pdo, $domainId, $start, $end, $trendGran);
     $wkLabels = $wkSeries['labels'] ?? [];
     if (count($wkLabels) >= 2) {
+        // Začátky řádků (stejné seskupení jako allstat_query_series) pro označení neúplných týdnů / měsíců.
+        $anchors = [];
+        try {
+            $anchors = array_column(allstat_fetch_all($pdo, 'SELECT MIN(metric_date) AS d FROM metrics_daily WHERE domain_id = ? AND metric_date BETWEEN ? AND ? GROUP BY '
+                . ($trendGran === 'month' ? 'YEAR(metric_date), MONTH(metric_date)' : 'YEARWEEK(metric_date, 3)') . ' ORDER BY d ASC', [$domainId, $start, $end]), 'd');
+        } catch (Throwable) { /* bez označení */ }
+        $completeThrough = allstat_share_overview_complete_through($pdo, $domainId, $end);
         $trendRows = [];
         foreach ($wkLabels as $i => $lab) {
-            $trendRows[] = [$lab, allstat_number((int) ($wkSeries['visits'][$i] ?? 0)), allstat_number((int) ($wkSeries['users'][$i] ?? 0)), allstat_number((int) ($wkSeries['conversions'][$i] ?? 0))];
+            if (count($anchors) === count($wkLabels)) {
+                $lab .= allstat_share_incomplete_suffix(allstat_share_bucket_days((string) $anchors[$i], $trendGran, $start, $end, $completeThrough));
+            }
+            $trendRows[] = [$lab,allstat_number((int) ($wkSeries['visits'][$i] ?? 0)), allstat_number((int) ($wkSeries['users'][$i] ?? 0)), allstat_number((int) ($wkSeries['conversions'][$i] ?? 0))];
         }
         $payload['sections'][] = ['title' => ($trendGran === 'month' ? 'Měsíční' : 'Týdenní') . ' vývoj návštěvnosti', 'cols' => [$trendGran === 'month' ? 'Měsíc' : 'Týden', 'Návštěvy', 'Uživatelé (součet dní)', 'Konverze'], 'rows' => $trendRows];
     }
@@ -631,9 +935,16 @@ function allstat_share_section_overview(PDO $pdo, int $domainId, string $start, 
     }
 
     // Data-quality note: which sources are connected (so the AI can flag analytics gaps).
+    // Název účtu (account_label) se připojí, ať AI rozliší dva Facebooky nebo Instagramy. Seznam se čte přímo
+    // z napojení (stejné pořadí a stavy jako na dashboardu); při chybě dotazu zůstane dashboardový seznam bez názvů.
     $statuses = $data['tables']['sources'] ?? [];
+    try {
+        $statuses = array_map(static fn (array $r): array => ['source' => $r['name'], 'status' => $r['status'], 'account' => trim((string) ($r['account_label'] ?? ''))],
+            allstat_fetch_all($pdo, 'SELECT ds.name, src.status, src.account_label FROM domain_sources src INNER JOIN data_sources ds ON ds.id = src.source_id WHERE src.domain_id = ? ORDER BY ds.id ASC, src.id ASC', [$domainId]));
+    } catch (Throwable) { /* dashboardový seznam */ }
     $connected = array_map(static function (array $s): string {
         $name = (string) ($s['source'] ?? '?');
+        if (($s['account'] ?? '') !== '' && $s['account'] !== $name) { $name .= ' (' . $s['account'] . ')'; }
         $st = (string) ($s['status'] ?? '');
         return $st !== '' && $st !== 'ok' ? $name . ' (' . $st . ')' : $name;
     }, $statuses);
@@ -1285,11 +1596,25 @@ function allstat_share_to_md(array $payload): string
     $md = '# ' . ($payload['title'] ?? 'AllStat report') . "\n\n";
     $md .= '> ' . str_replace("\n", "\n> ", (string) ($payload['instructions'] ?? '')) . "\n\n";
     $md .= "## Kontext\n";
+    // Klíče meta zůstávají ASCII (JSON formát čtou stroje), v Markdownu se zobrazují české popisky.
+    $metaLabels = [
+        'web' => 'Web', 'url' => 'Adresa', 'pohled' => 'Pohled', 'obdobi' => 'Období', 'data_do' => 'Data k dispozici do',
+        'vygenerovano' => 'Vygenerováno', 'napojene_zdroje' => 'Napojené zdroje', 'posledni_sync' => 'Poslední synchronizace',
+        'poznamka' => 'Poznámka', 'poznamka_metriky' => 'Poznámka k metrikám', 'poznamka_benchmarky' => 'Poznámka k benchmarkům',
+        'poznamka_web_ze_site' => 'Poznámka k webu ze sítě', 'demografie_publika_z' => 'Demografie publika z',
+    ];
     foreach (($payload['meta'] ?? []) as $k => $v) {
         if ((string) $v === '') { continue; }
-        $md .= '- **' . ucfirst(str_replace('_', ' ', (string) $k)) . ':** ' . $v . "\n";
+        $md .= '- **' . ($metaLabels[(string) $k] ?? ucfirst(str_replace('_', ' ', (string) $k))) . ':** ' . $v . "\n";
     }
     $md .= "\n";
+    if (!empty($payload['upozorneni'])) {
+        $md .= "## UPOZORNĚNÍ: NEÚPLNÁ DATA (nejde o pokles)\n";
+        foreach ($payload['upozorneni'] as $w) {
+            $md .= '- **' . $w . "**\n";
+        }
+        $md .= "\n";
+    }
     foreach (($payload['sections'] ?? []) as $sec) {
         $md .= '## ' . ($sec['title'] ?? '') . "\n";
         $md .= allstat_md_table($sec['cols'] ?? [], $sec['rows'] ?? []) . "\n";

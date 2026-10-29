@@ -53,6 +53,21 @@
     color: var(--muted);
 }
 
+/* Popisek s rezervovanou šířkou (období v liště): viditelný text a skryté sizery (aria-hidden) sdílí buňku mřížky,
+   šířka je tedy šířka nejdelší varianty a prvky za tlačítkem neposkakují. Číslice jsou tabulární. */
+.label-stack {
+    display: inline-grid;
+    font-variant-numeric: tabular-nums;
+}
+
+.label-stack > * {
+    grid-area: 1 / 1;
+}
+
+.label-stack > [aria-hidden="true"] {
+    visibility: hidden;
+}
+
 .btn-ghost {
     padding: 0 10px;
     color: var(--text-2);
@@ -314,6 +329,24 @@
     font-weight: 600;
 }
 
+/* Menší odznak a odznak s obrysem místo výplně (stav „V grafu" v záložce metriky) */
+.badge-sm {
+    gap: 4px;
+    height: 20px;
+    padding: 0 6px;
+}
+
+.badge-outline {
+    background: var(--surface);
+    box-shadow: inset 0 0 0 1px var(--accent-line);
+    color: var(--accent-text);
+}
+
+.badge .icon-sm {
+    width: 12px;
+    height: 12px;
+}
+
 /* Neutrální značka (typ příspěvku, varianta) */
 .chip {
     height: 22px;
@@ -433,6 +466,11 @@ a.pill:hover {
     text-wrap: pretty;
 }
 
+/* Dlouhý příklad v textu (UTM adresa v prázdné kartě kampaní) se zalomí, nevytlačí stránku do šířky */
+.card-desc code {
+    overflow-wrap: anywhere;
+}
+
 .card-body {
     padding: 20px 24px 24px;
 }
@@ -483,6 +521,27 @@ a.pill:hover {
     color: var(--muted);
     font-size: 13px;
     line-height: 20px;
+}
+
+/* Hlavní hodnota s dovětkem menším písmem na stejném řádku; řádek má stejnou výšku jako samotná hodnota. */
+.metric-line {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    min-width: 0;
+}
+
+.metric-line .metric-value {
+    flex: none;
+}
+
+.metric-line .metric-unit {
+    min-width: 0;
+    overflow: hidden;
+    font-size: 13px;
+    line-height: 20px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .kpi {
@@ -596,6 +655,12 @@ a.pill:hover {
     color: var(--muted);
     font-size: 12px;
     line-height: 16px;
+}
+
+/* „Růst · 3 měsíce" se nezalamuje (v angličtině by odsunulo číslo pod sebou); zkrátí se popisek metriky vlevo. */
+.channel-meta > :last-child {
+    flex: none;
+    white-space: nowrap;
 }
 
 .channel-value {
@@ -1125,6 +1190,8 @@ a.pill:hover {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    /* šířka záložky rozhoduje, jestli odznak ukáže i text (viz @container níž) */
+    container-type: inline-size;
     padding: 20px 24px 18px;
     box-shadow: inset -1px 0 0 var(--border);
     text-align: left;
@@ -1139,18 +1206,55 @@ a.pill:hover {
     background: var(--hover);
 }
 
+.tab[aria-selected="true"] {
+    background: var(--accent-soft);
+}
+
 .tab[aria-selected="true"]::after {
     content: "";
     position: absolute;
     right: 0;
     bottom: -1px;
     left: 0;
-    height: 2px;
+    height: 3px;
     background: var(--accent);
 }
 
 .tab[aria-selected="true"] .metric-label {
     color: var(--accent-text);
+}
+
+/* Řádek názvu: pevných 20 px jako řádek textu (odznak je 20 px), takže přepnutí záložky nic neposune.
+   Dlouhý název se zkrátí, nepřeteče pod odznak. */
+.metric-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    height: 20px;
+}
+
+.metric-head .metric-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tab[aria-selected="false"] .badge {
+    display: none;
+}
+
+/* Úzká záložka (hustá stránka s mnoha metrikami): odznak jen s ikonou (čtverec 20 px), název dostane místo.
+   210 px = název „Uživatelé (součet dní)" (131 px) + mezera + odznak s textem (70 px). */
+@container (max-width: 210px) {
+    .tab .badge-sm {
+        padding: 0 4px;
+    }
+
+    .tab .badge-text {
+        display: none;
+    }
 }
 
 .tab .metric-note {

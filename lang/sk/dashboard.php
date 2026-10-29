@@ -706,4 +706,6 @@ return [
     'Za zvolené období zatím nejsou data' => 'Za zvolené obdobie zatiaľ nie sú dáta',
     'Otevřít menu' => 'Otvoriť menu',
     'Zavřít menu' => 'Zavrieť menu',
+    'V grafu' => 'V grafe',
+    'relací ({count}×)' => 'relácií ({count}×)',
 ];

@@ -706,4 +706,6 @@ return [
     'Za zvolené období zatím nejsou data' => 'No data for the selected period yet',
     'Otevřít menu' => 'Open menu',
     'Zavřít menu' => 'Close menu',
+    'V grafu' => 'In chart',
+    'relací ({count}×)' => 'sessions ({count}×)',
 ];

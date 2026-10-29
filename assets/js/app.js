@@ -54,6 +54,8 @@ const AllStat = (() => {
 
     // Popisek období: celý měsíc „září 2026“, jinak „1. 9. – 15. 9. 2026“ (stejně jako allstat_ui_period_label v views/_ui.php).
     const MONTH_NAMES = ['leden', 'únor', 'březen', 'duben', 'květen', 'červen', 'červenec', 'srpen', 'září', 'říjen', 'listopad', 'prosinec'];
+    // Anglické zkratky jako PHP „M" (toLocaleString v en-GB dává „Sept", což by rozhodilo šířku lišty období).
+    const EN_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
     function periodLabel(startIso, endIso) {
         const parse = (iso) => { const p = String(iso).split('-').map(Number); return new Date(p[0], p[1] - 1, p[2]); };
@@ -63,7 +65,7 @@ const AllStat = (() => {
         if (s.getDate() === 1 && e.getTime() === new Date(s.getFullYear(), s.getMonth() + 1, 0).getTime()) {
             return window.allstatT(MONTH_NAMES[s.getMonth()]) + ' ' + s.getFullYear();
         }
-        const dm = (d) => (en ? d.getDate() + ' ' + d.toLocaleString('en-GB', { month: 'short' }) : d.getDate() + '. ' + (d.getMonth() + 1) + '.');
+        const dm = (d) => (en ? d.getDate() + ' ' + EN_MONTHS[d.getMonth()] : d.getDate() + '. ' + (d.getMonth() + 1) + '.');
         if (startIso === endIso) {
             return dm(s) + ' ' + s.getFullYear();
         }
@@ -704,9 +706,9 @@ const AllStat = (() => {
         const today = (() => { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); })();
         const same = (a, b) => !!a && !!b && a.getTime() === b.getTime();
         const czRange = (a, b) => {
-            // Angličtina: 16 Oct; čeština a slovenština: 16. 10.
+            // Angličtina: 16 Oct (EN_MONTHS); čeština a slovenština: 16. 10.
             const dm = (x) => (window.allstatLocale || 'cs-CZ').startsWith('en')
-                ? x.getDate() + ' ' + x.toLocaleString('en-GB', { month: 'short' })
+                ? x.getDate() + ' ' + EN_MONTHS[x.getMonth()]
                 : x.getDate() + '. ' + (x.getMonth() + 1) + '.';
             if (!b || same(a, b)) { return dm(a) + ' ' + a.getFullYear(); }
             if (a.getFullYear() === b.getFullYear()) { return dm(a) + ' – ' + dm(b) + ' ' + b.getFullYear(); }

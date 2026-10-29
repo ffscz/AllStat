@@ -39,7 +39,7 @@ $tabNote = '<span>' . h(t('za {period}', ['period' => $periodLabel])) . '</span>
 <section class="card card-clip" aria-label="<?= h(t('Metriky zdroje')) ?>"<?= $showChart ? ' data-metric-chart="provider" data-granularity="' . h($granularity ?? 'day') . '"' : '' ?>>
     <div class="tabs" role="tablist" aria-label="<?= h(t('Metrika v grafu')) ?>">
         <?php foreach ($tabMetrics as $i => $metric): ?>
-            <?= allstat_ui_metric_tab((string) $metric['key'], (string) $metric['label'], (string) ($metric['displayValue'] ?? ($metric['totalLabel'] ?? '0')), $tabNote, $i === 0, (string) ($metric['tooltip'] ?? '')) ?>
+            <?= allstat_ui_metric_tab((string) $metric['key'], (string) $metric['label'], (string) ($metric['displayMain'] ?? $metric['displayValue'] ?? ($metric['totalLabel'] ?? '0')), $tabNote, $i === 0, (string) ($metric['tooltip'] ?? ''), (string) ($metric['displaySuffix'] ?? '')) ?>
         <?php endforeach; ?>
     </div>
     <?php if ($showChart): ?>

@@ -16,10 +16,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         foreach (['app', 'org', 'web', 'email', 'address', 'ico', 'effective'] as $lk) {
             allstat_set_setting($pdo, 'legal.' . $lk, trim((string) ($_POST['legal_' . $lk] ?? '')));
         }
-        // Popis organizace pro AI analýzy (share.org_context): bez něj platí obecný kontext v lib/share.php.
-        if (array_key_exists('org_context', $_POST)) {
-            allstat_set_setting($pdo, 'share.org_context', trim((string) $_POST['org_context']));
-        }
         allstat_audit($pdo, (int) $user['id'], null, 'settings_legal_updated');
         allstat_flash('ok', t('Údaje právních stránek byly uloženy.'));
         allstat_redirect($config, 'admin/settings.php');
@@ -65,7 +61,6 @@ $domains = $pdo->query('SELECT id, name FROM domains WHERE is_active = 1 ORDER B
 $primaryDomainId = (int) allstat_setting($pdo, 'app.primary_domain_id', '0');
 require_once __DIR__ . '/../_legal.php';
 $legal = legal_config();
-$orgContext = (string) allstat_setting($pdo, 'share.org_context', '');
 $cronSecret = allstat_setting($pdo, 'sync.cron_secret', '');
 $lastCronRun = allstat_setting($pdo, 'sync.last_cron_run', '');
 $lastCronSummary = allstat_setting($pdo, 'sync.last_cron_summary', '');
@@ -233,7 +228,6 @@ if (is_file(__DIR__ . '/../lib/updater.php')) {
         <label class="field"><span class="field-label"><?= h(t('Sídlo / adresa (volitelné)')) ?></span><input class="input" type="text" name="legal_address" value="<?= h($legal['address']) ?>"></label>
         <label class="field"><span class="field-label"><?= h(t('IČO (volitelné)')) ?></span><input class="input" type="text" name="legal_ico" value="<?= h($legal['ico']) ?>"></label>
         <label class="field"><span class="field-label"><?= h(t('Účinné od')) ?></span><input class="input" type="text" name="legal_effective" value="<?= h($legal['effective']) ?>"></label>
-        <label class="field field-full"><span class="field-label"><?= h(t('Popis organizace pro AI analýzy (volitelné)')) ?></span><textarea class="input" name="org_context" rows="4" maxlength="4000" placeholder="<?= h(t('Například: Jsme e-shop s outdoorovým vybavením, hlavním cílem je prodej, marketing dělají dva lidé.')) ?>"><?= h($orgContext) ?></textarea><span class="field-help"><?= h(t('Stručně napiš, kdo jste, komu web slouží a co je jeho cíl (prodej, registrace, povědomí). AI asistent tím dostane kontext k rozboru dat z exportu. Prázdné pole znamená obecný kontext.')) ?></span></label>
         <p class="field-help field-full"><?= h(t('Veřejné URL (tyto vlož do Meta App → Settings → Basic a do LinkedIn app → Settings):')) ?>
             <a class="link-more" href="../privacy.php" target="_blank" rel="noopener">privacy.php</a> ·
             <a class="link-more" href="../terms.php" target="_blank" rel="noopener">terms.php</a> ·
