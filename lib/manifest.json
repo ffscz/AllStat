@@ -74,8 +74,8 @@
             "h": "f1fe5c5104ef6795605465f2ebbd93975d5dca077069ece2fe8589e554e6eca8"
         },
         "admin/mcp.php": {
-            "s": 85443,
-            "h": "aed676f8fff8a90a680dbbaa842bb5bd1b76ea6b7ecdf69922e2e1286ffb6d76"
+            "s": 90008,
+            "h": "2d9aaef1b2f9dc01b2c27bed0604b81fd327142131dfabbb839ecfd9353bd121"
         },
         "admin/meta-connect.php": {
             "s": 9281,
@@ -106,8 +106,8 @@
             "h": "8ef5a54c590f8ef64a409a07db4b25f294d51158d359fad1bdfaf25441a82c45"
         },
         "admin/settings.php": {
-            "s": 18188,
-            "h": "cfc6ba8d0605692b6a7cc908246e0321956e2ad645d16838f19905e98014b13a"
+            "s": 17216,
+            "h": "a1c44d0ff479d105349cf2b7f7437e78fc7af7e22bb888ebc1625b13a260c2d2"
         },
         "admin/setup-2fa.php": {
             "s": 4754,
@@ -158,12 +158,12 @@
             "h": "79949d8468b77692012aa7542c2274ca80428ab0d451649027a72266fb9705ff"
         },
         "assets/css/components.css": {
-            "s": 48036,
-            "h": "1f087ecf6616b0efd27c2474a0c08addb591a858a74fe1ef2aaf3c6720403bcf"
+            "s": 50669,
+            "h": "29d7c8aa2d018d6b67c09673d5a15f05dfd9e506e23b377320a0960d12f9f737"
         },
         "assets/css/layout.css": {
-            "s": 8724,
-            "h": "41d03bf6297052ef9925e06ea0aa8cc9b788daf084a2be8da3f2613e331b6b67"
+            "s": 9161,
+            "h": "2dc9d4c2ce47c1f26745a818627fff39909b82d2d58ca1928ac0e99190037325"
         },
         "assets/css/tokens.css": {
             "s": 5518,
@@ -214,8 +214,8 @@
             "h": "22fd2a2ce0d95dd569cbe568a683f85f68ce48408026ea04031208c0be185e30"
         },
         "assets/js/app.js": {
-            "s": 40963,
-            "h": "59f3152552256acc0ede0375d1c0fe8fb389e9c582d2ca12a21036a99acc305a"
+            "s": 41164,
+            "h": "354bf17f95f568021142d4b0249e8528642178e8e7a7f8b1b83462ad3f3d50f4"
         },
         "assets/js/funnel.js": {
             "s": 3670,
@@ -270,16 +270,16 @@
             "h": "022db8e5654038717679670df38d18b4587f6e9870d054ce3f67e962fda2885f"
         },
         "index.php": {
-            "s": 19177,
-            "h": "3b54f7a92c097b6543508d4bc02cb9212903f425fad0c508ddf5066680f66434"
+            "s": 19604,
+            "h": "4835c5d5bbb935e87944156a2a12d81f9ce39f866aed1103b6bf80f92da4cb1c"
         },
         "install.php": {
             "s": 1987,
             "h": "dfea701c561eeadff113d629cd900772e16cc1cdb42152b31f87948f11376845"
         },
         "lang/en/admin.php": {
-            "s": 57498,
-            "h": "09457da095b56620fb5dbfa75ba3621b55edb39d2b6761d813a9d477e9f9745f"
+            "s": 58508,
+            "h": "d9f2b7c85a5e79a6f91340fea6fc965acd8cd47f35fdc25dfcbb04a1c1c02c74"
         },
         "lang/en/ai.php": {
             "s": 71400,
@@ -290,8 +290,8 @@
             "h": "f156a5a8ba3c5aaf15e59bc3cc9be7f84e6e3bbe11203b4feafd60c34730b96d"
         },
         "lang/en/dashboard.php": {
-            "s": 85365,
-            "h": "e79939bd95ded0409eaecd49160415fd296b900187fd6a8620d372f5d923777d"
+            "s": 85447,
+            "h": "e435cc31c8cabd2d0d1aeb68085f26d43a5b4e7d8c345c1d51c2917f85c597f3"
         },
         "lang/en/extra.php": {
             "s": 663,
@@ -310,8 +310,8 @@
             "h": "653f4ede8f618951f0d403587d4db2a28f01f0ff1eeef307193c50eb1cbdbe93"
         },
         "lang/sk/admin.php": {
-            "s": 58436,
-            "h": "c0ef488f9356059a9365a8ee98f08549301336930d6e9d532917c64a06762397"
+            "s": 59437,
+            "h": "5e349dc5351f2e26f59516edf9fb15dac9283bec3db5e63133ddc4809bca6621"
         },
         "lang/sk/ai.php": {
             "s": 72553,
@@ -322,8 +322,8 @@
             "h": "efe58d08013bd1a7201c173c0779e6df296a5686eca8f5d28749046408f27224"
         },
         "lang/sk/dashboard.php": {
-            "s": 87380,
-            "h": "c9d8d1263c6bd6b49b15aa6ff20dc0dcfc384f99c7e4dc67c1ac6ef21fd3b93f"
+            "s": 87462,
+            "h": "1b194272e0bd04a2b6fdbd6f3850f41d043162375ab2c85317023a11cc3f1f7c"
         },
         "lang/sk/extra.php": {
             "s": 720,
@@ -394,8 +394,8 @@
             "h": "9c933eea2ba9608d228d59d2388034154182f8e1932ce67d82bdfe807ab2f891"
         },
         "lib/install-wizard.php": {
-            "s": 89002,
-            "h": "f3214101e2bb40c3a92a383dc7d85773d51f3ae436a009cb79538df02ba86762"
+            "s": 89213,
+            "h": "e5628f5e543ecce7ce3cc95a089efed90aa795d24cf0c0b8bc120025f39177ae"
         },
         "lib/layout.php": {
             "s": 20444,
@@ -410,12 +410,12 @@
             "h": "1396c2347754c395bce2f3897f8d9fd4f64b0bccf8fe5ec423e4725e925df80a"
         },
         "lib/mcp-server.php": {
-            "s": 37307,
-            "h": "bb41f685938b4adc72f72734e81c84e430aac601e49e1dccb45b5d1b826f1f69"
+            "s": 38165,
+            "h": "23a3f02629bcfec970d7d99c913d0094dd8a06d3e27893fd20f12fc8e8470a13"
         },
         "lib/mcp-tools.php": {
-            "s": 148124,
-            "h": "15ec222286f127800d96efa3a04291f4fffe1e00b54366df34e5eccbd8fdd082"
+            "s": 148992,
+            "h": "f0ac9601c143e83ba675200958da4335abcee342e3e3a3535582cbb0f9a08f6c"
         },
         "lib/meta-connect.php": {
             "s": 12187,
@@ -426,8 +426,8 @@
             "h": "cfa93fcec2fd43bb2446993047966645d321d679300665b6532ff45bca24d655"
         },
         "lib/migrations.php": {
-            "s": 56354,
-            "h": "a91098e139f51a3b0540f91f2ab2849de0e23ad187152aa21bfdbeb4e8a311cf"
+            "s": 57171,
+            "h": "da4346b25df7b8c7ba09f7468e2d81f6ed5ed688928e50240dff7b9496e683f7"
         },
         "lib/oauth.php": {
             "s": 30659,
@@ -438,16 +438,16 @@
             "h": "cc8945f72a117d15da5d3fe043a0ce57baa05b72561d1417153a0ce0dd4de4a1"
         },
         "lib/repository.php": {
-            "s": 229866,
-            "h": "4c9f784d886ff57796e427fd5217805d4a64a9ef5efd472ed346fd4afc33f193"
+            "s": 230623,
+            "h": "475a832a0f8c41f48635d58614ae04b154bf7bd582037173935cafb553304c39"
         },
         "lib/seeder.php": {
             "s": 6447,
             "h": "0790111a952434e5f879c7fe29b54b891f3ec8af814ac35a55a0a32e62727596"
         },
         "lib/share.php": {
-            "s": 98033,
-            "h": "588e3abdeb2f9894703f900e63c0c7af389c2a48b5d4992f603442d19d7f2cda"
+            "s": 115802,
+            "h": "a76fc14dab5e94283fe12303f4187bbb4ba098598f4487800b744f91a70974ac"
         },
         "lib/sites.php": {
             "s": 10088,
@@ -486,8 +486,8 @@
             "h": "e2ea2fca1045b68f437758ab310d9825629146d77b8189a4819b7f57c846d09d"
         },
         "schema.sql": {
-            "s": 17630,
-            "h": "4ef91b336dd89affd7feb17d27004ce7acd9d359fe9462db3582a7e44645f79b"
+            "s": 17656,
+            "h": "f358ded562048121c59fa53f92663de5dfda9b35c47323e04014e60f9eeddc91"
         },
         "share.php": {
             "s": 2142,
@@ -498,12 +498,12 @@
             "h": "c5142713411529287a42457f95ebad663027af4e681fef55503c11c88ac1ef0f"
         },
         "views/_dashboard-head.php": {
-            "s": 12512,
-            "h": "d3a044a0a6c8d136325e2d45ae9f00e3749ac0891bd71de99ac85111c443cb92"
+            "s": 14203,
+            "h": "0274181037b119b6355e28f11076a4711226f06a68e8bf88604f155799bccc61"
         },
         "views/_ui.php": {
-            "s": 9139,
-            "h": "8a5888fd43151fc4de183afd806127d33f515f252b769335fe427fb8e5f34019"
+            "s": 9951,
+            "h": "f95ad0a1b8247f8f939f09c7992793f9eefa6c3808cd5b39947a771591938623"
         },
         "views/funnel.php": {
             "s": 12008,
@@ -522,8 +522,8 @@
             "h": "3aa5d5f718b4772ef2621b212bab5c04fa285d773eb0303c6882ff0adee9a6f5"
         },
         "views/provider.php": {
-            "s": 4590,
-            "h": "8528c9bea967531ead03f21564243ea9a6e62c32edfafbe6010f7eb5aabc7d3f"
+            "s": 4659,
+            "h": "b9973f17cea6f599f15eebf1503294a2a800f09943320491d758eccb0809335f"
         },
         "views/provider/_followers.php": {
             "s": 2671,
