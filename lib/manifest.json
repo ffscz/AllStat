@@ -1,5 +1,5 @@
 {
-    "version": "1.5.0",
+    "version": "1.5.1",
     "files": {
         "LICENSE": {
             "s": 35823,
@@ -74,8 +74,8 @@
             "h": "f1fe5c5104ef6795605465f2ebbd93975d5dca077069ece2fe8589e554e6eca8"
         },
         "admin/mcp.php": {
-            "s": 95031,
-            "h": "0bcaca6d23087543fa426ea4dcb730dee96f7f01ec9cfe4e7490027a5a6c0f9b"
+            "s": 95493,
+            "h": "3e734696466ba80a3e562a684226fac597647d9e5e2d5629cb200f47de096a5f"
         },
         "admin/meta-connect.php": {
             "s": 9281,
@@ -282,8 +282,8 @@
             "h": "407cd57fb1b9bf7168e87f3569f690bbf78df58d1a1b2630bc15164bca5d84b4"
         },
         "lang/en/ai.php": {
-            "s": 71390,
-            "h": "9809eae445bcdc878387fbfc1cdd88b7a4a0d88b3fa3bc811823f4462314f418"
+            "s": 72345,
+            "h": "6131ecb6ec948b3d49d25d90c895decd41e64f944d4d5158a4bffac7f31ba5b5"
         },
         "lang/en/core.php": {
             "s": 56962,
@@ -314,8 +314,8 @@
             "h": "43dda6dda491ef7c44e50d91c1ca9b120e4bdea8d50af05e8858fe95347ae2b1"
         },
         "lang/sk/ai.php": {
-            "s": 72543,
-            "h": "225be1afb812862477de1b0b98f4c753048263a5d4d5c98ff55c3614a495fa34"
+            "s": 73518,
+            "h": "2645bb2c5ab043aff295ec4c3b19a2fc44c42145b72c520d99d907efe950f4b2"
         },
         "lang/sk/core.php": {
             "s": 58416,
@@ -402,8 +402,8 @@
             "h": "91dffef625e8e58cbb28ada01afb5c0259b3fae8f68f6bd1bb3c086630a9be8a"
         },
         "lib/mcp-oauth.php": {
-            "s": 113103,
-            "h": "abfc81ab7d0f6c1c39a30cdaf7322b748ab6eaca6dcb829df47109ed594f3809"
+            "s": 113102,
+            "h": "1906a06820a73d81fb4bfa2d23dcb9e92db06878dcd312f4c962b41f0ba4089c"
         },
         "lib/mcp-query.php": {
             "s": 50095,
@@ -426,8 +426,8 @@
             "h": "cfa93fcec2fd43bb2446993047966645d321d679300665b6532ff45bca24d655"
         },
         "lib/migrations.php": {
-            "s": 57490,
-            "h": "dc4a993c04008113ac17ee3214f17889aebb12cca9518823e48e1b17924a5f83"
+            "s": 58188,
+            "h": "f138944d107d24afa1415ba75c337b9e2628ba3c15ca437290d61b6e94d4253f"
         },
         "lib/oauth.php": {
             "s": 30659,
@@ -475,11 +475,11 @@
         },
         "lib/version.php": {
             "s": 542,
-            "h": "e3c13553fe84c834b5714045a98cafc32c4ac0f7012a8f03e68369830a65150a"
+            "h": "022f48942d00cc6212100db4a29f10273b2a7820c3e28e342408e5b2910da537"
         },
         "oauth/authorize.php": {
-            "s": 21286,
-            "h": "22ab66a9e0974f7597ffd9c46247a53e683ddb554ad55868e68aa8d4e11c4537"
+            "s": 22590,
+            "h": "4f5b62d694c7984375d842616c01dac909694ab97e40c23a45a70bfd7b7a15f0"
         },
         "privacy.php": {
             "s": 9867,
