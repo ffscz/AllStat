@@ -44,6 +44,18 @@ Je vždy pro nejnovější verzi a jde vytisknout nebo uložit jako PDF. Tento s
 po instalaci ze serveru smazat.
 
 
+Změny ve verzi 1.5.2
+--------------------
+ * Záložní kódy pro dvoufaktorové ověření: 10 jednorázových kódů pro přihlášení bez telefonu. Ukážou
+   se jednou po nastavení 2FA (kopírovat nebo stáhnout jako .txt). Kdo už 2FA má, vygeneruje si je
+   na stránce Dvoufaktorové ověření, kde vidí i počet zbývajících kódů; nové kódy vyžadují heslo.
+   Přihlašovací stránka počet kódů neukazuje, nabízí jen odkaz „Použít záložní kód“.
+ * Pole pro kód 2FA má šest políček: kurzor po každé číslici přeskočí dál, vložený kód (Ctrl+V)
+   i ručně dopsaná šestá číslice formulář odešlou samy.
+ * Vlastní 2FA jde vypnout jen na stránce Dvoufaktorové ověření se zadáním hesla (dosud stačila
+   otevřená session v Uživatelích). Reset smaže i záložní kódy a odpojí připojení AI.
+ * Databáze: nová tabulka allstat_totp_backup_codes, vytvoří se sama po aktualizaci.
+
 Změny ve verzi 1.5.1
 --------------------
  * Připojení AI (Claude, ChatGPT) může nově povolit jen administrátor s dvoufaktorovým ověřením. Kdo

@@ -320,6 +320,17 @@ CREATE TABLE IF NOT EXISTS allstat_user_audit_log (
     KEY allstat_user_audit_created_idx (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_czech_ci;
 
+-- Záložní kódy 2FA (jen bcrypt hash, jednorázové).
+CREATE TABLE IF NOT EXISTS allstat_totp_backup_codes (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
+    code_hash VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    used_at DATETIME NULL,
+    KEY allstat_totp_backup_codes_user_idx (user_id, used_at),
+    CONSTRAINT allstat_totp_backup_codes_user_fk FOREIGN KEY (user_id) REFERENCES allstat_users (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_czech_ci;
+
 CREATE TABLE IF NOT EXISTS allstat_user_domains (
     user_id INT UNSIGNED NOT NULL,
     domain_id INT UNSIGNED NOT NULL,

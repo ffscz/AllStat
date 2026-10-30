@@ -2455,6 +2455,92 @@ ul.slots {
     text-align: center;
 }
 
+/* Kód 2FA po políčkách (assets/js/otp.js): skutečné pole leží průhledné nad šesti políčky, která jen ukazují číslice. */
+.otp {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 8px;
+    max-width: 320px;
+}
+
+.otp .otp-input {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: transparent;
+    caret-color: transparent;
+    letter-spacing: 0;
+    cursor: text;
+}
+
+.otp .otp-input::selection {
+    background: transparent;
+}
+
+.otp-slot {
+    display: grid;
+    place-items: center;
+    height: 48px;
+    border: 1px solid var(--ctrl);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 20px;
+    font-variant-numeric: tabular-nums;
+}
+
+.otp-slot.is-active {
+    border-color: var(--accent);
+    outline: 2px solid var(--accent);
+    outline-offset: -1px;
+}
+
+.auth-alt {
+    align-self: center;
+    font-size: 13px;
+}
+
+/* Záložní kódy 2FA (admin/setup-2fa.php): dva sloupce, na mobilu jeden. */
+.backup-codes {
+    display: grid;
+    grid-template-columns: repeat(2, max-content);
+    gap: 8px 40px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: backup-code;
+    font-family: var(--font-mono);
+    font-size: 15px;
+}
+
+/* Vlastní číslování: výchozí značky ol přetékají do mezery mezi sloupci a dvoumístné „10.“ se slepí s kódem vedle. */
+.backup-codes li {
+    display: flex;
+    gap: 10px;
+    counter-increment: backup-code;
+}
+
+.backup-codes li::before {
+    content: counter(backup-code) ".";
+    min-width: 3ch;
+    text-align: right;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 420px) {
+    .backup-codes {
+        grid-template-columns: max-content;
+    }
+}
+
 /* Přepínač jazyka (allstat_locale_switcher, lib/i18n.php) */
 .locale-switch {
     display: inline-flex;

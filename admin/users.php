@@ -44,7 +44,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'delete') {
         $result = allstat_delete_user($pdo, (int) $user['id'], (int) ($_POST['id'] ?? 0));
     } elseif ($action === 'reset_2fa') {
-        $result = allstat_reset_user_totp($pdo, (int) $user['id'], (int) ($_POST['id'] ?? 0));
+        // Vlastní 2FA jen na stránce Dvoufaktorové ověření s heslem: otevřená session nesmí stačit k jeho vypnutí.
+        $result = (int) ($_POST['id'] ?? 0) === (int) $user['id']
+            ? ['ok' => false, 'message' => 'Vlastní 2FA resetujte na stránce Dvoufaktorové ověření, kde se potvrzuje heslem.']
+            : allstat_reset_user_totp($pdo, (int) $user['id'], (int) ($_POST['id'] ?? 0));
     } elseif ($action === 'update') {
         $result = allstat_update_user($pdo, (int) $user['id'], (int) ($_POST['id'] ?? 0), $_POST);
     } else {
@@ -172,7 +175,9 @@ allstat_admin_header(t('Uživatelé'), 'users', $user, $config);
                             <?php if ($item['totp_secret_enc'] || $uid !== (int) $user['id']): ?>
                             <button type="button" class="btn-icon btn-sm" aria-label="<?= h(t('Další akce pro {name}', ['name' => $item['name']])) ?>" aria-haspopup="true" aria-expanded="false" data-menu-toggle="user-menu-<?= $uid ?>"><?= allstat_icon('ellipsis', 'icon-sm') ?></button>
                             <div class="menu menu-end" id="user-menu-<?= $uid ?>" hidden>
-                                <?php if ($item['totp_secret_enc']): ?>
+                                <?php if ($item['totp_secret_enc'] && $uid === (int) $user['id']): ?>
+                                    <a class="menu-item" href="<?= h(allstat_url($config, 'admin/setup-2fa.php#reset-2fa')) ?>"><?= allstat_icon('refresh-cw', 'icon-sm') ?><span><?= h(t('Reset 2FA')) ?></span></a>
+                                <?php elseif ($item['totp_secret_enc']): ?>
                                     <form method="post" data-confirm="<?= h(t('Resetovat 2FA pro tohoto uživatele?')) ?>"><?= allstat_csrf_field() ?><input type="hidden" name="action" value="reset_2fa"><input type="hidden" name="id" value="<?= $uid ?>"><button class="menu-item" type="submit"><?= allstat_icon('refresh-cw', 'icon-sm') ?><span><?= h(t('Reset 2FA')) ?></span></button></form>
                                 <?php endif; ?>
                                 <?php if ($item['totp_secret_enc'] && $uid !== (int) $user['id']): ?><div class="menu-sep"></div><?php endif; ?>

@@ -3,6 +3,7 @@
 require_once __DIR__ . '/csrf.php';
 require_once __DIR__ . '/crypto.php';
 require_once __DIR__ . '/totp.php';
+require_once __DIR__ . '/backup-codes.php';
 
 /** Kolik chybných 2FA kódů smí účet zadat za 15 minut, než se ověření zablokuje. */
 const ALLSTAT_TOTP_MAX_FAILURES = 5;
@@ -326,7 +327,11 @@ function allstat_totp_recent_failures(PDO $pdo, int $userId): int
     return (int) ($row['attempts'] ?? 0);
 }
 
-function allstat_complete_totp_login(PDO $pdo, array $config, string $code): array
+/**
+ * Druhý krok přihlášení kódem z aplikace, nebo ($backup = true) jednorázovým záložním kódem. Oba způsoby sdílejí
+ * limit chybných pokusů a stejnou chybovou hlášku, takže z odpovědi nejde poznat, jestli účet záložní kódy má.
+ */
+function allstat_complete_totp_login(PDO $pdo, array $config, string $code, bool $backup = false): array
 {
     $user = allstat_current_user($pdo);
 
@@ -334,25 +339,33 @@ function allstat_complete_totp_login(PDO $pdo, array $config, string $code): arr
         return ['ok' => false, 'message' => t('2FA ověření teď není dostupné.')];
     }
 
+    $userId = (int) $user['id'];
+
     // Limit platí pro účet, ne pro session ani IP: nové přihlášení heslem ho nevynuluje. Po vyčerpání se
     // session odhlásí, takže další pokus znamená znovu heslo (a to hlídá allstat_login_is_throttled).
     $throttled = ['ok' => false, 'throttled' => true, 'message' => t('Příliš mnoho chybných kódů. Přihlaste se znovu za 15 minut.')];
 
-    if (allstat_totp_recent_failures($pdo, (int) $user['id']) >= ALLSTAT_TOTP_MAX_FAILURES) {
-        allstat_audit($pdo, (int) $user['id'], (int) $user['id'], 'login_2fa_throttled');
+    if (allstat_totp_recent_failures($pdo, $userId) >= ALLSTAT_TOTP_MAX_FAILURES) {
+        allstat_audit($pdo, $userId, $userId, 'login_2fa_throttled');
         allstat_logout(false);
         return $throttled;
     }
 
-    $secret = allstat_decrypt_secret($user['totp_secret_enc'], $config);
     $matchedWindow = null;
-    $lastWindow = isset($user['totp_last_window']) ? (int) $user['totp_last_window'] : -1;
 
-    if (!$secret || !allstat_totp_verify($secret, $code, $lastWindow, $matchedWindow)) {
-        allstat_audit($pdo, (int) $user['id'], (int) $user['id'], 'login_2fa_failed');
+    if ($backup) {
+        $valid = allstat_backup_code_consume($pdo, $userId, $code);
+    } else {
+        $secret = allstat_decrypt_secret($user['totp_secret_enc'], $config);
+        $lastWindow = isset($user['totp_last_window']) ? (int) $user['totp_last_window'] : -1;
+        $valid = $secret && allstat_totp_verify($secret, $code, $lastWindow, $matchedWindow);
+    }
 
-        if (allstat_totp_recent_failures($pdo, (int) $user['id']) >= ALLSTAT_TOTP_MAX_FAILURES) {
-            allstat_audit($pdo, (int) $user['id'], (int) $user['id'], 'login_2fa_throttled');
+    if (!$valid) {
+        allstat_audit($pdo, $userId, $userId, 'login_2fa_failed', $backup ? 'backup' : null);
+
+        if (allstat_totp_recent_failures($pdo, $userId) >= ALLSTAT_TOTP_MAX_FAILURES) {
+            allstat_audit($pdo, $userId, $userId, 'login_2fa_throttled');
             allstat_logout(false);
             return $throttled;
         }
@@ -360,15 +373,54 @@ function allstat_complete_totp_login(PDO $pdo, array $config, string $code): arr
         return ['ok' => false, 'message' => t('Kód není platný nebo už byl použitý.')];
     }
 
-    $statement = $pdo->prepare('UPDATE allstat_users SET totp_last_window = ?, last_login_at = NOW() WHERE id = ?');
-    $statement->execute([$matchedWindow, (int) $user['id']]);
+    if ($backup) {
+        $pdo->prepare('UPDATE allstat_users SET last_login_at = NOW() WHERE id = ?')->execute([$userId]);
+    } else {
+        $statement = $pdo->prepare('UPDATE allstat_users SET totp_last_window = ?, last_login_at = NOW() WHERE id = ?');
+        $statement->execute([$matchedWindow, $userId]);
+    }
     session_regenerate_id(true);
-    $_SESSION['user_id'] = (int) $user['id'];
+    $_SESSION['user_id'] = $userId;
     $_SESSION['totp_verified'] = true;
     $_SESSION['totp_action_verified_at'] = time();
-    allstat_audit($pdo, (int) $user['id'], (int) $user['id'], 'login_2fa_ok');
+    allstat_audit($pdo, $userId, $userId, $backup ? 'login_backup_code_ok' : 'login_2fa_ok');
 
-    return ['ok' => true];
+    return ['ok' => true, 'backup_remaining' => $backup ? allstat_backup_codes_remaining($pdo, $userId) : null];
+}
+
+/** Chybná hesla při potvrzení citlivé akce (reset 2FA, nové záložní kódy) za posledních 15 minut. */
+function allstat_password_confirm_failures(PDO $pdo, int $userId): int
+{
+    $row = allstat_fetch_one($pdo, "SELECT COUNT(*) AS attempts FROM allstat_user_audit_log WHERE target_user_id = ? AND action = 'password_confirm_failed' AND created_at >= DATE_SUB(NOW(), INTERVAL 15 MINUTE)", [$userId]);
+
+    return (int) ($row['attempts'] ?? 0);
+}
+
+/**
+ * Potvrzení citlivé akce heslem přihlášeného uživatele. Vrací null při shodě, jinak hlášku. Nejvýš 5 chybných
+ * hesel za 15 minut na účet (stejně jako u přihlášení), pak se akce do té doby nepustí ani se správným heslem.
+ */
+function allstat_confirm_password(PDO $pdo, array $user, mixed $password, string $action): ?string
+{
+    $userId = (int) ($user['id'] ?? 0);
+
+    if (!is_string($password) || $password === '') {
+        return t('Pro potvrzení zadejte své heslo.');
+    }
+
+    if (allstat_password_confirm_failures($pdo, $userId) >= 5) {
+        return t('Příliš mnoho nesprávných pokusů o zadání hesla. Zkuste to znovu za 15 minut.');
+    }
+
+    $row = allstat_fetch_one($pdo, 'SELECT password_hash FROM allstat_users WHERE id = ? AND is_active = 1', [$userId]);
+
+    if (!password_verify($password, (string) ($row['password_hash'] ?? ''))) {
+        allstat_audit($pdo, $userId, $userId, 'password_confirm_failed', $action);
+
+        return t('Heslo nesedí. Zkuste to prosím znovu.');
+    }
+
+    return null;
 }
 
 function allstat_logout(bool $destroyCookie = true): void

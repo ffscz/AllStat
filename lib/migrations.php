@@ -11,7 +11,7 @@ require_once __DIR__ . '/providers.php';
  * v allstat_default_providers, nové výchozí settings) ZVEDNI tuhle konstantu — jinak se změna na
  * produkci neprovede. Formát: YYYY-MM-DD.N.
  */
-const ALLSTAT_SCHEMA_VERSION = '2026-10-30.1';
+const ALLSTAT_SCHEMA_VERSION = '2026-10-30.2';
 
 function allstat_schema_is_current(PDO $pdo): bool
 {
@@ -778,6 +778,17 @@ function allstat_migrate(PDO $pdo): void
         $pdo->prepare("UPDATE allstat_settings SET setting_value = '3600' WHERE setting_key = 'mcp.access_ttl' AND setting_value = '28800'")->execute();
         allstat_setting_default($pdo, 'mcp.access_ttl_1h', '1');
     }
+
+    // Záložní kódy 2FA (2026-10-30.2, lib/backup-codes.php): jen bcrypt hash, smazáním uživatele zmizí i kódy.
+    $pdo->exec("CREATE TABLE IF NOT EXISTS allstat_totp_backup_codes (
+        id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        user_id INT UNSIGNED NOT NULL,
+        code_hash VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        used_at DATETIME NULL,
+        KEY allstat_totp_backup_codes_user_idx (user_id, used_at),
+        CONSTRAINT allstat_totp_backup_codes_user_fk FOREIGN KEY (user_id) REFERENCES allstat_users (id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_czech_ci");
 
     allstat_seed_provider_catalog($pdo);
     allstat_setting_default($pdo, 'security.enforce_2fa', '0');

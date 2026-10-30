@@ -155,6 +155,7 @@ function allstat_reset_user_totp(PDO $pdo, ?int $actorId, int $id): array
 {
     $statement = $pdo->prepare('UPDATE allstat_users SET totp_secret_enc = NULL, totp_last_window = NULL WHERE id = ?');
     $statement->execute([$id]);
+    allstat_backup_codes_delete($pdo, $id);
     allstat_audit($pdo, $actorId, $id, 'user_2fa_reset');
 
     return ['ok' => true, 'message' => t('2FA bylo uživateli resetováno.')];
@@ -174,7 +175,7 @@ function allstat_setup_user_totp(PDO $pdo, array $config, int $id, string $secre
     $_SESSION['totp_action_verified_at'] = time();
     allstat_audit($pdo, $id, $id, 'totp_setup');
 
-    return ['ok' => true, 'message' => t('2FA je zapnuté.')];
+    return ['ok' => true, 'message' => t('2FA je zapnuté.'), 'backup_codes' => allstat_backup_codes_regenerate($pdo, $id)];
 }
 
 function allstat_delete_user(PDO $pdo, ?int $actorId, int $id): array
