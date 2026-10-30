@@ -1,10 +1,10 @@
 {
-    "version": "1.5.2",
-    "published": "2026-10-30T10:56:47Z",
-    "zip_url": "https://github.com/ffscz/AllStat/releases/download/v1.5.2/allstat-1.5.2.zip",
-    "sha256": "11815ecc51d7af672ec8d58306c1f577ebb0a62319552b85786c17feed4c9821",
-    "signature": "MEYCIQCL3ZnEmK4EV9K61EMBKrpDXBsMQ7YDxGoHU8vyhGBR8QIhAKG5ds1Ne6iUiZik33yRgDURHGF1U2UjJWWBNaLhdYyh",
+    "version": "1.5.3",
+    "published": "2026-10-30T11:38:13Z",
+    "zip_url": "https://github.com/ffscz/AllStat/releases/download/v1.5.3/allstat-1.5.3.zip",
+    "sha256": "2b26533fa1e45a43657748b9ed8973bcd4c87b6bb76c739942f2fb4fb1a0e542",
+    "signature": "MEQCIFfK6hqgXysBCbLbqQ6UUigCaV7lH90QpWsd6BR4+AL7AiA2WadWHKxDFe4R5Fen0QaPc/KpHy7se6tbHAvOZUndOw==",
     "min_php": "8.1",
-    "html_url": "https://github.com/ffscz/AllStat/releases/tag/v1.5.2",
-    "notes": "* Záložní kódy pro dvoufaktorové ověření: 10 jednorázových kódů pro přihlášení bez telefonu. Ukážou\n   se jednou po nastavení 2FA (kopírovat nebo stáhnout jako .txt). Kdo už 2FA má, vygeneruje si je\n   na stránce Dvoufaktorové ověření, kde vidí i počet zbývajících kódů; nové kódy vyžadují heslo\n   a kód z aplikace (samotná otevřená session s heslem nestačí).\n   Přihlašovací stránka počet kódů neukazuje, nabízí jen odkaz „Použít záložní kód“.\n * Pole pro kód 2FA má šest políček: kurzor po každé číslici přeskočí dál, vložený kód (Ctrl+V)\n   i ručně dopsaná šestá číslice formulář odešlou samy.\n * Vlastní 2FA jde vypnout jen na stránce Dvoufaktorové ověření se zadáním hesla a kódu z aplikace\n   nebo záložního kódu (dosud stačila otevřená session v Uživatelích). Reset smaže i záložní kódy\n   a odpojí připojení AI.\n * Přepínač jazyka na přihlašovacích stránkách ukazuje celé názvy (Čeština, Slovenčina, English)\n   a šipka už nepřekrývá text.\n * Databáze: nová tabulka allstat_totp_backup_codes, vytvoří se sama po aktualizaci."
+    "html_url": "https://github.com/ffscz/AllStat/releases/tag/v1.5.3",
+    "notes": "* Připojení AI (Claude, ChatGPT) se nově povoluje i kódem z autentizační aplikace. U administrátora\n   se zapnutým 2FA už převzaté přihlášení v prohlížeči ani se znalostí hesla nestačí na připojení,\n   které běží až 180 dní. Dosavadní připojení fungují dál. Doporučujeme zapnout v Nastavení povinné\n   2FA pro všechny.\n * Zapnutí 2FA chce heslo, když od přihlášení heslem uběhlo víc než 10 minut.\n * Uživatelé: vytvoření účtu, nové heslo jinému uživateli, povýšení na administrátora (i znovuzapnutí\n   vypnutého administrátora) a reset cizího 2FA se potvrzují heslem a kódem z aplikace administrátora\n   (bez 2FA jen heslem). Reset cizího 2FA je nově na stránce úpravy uživatele; úprava jména, webů nebo\n   vypnutí účtu potvrzení nepotřebuje.\n * Databáze beze změny."
 }
