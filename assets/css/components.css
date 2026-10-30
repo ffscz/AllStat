@@ -2551,7 +2551,10 @@ ul.slots {
 .locale-switch .input {
     width: auto;
     height: 32px;
-    padding: 0 8px;
+    /* Vpravo místo pro šipku ze select.input, jinak ji text překryje */
+    padding: 0 30px 0 10px;
+    background-position: right 9px center;
+    background-size: 14px;
     color: var(--text-2);
     font-size: 13px;
 }

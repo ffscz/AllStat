@@ -54,6 +54,8 @@ Změny ve verzi 1.5.2
    i ručně dopsaná šestá číslice formulář odešlou samy.
  * Vlastní 2FA jde vypnout jen na stránce Dvoufaktorové ověření se zadáním hesla (dosud stačila
    otevřená session v Uživatelích). Reset smaže i záložní kódy a odpojí připojení AI.
+ * Přepínač jazyka na přihlašovacích stránkách ukazuje celé názvy (Čeština, Slovenčina, English)
+   a šipka už nepřekrývá text.
  * Databáze: nová tabulka allstat_totp_backup_codes, vytvoří se sama po aktualizaci.
 
 Změny ve verzi 1.5.1

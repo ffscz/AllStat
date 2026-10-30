@@ -197,8 +197,8 @@ function allstat_locale_switcher(array $config): string
 {
     $options = '';
     foreach (ALLSTAT_LOCALES as $code => $label) {
-        // Krátké kódy (CS, SK, EN), ať se přepínač vejde i do lišty na mobilu; celý název je v title.
-        $options .= '<option value="' . $code . '" title="' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '"' . (allstat_locale() === $code ? ' selected' : '') . '>' . strtoupper($code) . '</option>';
+        // Celý název jazyka v jeho vlastní řeči (přepínač je jen na přihlašovacích stránkách, místa je dost).
+        $options .= '<option value="' . $code . '" lang="' . $code . '"' . (allstat_locale() === $code ? ' selected' : '') . '>' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '</option>';
     }
 
     return '<form class="locale-switch" method="post" action="' . htmlspecialchars(allstat_url($config, 'admin/locale.php'), ENT_QUOTES, 'UTF-8') . '">'
