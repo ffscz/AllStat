@@ -187,6 +187,8 @@ function allstat_delete_user(PDO $pdo, ?int $actorId, int $id): array
     $statement = $pdo->prepare('DELETE FROM allstat_users WHERE id = ?');
     $statement->execute([$id]);
     $pdo->prepare('DELETE FROM allstat_user_domains WHERE user_id = ?')->execute([$id]);
+    // Jistota i bez cizího klíče (tabulka obnovená z dumpu bez constraintů): nové id nesmí zdědit cizí kódy.
+    allstat_backup_codes_delete($pdo, $id);
     allstat_audit($pdo, $actorId, $id, 'user_deleted');
 
     return ['ok' => true, 'message' => t('Uživatel byl odstraněn.')];

@@ -54,7 +54,15 @@
         const toEnd = () => requestAnimationFrame(() => { input.setSelectionRange(input.value.length, input.value.length); render(); });
         ['focus', 'click', 'keyup'].forEach((type) => input.addEventListener(type, toEnd));
         input.addEventListener('blur', render);
-        input.form?.addEventListener('submit', () => { submitted = input.value; });
+        // Během odesílání tlačítko vypnout: druhý klik by poslal stejný kód se starou session a skončil na přihlášení.
+        input.form?.addEventListener('submit', () => {
+            submitted = input.value;
+            input.form.querySelectorAll('button[type=submit]').forEach((button) => { button.disabled = true; });
+        });
+        // Návrat tlačítkem Zpět (bfcache) vrátí stránku i s vypnutým tlačítkem.
+        window.addEventListener('pageshow', (event) => {
+            if (event.persisted) { input.form?.querySelectorAll('button[type=submit]').forEach((button) => { button.disabled = false; }); }
+        });
         render();
     }
 
@@ -67,13 +75,13 @@
     document.addEventListener('click', (event) => {
         const copy = event.target.closest('[data-backup-copy]');
         if (copy) {
-            navigator.clipboard?.writeText(codesText(copy)).then(() => {
+            navigator.clipboard.writeText(codesText(copy)).then(() => {
                 const label = copy.querySelector('span');
                 if (!label) { return; }
                 const original = label.textContent;
                 label.textContent = copy.dataset.done || original;
                 setTimeout(() => { label.textContent = original; }, 2000);
-            });
+            }).catch(() => {});
             return;
         }
         const download = event.target.closest('[data-backup-download]');
@@ -86,6 +94,17 @@
             link.click();
             link.remove();
             setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+        }
+    });
+
+    // Schránka jde jen přes HTTPS (secure context); bez ní tlačítko Kopírovat schovat, zbude Stáhnout .txt.
+    if (!navigator.clipboard) {
+        document.querySelectorAll('[data-backup-copy]').forEach((button) => { button.hidden = true; });
+    }
+    // Kódy se ukazují jen jednou: po návratu tlačítkem Zpět z bfcache je skrýt (no-store Chrome v bfcache nechává).
+    window.addEventListener('pageshow', (event) => {
+        if (event.persisted) {
+            document.querySelectorAll('[data-backup-codes]').forEach((list) => { list.replaceChildren(); });
         }
     });
 

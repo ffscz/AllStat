@@ -2502,6 +2502,26 @@ ul.slots {
     outline-offset: -1px;
 }
 
+/* Vysoký kontrast přebije průhledný text, číslice by byly vidět dvakrát: ukázat jen skutečné pole. */
+@media (forced-colors: active) {
+    .otp {
+        display: block;
+    }
+
+    .otp-slot {
+        display: none;
+    }
+
+    .otp .otp-input {
+        position: static;
+        height: 48px;
+        border: 1px solid;
+        color: inherit;
+        caret-color: auto;
+        letter-spacing: 0.3em;
+    }
+}
+
 .auth-alt {
     align-self: center;
     font-size: 13px;
