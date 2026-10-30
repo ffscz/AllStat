@@ -319,6 +319,18 @@ function allstat_login(PDO $pdo, array $config, string $email, string $password)
     return ['ok' => true, 'user' => $user, 'requires_totp' => !empty($user['totp_secret_enc'])];
 }
 
+/**
+ * Zabere okno TOTP kódu, aby šel použít jen jednou: podmíněný UPDATE projde jen jednomu ze souběžných požadavků
+ * a okno nikdy nevrátí zpět (pozdější požadavek se starším kódem neuvolní novější okno).
+ */
+function allstat_totp_claim_window(PDO $pdo, int $userId, int $window): bool
+{
+    $statement = $pdo->prepare('UPDATE allstat_users SET totp_last_window = ? WHERE id = ? AND (totp_last_window IS NULL OR totp_last_window < ?)');
+    $statement->execute([$window, $userId, $window]);
+
+    return $statement->rowCount() === 1;
+}
+
 /** Chybné 2FA kódy účtu za posledních 15 minut (počítají se ze záznamů login_2fa_failed v auditu). */
 function allstat_totp_recent_failures(PDO $pdo, int $userId): int
 {
@@ -358,7 +370,8 @@ function allstat_complete_totp_login(PDO $pdo, array $config, string $code, bool
     } else {
         $secret = allstat_decrypt_secret($user['totp_secret_enc'], $config);
         $lastWindow = isset($user['totp_last_window']) ? (int) $user['totp_last_window'] : -1;
-        $valid = $secret && allstat_totp_verify($secret, $code, $lastWindow, $matchedWindow);
+        $valid = $secret && allstat_totp_verify($secret, $code, $lastWindow, $matchedWindow)
+            && allstat_totp_claim_window($pdo, $userId, (int) $matchedWindow);
     }
 
     if (!$valid) {
@@ -373,12 +386,7 @@ function allstat_complete_totp_login(PDO $pdo, array $config, string $code, bool
         return ['ok' => false, 'message' => t('Kód není platný nebo už byl použitý.')];
     }
 
-    if ($backup) {
-        $pdo->prepare('UPDATE allstat_users SET last_login_at = NOW() WHERE id = ?')->execute([$userId]);
-    } else {
-        $statement = $pdo->prepare('UPDATE allstat_users SET totp_last_window = ?, last_login_at = NOW() WHERE id = ?');
-        $statement->execute([$matchedWindow, $userId]);
-    }
+    $pdo->prepare('UPDATE allstat_users SET last_login_at = NOW() WHERE id = ?')->execute([$userId]);
     session_regenerate_id(true);
     $_SESSION['user_id'] = $userId;
     $_SESSION['totp_verified'] = true;
@@ -449,10 +457,8 @@ function allstat_confirm_totp(PDO $pdo, array $config, array $user, mixed $code,
         $secret = allstat_decrypt_secret($row['totp_secret_enc'], $config);
         $matchedWindow = null;
         $lastWindow = isset($row['totp_last_window']) ? (int) $row['totp_last_window'] : -1;
-        $valid = $secret && allstat_totp_verify($secret, $code, $lastWindow, $matchedWindow);
-        if ($valid) {
-            $pdo->prepare('UPDATE allstat_users SET totp_last_window = ? WHERE id = ?')->execute([$matchedWindow, $userId]);
-        }
+        $valid = $secret && allstat_totp_verify($secret, $code, $lastWindow, $matchedWindow)
+            && allstat_totp_claim_window($pdo, $userId, (int) $matchedWindow);
     } elseif ($allowBackup && !empty($row['totp_secret_enc'])) {
         $valid = allstat_backup_code_consume($pdo, $userId, $code);
     }

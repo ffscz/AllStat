@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($action === 'reset_2fa') {
         // Vlastní 2FA jen na stránce Dvoufaktorové ověření s heslem: otevřená session nesmí stačit k jeho vypnutí.
         $result = (int) ($_POST['id'] ?? 0) === (int) $user['id']
-            ? ['ok' => false, 'message' => 'Vlastní 2FA resetujte na stránce Dvoufaktorové ověření, kde se potvrzuje heslem.']
+            ? ['ok' => false, 'message' => 'Vlastní 2FA resetujte na stránce Dvoufaktorové ověření, kde se potvrzuje heslem a kódem z aplikace nebo záložním kódem.']
             : allstat_reset_user_totp($pdo, (int) $user['id'], (int) ($_POST['id'] ?? 0));
     } elseif ($action === 'update') {
         $result = allstat_update_user($pdo, (int) $user['id'], (int) ($_POST['id'] ?? 0), $_POST);

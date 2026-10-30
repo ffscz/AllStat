@@ -573,7 +573,7 @@ return [
     'Opravdu vypnout 2FA pro váš účet?' => 'Really turn off 2FA for your account?',
     'Resetovat 2FA' => 'Reset 2FA',
     'Pro potvrzení zadejte své heslo.' => 'Enter your password to confirm.',
-    'Vlastní 2FA resetujte na stránce Dvoufaktorové ověření, kde se potvrzuje heslem.' => 'Reset your own 2FA on the Two-factor authentication page, where you confirm it with your password.',
+    'Vlastní 2FA resetujte na stránce Dvoufaktorové ověření, kde se potvrzuje heslem a kódem z aplikace nebo záložním kódem.' => 'Reset your own 2FA on the Two-factor authentication page, where you confirm it with your password and a code from the app or a backup code.',
     'Vypne 2FA pro váš účet, třeba při výměně telefonu (bez telefonu potvrdíte záložním kódem). Záložní kódy přestanou platit, připojení AI se odpojí a 2FA pak nastavíte znovu.' => 'Turns off 2FA for your account, for example when you change phones (without your phone, confirm with a backup code). Backup codes stop working, AI connections are disconnected and you then set up 2FA again.',
     'Kód z aplikace' => 'Code from the app',
     'Kód z aplikace nebo záložní kód' => 'Code from the app or a backup code',

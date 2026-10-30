@@ -573,7 +573,7 @@ return [
     'Opravdu vypnout 2FA pro váš účet?' => 'Naozaj vypnúť 2FA pre váš účet?',
     'Resetovat 2FA' => 'Resetovať 2FA',
     'Pro potvrzení zadejte své heslo.' => 'Na potvrdenie zadajte svoje heslo.',
-    'Vlastní 2FA resetujte na stránce Dvoufaktorové ověření, kde se potvrzuje heslem.' => 'Vlastné 2FA resetujte na stránke Dvojfaktorové overenie, kde sa potvrdzuje heslom.',
+    'Vlastní 2FA resetujte na stránce Dvoufaktorové ověření, kde se potvrzuje heslem a kódem z aplikace nebo záložním kódem.' => 'Vlastné 2FA resetujte na stránke Dvojfaktorové overenie, kde sa potvrdzuje heslom a kódom z aplikácie alebo záložným kódom.',
     'Vypne 2FA pro váš účet, třeba při výměně telefonu (bez telefonu potvrdíte záložním kódem). Záložní kódy přestanou platit, připojení AI se odpojí a 2FA pak nastavíte znovu.' => 'Vypne 2FA pre váš účet, napríklad pri výmene telefónu (bez telefónu potvrdíte záložným kódom). Záložné kódy prestanú platiť, pripojenia AI sa odpoja a 2FA potom nastavíte znova.',
     'Kód z aplikace' => 'Kód z aplikácie',
     'Kód z aplikace nebo záložní kód' => 'Kód z aplikácie alebo záložný kód',
