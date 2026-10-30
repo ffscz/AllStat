@@ -423,6 +423,51 @@ function allstat_confirm_password(PDO $pdo, array $user, mixed $password, string
     return null;
 }
 
+/**
+ * Čerstvý kód 2FA u citlivé akce (nové záložní kódy, vlastní reset 2FA): samotné heslo a otevřená session nestačí,
+ * útočník by si jinak vyrobil trvalý obchvat 2FA. Šest číslic je kód z aplikace (jen jednou za okno, jako při
+ * přihlášení), s $allowBackup se jinak zkusí jednorázový záložní kód. Chybné pokusy sdílí limit s přihlášením 2FA.
+ * Vrací null při úspěchu, jinak hlášku.
+ */
+function allstat_confirm_totp(PDO $pdo, array $config, array $user, mixed $code, string $action, bool $allowBackup = false): ?string
+{
+    $userId = (int) ($user['id'] ?? 0);
+    $code = is_string($code) ? trim($code) : '';
+
+    if ($code === '') {
+        return $allowBackup ? t('Zadejte kód z aplikace nebo záložní kód.') : t('Zadejte kód z autentizační aplikace.');
+    }
+
+    if (allstat_totp_recent_failures($pdo, $userId) >= ALLSTAT_TOTP_MAX_FAILURES) {
+        return t('Příliš mnoho chybných kódů. Zkuste to znovu za 15 minut.');
+    }
+
+    $row = allstat_fetch_one($pdo, 'SELECT totp_secret_enc, totp_last_window FROM allstat_users WHERE id = ? AND is_active = 1', [$userId]);
+    $valid = false;
+
+    if (!empty($row['totp_secret_enc']) && preg_match('/^\d{6}$/', $code) === 1) {
+        $secret = allstat_decrypt_secret($row['totp_secret_enc'], $config);
+        $matchedWindow = null;
+        $lastWindow = isset($row['totp_last_window']) ? (int) $row['totp_last_window'] : -1;
+        $valid = $secret && allstat_totp_verify($secret, $code, $lastWindow, $matchedWindow);
+        if ($valid) {
+            $pdo->prepare('UPDATE allstat_users SET totp_last_window = ? WHERE id = ?')->execute([$matchedWindow, $userId]);
+        }
+    } elseif ($allowBackup && !empty($row['totp_secret_enc'])) {
+        $valid = allstat_backup_code_consume($pdo, $userId, $code);
+    }
+
+    if (!$valid) {
+        allstat_audit($pdo, $userId, $userId, 'login_2fa_failed', $action);
+
+        return t('Kód není platný nebo už byl použitý.');
+    }
+
+    $_SESSION['totp_action_verified_at'] = time();
+
+    return null;
+}
+
 function allstat_logout(bool $destroyCookie = true): void
 {
     $_SESSION = [];

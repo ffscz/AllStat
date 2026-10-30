@@ -67,7 +67,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $error = t($result['message']);
     } elseif ($action === 'regenerate_backup_codes') {
-        $error = allstat_confirm_password($pdo, $user, $_POST['password'] ?? null, 'backup_codes');
+        // Heslo i kód z aplikace: ukradená session se znalostí hesla nesmí stačit na trvalý obchvat 2FA.
+        $error = allstat_confirm_password($pdo, $user, $_POST['password'] ?? null, 'backup_codes')
+            ?? allstat_confirm_totp($pdo, $config, $user, $_POST['totp_code'] ?? null, 'backup_codes');
 
         if ($error === null) {
             $codes = allstat_backup_codes_regenerate($pdo, $userId);
@@ -80,7 +82,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     } elseif ($action === 'reset_own_2fa' && $isAdmin) {
-        $error = allstat_confirm_password($pdo, $user, $_POST['password'] ?? null, 'reset_own_2fa');
+        // Jinak by heslo stačilo na vypnutí a nové nastavení 2FA s cizím telefonem. Bez telefonu poslouží záložní kód.
+        $error = allstat_confirm_password($pdo, $user, $_POST['password'] ?? null, 'reset_own_2fa')
+            ?? allstat_confirm_totp($pdo, $config, $user, $_POST['totp_code'] ?? null, 'reset_own_2fa', true);
 
         if ($error === null) {
             allstat_reset_user_totp($pdo, $userId, $userId);
@@ -158,6 +162,7 @@ allstat_admin_header(t('Dvoufaktorové ověření'), '2fa', $user, $config);
             <?= allstat_csrf_field() ?>
             <input type="hidden" name="action" value="regenerate_backup_codes">
             <label class="field"><span class="field-label"><?= h(t('Vaše heslo')) ?></span><input class="input" type="password" name="password" required autocomplete="current-password"></label>
+            <label class="field"><span class="field-label"><?= h(t('Kód z aplikace')) ?></span><input class="input input-code" type="text" name="totp_code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required autocomplete="one-time-code" spellcheck="false" data-otp></label>
             <div class="form-actions field-full"><button class="btn btn-secondary" type="submit"><?= h($remaining > 0 || $shownCodes ? t('Vygenerovat nové kódy') : t('Vygenerovat záložní kódy')) ?></button></div>
         </form>
     </div>
@@ -168,7 +173,7 @@ allstat_admin_header(t('Dvoufaktorové ověření'), '2fa', $user, $config);
     <div class="card-head">
         <div>
             <h2 class="card-title"><?= h(t('Reset 2FA')) ?></h2>
-            <p class="card-desc"><?= h(t('Vypne 2FA pro váš účet, třeba při výměně telefonu. Záložní kódy přestanou platit a připojení AI se odpojí. Pak 2FA nastavíte znovu.')) ?></p>
+            <p class="card-desc"><?= h(t('Vypne 2FA pro váš účet, třeba při výměně telefonu (bez telefonu potvrdíte záložním kódem). Záložní kódy přestanou platit, připojení AI se odpojí a 2FA pak nastavíte znovu.')) ?></p>
         </div>
     </div>
     <div class="card-body section">
@@ -176,6 +181,7 @@ allstat_admin_header(t('Dvoufaktorové ověření'), '2fa', $user, $config);
             <?= allstat_csrf_field() ?>
             <input type="hidden" name="action" value="reset_own_2fa">
             <label class="field"><span class="field-label"><?= h(t('Vaše heslo')) ?></span><input class="input" type="password" name="password" required autocomplete="current-password"></label>
+            <label class="field"><span class="field-label"><?= h(t('Kód z aplikace nebo záložní kód')) ?></span><input class="input input-code" type="text" name="totp_code" maxlength="12" required autocomplete="one-time-code" autocapitalize="characters" spellcheck="false"></label>
             <div class="form-actions field-full"><button class="btn btn-danger" type="submit"><?= h(t('Resetovat 2FA')) ?></button></div>
         </form>
     </div>
