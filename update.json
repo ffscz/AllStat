@@ -1,10 +1,10 @@
 {
-    "version": "1.5.1",
-    "published": "2026-10-30T09:39:29Z",
-    "zip_url": "https://github.com/ffscz/AllStat/releases/download/v1.5.1/allstat-1.5.1.zip",
-    "sha256": "d73f39ac9658a4a880dfc33694964098c32adc368ee8400e53c1a4bde93833da",
-    "signature": "MEYCIQCtyXvjtdalYjHrrR/48r1uz6A2BaRa6UFbl3MojuljFgIhAMXb7AFn/Mxn4GzWOOL8cp6N7V7FsGPwlzMTIDI9D16/",
+    "version": "1.5.2",
+    "published": "2026-10-30T10:56:47Z",
+    "zip_url": "https://github.com/ffscz/AllStat/releases/download/v1.5.2/allstat-1.5.2.zip",
+    "sha256": "11815ecc51d7af672ec8d58306c1f577ebb0a62319552b85786c17feed4c9821",
+    "signature": "MEYCIQCL3ZnEmK4EV9K61EMBKrpDXBsMQ7YDxGoHU8vyhGBR8QIhAKG5ds1Ne6iUiZik33yRgDURHGF1U2UjJWWBNaLhdYyh",
     "min_php": "8.1",
-    "html_url": "https://github.com/ffscz/AllStat/releases/tag/v1.5.1",
-    "notes": "* Připojení AI (Claude, ChatGPT) může nově povolit jen administrátor s dvoufaktorovým ověřením. Kdo\n   ho nemá, uvidí na stránce souhlasu odkaz na jeho nastavení a pak připojení v aplikaci zopakuje.\n   Dosavadní připojení dál fungují; nastavení 2FA je ale (jako dosud) odpojí a je potřeba je připojit\n   znovu. Na stránce AI konektory na to upozorní hláška.\n * Přístupový token připojení AI platí místo 8 hodin 1 hodinu. AI aplikace si ho obnovuje sama, nikdo\n   se nemusí znovu přihlašovat. Vlastní hodnotu jinou než 8 hodin aktualizace nepřepíše.\n * Databáze: jen úprava nastavení mcp.access_ttl, doplní se sama po aktualizaci."
+    "html_url": "https://github.com/ffscz/AllStat/releases/tag/v1.5.2",
+    "notes": "* Záložní kódy pro dvoufaktorové ověření: 10 jednorázových kódů pro přihlášení bez telefonu. Ukážou\n   se jednou po nastavení 2FA (kopírovat nebo stáhnout jako .txt). Kdo už 2FA má, vygeneruje si je\n   na stránce Dvoufaktorové ověření, kde vidí i počet zbývajících kódů; nové kódy vyžadují heslo\n   a kód z aplikace (samotná otevřená session s heslem nestačí).\n   Přihlašovací stránka počet kódů neukazuje, nabízí jen odkaz „Použít záložní kód“.\n * Pole pro kód 2FA má šest políček: kurzor po každé číslici přeskočí dál, vložený kód (Ctrl+V)\n   i ručně dopsaná šestá číslice formulář odešlou samy.\n * Vlastní 2FA jde vypnout jen na stránce Dvoufaktorové ověření se zadáním hesla a kódu z aplikace\n   nebo záložního kódu (dosud stačila otevřená session v Uživatelích). Reset smaže i záložní kódy\n   a odpojí připojení AI.\n * Přepínač jazyka na přihlašovacích stránkách ukazuje celé názvy (Čeština, Slovenčina, English)\n   a šipka už nepřekrývá text.\n * Databáze: nová tabulka allstat_totp_backup_codes, vytvoří se sama po aktualizaci."
 }
