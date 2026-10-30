@@ -138,8 +138,8 @@
             "h": "b222330520bbfcdbf1ad8c9e1f03b1810d11c48f5d1bd8fe1f3e38adac9e1626"
         },
         "admin/users.php": {
-            "s": 15400,
-            "h": "4f936c50e8571cc5114e47ee425418a917702b27680accf837af8ce1879c3020"
+            "s": 15444,
+            "h": "23f9891c0f4c1b2ae20f07b930552ebe252314b98a54ec181118c2e9cfb84ed7"
         },
         "allstat-mcp/app-path.php": {
             "s": 31,
@@ -282,8 +282,8 @@
             "h": "dfea701c561eeadff113d629cd900772e16cc1cdb42152b31f87948f11376845"
         },
         "lang/en/admin.php": {
-            "s": 62901,
-            "h": "5984d5cbbc88fac8469b80070b0a3ffc4d0a7a0c47f48106834c6f6b691d08bf"
+            "s": 62986,
+            "h": "4b9b16b2f6612039d4e176a279c4ac483b73d390c26445d85916b7e2041153b9"
         },
         "lang/en/ai.php": {
             "s": 72345,
@@ -314,8 +314,8 @@
             "h": "653f4ede8f618951f0d403587d4db2a28f01f0ff1eeef307193c50eb1cbdbe93"
         },
         "lang/sk/admin.php": {
-            "s": 64012,
-            "h": "467485c7caaa0bf3737d6f1645ec17bbb5388778c9136ec27b6f90f9bcd91412"
+            "s": 64103,
+            "h": "73b1ace603ec7b5bd001870ba3971ae3849b556ba7a3b7ec1ca284cfda5c2314"
         },
         "lang/sk/ai.php": {
             "s": 73518,
@@ -354,8 +354,8 @@
             "h": "13d62cf1aa8a431f1f909a9a16885b33a1a293729cda43b184dc8e64447fe29b"
         },
         "lib/auth.php": {
-            "s": 21725,
-            "h": "194ce412337e9b7332d182456009ab261c41fb7b23bb5e6e7fd80d3b1784e937"
+            "s": 22069,
+            "h": "83fda11722ad5404d6b0cf8f9134ff23666b7fe509ea1323c3893bf7f3c0e9a2"
         },
         "lib/backup-codes.php": {
             "s": 5037,
