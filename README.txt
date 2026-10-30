@@ -51,7 +51,7 @@ Změny ve verzi 1.5.1
    Dosavadní připojení dál fungují; nastavení 2FA je ale (jako dosud) odpojí a je potřeba je připojit
    znovu. Na stránce AI konektory na to upozorní hláška.
  * Přístupový token připojení AI platí místo 8 hodin 1 hodinu. AI aplikace si ho obnovuje sama, nikdo
-   se nemusí znovu přihlašovat. Vlastní hodnotu nastavenou v databázi aktualizace nepřepíše.
+   se nemusí znovu přihlašovat. Vlastní hodnotu jinou než 8 hodin aktualizace nepřepíše.
  * Databáze: jen úprava nastavení mcp.access_ttl, doplní se sama po aktualizaci.
 
 Změny ve verzi 1.5.0
