@@ -110,8 +110,8 @@
             "h": "a1c44d0ff479d105349cf2b7f7437e78fc7af7e22bb888ebc1625b13a260c2d2"
         },
         "admin/setup-2fa.php": {
-            "s": 12453,
-            "h": "ddac450d573d3707c247d3cf01e0157260ff62b3ca840ad9a811a7f53e82fb87"
+            "s": 13422,
+            "h": "ce6898a9914c2b3cf8578a754755ed5069f56b7c0e6c19fc565e00a3bde5b48d"
         },
         "admin/share-create.php": {
             "s": 3282,
@@ -138,8 +138,8 @@
             "h": "b222330520bbfcdbf1ad8c9e1f03b1810d11c48f5d1bd8fe1f3e38adac9e1626"
         },
         "admin/users.php": {
-            "s": 20335,
-            "h": "34833a83d759e25a105fdcceefc9025a8f62ec979c5a80e2f86ae89cd270b272"
+            "s": 20827,
+            "h": "a7142bd3955e83161013b09d0a10d52b04f8dfca40a26ace0610aaa48a83df5b"
         },
         "allstat-mcp/app-path.php": {
             "s": 31,
@@ -282,8 +282,8 @@
             "h": "dfea701c561eeadff113d629cd900772e16cc1cdb42152b31f87948f11376845"
         },
         "lang/en/admin.php": {
-            "s": 64107,
-            "h": "8adf881c3ece70dde4a553f9a2b6d930aea28c8d5c9607ee67781b25b2d2fd78"
+            "s": 64185,
+            "h": "cf9567e428dbe75f608b0cdf6c2643c15eb013b01d8e85507e562528cc8ec159"
         },
         "lang/en/ai.php": {
             "s": 72345,
@@ -314,8 +314,8 @@
             "h": "653f4ede8f618951f0d403587d4db2a28f01f0ff1eeef307193c50eb1cbdbe93"
         },
         "lang/sk/admin.php": {
-            "s": 65172,
-            "h": "34f03acfa9f00c67b95e0c51e3ffc88bae6043e63e33a15a184bdfea00ae0a11"
+            "s": 65266,
+            "h": "2268cf042a80c2dabcd55facf535f803906bb023a74962d2089693674dee8a2f"
         },
         "lang/sk/ai.php": {
             "s": 73518,
@@ -354,8 +354,8 @@
             "h": "13d62cf1aa8a431f1f909a9a16885b33a1a293729cda43b184dc8e64447fe29b"
         },
         "lib/auth.php": {
-            "s": 22069,
-            "h": "83fda11722ad5404d6b0cf8f9134ff23666b7fe509ea1323c3893bf7f3c0e9a2"
+            "s": 22211,
+            "h": "472f76f2af583085d57751374b7d3d39511da9db52fee0edb74646f0cac0c556"
         },
         "lib/backup-codes.php": {
             "s": 5037,
