@@ -1,5 +1,5 @@
 {
-    "version": "1.5.2",
+    "version": "1.5.3",
     "files": {
         "LICENSE": {
             "s": 35823,
@@ -138,8 +138,8 @@
             "h": "b222330520bbfcdbf1ad8c9e1f03b1810d11c48f5d1bd8fe1f3e38adac9e1626"
         },
         "admin/users.php": {
-            "s": 15444,
-            "h": "23f9891c0f4c1b2ae20f07b930552ebe252314b98a54ec181118c2e9cfb84ed7"
+            "s": 20335,
+            "h": "34833a83d759e25a105fdcceefc9025a8f62ec979c5a80e2f86ae89cd270b272"
         },
         "allstat-mcp/app-path.php": {
             "s": 31,
@@ -282,8 +282,8 @@
             "h": "dfea701c561eeadff113d629cd900772e16cc1cdb42152b31f87948f11376845"
         },
         "lang/en/admin.php": {
-            "s": 62986,
-            "h": "4b9b16b2f6612039d4e176a279c4ac483b73d390c26445d85916b7e2041153b9"
+            "s": 64107,
+            "h": "8adf881c3ece70dde4a553f9a2b6d930aea28c8d5c9607ee67781b25b2d2fd78"
         },
         "lang/en/ai.php": {
             "s": 72345,
@@ -314,8 +314,8 @@
             "h": "653f4ede8f618951f0d403587d4db2a28f01f0ff1eeef307193c50eb1cbdbe93"
         },
         "lang/sk/admin.php": {
-            "s": 64103,
-            "h": "73b1ace603ec7b5bd001870ba3971ae3849b556ba7a3b7ec1ca284cfda5c2314"
+            "s": 65172,
+            "h": "34f03acfa9f00c67b95e0c51e3ffc88bae6043e63e33a15a184bdfea00ae0a11"
         },
         "lang/sk/ai.php": {
             "s": 73518,
@@ -483,11 +483,11 @@
         },
         "lib/version.php": {
             "s": 542,
-            "h": "5583c72bafb13cbad21e2249f7fcd7a923adea6859ccf6a1dc90977fd881ebcd"
+            "h": "64a25393308bba088966818392449301f30fff818f6d5f373c024ea6eca1259d"
         },
         "oauth/authorize.php": {
-            "s": 22590,
-            "h": "4f5b62d694c7984375d842616c01dac909694ab97e40c23a45a70bfd7b7a15f0"
+            "s": 24141,
+            "h": "8c6c32f871b805a111feb56f42c31ff2bc8f2497584e5d9f8df8103866fe8fba"
         },
         "privacy.php": {
             "s": 9867,
