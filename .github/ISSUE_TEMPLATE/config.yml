@@ -3,6 +3,9 @@ contact_links:
   - name: Návod k instalaci a aktualizaci
     url: https://ffscz.github.io/AllStat/
     about: Postup krok za krokem a řešení častých potíží.
+  - name: Dotazy a nápady
+    url: https://github.com/ffscz/AllStat/discussions
+    about: Otázky k instalaci a používání, nápady k diskuzi.
   - name: Bezpečnostní chyba
     url: https://github.com/ffscz/AllStat/security/advisories/new
     about: Zranitelnost hlaste soukromě, ne veřejným issue.
