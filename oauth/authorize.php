@@ -194,7 +194,7 @@ function allstat_mcp_authz_allow_form_target(string $redirectUri): bool
 
 /**
  * Čas posledního ověření heslem v této session: přihlášení heslem (user_authed_at, nastavuje se jen v
- * allstat_attempt_login() hned po ověření hesla) nebo potvrzení hesla na této stránce. Záměrně se NEPOČÍTÁ
+ * allstat_attempt_login() hned po ověření hesla a v allstat_confirm_password() po potvrzení heslem) nebo potvrzení hesla na této stránce. Záměrně se NEPOČÍTÁ
  * totp_action_verified_at: nastavuje ho i zapnutí 2FA (admin/setup-2fa.php), které heslo nevyžaduje, takže by
  * ukradená session mohla souhlas potvrdit bez znalosti hesla.
  */
