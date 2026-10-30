@@ -118,6 +118,24 @@ function allstat_mcp_authz_page(array $config, int $status, string $title, strin
     exit;
 }
 
+/**
+ * Povolit připojení AI smí jen administrátor s dvoufaktorovým ověřením: data všech webů jdou ven z AllStatu,
+ * proto samotné heslo nestačí. Stránka odkáže na nastavení 2FA; připojení se pak zopakuje v aplikaci.
+ */
+function allstat_mcp_authz_totp_required_page(array $config): never
+{
+    $heading = t('Nejdřív nastavte dvoufaktorové ověření');
+    allstat_mcp_authz_page(
+        $config,
+        403,
+        $heading,
+        '<div class="auth-head"><h1 class="h1">' . h($heading) . '</h1>'
+        . '<p class="auth-desc">' . h(t('Připojení AI dostane přístup k datům všech webů, proto ho může povolit jen administrátor s dvoufaktorovým ověřením.')) . '</p></div>'
+        . '<div class="callout tone-warn" role="alert">' . allstat_icon('info', 'icon-sm') . '<span>' . h(t('Nastavte si dvoufaktorové ověření a pak připojení v aplikaci zopakujte.')) . '</span></div>'
+        . '<a class="btn btn-primary" href="' . h(allstat_url($config, 'admin/setup-2fa.php')) . '">' . h(t('Nastavit dvoufaktorové ověření')) . '</a>'
+    );
+}
+
 /** Česká chybová stránka (bez jakéhokoli přesměrování). */
 function allstat_mcp_authz_error(array $config, int $status, string $heading, string $message): never
 {
@@ -347,6 +365,10 @@ if ($method === 'POST') {
     $isAdmin = allstat_mcp_oauth_active_admin($pdo, (int) $user['id']) !== null;
     $allow = ($_POST['decision'] ?? '') === 'allow' && $isAdmin;
 
+    if ($allow && !allstat_user_has_totp($user)) {
+        allstat_mcp_authz_totp_required_page($config);
+    }
+
     // Krok navíc: po delší době od přihlášení se před vydáním kódu ověří heslo. Chyba znamená znovu stránku souhlasu
     // (nikdy přesměrování do aplikace) a požadavek se za vyřízený nepovažuje.
     if ($allow && allstat_mcp_authz_needs_password()) {
@@ -407,6 +429,10 @@ if ($sessionUser && allstat_user_has_totp($sessionUser) && empty($_SESSION['totp
 
 $user = allstat_require_user($pdo, $config);
 $isAdmin = ($user['role'] ?? '') === 'admin';
+
+if ($isAdmin && !allstat_user_has_totp($user)) {
+    allstat_mcp_authz_totp_required_page($config);
+}
 
 allstat_mcp_authz_consent_page(
     $config,

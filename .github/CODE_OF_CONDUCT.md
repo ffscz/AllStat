@@ -20,13 +20,13 @@ AllStat is a small open-source project. We want everyone to feel welcome in issu
 
 ## Reporting
 
-If someone breaks these rules, use **Report content** in the menu (…) of the comment, issue or discussion. Only the maintainers see the report. For serious cases you can also report the account to GitHub with **Report abuse**.
+If someone breaks these rules, report it to GitHub with **Report content** in the menu (…) of the comment, issue or discussion, or with **Report abuse** on the person's profile. The maintainers follow the project and step in themselves too.
 
 Security issues are not reported here. See [SECURITY.md](SECURITY.md).
 
 ## What the maintainers do
 
-The maintainers may edit or remove comments, close or lock threads, and block people who break these rules repeatedly or seriously. They decide fairly and keep the reporter's identity confidential.
+The maintainers may edit or remove comments, close or lock threads, and block people who break these rules repeatedly or seriously. They decide fairly.
 
 These rules apply in all project spaces on GitHub and wherever someone represents the project.
 
@@ -56,12 +56,12 @@ AllStat je malý open-source projekt. Chceme, aby se v issues, diskuzích a pull
 
 ## Hlášení
 
-Když někdo pravidla poruší, použijte **Report content** v nabídce (…) u komentáře, issue nebo diskuze. Hlášení uvidí jen správci. Ve vážných případech můžete účet nahlásit i GitHubu přes **Report abuse**.
+Když někdo pravidla poruší, nahlaste to GitHubu přes **Report content** v nabídce (…) u komentáře, issue nebo diskuze, nebo přes **Report abuse** na profilu dotyčného. Správci projekt sledují a zasahují i sami.
 
 Bezpečnostní chyby se tady nehlásí. Viz [SECURITY.md](SECURITY.md).
 
 ## Co udělají správci
 
-Správci mohou komentáře upravit nebo smazat, vlákno uzavřít nebo zamknout a zablokovat toho, kdo pravidla porušuje opakovaně nebo vážně. Rozhodují férově a totožnost oznamovatele nezveřejní.
+Správci mohou komentáře upravit nebo smazat, vlákno uzavřít nebo zamknout a zablokovat toho, kdo pravidla porušuje opakovaně nebo vážně. Rozhodují férově.
 
 Pravidla platí ve všech prostorech projektu na GitHubu a všude, kde někdo projekt zastupuje.

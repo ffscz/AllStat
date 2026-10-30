@@ -445,4 +445,10 @@ return [
     'Příliš mnoho nesprávných pokusů o zadání hesla k tomuto účtu. Zkuste to znovu za hodinu.' => 'Príliš veľa nesprávnych pokusov o zadanie hesla k tomuto účtu. Skúste to znova o hodinu.',
     'Heslo nesedí. Zkuste to prosím znovu.' => 'Heslo nesedí. Skúste to, prosím, znova.',
     'AllStat MCP server (jen pro čtení). Adresa konektoru pro Claude nebo ChatGPT: {url}' => 'AllStat MCP server (iba na čítanie). Adresa konektora pre Claude alebo ChatGPT: {url}',
+    'Nové připojení AI může povolit jen administrátor s dvoufaktorovým ověřením.' => 'Nové pripojenie AI môže povoliť iba administrátor s dvojfaktorovým overením.',
+    'Nastavit dvoufaktorové ověření' => 'Nastaviť dvojfaktorové overenie',
+    '(dosavadní připojení se tím odpojí, v aplikaci je pak připojíte znovu).' => '(doterajšie pripojenia sa tým odpoja, v aplikácii ich potom pripojíte znova).',
+    'Nejdřív nastavte dvoufaktorové ověření' => 'Najprv nastavte dvojfaktorové overenie',
+    'Připojení AI dostane přístup k datům všech webů, proto ho může povolit jen administrátor s dvoufaktorovým ověřením.' => 'Pripojenie AI dostane prístup k dátam všetkých webov, preto ho môže povoliť iba administrátor s dvojfaktorovým overením.',
+    'Nastavte si dvoufaktorové ověření a pak připojení v aplikaci zopakujte.' => 'Nastavte si dvojfaktorové overenie a potom pripojenie v aplikácii zopakujte.',
 ];

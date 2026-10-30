@@ -44,6 +44,16 @@ Je vždy pro nejnovější verzi a jde vytisknout nebo uložit jako PDF. Tento s
 po instalaci ze serveru smazat.
 
 
+Změny ve verzi 1.5.1
+--------------------
+ * Připojení AI (Claude, ChatGPT) může nově povolit jen administrátor s dvoufaktorovým ověřením. Kdo
+   ho nemá, uvidí na stránce souhlasu odkaz na jeho nastavení a pak připojení v aplikaci zopakuje.
+   Dosavadní připojení dál fungují; nastavení 2FA je ale (jako dosud) odpojí a je potřeba je připojit
+   znovu. Na stránce AI konektory na to upozorní hláška.
+ * Přístupový token připojení AI platí místo 8 hodin 1 hodinu. AI aplikace si ho obnovuje sama, nikdo
+   se nemusí znovu přihlašovat. Vlastní hodnotu nastavenou v databázi aktualizace nepřepíše.
+ * Databáze: jen úprava nastavení mcp.access_ttl, doplní se sama po aktualizaci.
+
 Změny ve verzi 1.5.0
 --------------------
  * Nový vzhled celé administrace: postranní panel s přepínačem webu (od 8 webů s hledáním), horní

@@ -1173,6 +1173,9 @@ allstat_admin_header(t('AI konektory (MCP)'), 'mcp', $user, $config, null, [
             <?php foreach ($storedProblems as $storedProblem): ?>
                 <div class="callout tone-warn"><div><strong><?= h(t('Uložené nastavení nevyhovuje pravidlům.')) ?></strong> <?= h($storedProblem) ?> <?= h(t('Opravte ho a uložte znovu.')) ?></div></div>
             <?php endforeach; ?>
+            <?php if (!allstat_user_has_totp($user)): ?>
+                <div class="callout tone-warn"><div><?= h(t('Nové připojení AI může povolit jen administrátor s dvoufaktorovým ověřením.')) ?> <a href="<?= h(allstat_url($config, 'admin/setup-2fa.php')) ?>"><?= h(t('Nastavit dvoufaktorové ověření')) ?></a> <?= h(t('(dosavadní připojení se tím odpojí, v aplikaci je pak připojíte znovu).')) ?></div></div>
+            <?php endif; ?>
 
             <form method="post" class="form-grid" data-mcp-settings data-was-enabled="<?= $curEnabled ? '1' : '0' ?>">
                 <?= allstat_csrf_field() ?>

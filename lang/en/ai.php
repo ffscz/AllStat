@@ -445,4 +445,10 @@ return [
     'Příliš mnoho nesprávných pokusů o zadání hesla k tomuto účtu. Zkuste to znovu za hodinu.' => 'Too many incorrect password attempts for this account. Try again in an hour.',
     'Heslo nesedí. Zkuste to prosím znovu.' => 'The password does not match. Please try again.',
     'AllStat MCP server (jen pro čtení). Adresa konektoru pro Claude nebo ChatGPT: {url}' => 'AllStat MCP server (read-only). Connector address for Claude or ChatGPT: {url}',
+    'Nové připojení AI může povolit jen administrátor s dvoufaktorovým ověřením.' => 'Only an administrator with two-factor authentication can allow a new AI connection.',
+    'Nastavit dvoufaktorové ověření' => 'Set up two-factor authentication',
+    '(dosavadní připojení se tím odpojí, v aplikaci je pak připojíte znovu).' => '(this disconnects existing connections, then reconnect them in the app).',
+    'Nejdřív nastavte dvoufaktorové ověření' => 'Set up two-factor authentication first',
+    'Připojení AI dostane přístup k datům všech webů, proto ho může povolit jen administrátor s dvoufaktorovým ověřením.' => 'An AI connection gets access to the data of all websites, so only an administrator with two-factor authentication can allow it.',
+    'Nastavte si dvoufaktorové ověření a pak připojení v aplikaci zopakujte.' => 'Set up two-factor authentication, then repeat the connection in the app.',
 ];

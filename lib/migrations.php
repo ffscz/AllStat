@@ -11,7 +11,7 @@ require_once __DIR__ . '/providers.php';
  * v allstat_default_providers, nové výchozí settings) ZVEDNI tuhle konstantu — jinak se změna na
  * produkci neprovede. Formát: YYYY-MM-DD.N.
  */
-const ALLSTAT_SCHEMA_VERSION = '2026-10-29.1';
+const ALLSTAT_SCHEMA_VERSION = '2026-10-30.1';
 
 function allstat_schema_is_current(PDO $pdo): bool
 {
@@ -183,7 +183,7 @@ function allstat_migrate_mcp(PDO $pdo): bool
 
         // Výchozí stav: vypnuto; adresy (mcp.host_url, mcp.app_url) nastaví administrátor na stránce AI konektory.
         allstat_setting_default($pdo, 'mcp.enabled', '0');
-        allstat_setting_default($pdo, 'mcp.access_ttl', '28800');
+        allstat_setting_default($pdo, 'mcp.access_ttl', '3600');
         allstat_setting_default($pdo, 'mcp.refresh_ttl', '5184000');
 
         allstat_migration_set_setting($pdo, 'mcp.schema.version', ALLSTAT_MCP_SCHEMA_VERSION);
@@ -769,6 +769,15 @@ function allstat_migrate(PDO $pdo): void
     }
 
     allstat_migrate_mcp($pdo); // izolované: selhání DDL MCP nesmí zastavit zbytek migrace ani aplikaci
+
+    // Kratší platnost přístupového tokenu MCP (2026-10-30.1): výchozí 8 h → 1 h, AI aplikace si token obnoví sama
+    // přes obnovovací token. Mění se jen dosavadní výchozí hodnota a jen jednou (příznak), vlastní hodnotu správce
+    // ani pozdější změnu na 8 h migrace nepřepíše.
+    $ttlMigrated = $pdo->query("SELECT 1 FROM allstat_settings WHERE setting_key = 'mcp.access_ttl_1h' LIMIT 1")->fetchColumn();
+    if ($ttlMigrated === false) {
+        $pdo->prepare("UPDATE allstat_settings SET setting_value = '3600' WHERE setting_key = 'mcp.access_ttl' AND setting_value = '28800'")->execute();
+        allstat_setting_default($pdo, 'mcp.access_ttl_1h', '1');
+    }
 
     allstat_seed_provider_catalog($pdo);
     allstat_setting_default($pdo, 'security.enforce_2fa', '0');

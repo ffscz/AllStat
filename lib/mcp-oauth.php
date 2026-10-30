@@ -1728,7 +1728,7 @@ function allstat_mcp_oauth_issue_tokens(PDO $pdo, string $grantId, int $userId, 
 {
     $access = allstat_mcp_oauth_random_token('asa_');
     $refresh = allstat_mcp_oauth_random_token('asr_');
-    $accessTtl = allstat_mcp_oauth_ttl($pdo, 'mcp.access_ttl', 28800, 300, 2592000);
+    $accessTtl = allstat_mcp_oauth_ttl($pdo, 'mcp.access_ttl', 3600, 300, 2592000);
     $refreshTtl = allstat_mcp_oauth_ttl($pdo, 'mcp.refresh_ttl', 5184000, 3600, 31536000);
     $now = allstat_mcp_oauth_now();
 
