@@ -44,6 +44,16 @@ Je vždy pro nejnovější verzi a jde vytisknout nebo uložit jako PDF. Tento s
 po instalaci ze serveru smazat.
 
 
+Změny ve verzi 1.5.3
+--------------------
+ * Připojení AI (Claude, ChatGPT) se nově povoluje i kódem z autentizační aplikace. Převzaté přihlášení
+   v prohlížeči ani se znalostí hesla už nestačí na připojení, které běží až 180 dní. Dosavadní
+   připojení fungují dál.
+ * Uživatelé: vytvoření účtu, nové heslo jinému uživateli, povýšení na administrátora a reset cizího
+   2FA se potvrzují heslem a kódem z aplikace administrátora (bez 2FA jen heslem). Reset cizího 2FA
+   je nově na stránce úpravy uživatele; úprava jména, webů nebo vypnutí účtu potvrzení nepotřebuje.
+ * Databáze beze změny.
+
 Změny ve verzi 1.5.2
 --------------------
  * Záložní kódy pro dvoufaktorové ověření: 10 jednorázových kódů pro přihlášení bez telefonu. Ukážou

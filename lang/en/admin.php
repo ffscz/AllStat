@@ -580,4 +580,10 @@ return [
     'Zadejte kód z aplikace nebo záložní kód.' => 'Enter a code from the app or a backup code.',
     'Zadejte kód z autentizační aplikace.' => 'Enter the code from your authenticator app.',
     'Příliš mnoho chybných kódů. Zkuste to znovu za 15 minut.' => 'Too many incorrect codes. Try again in 15 minutes.',
+    'Potvrzení' => 'Confirmation',
+    'Nový účet potvrďte svým heslem a kódem z aplikace.' => 'Confirm the new account with your password and a code from the app.',
+    'Nový účet potvrďte svým heslem.' => 'Confirm the new account with your password.',
+    'Při novém heslu nebo když účet získá roli administrátora potvrďte změnu svým heslem a kódem z aplikace.' => 'When setting a new password or when the account becomes an administrator, confirm the change with your password and a code from the app.',
+    'Při novém heslu nebo když účet získá roli administrátora potvrďte změnu svým heslem.' => 'When setting a new password or when the account becomes an administrator, confirm the change with your password.',
+    'Vypne 2FA účtu {email}, třeba když uživatel přišel o telefon a nemá záložní kódy. Jeho připojení AI se odpojí. Při dalším přihlášení si 2FA nastaví znovu.' => 'Turns off 2FA for {email}, for example when the user lost their phone and has no backup codes. Their AI connections are disconnected. They set up 2FA again at their next sign-in.',
 ];

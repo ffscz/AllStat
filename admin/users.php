@@ -33,6 +33,28 @@ function allstat_users_revoke_mcp_grants(PDO $pdo, int $userId): bool
     }
 }
 
+/**
+ * Potvrzení citlivé správy účtů heslem administrátora a (má-li 2FA) čerstvým kódem z aplikace. Převzatá session
+ * jinak stačila na trvalý obchvat 2FA přes cizí účet: nový admin, cizí heslo nebo reset cizího 2FA.
+ */
+function allstat_users_confirm(PDO $pdo, array $config, array $user): ?string
+{
+    return allstat_confirm_password($pdo, $user, $_POST['confirm_password'] ?? null, 'users')
+        ?? (allstat_user_has_totp($user) ? allstat_confirm_totp($pdo, $config, $user, $_POST['confirm_totp'] ?? null, 'users') : null);
+}
+
+/** Pole pro potvrzení heslem a kódem z aplikace (formulář uživatele a reset cizího 2FA). */
+function allstat_users_confirm_fields(array $user, bool $required): string
+{
+    $req = $required ? ' required' : '';
+    $html = '<label class="field"><span class="field-label">' . h(t('Vaše heslo')) . '</span><input class="input" type="password" name="confirm_password" autocomplete="current-password"' . $req . '></label>';
+    if (allstat_user_has_totp($user)) {
+        $html .= '<label class="field"><span class="field-label">' . h(t('Kód z aplikace')) . '</span><input class="input input-code" type="text" name="confirm_totp" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" spellcheck="false" data-otp' . $req . '></label>';
+    }
+
+    return $html;
+}
+
 $pdo = allstat_admin_require_database($pdo, $config);
 $user = allstat_require_user($pdo, $config);
 allstat_require_admin($user);
@@ -40,6 +62,28 @@ allstat_require_admin($user);
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     allstat_csrf_check();
     $action = (string) ($_POST['action'] ?? 'create');
+    $targetId = (int) ($_POST['id'] ?? 0);
+
+    // Co vyžaduje potvrzení: nový účet, reset cizího 2FA, nové heslo a úprava, po které je účet aktivním adminem
+    // a předtím nebyl. Ostatní úpravy (jméno, weby, vypnutí účtu) a mazání jdou jako dosud.
+    $needsConfirm = $action === 'create' || ($action === 'reset_2fa' && $targetId !== (int) $user['id']);
+    if ($action === 'update') {
+        $before = allstat_get_user($pdo, $targetId);
+        $becomesAdmin = ($_POST['role'] ?? 'user') === 'admin' && !empty($_POST['is_active'])
+            && !($before && $before['role'] === 'admin' && (int) $before['is_active'] === 1);
+        $needsConfirm = (string) ($_POST['password'] ?? '') !== '' || $becomesAdmin;
+    }
+    $confirmError = $needsConfirm ? allstat_users_confirm($pdo, $config, $user) : null;
+
+    if ($confirmError !== null) {
+        allstat_flash('error', $confirmError);
+        if ($action === 'create') {
+            // Vyplněné údaje (bez hesla) zůstanou ve formuláři.
+            $_SESSION['users_form_old'] = array_intersect_key($_POST, array_flip(['name', 'email', 'role', 'is_active', 'domain_access', 'domain_ids']));
+            allstat_redirect($config, 'admin/users.php#user-form');
+        }
+        allstat_redirect($config, 'admin/users.php?edit=' . $targetId . ($action === 'reset_2fa' ? '#reset-2fa' : '#user-form'));
+    }
 
     if ($action === 'delete') {
         $result = allstat_delete_user($pdo, (int) $user['id'], (int) ($_POST['id'] ?? 0));
@@ -80,12 +124,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $editing = isset($_GET['edit']) ? allstat_get_user($pdo, (int) $_GET['edit']) : null;
+// Nový účet, který neprošel potvrzením: vyplněné údaje (bez hesla) se vrátí do formuláře.
+$old = !$editing && is_array($_SESSION['users_form_old'] ?? null) ? $_SESSION['users_form_old'] : [];
+unset($_SESSION['users_form_old']);
+$form = $editing ?? array_map(static fn ($v) => is_array($v) ? $v : (string) $v, $old);
 $users = allstat_list_users($pdo);
 // Přístup k webům: všechny weby včetně vypnutých (přidělit jde i web, který se teprve zapne).
 $allDomains = allstat_admin_domains($pdo);
 $activeDomainCount = count(array_filter($allDomains, static fn (array $d): bool => (int) $d['is_active'] === 1));
-$domainAccess = ($editing['domain_access'] ?? 'all') === 'selected' ? 'selected' : 'all';
-$assignedIds = $editing ? allstat_user_assigned_domain_ids($pdo, (int) $editing['id']) : [];
+$domainAccess = ($form['domain_access'] ?? 'all') === 'selected' ? 'selected' : 'all';
+$assignedIds = $editing ? allstat_user_assigned_domain_ids($pdo, (int) $editing['id']) : array_map('intval', (array) ($old['domain_ids'] ?? []));
 allstat_admin_header(t('Uživatelé'), 'users', $user, $config);
 ?>
 <section class="card" id="user-form" aria-labelledby="user-form-title">
@@ -99,10 +147,10 @@ allstat_admin_header(t('Uživatelé'), 'users', $user, $config);
         <?= allstat_csrf_field() ?>
         <input type="hidden" name="action" value="<?= $editing ? 'update' : 'create' ?>">
         <input type="hidden" name="id" value="<?= (int) ($editing['id'] ?? 0) ?>">
-        <label class="field"><span class="field-label"><?= h(t('Jméno')) ?></span><input class="input" type="text" name="name" required value="<?= h($editing['name'] ?? '') ?>"></label>
-        <label class="field"><span class="field-label">E-mail</span><input class="input" type="text" name="email" required inputmode="email" value="<?= h($editing['email'] ?? '') ?>" autocomplete="username"></label>
-        <label class="field"><span class="field-label"><?= h(t('Role')) ?></span><select class="input" name="role" data-domain-role><option value="admin" <?= ($editing['role'] ?? '') === 'admin' ? 'selected' : '' ?>><?= h(t('Admin')) ?></option><option value="user" <?= ($editing['role'] ?? 'user') === 'user' ? 'selected' : '' ?>><?= h(t('Uživatel')) ?></option></select></label>
-        <label class="field"><span class="field-label"><?= h(t('Stav')) ?></span><select class="input" name="is_active"><option value="1" <?= (int) ($editing['is_active'] ?? 1) === 1 ? 'selected' : '' ?>><?= h(t('Aktivní')) ?></option><option value="0" <?= isset($editing['is_active']) && (int) $editing['is_active'] === 0 ? 'selected' : '' ?>><?= h(t('Vypnuto')) ?></option></select></label>
+        <label class="field"><span class="field-label"><?= h(t('Jméno')) ?></span><input class="input" type="text" name="name" required value="<?= h($form['name'] ?? '') ?>"></label>
+        <label class="field"><span class="field-label">E-mail</span><input class="input" type="text" name="email" required inputmode="email" value="<?= h($form['email'] ?? '') ?>" autocomplete="username"></label>
+        <label class="field"><span class="field-label"><?= h(t('Role')) ?></span><select class="input" name="role" data-domain-role><option value="admin" <?= ($form['role'] ?? '') === 'admin' ? 'selected' : '' ?>><?= h(t('Admin')) ?></option><option value="user" <?= ($form['role'] ?? 'user') === 'user' ? 'selected' : '' ?>><?= h(t('Uživatel')) ?></option></select></label>
+        <label class="field"><span class="field-label"><?= h(t('Stav')) ?></span><select class="input" name="is_active"><option value="1" <?= (int) ($form['is_active'] ?? 1) === 1 ? 'selected' : '' ?>><?= h(t('Aktivní')) ?></option><option value="0" <?= isset($form['is_active']) && (int) $form['is_active'] === 0 ? 'selected' : '' ?>><?= h(t('Vypnuto')) ?></option></select></label>
         <label class="field"><span class="field-label"><?= h($editing ? t('Nové heslo') : t('Heslo')) ?></span><input class="input" type="password" name="password" <?= $editing ? '' : 'required' ?> minlength="12" autocomplete="new-password" placeholder="<?= $editing ? h(t('nechte prázdné pro zachování')) : '' ?>"></label>
         <div class="field field-full section" role="group" aria-labelledby="domain-access-title" data-domain-access>
             <span class="field-label" id="domain-access-title"><?= h(t('Přístup k webům')) ?></span>
@@ -110,7 +158,7 @@ allstat_admin_header(t('Uživatelé'), 'users', $user, $config);
                 <label class="check"><input type="radio" name="domain_access" value="all" <?= $domainAccess === 'all' ? 'checked' : '' ?>><span class="name-stack"><span class="name-main"><?= h(t('Všechny weby')) ?></span><span class="name-sub"><?= h(t('včetně webů přidaných později')) ?></span></span></label>
                 <label class="check"><input type="radio" name="domain_access" value="selected" <?= $domainAccess === 'selected' ? 'checked' : '' ?>><span class="name-stack"><span class="name-main"><?= h(t('Jen vybrané weby')) ?></span><span class="name-sub"><?= h(t('v přehledu, reportech i sdílených odkazech uvidí jen zaškrtnuté')) ?></span></span></label>
             </div>
-            <div class="callout" data-domain-admin-note<?= ($editing['role'] ?? 'user') === 'admin' ? '' : ' hidden' ?>><?= allstat_icon('info', 'icon-sm') ?><div><?= h(t('Administrátor vidí vždy všechny weby. Výběr se uplatní, až z účtu bude běžný uživatel.')) ?></div></div>
+            <div class="callout" data-domain-admin-note<?= ($form['role'] ?? 'user') === 'admin' ? '' : ' hidden' ?>><?= allstat_icon('info', 'icon-sm') ?><div><?= h(t('Administrátor vidí vždy všechny weby. Výběr se uplatní, až z účtu bude běžný uživatel.')) ?></div></div>
             <div class="section" data-domain-pick<?= $domainAccess === 'selected' ? '' : ' hidden' ?>>
                 <?php if (!$allDomains): ?>
                     <p class="field-help"><?= h(t('Zatím tu není žádný web. Přidejte ho ve Weby.')) ?></p>
@@ -133,9 +181,34 @@ allstat_admin_header(t('Uživatelé'), 'users', $user, $config);
                 <?php endif; ?>
             </div>
         </div>
+        <div class="field field-full section" role="group" aria-labelledby="user-confirm-title">
+            <span class="field-label" id="user-confirm-title"><?= h(t('Potvrzení')) ?></span>
+            <p class="field-help"><?= h(allstat_user_has_totp($user)
+                ? ($editing ? t('Při novém heslu nebo když účet získá roli administrátora potvrďte změnu svým heslem a kódem z aplikace.') : t('Nový účet potvrďte svým heslem a kódem z aplikace.'))
+                : ($editing ? t('Při novém heslu nebo když účet získá roli administrátora potvrďte změnu svým heslem.') : t('Nový účet potvrďte svým heslem.'))) ?></p>
+            <div class="form-grid"><?= allstat_users_confirm_fields($user, !$editing) ?></div>
+        </div>
         <div class="form-actions field-full"><button class="btn btn-primary" type="submit"><?= h($editing ? t('Uložit uživatele') : t('Vytvořit uživatele')) ?></button><?php if ($editing): ?><a class="btn btn-secondary" href="users.php"><?= h(t('Zrušit úpravu')) ?></a><?php endif; ?></div>
     </form>
 </section>
+
+<?php if ($editing && $editing['totp_secret_enc'] && (int) $editing['id'] !== (int) $user['id']): ?>
+<section class="card" id="reset-2fa" aria-labelledby="reset-2fa-title">
+    <div class="card-head">
+        <div>
+            <h2 class="card-title" id="reset-2fa-title"><?= h(t('Reset 2FA')) ?></h2>
+            <p class="card-desc"><?= h(t('Vypne 2FA účtu {email}, třeba když uživatel přišel o telefon a nemá záložní kódy. Jeho připojení AI se odpojí. Při dalším přihlášení si 2FA nastaví znovu.', ['email' => $editing['email']])) ?></p>
+        </div>
+    </div>
+    <form method="post" class="card-body form-grid" data-confirm="<?= h(t('Resetovat 2FA pro tohoto uživatele?')) ?>">
+        <?= allstat_csrf_field() ?>
+        <input type="hidden" name="action" value="reset_2fa">
+        <input type="hidden" name="id" value="<?= (int) $editing['id'] ?>">
+        <?= allstat_users_confirm_fields($user, true) ?>
+        <div class="form-actions field-full"><button class="btn btn-danger" type="submit"><?= h(t('Resetovat 2FA')) ?></button></div>
+    </form>
+</section>
+<?php endif; ?>
 
 <section class="card" aria-labelledby="users-title">
     <div class="card-head">
@@ -178,7 +251,7 @@ allstat_admin_header(t('Uživatelé'), 'users', $user, $config);
                                 <?php if ($item['totp_secret_enc'] && $uid === (int) $user['id']): ?>
                                     <a class="menu-item" href="<?= h(allstat_url($config, 'admin/setup-2fa.php#reset-2fa')) ?>"><?= allstat_icon('refresh-cw', 'icon-sm') ?><span><?= h(t('Reset 2FA')) ?></span></a>
                                 <?php elseif ($item['totp_secret_enc']): ?>
-                                    <form method="post" data-confirm="<?= h(t('Resetovat 2FA pro tohoto uživatele?')) ?>"><?= allstat_csrf_field() ?><input type="hidden" name="action" value="reset_2fa"><input type="hidden" name="id" value="<?= $uid ?>"><button class="menu-item" type="submit"><?= allstat_icon('refresh-cw', 'icon-sm') ?><span><?= h(t('Reset 2FA')) ?></span></button></form>
+                                    <a class="menu-item" href="users.php?edit=<?= $uid ?>#reset-2fa"><?= allstat_icon('refresh-cw', 'icon-sm') ?><span><?= h(t('Reset 2FA')) ?></span></a>
                                 <?php endif; ?>
                                 <?php if ($item['totp_secret_enc'] && $uid !== (int) $user['id']): ?><div class="menu-sep"></div><?php endif; ?>
                                 <?php if ($uid !== (int) $user['id']): ?>
@@ -194,4 +267,5 @@ allstat_admin_header(t('Uživatelé'), 'users', $user, $config);
         </table>
     </div>
 </section>
+<script src="<?= h(allstat_asset_url($config, 'assets/js/otp.js')) ?>" nonce="<?= h(allstat_nonce()) ?>"></script>
 <?php allstat_admin_footer($config); ?>
