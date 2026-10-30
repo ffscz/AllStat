@@ -380,6 +380,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
 
 <h3 id="dvoufazove-overeni">3. Zapněte dvoufázové ověření (2FA)</h3>
 <p>Dvoufázové ověření znamená, že kromě hesla zadáváte šestimístný kód z telefonu. Klikněte vpravo nahoře na kolečko se svými iniciálami, zvolte „Dvoufaktorové ověření“, naskenujte QR kód aplikací (Microsoft Authenticator, Google Authenticator, 1Password nebo Bitwarden) a potvrďte kód. V Nastavení pak můžete zapnout povinné 2FA pro všechny uživatele. Doporučujeme to, jakmile bude mít AllStat víc než jednoho uživatele.</p>
+<p>Po potvrzení kódu AllStat jednou ukáže 10 <strong>záložních kódů</strong>. Uložte si je do správce hesel nebo stáhněte jako .txt: když přijdete o telefon, přihlásíte se odkazem „Nemáte telefon? Použít záložní kód“. Každý kód platí jen jednou. Kolik jich zbývá, uvidíte na stránce Dvoufaktorové ověření, kde si po zadání hesla a kódu z aplikace vygenerujete nové. Tam také vypnete vlastní 2FA při výměně telefonu: zadáte heslo a kód z aplikace, nebo bez telefonu záložní kód (odpojí se tím i připojení AI).</p>
 <figure class="narrow"><a class="zoom" href="img/13-2fa.webp" title="Otevřít v plné velikosti"><img src="img/13-2fa.webp" alt="Nastavení dvoufázového ověření" width="1100" height="900" loading="lazy" decoding="async"></a><figcaption>Stránka Dvoufaktorové ověření z uživatelské nabídky.</figcaption></figure>
 
 <h3 id="pravni-stranky">4. Zkontrolujte právní stránky</h3>
@@ -662,6 +663,9 @@ RewriteRule ^\.well-known/oauth-protected-resource/allstat(?:/mcp)?/?$ /allstat/
 
 <h3>Aplikace odhlašuje po dvou hodinách nečinnosti</h3>
 <p>Je to záměr. Dobu změníte v souboru <code>config.php</code> u položky <code>idle_timeout</code> (v sekundách, výchozí hodnota je 7200).</p>
+
+<h3>Ztratil(a) jsem telefon s aplikací pro 2FA</h3>
+<p>Na stránce s kódem klikněte na „Nemáte telefon? Použít záložní kód“ a zadejte jeden ze záložních kódů. Po přihlášení otevřete Dvoufaktorové ověření, 2FA resetujte heslem a dalším záložním kódem a nastavte ho znovu s novým telefonem. Když záložní kódy nemáte, 2FA vám resetuje jiný administrátor v menu „Uživatelé“, nebo postupujte podle poslední věty následujícího návodu.</p>
 
 <h3>Zapomněl(a) jsem heslo administrátora</h3>
 <p>Když máte druhého administrátora, ten heslo změní v menu „Uživatelé“. Jinak:</p>

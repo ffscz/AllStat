@@ -380,6 +380,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
 
 <h3 id="dvoufazove-overeni">3. Turn on two-factor authentication (2FA)</h3>
 <p>Two-factor authentication means that in addition to your password, you enter a six-digit code from your phone. Click the circle with your initials in the top right corner, choose “Two-factor authentication”, scan the QR code with an app (Microsoft Authenticator, Google Authenticator, 1Password or Bitwarden) and confirm the code. In Settings, you can then turn on “Require 2FA for all users”. We recommend this as soon as AllStat has more than one user.</p>
+<p>After you confirm the code, AllStat shows 10 <strong>backup codes</strong> once. Save them in a password manager or download them as .txt: if you lose your phone, sign in with the “No phone? Use a backup code” link. Each code works only once. The Two-factor authentication page shows how many are left and lets you generate new ones after entering your password and a code from the app. That is also where you turn off your own 2FA when you change phones: enter your password and a code from the app, or a backup code if you have no phone (this also disconnects AI connections).</p>
 <figure class="narrow"><a class="zoom" href="img/13-2fa.webp" title="Open full size"><img src="img/13-2fa.webp" alt="Setting up two-factor authentication" width="1100" height="900" loading="lazy" decoding="async"></a><figcaption>The Two-factor authentication page from the user menu.</figcaption></figure>
 
 <h3 id="pravni-stranky">4. Check the legal pages</h3>
@@ -662,6 +663,9 @@ RewriteRule ^\.well-known/oauth-protected-resource/allstat(?:/mcp)?/?$ /allstat/
 
 <h3>The application signs me out after two hours of inactivity</h3>
 <p>This is intentional. You change the time in the <code>config.php</code> file, in the <code>idle_timeout</code> item (in seconds, the default is 7200).</p>
+
+<h3>I lost the phone with my 2FA app</h3>
+<p>On the code page, click “No phone? Use a backup code” and enter one of your backup codes. After signing in, open Two-factor authentication, reset 2FA with your password and another backup code, and set it up again with your new phone. If you have no backup codes, another administrator can reset your 2FA in the “Users” menu, or follow the last sentence of the next guide.</p>
 
 <h3>I forgot the administrator password</h3>
 <p>If you have a second administrator, they can change the password in the “Users” menu. Otherwise:</p>
