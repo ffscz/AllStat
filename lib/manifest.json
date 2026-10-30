@@ -158,8 +158,8 @@
             "h": "79949d8468b77692012aa7542c2274ca80428ab0d451649027a72266fb9705ff"
         },
         "assets/css/components.css": {
-            "s": 55170,
-            "h": "38ef49f3373c98ccb64f35a23c4cbe21242c23fab09a3ddb160c6e2bd6b70791"
+            "s": 55324,
+            "h": "a6fc23b7b31efee1ad530bb7492162643b65bbf9de975b275283205cb37a7a48"
         },
         "assets/css/layout.css": {
             "s": 9161,
@@ -398,8 +398,8 @@
             "h": "f9b1f43faa0ddfcd3fab9bb9d3a673f890fbfdfa8903f535b80797ad3639bf6e"
         },
         "lib/i18n.php": {
-            "s": 8617,
-            "h": "9c933eea2ba9608d228d59d2388034154182f8e1932ce67d82bdfe807ab2f891"
+            "s": 8616,
+            "h": "3ec116676caf12b4dd25ed972c62e778f7c39acacf05e626b3a6d478dc1e9d17"
         },
         "lib/install-wizard.php": {
             "s": 89224,
