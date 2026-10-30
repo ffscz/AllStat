@@ -538,7 +538,7 @@ RewriteRule ^\.well-known/oauth-protected-resource/allstat(?:/mcp)?/?$ /allstat/
 # END AllStat MCP</code></pre>
     <p>Skip this step for options A and C. For option C, create a subdomain in your hosting control panel (for example <code>mcp.your-company.com</code>) and set its folder to the same folder where AllStat is.</p></li>
   <li><h4>Turn on the AI connection</h4>
-    <p>In the menu, open “AI connectors”, choose “Yes” for “Allow the AI connection (MCP)” and click “Save settings”. Check that the addresses in the “MCP server address” and “AllStat address” fields are right and start with <code>https://</code>.</p>
+    <p>In the menu, open “AI connectors”, choose “Yes” for “Allow the AI connection (MCP)” and click “Save settings”. Check that the addresses in the “MCP server address” and “AllStat address” fields are right and start with <code>https://</code>. Only an administrator with <a href="#dvoufazove-overeni">two-factor authentication</a> turned on can then allow an AI connection.</p>
     <figure><a class="zoom" href="img/17a-ai-konektory-nastaveni.webp" title="Open full size"><img src="img/17a-ai-konektory-nastaveni.webp" alt="AI connectors: status and settings" width="780" height="552" loading="lazy" decoding="async"></a><figcaption>The AI connection turned on, with the addresses from the wizard.</figcaption></figure></li>
   <li><h4>Run the check</h4>
     <p>At the bottom of the page, click “Run check”. AllStat calls its own addresses the way Claude or ChatGPT would, and reports for each one whether it is fine. It sends no real keys. All items should be green. A warning explains what is still left to do, for example the missing block in the domain root for option B.</p>

@@ -538,7 +538,7 @@ RewriteRule ^\.well-known/oauth-protected-resource/allstat(?:/mcp)?/?$ /allstat/
 # END AllStat MCP</code></pre>
     <p>Varianty A a C tento krok přeskočte. U varianty C v administraci hostingu vytvořte subdoménu (například <code>mcp.vase-firma.cz</code>) a jako její složku nastavte stejnou složku, ve které je AllStat.</p></li>
   <li><h4>Zapněte připojení AI</h4>
-    <p>V menu otevřete „AI konektory“, u volby „Povolit připojení AI (MCP)“ vyberte „Ano“ a klikněte na „Uložit nastavení“. Zkontrolujte, že adresy v polích „Adresa MCP serveru“ a „Adresa AllStatu“ sedí a začínají <code>https://</code>.</p>
+    <p>V menu otevřete „AI konektory“, u volby „Povolit připojení AI (MCP)“ vyberte „Ano“ a klikněte na „Uložit nastavení“. Zkontrolujte, že adresy v polích „Adresa MCP serveru“ a „Adresa AllStatu“ sedí a začínají <code>https://</code>. Připojení AI pak může povolit jen administrátor se zapnutým <a href="#dvoufazove-overeni">dvoufázovým ověřením</a>.</p>
     <figure><a class="zoom" href="img/17a-ai-konektory-nastaveni.webp" title="Otevřít v plné velikosti"><img src="img/17a-ai-konektory-nastaveni.webp" alt="AI konektory: stav a nastavení" width="780" height="552" loading="lazy" decoding="async"></a><figcaption>Zapnuté připojení AI s adresami z průvodce.</figcaption></figure></li>
   <li><h4>Spusťte kontrolu</h4>
     <p>Dole na stránce klikněte na „Spustit kontrolu“. AllStat si sám zavolá své adresy tak, jak to udělá Claude nebo ChatGPT, a u každé napíše, jestli je v pořádku. Neposílá žádné skutečné klíče. Všechny položky mají být zelené. Upozornění vysvětluje, co ještě zbývá, například chybějící blok v kořeni domény u varianty B.</p>
