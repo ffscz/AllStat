@@ -64,8 +64,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = (string) ($_POST['action'] ?? 'create');
     $targetId = (int) ($_POST['id'] ?? 0);
 
+    // Jen známé akce: jinak by neznámá hodnota propadla do vytvoření účtu a obešla potvrzení níže.
+    if (!in_array($action, ['create', 'update', 'delete', 'reset_2fa'], true)) {
+        http_response_code(400);
+        exit('Neznámá akce.');
+    }
+
     // Co vyžaduje potvrzení: nový účet, reset cizího 2FA, nové heslo a úprava, po které je účet aktivním adminem
-    // a předtím nebyl. Ostatní úpravy (jméno, weby, vypnutí účtu) a mazání jdou jako dosud.
+    // a předtím nebyl (povýšení i znovuzapnutí). Ostatní úpravy (jméno, weby, vypnutí účtu) a mazání jdou jako dosud.
     $needsConfirm = $action === 'create' || ($action === 'reset_2fa' && $targetId !== (int) $user['id']);
     if ($action === 'update') {
         $before = allstat_get_user($pdo, $targetId);
@@ -79,7 +85,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         allstat_flash('error', $confirmError);
         if ($action === 'create') {
             // Vyplněné údaje (bez hesla) zůstanou ve formuláři.
-            $_SESSION['users_form_old'] = array_intersect_key($_POST, array_flip(['name', 'email', 'role', 'is_active', 'domain_access', 'domain_ids']));
+            $old = array_filter(array_intersect_key($_POST, array_flip(['name', 'email', 'role', 'is_active', 'domain_access'])), 'is_string');
+            $old['domain_ids'] = array_values(array_filter((array) ($_POST['domain_ids'] ?? []), 'is_string'));
+            $_SESSION['users_form_old'] = $old;
             allstat_redirect($config, 'admin/users.php#user-form');
         }
         allstat_redirect($config, 'admin/users.php?edit=' . $targetId . ($action === 'reset_2fa' ? '#reset-2fa' : '#user-form'));
@@ -184,8 +192,8 @@ allstat_admin_header(t('Uživatelé'), 'users', $user, $config);
         <div class="field field-full section" role="group" aria-labelledby="user-confirm-title">
             <span class="field-label" id="user-confirm-title"><?= h(t('Potvrzení')) ?></span>
             <p class="field-help"><?= h(allstat_user_has_totp($user)
-                ? ($editing ? t('Při novém heslu nebo když účet získá roli administrátora potvrďte změnu svým heslem a kódem z aplikace.') : t('Nový účet potvrďte svým heslem a kódem z aplikace.'))
-                : ($editing ? t('Při novém heslu nebo když účet získá roli administrátora potvrďte změnu svým heslem.') : t('Nový účet potvrďte svým heslem.'))) ?></p>
+                ? ($editing ? t('Při novém heslu nebo když účet získá (nebo znovu dostane) práva administrátora potvrďte změnu svým heslem a kódem z aplikace.') : t('Nový účet potvrďte svým heslem a kódem z aplikace.'))
+                : ($editing ? t('Při novém heslu nebo když účet získá (nebo znovu dostane) práva administrátora potvrďte změnu svým heslem.') : t('Nový účet potvrďte svým heslem.'))) ?></p>
             <div class="form-grid"><?= allstat_users_confirm_fields($user, !$editing) ?></div>
         </div>
         <div class="form-actions field-full"><button class="btn btn-primary" type="submit"><?= h($editing ? t('Uložit uživatele') : t('Vytvořit uživatele')) ?></button><?php if ($editing): ?><a class="btn btn-secondary" href="users.php"><?= h(t('Zrušit úpravu')) ?></a><?php endif; ?></div>

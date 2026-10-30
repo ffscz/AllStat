@@ -38,6 +38,8 @@ if (!allstat_user_has_totp($user) && empty($_SESSION['totp_setup_secret'])) {
 }
 
 $secret = (string) ($_SESSION['totp_setup_secret'] ?? '');
+// Zapnutí 2FA chce heslo, když přihlášení heslem v této session je starší než 10 minut.
+$setupNeedsPassword = !allstat_user_has_totp($user) && time() - (int) ($_SESSION['user_authed_at'] ?? 0) > 600;
 $uri = $secret !== '' ? allstat_totp_uri($secret, $config['app']['name'], $user['email']) : '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -50,7 +52,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!allstat_user_has_totp($user)) {
-        $result = allstat_setup_user_totp($pdo, $config, $userId, $secret, (string) ($_POST['code'] ?? ''));
+        // Kdo zapne 2FA, vlastní pak druhý faktor (souhlas s AI, správa účtů). Převzatá session bez hesla nesmí
+        // stačit: po 10 minutách od přihlášení heslem se heslo zadává znovu.
+        $passwordError = $setupNeedsPassword ? allstat_confirm_password($pdo, $user, $_POST['password'] ?? null, 'totp_setup') : null;
+        $result = $passwordError !== null
+            ? ['ok' => false, 'message' => $passwordError]
+            : allstat_setup_user_totp($pdo, $config, $userId, $secret, (string) ($_POST['code'] ?? ''));
 
         if ($result['ok']) {
             unset($_SESSION['totp_setup_secret']);
@@ -126,7 +133,10 @@ allstat_admin_header(t('Dvoufaktorové ověření'), '2fa', $user, $config);
             <code class="code" data-totp-uri="<?= h($uri) ?>"><?= h($secret) ?></code>
             <form method="post" class="form-grid">
                 <?= allstat_csrf_field() ?>
-                <label class="field field-full"><span class="field-label"><?= h(t('Ověřovací kód')) ?></span><input class="input input-code" type="text" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required autocomplete="one-time-code" spellcheck="false" data-otp></label>
+                <?php if ($setupNeedsPassword): ?>
+                <label class="field"><span class="field-label"><?= h(t('Vaše heslo')) ?></span><input class="input" type="password" name="password" required autocomplete="current-password"></label>
+                <?php endif; ?>
+                <label class="field<?= $setupNeedsPassword ? '' : ' field-full' ?>"><span class="field-label"><?= h(t('Ověřovací kód')) ?></span><input class="input input-code" type="text" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required autocomplete="one-time-code" spellcheck="false" data-otp></label>
                 <div class="form-actions field-full">
                     <button class="btn btn-primary" type="submit"><?= h(t('Zapnout 2FA')) ?></button>
                     <button class="btn btn-secondary" type="submit" name="reset_pending_secret" value="1" formnovalidate><?= h(t('Vygenerovat nový kód')) ?></button>

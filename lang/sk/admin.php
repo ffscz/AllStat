@@ -583,7 +583,7 @@ return [
     'Potvrzení' => 'Potvrdenie',
     'Nový účet potvrďte svým heslem a kódem z aplikace.' => 'Nový účet potvrďte svojím heslom a kódom z aplikácie.',
     'Nový účet potvrďte svým heslem.' => 'Nový účet potvrďte svojím heslom.',
-    'Při novém heslu nebo když účet získá roli administrátora potvrďte změnu svým heslem a kódem z aplikace.' => 'Pri novom hesle alebo keď účet získa rolu administrátora potvrďte zmenu svojím heslom a kódom z aplikácie.',
-    'Při novém heslu nebo když účet získá roli administrátora potvrďte změnu svým heslem.' => 'Pri novom hesle alebo keď účet získa rolu administrátora potvrďte zmenu svojím heslom.',
     'Vypne 2FA účtu {email}, třeba když uživatel přišel o telefon a nemá záložní kódy. Jeho připojení AI se odpojí. Při dalším přihlášení si 2FA nastaví znovu.' => 'Vypne 2FA účtu {email}, napríklad keď používateľ prišiel o telefón a nemá záložné kódy. Jeho pripojenia AI sa odpoja. Pri ďalšom prihlásení si 2FA nastaví znova.',
+    'Při novém heslu nebo když účet získá (nebo znovu dostane) práva administrátora potvrďte změnu svým heslem a kódem z aplikace.' => 'Pri novom hesle alebo keď účet získa (alebo znova dostane) práva administrátora potvrďte zmenu svojím heslom a kódom z aplikácie.',
+    'Při novém heslu nebo když účet získá (nebo znovu dostane) práva administrátora potvrďte změnu svým heslem.' => 'Pri novom hesle alebo keď účet získa (alebo znova dostane) práva administrátora potvrďte zmenu svojím heslom.',
 ];

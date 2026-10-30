@@ -428,6 +428,9 @@ function allstat_confirm_password(PDO $pdo, array $user, mixed $password, string
         return t('Heslo nesedí. Zkuste to prosím znovu.');
     }
 
+    // Čerstvé ověření heslem (platí 10 minut pro zapnutí 2FA a souhlas s připojením AI).
+    $_SESSION['user_authed_at'] = time();
+
     return null;
 }
 
