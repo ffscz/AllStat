@@ -4,7 +4,7 @@
  * Záložky metrik (Útrata/ROAS/PNO/CPA/CPC/CTR/CPM…) a graf kreslí views/provider.php.
  * V rozsahu z index.php: $googleAdsNoConversions, $googleAdsCampaigns, $selectedProvider. Jen prezentace.
  */
-$adsProviderName = match ($selectedProvider['provider_key'] ?? '') { 'microsoft_ads' => 'Microsoft Ads', 'openai_ads' => 'OpenAI Ads', default => 'Google Ads' };
+$adsProviderName = match ($selectedProvider['provider_key'] ?? '') { 'microsoft_ads' => 'Microsoft Ads', 'openai_ads' => 'OpenAI Ads', 'tiktok_ads' => 'TikTok Ads', default => 'Google Ads' };
 ?>
 <?php if (!empty($googleAdsNoConversions)): ?>
 <div class="callout tone-warn">

@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS traffic_sources_daily (
     source VARCHAR(80) NOT NULL,
     sessions INT UNSIGNED NOT NULL DEFAULT 0,
     conversions INT UNSIGNED NOT NULL DEFAULT 0,
+    revenue DECIMAL(14,2) NOT NULL DEFAULT 0,
     UNIQUE KEY traffic_sources_daily_unique (domain_id, metric_date, source),
     KEY traffic_sources_daily_source_idx (source),
     CONSTRAINT traffic_sources_daily_domain_fk FOREIGN KEY (domain_id) REFERENCES domains (id) ON DELETE CASCADE

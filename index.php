@@ -16,6 +16,7 @@ require_once __DIR__ . '/lib/auth.php';
 require_once __DIR__ . '/lib/csrf.php';
 require_once __DIR__ . '/lib/repository.php';
 require_once __DIR__ . '/lib/growth.php';
+require_once __DIR__ . '/lib/ads-overview.php';
 require_once __DIR__ . '/lib/funnels.php';
 require_once __DIR__ . '/lib/version.php';
 require_once __DIR__ . '/lib/layout.php';
@@ -93,6 +94,13 @@ if ($isGrowthView) {
     $growthChart = allstat_growth_chart_payload($growth);
 }
 
+// Pohled „Reklama napříč platformami“ (?view=ads): účty vedle sebe a srovnání s GA4 za zvolené období.
+$isAdsView = !$isGenericView && $requestedView === 'ads';
+$adsOverview = null;
+if ($isAdsView) {
+    $adsOverview = allstat_get_ads_overview($pdo, (int) $domainId, $start, $end);
+}
+
 // Pohled „Trychtýř“ (?view=funnel&funnel_id=N): trychtýř musí patřit zvolenému webu, id cizího webu nebo neznámé id
 // vede na výchozí pohled (izolace webů řeší allstat_funnel_get). Vypnutý trychtýř vidí jen administrátor (náhled při nastavování).
 $isFunnelView = false;
@@ -152,6 +160,9 @@ $linkedinReactions = null;
 $youtubeVideos = null;
 $youtubeAudience = null;
 $youtubeCatalog = null;
+$bingQueries = [];
+$bingPages = [];
+$gbpKeywords = null;
 if ($isGenericView) {
     if (($selectedProvider['provider_key'] ?? '') === 'clarity') {
         // Graf po dnech/týdnech/měsících podle délky období jako u ostatních zdrojů (dlaždice počítají ze součtů, nezmění se).
@@ -181,7 +192,7 @@ if ($isGenericView) {
             'showChart' => count($adsKpis['labels']) > 1,
             'hasData' => $adsKpis['hasData'],
         ];
-    } elseif (in_array(($selectedProvider['provider_key'] ?? ''), ['google_ads', 'microsoft_ads', 'openai_ads'], true)) {
+    } elseif (in_array(($selectedProvider['provider_key'] ?? ''), ['google_ads', 'microsoft_ads', 'openai_ads', 'tiktok_ads'], true)) {
         // Google Ads gets its own rich PPC view: derived ROAS/PNO/CPA/CPC/CTR/CPM KPIs from the synced
         // cost/clicks/impressions/conversions/conversion_value (account-level).
         $adsKpis = allstat_get_google_ads_kpis($pdo, (int) $domainId, $viewSourceId, $start, $end, $granularity, (string) $selectedProvider['name']);
@@ -193,6 +204,23 @@ if ($isGenericView) {
             'chartKeys' => $googleAdsNoConversions ? ['cost', 'clicks'] : ['cost', 'conversions'],
             'showChart' => count($adsKpis['labels']) > 1,
             'hasData' => $adsKpis['hasData'],
+        ];
+    } elseif (in_array(($selectedProvider['provider_key'] ?? ''), ['bing_wmt', 'google_business'], true)) {
+        // Bing Webmaster a Google Business Profile: generické dlaždice + dotazy/stránky, resp. hledané výrazy.
+        $isBing = ($selectedProvider['provider_key'] ?? '') === 'bing_wmt';
+        if ($isBing) {
+            $bingQueries = allstat_get_bing_wmt_top($pdo, $viewSourceId, $start, $end, 'query', 15);
+            $bingPages = allstat_get_bing_wmt_top($pdo, $viewSourceId, $start, $end, 'page', 15);
+        } else {
+            $gbpKeywords = allstat_get_google_business_keywords($pdo, $viewSourceId, $start, $end, 20);
+        }
+        $pv = allstat_get_provider_view($pdo, (int) $domainId, $viewSourceId, $start, $end, $granularity, (string) $selectedProvider['provider_key']);
+        $providerPayload = [
+            'labels' => $pv['labels'],
+            'metrics' => $pv['metrics'],
+            'chartKeys' => $isBing ? ['clicks', 'impressions'] : ['impressions', 'website_clicks'],
+            'showChart' => count($pv['labels']) > 1,
+            'hasData' => $pv['hasData'],
         ];
     } elseif (($selectedProvider['provider_key'] ?? '') === 'seznam_wmt') {
         // Seznam Webmaster: indexation snapshot KPIs (latest day) + trend over time.
@@ -280,6 +308,10 @@ if ($isGenericView) {
     $pageTitle = (string) $selectedProvider['name'];
     $pageSubtitle = (string) $selectedProvider['label'];
     $pageCrumbs = [$overviewCrumb, ['label' => $selectedProvider['name'] . ' · ' . $selectedProvider['label'], 'href' => null]];
+} elseif ($isAdsView) {
+    $pageTitle = t('Reklama napříč platformami');
+    $pageSubtitle = t('Útrata, výkon a konverze reklamních účtů vedle sebe, se srovnáním s GA4');
+    $pageCrumbs = [$overviewCrumb, ['label' => $pageTitle, 'href' => null]];
 } elseif ($isFunnelView) {
     $pageTitle = t('Trychtýř: {name}', ['name' => $funnel['name']]);
     $pageCrumbs = [$overviewCrumb, ['label' => $pageTitle, 'href' => null]];
@@ -314,6 +346,8 @@ if ($isGenericView) {
     } else {
         include __DIR__ . '/views/growth.php';
     }
+} elseif ($isAdsView) {
+    include __DIR__ . '/views/ads.php';
 } elseif ($isFunnelView) {
     if ($funnelError) {
         echo '<div class="callout tone-down" role="alert"><div>' . t('Data trychtýře se nepodařilo načíst. Zkus obnovit stránku, případně otevři {link}.', ['link' => '<a href="?view=overview&amp;domain_id=' . (int) $data['domain']['id'] . '">' . h(t('Přehled (GA4 + GSC)')) . '</a>']) . '</div></div>';
@@ -329,6 +363,7 @@ $nonce = allstat_nonce();
 $inline = '<script nonce="' . h($nonce) . '">window.ALLSTAT_DATA = ' . allstat_json($data) . ';'
     . ($isGenericView ? ' window.ALLSTAT_PROVIDER = ' . allstat_json($providerPayload) . ';' : '')
     . ($isGrowthView ? " window.ALLSTAT_VIEW = 'growth'; window.ALLSTAT_GROWTH = " . allstat_json($growthChart) . ';' : '')
+    . ($isAdsView ? " window.ALLSTAT_VIEW = 'ads';" : '')
     . ($isFunnelView ? " window.ALLSTAT_VIEW = 'funnel'; window.ALLSTAT_FUNNEL = " . allstat_json($funnelChart) . ';' : '')
     . '</script>';
 $scripts = ['assets/vendor/chart.umd.min.js', 'assets/js/app.js', 'assets/js/select-search.js'];

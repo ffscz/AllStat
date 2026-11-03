@@ -16,7 +16,10 @@ a ukládá je do **vaší vlastní databáze**. Běží na běžném webhostingu
 ## Co umí
 
 - **Zdroje dat:** Google Analytics 4, Google Search Console, Microsoft Clarity, Facebook, Instagram,
-  Meta Ads, LinkedIn, YouTube, Google Ads, Microsoft Ads, Seznam Webmaster, import CSV z Meta Business Suite.
+  Meta Ads, LinkedIn, YouTube, Google Ads, Microsoft Ads, TikTok Ads, OpenAI Ads, Bing Webmaster Tools,
+  Google Business Profile, Seznam Webmaster, import CSV z Meta Business Suite.
+- **Reklama napříč platformami:** všechny reklamní účty vedle sebe (útrata v měně účtu, CTR, CPC, CPM, CPA,
+  ROAS) a k tomu návštěvy, klíčové události a tržby, které GA4 přiřadilo každé platformě.
 - **Více webů** pod jednou instalací, u každého uživatele lze omezit, které weby vidí.
 - **Google účty:** jeden nebo víc Google účtů (agentura, klienti) a výběr webů z jejich GA4 a Search Console,
   bez opisování Property ID a Client ID.
@@ -25,7 +28,7 @@ a ukládá je do **vaší vlastní databáze**. Běží na běžném webhostingu
 - **Růst kanálů**, reporty, sdílené odkazy pro AI analýzu, datové feedy.
 - **Jazyk rozhraní:** čeština, slovenština a angličtina, každý uživatel si vybere sám.
 - **Připojení AI (MCP)** pro Claude a ChatGPT: jen ke čtení, souhrnná data bez osobních údajů,
-  zapíná a ruší administrátor.
+  zapíná a ruší administrátor. Umí i srovnání reklamních platforem a hledání neobvyklých změn.
 - **Bezpečnost:** šifrované přístupové tokeny (AES-256-GCM), dvoufázové ověření, audit log.
 
 ## Požadavky

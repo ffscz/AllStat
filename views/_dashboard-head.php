@@ -84,7 +84,7 @@ $labelStack = static function (string $attr, string $label, array $sizers): stri
             ? array_map(static fn (int $m): string => $rangeLabelFor(sprintf('2025-%02d-28', $m), sprintf('2026-%02d-28', $m)), range(1, 12))
             : [$rangeLabelFor('2025-10-28', '2026-12-29')];
         // Rychlé volby období se mají vracet na stejný pohled (přehled / trychtýř se zvoleným rozpadem).
-        $rangeLinkTail = $isGenericView ? '' : ($isFunnelView ? '&view=funnel&funnel_id=' . (int) $funnel['id'] . '&breakdown=' . rawurlencode($funnelBreakdownKey) : '&view=overview');
+        $rangeLinkTail = $isGenericView ? '' : ($isFunnelView ? '&view=funnel&funnel_id=' . (int) $funnel['id'] . '&breakdown=' . rawurlencode($funnelBreakdownKey) : ($isAdsView ? '&view=ads' : '&view=overview'));
 
         // Výběr zdroje: připojené služby po kategoriích, aby organické sítě a reklama byly zvlášť.
         $catGroupCz = ['social' => t('Sociální sítě'), 'ppc' => t('Reklama (PPC)'), 'analytics' => t('Analytika'), 'seo' => 'SEO'];
@@ -94,7 +94,8 @@ $labelStack = static function (string $attr, string $label, array $sizers): stri
             $groupLabel = $catGroupCz[$opt['category']] ?? ($opt['categoryLabel'] ?? t('Ostatní'));
             $genericByGroup[$groupLabel][] = $opt;
         }
-        $isOverviewSel = !$isGenericView && !$isFunnelView;
+        $isOverviewSel = !$isGenericView && !$isFunnelView && !$isAdsView;
+        $adsConnectionCount = count(array_filter($providerOptions, static fn (array $o): bool => isset(allstat_ads_overview_providers()[$o['provider_key']])));
         $menuItem = static function (string $icon, string $name, string $sub, bool $selected, array $attrs): string {
             $a = '';
             foreach ($attrs as $k => $v) { $a .= ' data-' . $k . '="' . h((string) $v) . '"'; }
@@ -123,6 +124,7 @@ $labelStack = static function (string $attr, string $label, array $sizers): stri
         <input type="hidden" name="view" value="funnel">
         <input type="hidden" name="funnel_id" value="<?= (int) $funnel['id'] ?>">
         <input type="hidden" name="breakdown" value="<?= h($funnelBreakdownKey) ?>">
+        <?php elseif ($isAdsView): ?><input type="hidden" name="view" value="ads">
         <?php elseif (!$isGenericView): ?><input type="hidden" name="view" value="overview"><?php endif; ?>
         <input type="hidden" name="domain_id" value="<?= (int) $data['domain']['id'] ?>">
         <input type="hidden" name="source_id" value="<?= (int) $viewSourceId ?>">
@@ -132,6 +134,9 @@ $labelStack = static function (string $attr, string $label, array $sizers): stri
             <div class="menu menu-end menu-scroll" id="sourceMenu" role="menu" aria-label="<?= h(t('Zdroj dat')) ?>" hidden>
                 <?= $menuItem(allstat_icon('trending-up', 'icon-sm'), t('Přehled'), t('všechny kanály po měsících'), false, ['view' => 'growth', 'value' => 0]) ?>
                 <?= $menuItem(allstat_icon('line-chart', 'icon-sm'), t('Přehled (GA4 + GSC)'), '', $isOverviewSel, ['view' => 'overview', 'value' => 0]) ?>
+                <?php if ($adsConnectionCount > 0): ?>
+                <?= $menuItem(allstat_icon('megaphone', 'icon-sm'), t('Reklama napříč platformami'), tn($adsConnectionCount, '{count} účet', '{count} účty', '{count} účtů'), $isAdsView, ['view' => 'ads', 'value' => 0]) ?>
+                <?php endif; ?>
                 <?php if ($funnelOptions): ?>
                     <div class="menu-label"><?= h(t('Trychtýře')) ?></div>
                     <?php foreach ($funnelOptions as $fOpt): $fCount = count($fOpt['steps']); ?>
@@ -150,7 +155,7 @@ $labelStack = static function (string $attr, string $label, array $sizers): stri
         <button class="btn-icon" type="submit" title="<?= h(t('Obnovit data')) ?>" aria-label="<?= h(t('Obnovit data')) ?>"><?= allstat_icon('refresh-cw', 'icon') ?></button>
     <?php endif; ?>
         <?php // Sdílení pro AI umí přehled, růst a zdroje; trychtýř do něj nepatří (AI čte trychtýře přes MCP get_funnel). ?>
-        <?php if (!$isFunnelView): ?>
+        <?php if (!$isFunnelView && !$isAdsView): ?>
         <button class="btn btn-primary" type="button" id="shareAiBtn" title="<?= h(t('Sdílet pro AI (dočasný odkaz)')) ?>"
             data-domain="<?= (int) $data['domain']['id'] ?>" data-source="<?= (int) $viewSourceId ?>"
             data-start="<?= h($curStart) ?>" data-end="<?= h($curEnd) ?>"

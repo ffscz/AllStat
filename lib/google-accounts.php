@@ -66,7 +66,7 @@ function allstat_google_client_donors(PDO $pdo): array
         FROM domain_sources ds
         INNER JOIN data_sources s ON s.id = ds.source_id
         INNER JOIN domains d ON d.id = ds.domain_id
-        WHERE s.provider_key IN ('ga4','gsc','youtube','google_ads') AND ds.client_id IS NOT NULL AND ds.client_id <> ''
+        WHERE s.provider_key IN ('ga4','gsc','youtube','google_ads','google_business') AND ds.client_id IS NOT NULL AND ds.client_id <> ''
           AND ds.client_secret_enc IS NOT NULL AND ds.client_secret_enc <> ''
         ORDER BY ds.id");
     $out = [];

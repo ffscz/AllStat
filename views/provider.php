@@ -61,6 +61,7 @@ if (is_file($allstatProviderPartial)) {
     <span><?= h(t('{group}, data jen za {scope}. Nemíchá se s ostatními zdroji ani s GA4 přehledem.', ['group' => $provGroup, 'scope' => t($provIsAds ? 'tento reklamní účet' : 'tuto jednu stránku / účet')])) ?><?php if ($provIsAds): ?> <?= match ($provKey) {
         'microsoft_ads' => t('ROAS a konverze vycházejí z atribučního nastavení účtu Microsoft Advertising.'),
         'google_ads' => t('ROAS a konverze vycházejí z atribučního nastavení účtu Google Ads.'),
+        'tiktok_ads' => t('Konverze a jejich hodnota vycházejí z atribuce TikTok (pixel nebo Events API, výchozí okno 7 dní po kliknutí a 1 den po zobrazení), ne z GA4.'),
         'openai_ads' => t('Konverze vycházejí z atribuce OpenAI Ads (pixel nebo Conversions API), ne z GA4: okno 30 dní po kliknutí a 1 den po zobrazení.'),
         default => t('ROAS a konverze závisí na <strong>atribučním okně</strong> Meta (výchozí 7 dní klik / 1 den zobrazení; lze změnit v config_json napojení).'),
     } ?><?php endif; ?><?php if (in_array($provKey, ['facebook_pages', 'instagram_business'], true)): ?> <?= h(t('Meta počítá den v kalifornském čase (PT), AllStat ukládá dny podle Europe/Prague. Denní hodnoty a součty za krátké období se proto od Business Suite mohou lišit o pár jednotek; součty za 28 dní a za měsíc sedí.')) ?><?php endif; ?></span>

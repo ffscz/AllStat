@@ -96,9 +96,9 @@ $partialTitle = static fn (array $e): string => t('Data jen za {days} z {expecte
 
 // Skupiny karet a řádků tabulky podle typu kanálu (pořadí kanálů uvnitř skupiny drží allstat_get_channel_growth).
 $groupOf = [
-    'ga4' => 'web', 'gsc' => 'web', 'clarity' => 'web',
+    'ga4' => 'web', 'gsc' => 'web', 'clarity' => 'web', 'bing_wmt' => 'web', 'google_business' => 'web',
     'facebook_pages' => 'social', 'instagram_business' => 'social', 'linkedin_company' => 'social', 'youtube' => 'social',
-    'meta_ads' => 'ads', 'google_ads' => 'ads', 'microsoft_ads' => 'ads', 'openai_ads' => 'ads',
+    'meta_ads' => 'ads', 'google_ads' => 'ads', 'microsoft_ads' => 'ads', 'openai_ads' => 'ads', 'tiktok_ads' => 'ads',
 ];
 $groups = [
     'web' => ['title' => t('Web'), 'desc' => t('Návštěvnost a vyhledávání'), 'icon' => 'globe', 'items' => []],
@@ -113,7 +113,7 @@ $groups = array_filter($groups, static fn (array $g): bool => $g['items'] !== []
 // Barva čáry kanálu v grafu Vývoj v čase: barva popředí dlaždice služby (--src-*-fg), stejně ji bere assets/js/growth.js.
 $lineToken = static fn (string $color): string => '--src-' . match ($color) {
     'ga4' => 'ga', 'gsc' => 'sc', 'clarity' => 'cl', 'youtube' => 'yt', 'facebook' => 'fb',
-    'linkedin' => 'li', 'instagram' => 'ig', default => 'ma',
+    'linkedin' => 'li', 'instagram' => 'ig', 'bing' => 'bw', 'gbp' => 'gb', default => 'ma',
 } . '-fg';
 
 // Souhrnné dlaždice.

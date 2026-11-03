@@ -2165,6 +2165,27 @@ function allstat_provider_metric_meta(string $providerKey): array
             'redirected' => ['label' => t('Přesměrování'), 'icon' => 'corner-down-right', 'color' => 'orange', 'tooltip' => t('Stránky vracející přesměrování. Aktuální stav.')],
             'doc_count' => ['label' => t('Dokumenty celkem'), 'icon' => 'files', 'color' => 'violet', 'tooltip' => t('Celkový počet dokumentů webu, které Seznam eviduje. Aktuální stav.')],
         ],
+        'bing_wmt' => [
+            // Klíče = engine v lib/bing-wmt.php. in_index a inlinks jsou stavy k datu (snapshot), ostatní denní součty.
+            'clicks' => ['label' => t('Kliknutí'), 'icon' => 'mouse-pointer-click', 'color' => 'green', 'tooltip' => t('Kliknutí z výsledků hledání Bing (a vyhledávačů na něm postavených) na web, Bing Webmaster Tools GetRankAndTrafficStats. Součet za období.')],
+            'impressions' => ['label' => t('Zobrazení'), 'icon' => 'eye', 'color' => 'blue', 'tooltip' => t('Kolikrát se web zobrazil ve výsledcích hledání Bing. Součet za období.')],
+            'in_index' => ['label' => t('Stránky v indexu'), 'icon' => 'check-circle-2', 'color' => 'teal', 'tooltip' => t('Kolik stránek webu má Bing v indexu, stav k poslednímu dni s daty. Propad = problém s indexací.')],
+            'crawled_pages' => ['label' => t('Procházené stránky'), 'icon' => 'download', 'color' => 'cyan', 'tooltip' => t('Kolik stránek robot Bingbot za období prošel. Součet za období.')],
+            'crawl_errors' => ['label' => t('Chyby procházení'), 'icon' => 'alert-triangle', 'color' => 'rose', 'tooltip' => t('Stránky, na kterých robot narazil na chybu (nedostupné, chybové kódy). Rostoucí číslo = řešit.')],
+            'inlinks' => ['label' => t('Zpětné odkazy'), 'icon' => 'link', 'color' => 'violet', 'tooltip' => t('Počet odkazů z jiných webů, které Bing zná, stav k poslednímu dni s daty.')],
+        ],
+        'google_business' => [
+            // Klíče = engine v lib/google-business.php; impressions* jsou součty dopočítané syncem.
+            'impressions' => ['label' => t('Zobrazení profilu'), 'icon' => 'eye', 'color' => 'blue', 'tooltip' => t('Kolikrát lidé viděli firemní profil v Google hledání a Mapách (počítá se jeden uživatel jednou za den). Součet za období.')],
+            'impressions_search' => ['label' => t('Zobrazení v hledání'), 'icon' => 'search', 'color' => 'cyan', 'tooltip' => t('Zobrazení profilu ve výsledcích Google hledání, počítač i mobil.')],
+            'impressions_maps' => ['label' => t('Zobrazení v Mapách'), 'icon' => 'map-pin', 'color' => 'teal', 'tooltip' => t('Zobrazení profilu v Google Mapách, počítač i mobil.')],
+            'website_clicks' => ['label' => t('Kliknutí na web'), 'icon' => 'mouse-pointer-click', 'color' => 'green', 'tooltip' => t('Kliknutí na odkaz webu v profilu. Návštěvy z nich vidí i GA4, obvykle jako google / organic nebo s UTM parametry odkazu.')],
+            'call_clicks' => ['label' => t('Hovory'), 'icon' => 'phone', 'color' => 'violet', 'tooltip' => t('Kliknutí na tlačítko Zavolat v profilu.')],
+            'direction_requests' => ['label' => t('Trasy'), 'icon' => 'navigation', 'color' => 'orange', 'tooltip' => t('Žádosti o navigaci k provozovně.')],
+            'messages' => ['label' => t('Zprávy'), 'icon' => 'message-circle', 'color' => 'teal', 'tooltip' => t('Konverzace zahájené z profilu.')],
+            'bookings' => ['label' => t('Rezervace'), 'icon' => 'calendar', 'color' => 'green', 'tooltip' => t('Rezervace provedené přes profil (jen u profilů s rezervacemi).')],
+            'menu_clicks' => ['label' => t('Kliknutí na menu'), 'icon' => 'clipboard-list', 'color' => 'rose', 'tooltip' => t('Kliknutí na nabídku jídel nebo služeb v profilu.')],
+        ],
         'facebook_pages' => [
             'followers_total' => ['label' => t('Sledující celkem'), 'icon' => 'users', 'color' => 'green', 'tooltip' => t('Celkový počet sledujících stránky (Facebook followers_count), aktuální stav k poslednímu syncu. Ukládá se denně, takže postupně vznikne graf vývoje; zpětnou historii Facebook API nedává.')],
             'reach' => ['label' => t('Dosah'), 'icon' => 'eye', 'color' => 'blue', 'tooltip' => t('Unikátní lidé, kteří viděli obsah stránky (Facebook page_impressions_unique, po 15. 6. 2026 page_total_media_view_unique). Součet za období, klíčová metrika organického dosahu.')],
@@ -2281,7 +2302,7 @@ function allstat_get_provider_view(PDO $pdo, int $domainId, int $connectionId, s
     // Snapshot metriky (stavové hodnoty typu „sledující celkem") se NESMÍ sčítat po dnech:
     // total = poslední známá hodnota v období, série = poslední hodnota v každé periodě
     // (chybějící periody se dopočítají poslední známou hodnotou, ať graf neskáče na nulu).
-    $snapshotKeys = ['followers_total', 'fans_total', 'views_total', 'videos_total'];
+    $snapshotKeys = ['followers_total', 'fans_total', 'views_total', 'videos_total', 'in_index', 'inlinks'];
     $snapTotals = [];
     try {
         $snapRows = allstat_fetch_all($pdo, "
@@ -2979,6 +3000,76 @@ function allstat_get_google_ads_campaigns(PDO $pdo, int $domainId, int $connecti
  * Mirrors the shared provider-view payload shape (labels + metrics[] + hasData) so index.php renders it
  * with the standard KPI grid + trend chart.
  */
+/**
+ * Bing Webmaster: nejčastější dotazy nebo stránky za období ($prefix = query | page). Bing je dává po týdnech,
+ * průměrná pozice je vážená zobrazeními.
+ *
+ * @return list<array{label: string, clicks: float, impressions: float, ctr: ?float, position: ?float}>
+ */
+function allstat_get_bing_wmt_top(PDO $pdo, int $connectionId, string $start, string $end, string $prefix, int $limit = 15): array
+{
+    $prefix = $prefix === 'page' ? 'page' : 'query';
+    try {
+        $rows = allstat_fetch_all($pdo, "
+            SELECT dimension, SUM(c) AS clicks, SUM(i) AS impressions, SUM(p * i) / NULLIF(SUM(CASE WHEN p > 0 THEN i END), 0) AS position
+            FROM (
+                SELECT dimension, metric_date,
+                       SUM(CASE WHEN metric_key = ? THEN metric_value ELSE 0 END) AS c,
+                       SUM(CASE WHEN metric_key = ? THEN metric_value ELSE 0 END) AS i,
+                       SUM(CASE WHEN metric_key = ? THEN metric_value ELSE 0 END) AS p
+                FROM provider_metrics_daily
+                WHERE connection_id = ? AND metric_date BETWEEN ? AND ? AND metric_key IN (?, ?, ?) AND dimension <> ''
+                GROUP BY dimension, metric_date
+            ) x
+            GROUP BY dimension
+            ORDER BY clicks DESC, impressions DESC
+            LIMIT " . max(1, min(100, $limit)), [
+            $prefix . '_clicks', $prefix . '_impressions', $prefix . '_position', $connectionId, $start, $end,
+            $prefix . '_clicks', $prefix . '_impressions', $prefix . '_position',
+        ]);
+    } catch (Throwable) {
+        return [];
+    }
+
+    return array_map(static fn (array $r): array => [
+        'label' => (string) $r['dimension'],
+        'clicks' => (float) $r['clicks'],
+        'impressions' => (float) $r['impressions'],
+        'ctr' => (float) $r['impressions'] > 0 ? (float) $r['clicks'] / (float) $r['impressions'] * 100 : null,
+        'position' => $r['position'] !== null ? round((float) $r['position'], 1) : null,
+    ], $rows);
+}
+
+/**
+ * Google Business Profile: hledané výrazy, které vedly na profil, za celé měsíce, které období zasahuje.
+ * Google dává jen měsíční čísla a malé hodnoty jen jako horní hranici („méně než N“).
+ *
+ * @return array{rows: list<array{keyword: string, impressions: float, below: bool}>, from: string, to: string}
+ */
+function allstat_get_google_business_keywords(PDO $pdo, int $connectionId, string $start, string $end, int $limit = 20): array
+{
+    $from = substr($start, 0, 7) . '-01';
+    $to = substr($end, 0, 7) . '-01';
+    try {
+        $rows = allstat_fetch_all($pdo, "
+            SELECT dimension, SUM(CASE WHEN metric_key = 'keyword_impressions' THEN metric_value ELSE 0 END) AS impressions,
+                   MAX(CASE WHEN metric_key = 'keyword_threshold' THEN 1 ELSE 0 END) AS below
+            FROM provider_metrics_daily
+            WHERE connection_id = ? AND metric_date BETWEEN ? AND ? AND metric_key IN ('keyword_impressions', 'keyword_threshold') AND dimension <> ''
+            GROUP BY dimension
+            ORDER BY impressions DESC, dimension ASC
+            LIMIT " . max(1, min(100, $limit)), [$connectionId, $from, $to]);
+    } catch (Throwable) {
+        $rows = [];
+    }
+
+    return [
+        'rows' => array_map(static fn (array $r): array => ['keyword' => (string) $r['dimension'], 'impressions' => (float) $r['impressions'], 'below' => (int) $r['below'] === 1], $rows),
+        'from' => $from,
+        'to' => $to,
+    ];
+}
+
 function allstat_get_seznam_wmt_kpis(PDO $pdo, int $domainId, int $connectionId, string $start, string $end): array
 {
     [$start, $end] = allstat_limited_range($start, $end);

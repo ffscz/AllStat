@@ -328,12 +328,13 @@ function allstat_ga4_sync(PDO $pdo, array $config, array $connection, string $ac
     $sources = $report([
         'dateRanges' => [['startDate' => $startDate, 'endDate' => $endDate]],
         'dimensions' => [['name' => 'date'], ['name' => 'sessionDefaultChannelGroup']],
-        'metrics' => [['name' => 'sessions'], ['name' => 'keyEvents']],
+        // totalRevenue po kanálech (1.5.5): tržby podle zdroje vedle konverzí reklamních platforem.
+        'metrics' => [['name' => 'sessions'], ['name' => 'keyEvents'], ['name' => 'totalRevenue']],
     ]);
     $sourceStatement = $pdo->prepare('
-        INSERT INTO traffic_sources_daily (domain_id, metric_date, source, sessions, conversions)
-        VALUES (?, ?, ?, ?, ?)
-        ON DUPLICATE KEY UPDATE sessions = VALUES(sessions), conversions = VALUES(conversions)
+        INSERT INTO traffic_sources_daily (domain_id, metric_date, source, sessions, conversions, revenue)
+        VALUES (?, ?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE sessions = VALUES(sessions), conversions = VALUES(conversions), revenue = VALUES(revenue)
     ');
     $sourceCount = 0;
     foreach ($sources['rows'] ?? [] as $row) {
@@ -344,6 +345,7 @@ function allstat_ga4_sync(PDO $pdo, array $config, array $connection, string $ac
             $domainId, $date, $channel,
             (int) ($row['metricValues'][0]['value'] ?? 0),
             (int) ($row['metricValues'][1]['value'] ?? 0),
+            round((float) ($row['metricValues'][2]['value'] ?? 0), 2),
         ]);
         $sourceCount++;
     }
@@ -631,9 +633,9 @@ function allstat_ga4_sync(PDO $pdo, array $config, array $connection, string $ac
     $utmCount = 0;
     try {
         $utmStatement = $pdo->prepare('
-            INSERT INTO utm_daily (domain_id, metric_date, campaign, source, medium, content, landing_page, sessions, conversions, engaged_sessions)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON DUPLICATE KEY UPDATE sessions = VALUES(sessions), conversions = VALUES(conversions), engaged_sessions = VALUES(engaged_sessions)
+            INSERT INTO utm_daily (domain_id, metric_date, campaign, source, medium, content, landing_page, sessions, conversions, engaged_sessions, revenue)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE sessions = VALUES(sessions), conversions = VALUES(conversions), engaged_sessions = VALUES(engaged_sessions), revenue = VALUES(revenue)
         ');
         $offset = 0;
         $pageLimit = 10000;
@@ -641,7 +643,7 @@ function allstat_ga4_sync(PDO $pdo, array $config, array $connection, string $ac
             $utm = $report([
                 'dateRanges' => [['startDate' => $startDate, 'endDate' => $endDate]],
                 'dimensions' => [['name' => 'date'], ['name' => 'sessionCampaignName'], ['name' => 'sessionSource'], ['name' => 'sessionMedium'], ['name' => 'sessionManualAdContent'], ['name' => 'landingPage']],
-                'metrics' => [['name' => 'sessions'], ['name' => 'keyEvents'], ['name' => 'engagedSessions']],
+                'metrics' => [['name' => 'sessions'], ['name' => 'keyEvents'], ['name' => 'engagedSessions'], ['name' => 'totalRevenue']],
                 'limit' => $pageLimit,
                 'offset' => $offset,
             ]);
@@ -662,6 +664,7 @@ function allstat_ga4_sync(PDO $pdo, array $config, array $connection, string $ac
                     (int) ($row['metricValues'][0]['value'] ?? 0),
                     (int) ($row['metricValues'][1]['value'] ?? 0),
                     (int) ($row['metricValues'][2]['value'] ?? 0),
+                    round((float) ($row['metricValues'][3]['value'] ?? 0), 2),
                 ]);
                 $utmCount++;
             }

@@ -27,9 +27,9 @@ const AllStat = (() => {
         };
     }
 
-    // Pohledy, které se překreslují serverově (plný reload, bez AJAX obnovy přehledu): zdroj (provider), Růst kanálů, Trychtýř.
+    // Pohledy, které se překreslují serverově (plný reload, bez AJAX obnovy přehledu): zdroj (provider), Růst kanálů, Trychtýř, Reklama.
     function isServerView() {
-        return Boolean(window.ALLSTAT_PROVIDER) || window.ALLSTAT_VIEW === 'growth' || window.ALLSTAT_VIEW === 'funnel';
+        return Boolean(window.ALLSTAT_PROVIDER) || ['growth', 'funnel', 'ads'].includes(window.ALLSTAT_VIEW);
     }
 
     function escapeHtml(value) {
@@ -645,8 +645,8 @@ const AllStat = (() => {
                     // Z Růstu kanálů picker nemá denní rozsah → prázdné start/end = výchozích 7 dní (u trychtýře 28 dní).
                     if (picker.dataset.start) { q.set('start', picker.dataset.start); }
                     if (picker.dataset.end) { q.set('end', picker.dataset.end); }
-                    if (item.dataset.view === 'overview') {
-                        q.set('view', 'overview');
+                    if (item.dataset.view === 'overview' || item.dataset.view === 'ads') {
+                        q.set('view', item.dataset.view);
                     } else if (item.dataset.view === 'funnel') {
                         // Trychtýř patří webu: picker nese id trychtýře, období se přenáší stejně jako u přehledu.
                         q.set('view', 'funnel');

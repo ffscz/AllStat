@@ -18,6 +18,8 @@
 require_once __DIR__ . '/funnels.php';
 // Obecný dotaz nad uloženými daty (tool query_data).
 require_once __DIR__ . '/mcp-query.php';
+require_once __DIR__ . '/ads-overview.php';
+require_once __DIR__ . '/insights.php';
 
 const ALLSTAT_MCP_TOOL_MAX_CHARS = 60000;
 const ALLSTAT_MCP_TOOL_STALE_HOURS = 48;
@@ -84,7 +86,7 @@ function allstat_mcp_tool_annotations(string $title): array
 }
 
 /**
- * The 11 tools in a fixed order (deterministic tools/list).
+ * The 13 tools in a fixed order (deterministic tools/list).
  */
 function allstat_mcp_tool_definitions(): array
 {
@@ -224,6 +226,20 @@ function allstat_mcp_tool_definitions(): array
                 ],
                 ['website_id']
             )
+        ),
+        $tool(
+            'compare_ad_platforms',
+            'Srovnání reklamních platforem',
+            'Vrátí za období všechny reklamní účty webu vedle sebe (Google Ads, Meta Ads, Microsoft Ads, TikTok Ads, OpenAI Ads): útratu v měně účtu, podíl na útratě v rámci stejné měny, zobrazení, kliknutí, CTR, CPC, CPM, konverze, CPA a ROAS, a k tomu návštěvy, konverze a tržby, které GA4 přiřadilo zdroji každé platformy. Použijte na otázky „která reklama se nejvíc vyplácí“ nebo „kam přesunout rozpočet“. Útrata se sčítá jen v rámci měny, konverze platforem se nesčítají (každá platforma má vlastní atribuci). ' . ALLSTAT_MCP_THIRD_PARTY_WARNING,
+            $object(allstat_mcp_tool_props_website() + allstat_mcp_tool_props_period(), ['website_id'])
+        ),
+        $tool(
+            'detect_changes',
+            'Neobvyklé změny',
+            'Najde neobvyklé změny v datech webu: poslední okno (7, 14 nebo 28 dní) každé denní řady (návštěvy, konverze, tržby a kanály GA4, kliknutí a zobrazení ze Search Console, hlavní metriky sociálních sítí, YouTube a Clarity, u reklamy útrata, kliknutí a konverze) porovná s typickou hodnotou (medián) stejně dlouhých oken před ním. Výpočet je deterministický (robustní z-skóre, medián a MAD), malé hodnoty se nehlásí. Použijte na otázky „co se změnilo“, „je něco neobvyklého“ nebo jako první krok pravidelné kontroly; příčinu pak hledejte v get_source_metrics, get_overview nebo query_data.',
+            $object(allstat_mcp_tool_props_website() + [
+                'days' => ['type' => 'integer', 'enum' => [7, 14, 28], 'default' => 7, 'description' => 'Délka posledního okna ve dnech. Srovnává se s 8 předchozími okny (u 28 dní se 6).'],
+            ], ['website_id'])
         ),
         $tool(
             'query_data',
@@ -1090,6 +1106,8 @@ function allstat_mcp_tool_call(PDO $pdo, array $config, string $name, array $arg
         'get_sync_status' => allstat_mcp_tool_get_sync_status($pdo, $config, $a),
         'get_funnel' => allstat_mcp_tool_get_funnel($pdo, $config, $a),
         'query_data' => allstat_mcp_tool_query_data($pdo, $config, $a),
+        'compare_ad_platforms' => allstat_mcp_tool_compare_ad_platforms($pdo, $config, $a),
+        'detect_changes' => allstat_mcp_tool_detect_changes($pdo, $config, $a),
         default => null,
     };
 }
@@ -1897,7 +1915,7 @@ function allstat_mcp_tool_metrics(array $metrics, array $ctx = []): array
     // muted = [lokální klíč => důvod], když zdroj metriku dočasně neposílá.
     $expected = (int) ($ctx['expected_days'] ?? 0);
     $gapsAreZero = (bool) ($ctx['gaps_are_zero'] ?? false);
-    $snapshot = ['followers_total', 'fans_total', 'views_total', 'videos_total'];
+    $snapshot = ['followers_total', 'fans_total', 'views_total', 'videos_total', 'in_index', 'inlinks'];
     $out = [];
     foreach ($metrics as $m) {
         $key = (string) ($m['key'] ?? '');
@@ -2069,7 +2087,8 @@ function allstat_mcp_tool_get_source_metrics(PDO $pdo, array $config, array $a):
         case 'google_ads':
         case 'microsoft_ads':
         case 'openai_ads':
-            $adsProviderName = match ($pk) { 'microsoft_ads' => 'Microsoft Ads', 'openai_ads' => 'OpenAI Ads', default => 'Google Ads' };
+        case 'tiktok_ads':
+            $adsProviderName = match ($pk) { 'microsoft_ads' => 'Microsoft Ads', 'openai_ads' => 'OpenAI Ads', 'tiktok_ads' => 'TikTok Ads', default => 'Google Ads' };
             $kpis = allstat_get_google_ads_kpis($pdo, $id, $cid, $start, $end, $granularity, $adsProviderName);
             $data['has_data'] = (bool) $kpis['hasData'];
             $data['labels'] = $kpis['labels'] ?? [];
@@ -2136,6 +2155,29 @@ function allstat_mcp_tool_get_source_metrics(PDO $pdo, array $config, array $a):
             }
             if ($unavailable) {
                 $data['unavailable_metrics'] = $unavailable;
+            }
+            if ($pk === 'bing_wmt') {
+                foreach (['query' => 'top_queries', 'page' => 'top_pages'] as $prefix => $field) {
+                    $rows = allstat_get_bing_wmt_top($pdo, $cid, $start, $end, $prefix, 20);
+                    if ($rows) {
+                        $data[$field] = array_map(static fn (array $r): array => [
+                            'label' => allstat_mcp_tool_sanitize($r['label']), 'clicks' => (int) $r['clicks'], 'impressions' => (int) $r['impressions'],
+                            'ctr_pct' => allstat_mcp_tool_round($r['ctr'], 2), 'position' => $r['position'],
+                        ], $rows);
+                    }
+                }
+                $data['note'] = 'Bing dává dotazy a stránky po týdnech (top 200 za týden), okraje období mohou zahrnout celý týden. in_index a inlinks jsou stav k poslednímu dni s daty, ne součet.';
+            }
+            if ($pk === 'google_business') {
+                $kw = allstat_get_google_business_keywords($pdo, $cid, $start, $end, 30);
+                if ($kw['rows']) {
+                    $data['search_keywords'] = [
+                        'months' => substr($kw['from'], 0, 7) . ' až ' . substr($kw['to'], 0, 7),
+                        'rows' => array_map(static fn (array $r): array => ['keyword' => allstat_mcp_tool_sanitize($r['keyword']), 'impressions' => (int) $r['impressions'], 'below_threshold' => $r['below']], $kw['rows']),
+                        'definition' => 'Hledané výrazy, po kterých lidé profil našli, za celé měsíce. below_threshold = Google uvádí jen horní hranici (méně než impressions).',
+                    ];
+                }
+                $data['note'] = 'Google Business Profile dává denní data se zpožděním až 5 dní. impressions = součet zobrazení v hledání a Mapách (počítač i mobil), jeden uživatel nejvýš jednou za den.';
             }
             if (in_array($pk, ['facebook_pages', 'instagram_business'], true)) {
                 // Různí lidé za okna, která AllStat zná (jako Business Suite „Diváci“ / „Dosah“), a u IG rozpad za 28 dní.
@@ -2862,4 +2904,89 @@ function allstat_mcp_tool_get_funnel(PDO $pdo, array $config, array $a): array
         'structuredContent' => $structured,
         'isError' => false,
     ];
+}
+
+/* ------------------------------------------------------------------------------------------------
+ * compare_ad_platforms, detect_changes (1.5.5)
+ * ---------------------------------------------------------------------------------------------- */
+
+function allstat_mcp_tool_compare_ad_platforms(PDO $pdo, array $config, array $a): array
+{
+    $site = allstat_mcp_tool_website($pdo, $a);
+    if (!$site['ok']) {
+        return allstat_mcp_tool_error($site['error']);
+    }
+    $per = allstat_mcp_tool_resolve_period($a);
+    if (!$per['ok']) {
+        return allstat_mcp_tool_error($per['error']);
+    }
+    $o = allstat_get_ads_overview($pdo, $site['id'], $per['start'], $per['end']);
+    $names = allstat_ads_overview_providers();
+
+    $platforms = [];
+    foreach ($o['accounts'] as $acc) {
+        $pk = $acc['provider'];
+        $platforms[$pk] ??= ['provider' => $pk, 'name' => $names[$pk], 'clicks' => 0, 'conversions_reported' => 0.0, 'ga4' => null];
+        $platforms[$pk]['clicks'] += (int) $acc['clicks'];
+        $platforms[$pk]['conversions_reported'] += $acc['conversions'];
+    }
+    foreach ($platforms as $pk => &$p) {
+        $g = $o['ga4'][$pk] ?? null;
+        $p['conversions_reported'] = round($p['conversions_reported'], 2);
+        $p['ga4'] = $g === null ? null : ['sessions' => $g['sessions'], 'conversions' => $g['conversions'], 'revenue' => round($g['revenue'], 2)];
+    }
+    unset($p);
+
+    return allstat_mcp_tool_success([
+        'website' => allstat_mcp_tool_site_payload($site),
+        'period' => allstat_mcp_tool_period_payload($per),
+        'has_data' => $o['hasData'],
+        'accounts' => array_map(static fn (array $acc): array => [
+            'source_id' => $acc['connection_id'],
+            'platform' => $acc['name'],
+            'account' => allstat_mcp_tool_sanitize_or_null($acc['account']),
+            'currency' => $acc['currency'] !== '' ? $acc['currency'] : null,
+            'spend' => round($acc['cost'], 2),
+            'spend_share_pct' => allstat_mcp_tool_round($acc['share'], 1),
+            'impressions' => (int) $acc['impressions'],
+            'clicks' => (int) $acc['clicks'],
+            'ctr_pct' => allstat_mcp_tool_round($acc['ctr'], 2),
+            'cpc' => allstat_mcp_tool_round($acc['cpc'], 2),
+            'cpm' => allstat_mcp_tool_round($acc['cpm'], 2),
+            'conversions' => round($acc['conversions'], 2),
+            'conversion_value' => round($acc['conversionValue'], 2),
+            'cpa' => allstat_mcp_tool_round($acc['cpa'], 2),
+            'roas' => allstat_mcp_tool_round($acc['roas'], 2),
+        ], $o['accounts']),
+        'spend_by_currency' => array_map(static fn (array $c): array => ['spend' => round($c['spend'], 2), 'clicks' => (int) $c['clicks'], 'impressions' => (int) $c['impressions'], 'accounts' => $c['accounts']], $o['currencies']),
+        'platforms_vs_ga4' => array_values($platforms),
+        'ga4_paid_channels' => $o['ga4Paid'] === null ? null : ['sessions' => $o['ga4Paid']['sessions'], 'conversions' => $o['ga4Paid']['conversions'], 'revenue' => round($o['ga4Paid']['revenue'], 2)],
+        'ga4_has_revenue' => $o['hasGa4Revenue'],
+        'method' => 'spend_share_pct = podíl na útratě mezi účty ve stejné měně (kurzy se nepřepočítávají; spend_by_currency jsou součty po měnách, klíč ? = měna neznámá). '
+            . 'conversions a roas jsou podle atribuce platformy (včetně konverzí po zobrazení a delších oken), proto se mezi platformami nesčítají. '
+            . 'platforms_vs_ga4.ga4 = návštěvy, klíčové události a tržby, které GA4 přiřadilo zdroji platformy podle UTM (source a placené medium) nebo automatického označení (google / cpc, bing / cpc); null = žádná taková návštěva (chybí UTM nebo GA4). '
+            . 'ga4_paid_channels = kanály GA4 Paid*, Cross-network a Display. Tržby GA4 jsou v měně property, ukládají se od verze 1.5.5.',
+    ]);
+}
+
+function allstat_mcp_tool_detect_changes(PDO $pdo, array $config, array $a): array
+{
+    $site = allstat_mcp_tool_website($pdo, $a);
+    if (!$site['ok']) {
+        return allstat_mcp_tool_error($site['error']);
+    }
+    $r = allstat_detect_changes($pdo, $site['id'], (int) ($a['days'] ?? 7));
+
+    return allstat_mcp_tool_success([
+        'website' => allstat_mcp_tool_site_payload($site),
+        'window_days' => $r['window_days'],
+        'baseline_windows' => $r['baseline_windows'],
+        'series_checked' => $r['checked'],
+        'changes' => array_map(static fn (array $c): array => array_merge($c, ['source' => allstat_mcp_tool_sanitize($c['source']), 'label' => allstat_mcp_tool_sanitize($c['label'])]), $r['changes']),
+        'skipped' => array_map(static fn (array $s): array => array_merge($s, ['source' => allstat_mcp_tool_sanitize($s['source'])]), $r['skipped']),
+        'method' => 'value = součet posledního okna (končí posledním dnem s daty zdroje, u reklamy včerejškem), typical = medián stejně dlouhých oken před ním (baseline_values, od nejnovějšího). '
+            . 'z = robustní z-skóre (odchylka od mediánu ÷ 1,4826 × MAD); hlásí se změna aspoň 25 % s |z| ≥ 2,5, nebo aspoň 50 %, když jsou okna v historii stejná (z null). '
+            . 'Okna jsou násobky týdne. Řady s typickou i aktuální hodnotou pod ' . ALLSTAT_CHANGES_MIN_VOLUME . ' se nehlásí. good = změna žádoucím směrem (u útraty je nárůst označen jako nežádoucí, posuďte podle kontextu). '
+            . 'Prázdné changes znamená, že nic nevybočuje z běžného rozptylu.',
+    ]);
 }

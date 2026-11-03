@@ -170,7 +170,12 @@ function allstat_get_valid_access_token(PDO $pdo, array $config, array $connecti
                 $unlock->execute([$lock]);
             }
         }
-        $refresh = allstat_refresh_access_token($pdo, $config, $connection);
+        if (($connection['provider_key'] ?? '') === 'tiktok_ads') {
+            require_once __DIR__ . '/tiktok-ads.php';
+            $refresh = allstat_tiktok_ads_refresh($pdo, $config, $connection);
+        } else {
+            $refresh = allstat_refresh_access_token($pdo, $config, $connection);
+        }
         if (!$refresh['ok']) {
             return $refresh;
         }
@@ -223,6 +228,15 @@ function allstat_test_connection(PDO $pdo, array $config, array $connection): ar
     if ($providerKey === 'openai_ads') {
         require_once __DIR__ . '/openai-ads.php';
         return allstat_openai_ads_test($connection, (string) allstat_decrypt_secret($connection['access_token_enc'] ?? null, $config));
+    }
+
+    if ($providerKey === 'bing_wmt') {
+        require_once __DIR__ . '/bing-wmt.php';
+        $key = (string) allstat_decrypt_secret($connection['access_token_enc'] ?? null, $config);
+        if ($key === '') {
+            return ['ok' => false, 'message' => t('Vyplňte API klíč Bing Webmaster Tools do pole Access token.')];
+        }
+        return allstat_bing_wmt_test($connection, $key);
     }
 
     $tokenResult = allstat_get_valid_access_token($pdo, $config, $connection);
@@ -299,6 +313,14 @@ function allstat_test_connection(PDO $pdo, array $config, array $connection): ar
                     'currency' => !empty($customer['currencyCode']) ? t(', měna {currency}', ['currency' => $customer['currencyCode']]) : '',
                 ]),
             ];
+
+        case 'google_business':
+            require_once __DIR__ . '/google-business.php';
+            return allstat_google_business_test($pdo, $connection, $token);
+
+        case 'tiktok_ads':
+            require_once __DIR__ . '/tiktok-ads.php';
+            return allstat_tiktok_ads_test($connection, $token);
 
         case 'microsoft_ads':
             require_once __DIR__ . '/microsoft-ads.php';

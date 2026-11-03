@@ -2,8 +2,9 @@ AllStat
 =======
 
 Přehledný nástroj, který na jednom místě sbírá statistiky vašeho webu a sociálních sítí
-(Google Analytics 4, Search Console, Microsoft Clarity, Facebook, Instagram, LinkedIn,
-YouTube, Meta Ads, Google Ads, Microsoft Ads) a ukládá je do vaší vlastní databáze. Data zůstávají u vás na hostingu.
+(Google Analytics 4, Search Console, Bing Webmaster Tools, Google Business Profile, Microsoft Clarity,
+Facebook, Instagram, LinkedIn, YouTube, Meta Ads, Google Ads, Microsoft Ads, TikTok Ads, OpenAI Ads)
+a ukládá je do vaší vlastní databáze. Data zůstávají u vás na hostingu.
 Součástí je i připojení AI: asistenti Claude a ChatGPT si z AllStatu mohou číst data (jen ke čtení,
 zapíná a ruší ho administrátor).
 
@@ -43,6 +44,30 @@ https://ffscz.github.io/AllStat/
 Je vždy pro nejnovější verzi a jde vytisknout nebo uložit jako PDF. Tento soubor můžete
 po instalaci ze serveru smazat.
 
+
+Změny ve verzi 1.5.5
+--------------------
+ * Nový zdroj Bing Webmaster Tools: kliknutí a zobrazení z hledání Bing, nejčastější dotazy
+   a stránky, procházení robotem, stránky v indexu a zpětné odkazy. Stačí API klíč z Bing
+   Webmaster Tools (Nastavení → Přístup k API).
+ * Nový zdroj Google Business Profile: zobrazení profilu firmy v Google hledání a Mapách,
+   kliknutí na web, hovory, trasy a hledané výrazy. Google musí přístup k API nejdřív schválit
+   (formulář „Application for Basic API Access“, profil ověřený aspoň 60 dní), návod je u napojení.
+ * Nový zdroj TikTok Ads: útrata, zobrazení, kliknutí, konverze a kampaně. Vývojářskou aplikaci
+   musí schválit TikTok (App review), pak se účet připojí přes OAuth.
+ * U služeb, kde přístup k API schvaluje provider (Google Business Profile, TikTok Ads, LinkedIn,
+   Google Ads, Microsoft Ads), je u napojení upozornění, o co a kde požádat.
+ * Nový pohled Reklama napříč platformami (Přepnout zdroj): všechny reklamní účty vedle sebe,
+   útrata v měně účtu, podíl na útratě, CTR, CPC, CPM, konverze, CPA a ROAS, a vedle toho návštěvy,
+   klíčové události a tržby, které GA4 přiřadilo každé platformě. Útrata se sčítá jen v rámci jedné
+   měny a konverze platforem se nesčítají (každá platforma je počítá po svém).
+ * Tržby podle zdroje: Google Analytics 4 nově ukládá tržby u kanálů a kampaní (UTM). Starší dny
+   doplní „Stáhnout historii“ u napojení GA4.
+ * Oprava: Google Ads a Meta Ads ukazovaly útratu vždy v Kč. Měna se nově čte z účtu, takže účet
+   v eurech má útratu v EUR (projeví se po další synchronizaci).
+ * Připojení AI (MCP): nové nástroje compare_ad_platforms (srovnání reklamních platforem) a
+   detect_changes (neobvyklé změny proti typickému týdnu nebo měsíci) a data nových zdrojů.
+ * Databáze: nové sloupce pro tržby a nové zdroje, vytvoří se samy po aktualizaci.
 
 Změny ve verzi 1.5.4
 --------------------

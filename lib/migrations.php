@@ -11,7 +11,7 @@ require_once __DIR__ . '/providers.php';
  * v allstat_default_providers, nové výchozí settings) ZVEDNI tuhle konstantu — jinak se změna na
  * produkci neprovede. Formát: YYYY-MM-DD.N.
  */
-const ALLSTAT_SCHEMA_VERSION = '2026-11-03.3';
+const ALLSTAT_SCHEMA_VERSION = '2026-11-03.4';
 
 function allstat_schema_is_current(PDO $pdo): bool
 {
@@ -514,6 +514,11 @@ function allstat_migrate(PDO $pdo): void
     if ($utmKeyHasContent === 0) {
         try { $pdo->exec("ALTER TABLE utm_daily DROP INDEX utm_daily_unique"); } catch (Throwable) {}
         $pdo->exec("ALTER TABLE utm_daily ADD UNIQUE KEY utm_daily_unique (domain_id, metric_date, campaign, source, medium, content, landing_page)");
+    }
+    // Tržby (GA4 totalRevenue) podle kanálu a UTM, 1.5.5. Doplní je další synchronizace GA4.
+    allstat_add_column($pdo, 'utm_daily', 'revenue', 'revenue DECIMAL(14,2) NOT NULL DEFAULT 0 AFTER engaged_sessions');
+    if (allstat_table_exists($pdo, 'traffic_sources_daily')) {
+        allstat_add_column($pdo, 'traffic_sources_daily', 'revenue', 'revenue DECIMAL(14,2) NOT NULL DEFAULT 0 AFTER conversions');
     }
 
     $pdo->exec("CREATE TABLE IF NOT EXISTS social_posts (

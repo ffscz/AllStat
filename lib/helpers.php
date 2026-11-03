@@ -290,6 +290,9 @@ function allstat_help_anchor_for_provider(string $providerKey): string
         'google_ads' => 'google-ads',
         'microsoft_ads' => 'microsoft-ads',
         'openai_ads' => 'openai-ads',
+        'tiktok_ads' => 'tiktok-ads',
+        'bing_wmt' => 'bing',
+        'google_business' => 'google-business',
         'clarity' => 'clarity',
         default => 'sluzby',
     };

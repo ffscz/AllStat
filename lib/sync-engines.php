@@ -13,6 +13,9 @@
 
 require_once __DIR__ . '/social-thumbs.php';
 require_once __DIR__ . '/openai-ads.php';
+require_once __DIR__ . '/bing-wmt.php';
+require_once __DIR__ . '/google-business.php';
+require_once __DIR__ . '/tiktok-ads.php';
 
 require_once __DIR__ . '/oauth.php';
 require_once __DIR__ . '/microsoft-ads.php';
@@ -142,6 +145,20 @@ function allstat_sync_recipe(string $providerKey): ?array
             'engine' => 'microsoft_ads',
             'metrics' => ['impressions' => 'impressions', 'clicks' => 'clicks', 'cost' => 'cost', 'conversions' => 'conversions', 'conversion_value' => 'conversion_value'],
         ],
+        'tiktok_ads' => [
+            'engine' => 'tiktok_ads',
+            'metrics' => ['impressions' => 'impressions', 'clicks' => 'clicks', 'spend' => 'cost', 'conversion' => 'conversions', 'total_purchase_value' => 'conversion_value'],
+        ],
+        'bing_wmt' => [
+            'engine' => 'bing_wmt',
+            // API nemá parametr období a vrací celou historii (~6 měsíců) jedním voláním: „Stáhnout historii“ = jeden běh.
+            'single_shot' => true,
+            'metrics' => ['Clicks' => 'clicks', 'Impressions' => 'impressions', 'CrawledPages' => 'crawled_pages', 'InIndex' => 'in_index', 'InLinks' => 'inlinks'],
+        ],
+        'google_business' => [
+            'engine' => 'google_business',
+            'metrics' => allstat_google_business_metrics(),
+        ],
         'seznam_wmt' => [
             'engine' => 'seznam_wmt',
             'metrics' => ['indexed' => 'indexed', 'content' => 'content', 'downloaded' => 'downloaded', 'error' => 'error', 'redirected' => 'redirected', 'doc_count' => 'doc_count'],
@@ -193,6 +210,9 @@ function allstat_run_engine(string $engine, PDO $pdo, array $config, array $conn
         'openai_ads' => allstat_engine_openai_ads($pdo, $config, $connection, $token, $startDate, $endDate, $recipe),
         'microsoft_ads' => allstat_engine_microsoft_ads($pdo, $config, $connection, $token, $startDate, $endDate, $recipe),
         'seznam_wmt' => allstat_engine_seznam_wmt($pdo, $config, $connection, $token, $startDate, $endDate, $recipe),
+        'bing_wmt' => allstat_engine_bing_wmt($pdo, $config, $connection, $token, $startDate, $endDate, $recipe),
+        'google_business' => allstat_engine_google_business($pdo, $config, $connection, $token, $startDate, $endDate, $recipe),
+        'tiktok_ads' => allstat_engine_tiktok_ads($pdo, $config, $connection, $token, $startDate, $endDate, $recipe),
         'youtube' => allstat_engine_youtube($pdo, $config, $connection, $token, $startDate, $endDate, $recipe),
         default => throw new RuntimeException('Neznámý engine: ' . $engine),
     };
@@ -405,6 +425,13 @@ function allstat_engine_meta_graph(PDO $pdo, array $config, array $connection, s
     $written = 0;
 
     if ($object === 'ads') {
+        // Měna reklamního účtu (pole currency, ISO 4217) pro Růst kanálů a Reklamu napříč platformami. Best-effort.
+        try {
+            $cresp = allstat_http_request('GET', $base . '/' . rawurlencode($id) . '?fields=currency&access_token=' . urlencode($token), ['Accept' => 'application/json'], null, 30);
+            if ($cresp['status'] === 200) {
+                allstat_ads_save_currency($pdo, 'meta_ads', $connectionId, (string) ($cresp['json']['currency'] ?? ''));
+            }
+        } catch (Throwable) { /* měna je bonus */ }
         $conversionTypes = $recipe['conversion_actions'] ?? [];
         $valueTypes = $recipe['value_actions'] ?? [];
         $wantActions = $conversionTypes || $valueTypes;
@@ -2116,7 +2143,32 @@ function allstat_engine_google_ads(PDO $pdo, array $config, array $connection, s
         $campaignNote = '; kampaně: ' . mb_substr($e->getMessage(), 0, 60);
     }
 
+    // Měna účtu (customer.currency_code) pro Růst kanálů a Reklamu napříč platformami. Best-effort.
+    try {
+        $mresp = allstat_http_request(
+            'POST',
+            allstat_google_ads_url($connection, 'customers/' . $customerId . '/googleAds:searchStream'),
+            allstat_google_ads_headers($connection, $token),
+            json_encode(['query' => 'SELECT customer.currency_code FROM customer LIMIT 1']),
+            30
+        );
+        if ($mresp['status'] === 200) {
+            allstat_ads_save_currency($pdo, 'google_ads', $connectionId, (string) ($mresp['json'][0]['results'][0]['customer']['currencyCode'] ?? ''));
+        }
+    } catch (Throwable) { /* měna je bonus */ }
+
     return ['rows' => $written, 'summary' => sprintf('%d metrik, %d řádků kampaní%s (%s → %s)', $written - $campaignRows, $campaignRows, $campaignNote, $startDate, $endDate)];
+}
+
+/** Uloží měnu reklamního účtu (ISO 4217) jako <provider>.currency.<napojení>; čte ji allstat_ads_currency(). */
+function allstat_ads_save_currency(PDO $pdo, string $providerKey, int $connectionId, string $currency): void
+{
+    $currency = strtoupper(trim($currency));
+    if (!preg_match('/^[A-Z]{3}$/', $currency)) {
+        return;
+    }
+    $pdo->prepare('INSERT INTO allstat_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)')
+        ->execute([$providerKey . '.currency.' . $connectionId, $currency]);
 }
 
 /**

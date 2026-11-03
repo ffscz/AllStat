@@ -181,6 +181,14 @@ allstat_admin_header($id ? t('Upravit zdroj') : t('Nové napojení'), 'sources',
             </div>
         </div>
     </div>
+    <?php if (!empty($guide['approval'])): // Služby, u kterých musí přístup k API nejdřív schválit provider. ?>
+    <div class="card-body">
+        <div class="callout tone-warn" role="note">
+            <?= allstat_icon('info', 'icon-sm') ?>
+            <div><strong><?= h(t('Přístup k API musí schválit provider.')) ?></strong> <?= h($guide['approval']) ?></div>
+        </div>
+    </div>
+    <?php endif; ?>
     <?php if ($id): ?>
     <div class="card-body">
         <div class="form-actions">

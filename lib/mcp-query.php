@@ -47,8 +47,8 @@ function allstat_mcp_query_datasets(): array
             'note' => 'Stránka, na které návštěva začala.'],
         'channels' => ['kind' => 'web', 'label' => 'Kanály návštěvnosti (Google Analytics)', 'table' => 'traffic_sources_daily',
             'dims' => ['channel' => 'source'], 'text' => 'source', 'primary' => 'sessions',
-            'metrics' => ['sessions' => $s('sessions'), 'conversions' => $s('conversions')],
-            'note' => 'Výchozí skupiny kanálů GA4 (Organické vyhledávání, Přímá návštěvnost, Odkazující weby…).'],
+            'metrics' => ['sessions' => $s('sessions'), 'conversions' => $s('conversions'), 'revenue' => $s('revenue')],
+            'note' => 'Výchozí skupiny kanálů GA4 (Organické vyhledávání, Přímá návštěvnost, Odkazující weby…). revenue = GA4 totalRevenue v měně property, ukládá se od verze 1.5.5 (starší dny mají 0, dokud se GA4 znovu nestáhne).'],
         'devices' => ['kind' => 'web', 'label' => 'Zařízení (Google Analytics)', 'table' => 'device_daily',
             'dims' => ['device' => 'device'], 'text' => 'device', 'primary' => 'sessions',
             'metrics' => ['sessions' => $s('sessions'), 'users' => $s('users'), 'conversions' => $s('conversions')],
@@ -73,10 +73,10 @@ function allstat_mcp_query_datasets(): array
             'dims' => ['campaign' => 'campaign', 'source' => 'source', 'medium' => 'medium', 'content' => 'content', 'landing_page' => 'landing_page'],
             'default_group' => ['campaign', 'source', 'medium'],
             'text' => "CONCAT_WS(' ', campaign, source, medium, content, landing_page)", 'primary' => 'sessions',
-            'metrics' => ['sessions' => $s('sessions'), 'conversions' => $s('conversions'), 'engaged_sessions' => $s('engaged_sessions'),
+            'metrics' => ['sessions' => $s('sessions'), 'conversions' => $s('conversions'), 'engaged_sessions' => $s('engaged_sessions'), 'revenue' => $s('revenue'),
                 'engagement_rate' => 'CASE WHEN SUM(sessions) > 0 THEN SUM(engaged_sessions) * 100 / SUM(sessions) ELSE 0 END'],
             'ratio' => ['engagement_rate'],
-            'note' => 'Návštěvy s parametry kampaně (UTM). Organická, přímá a odkazující návštěvnost bez kampaně tu není. engagement_rate v procentech.'],
+            'note' => 'Návštěvy s parametry kampaně (UTM). Organická, přímá a odkazující návštěvnost bez kampaně tu není. engagement_rate v procentech. revenue = GA4 totalRevenue (od verze 1.5.5)'],
         'items' => ['kind' => 'web', 'label' => 'Produkty e-shopu (Google Analytics)', 'table' => 'items_daily',
             'dims' => ['item_name' => 'item_name'], 'text' => 'item_name', 'primary' => 'items_viewed',
             'metrics' => ['items_viewed' => $s('items_viewed'), 'items_added_to_cart' => $s('items_added_to_cart'), 'items_purchased' => $s('items_purchased'), 'item_revenue' => $s('item_revenue')],
@@ -532,7 +532,8 @@ function allstat_mcp_query_web_daily(PDO $pdo, array $q): array
 /** Jak agregovat metriku zdroje přes dny: sum, last (snímek stavu) nebo avg (poměr, průměrný čas). */
 function allstat_mcp_query_source_agg(string $providerKey, string $metricKey): string
 {
-    if ($providerKey === 'seznam_wmt' || in_array($metricKey, ['followers_total', 'fans_total', 'views_total', 'videos_total'], true)) {
+    if ($providerKey === 'seznam_wmt' || in_array($metricKey, ['followers_total', 'fans_total', 'views_total', 'videos_total'], true)
+        || ($providerKey === 'bing_wmt' && in_array($metricKey, ['in_index', 'inlinks'], true))) {
         return 'last';
     }
     if (preg_match('/(_pct$|rate|^avg_|_avg$|scroll_depth|active_time|total_time|pages_per_session|frequency|position|duration)/', $metricKey)) {

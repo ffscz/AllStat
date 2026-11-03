@@ -51,6 +51,30 @@ function allstat_default_providers(): array
             'docs_url' => 'https://blog.seznam.cz/2017/04/seznam-webmaster-novy-komunikacnim-nastroj-mezi-vyhledavacem-a-webmasterem/',
         ],
         [
+            // Bing vyhledávání: API klíč na uživatele Bing Webmaster Tools, JSON varianta API (SOAP/POX skončily 31. 8. 2026).
+            'provider_key' => 'bing_wmt',
+            'name' => 'Bing Webmaster',
+            'category' => 'seo',
+            'supports_oauth' => 0,
+            'default_scopes' => '',
+            'auth_url' => '',
+            'token_url' => '',
+            'api_base_url' => 'https://ssl.bing.com/webmaster/api.svc/json',
+            'docs_url' => 'https://learn.microsoft.com/bingwebmaster/getting-access',
+        ],
+        [
+            // Profil firmy v Hledání a Mapách Google. Stejný Google OAuth klient jako GA4/GSC, přístup k API schvaluje Google.
+            'provider_key' => 'google_business',
+            'name' => 'Google Business Profile',
+            'category' => 'seo',
+            'supports_oauth' => 1,
+            'default_scopes' => 'https://www.googleapis.com/auth/business.manage',
+            'auth_url' => 'https://accounts.google.com/o/oauth2/v2/auth',
+            'token_url' => 'https://oauth2.googleapis.com/token',
+            'api_base_url' => 'https://businessprofileperformance.googleapis.com',
+            'docs_url' => 'https://developers.google.com/my-business/content/prereqs',
+        ],
+        [
             'provider_key' => 'facebook_pages',
             'name' => 'Facebook Pages',
             'category' => 'social',
@@ -118,6 +142,18 @@ function allstat_default_providers(): array
             'token_url' => '',
             'api_base_url' => 'https://api.ads.openai.com',
             'docs_url' => 'https://developers.openai.com/ads/reporting',
+        ],
+        [
+            // TikTok API for Business. Vlastní OAuth (app_id, auth_code, hlavička Access-Token), aplikaci schvaluje TikTok.
+            'provider_key' => 'tiktok_ads',
+            'name' => 'TikTok Ads',
+            'category' => 'ppc',
+            'supports_oauth' => 1,
+            'default_scopes' => '',
+            'auth_url' => 'https://business-api.tiktok.com/portal/auth',
+            'token_url' => 'https://business-api.tiktok.com/open_api/v1.3/oauth2/access_token/',
+            'api_base_url' => 'https://business-api.tiktok.com',
+            'docs_url' => 'https://business-api.tiktok.com/portal/docs',
         ],
         [
             'provider_key' => 'meta_ads',
@@ -246,6 +282,67 @@ function allstat_provider_setup_guide(string $providerKey): array
                 t('„Stáhnout historii“ natáhne denní výkon účtu a kampaní (API drží 365 dní). Pak běží denní synchronizace.'),
             ],
         ],
+        'bing_wmt' => [
+            'console_url' => 'https://www.bing.com/webmasters/',
+            'console_label' => 'Bing Webmaster Tools',
+            'enable_apis' => [],
+            'property_id_format' => t('https://www.example.cz/ (adresa webu přesně jako v Bing Webmaster Tools)'),
+            'property_id_where' => t('Bing Webmaster Tools → výběr webu vlevo nahoře. Adresa musí sedět i s https:// a lomítkem na konci, jak ji Bing ukazuje.'),
+            'pricing_note' => t('API je zdarma. Jeden API klíč patří uživateli Bing a platí pro všechny jeho ověřené weby. Bing drží asi 6 měsíců historie, dotazy a stránky po týdnech; AllStat si starší data uchová sám.'),
+            'steps' => [
+                t('Přihlas se do Bing Webmaster Tools (bing.com/webmasters). Když web ještě nemáš, přidej ho; nejrychleji „Importovat ze Search Console“, ověření pak proběhne samo.'),
+                t('Vpravo nahoře ozubené kolo „Nastavení“ → „Přístup k API“ (API Access) → „Klíč API“ → „Vygenerovat“ a klíč zkopíruj.'),
+                t('Do pole Web vlož adresu webu přesně tak, jak ji ukazuje Bing Webmaster Tools, a do pole API klíč vložený klíč. OAuth se nepoužívá.'),
+                t('Ulož a klikni „Otestovat napojení“. Pak „Stáhnout historii“: jedním voláním se načte vše, co Bing drží (zhruba 6 měsíců).'),
+            ],
+            'troubleshooting' => [
+                t('„API klíč neplatí“: klíč se přegeneroval nebo smazal. Vygeneruj nový a ulož ho do napojení.'),
+                t('„Web v účtu není“: adresa ve formuláři se liší od webu v Bing (http/https, www, lomítko na konci). Test vypíše weby, které účet má; zkopíruj adresu odtud.'),
+            ],
+        ],
+        'google_business' => [
+            'console_url' => 'https://console.cloud.google.com/',
+            'console_label' => 'Google Cloud Console',
+            'enable_apis' => ['Business Profile Performance API', 'My Business Account Management API', 'My Business Business Information API'],
+            'property_id_format' => t('locations/1234567890 (volitelné)'),
+            'property_id_where' => t('Nech prázdné: AllStat po přihlášení najde první profil firmy, který účet spravuje. Vyplň jen u účtu s víc profily.'),
+            'pricing_note' => t('API je zdarma, ale Google k němu pouští až po schválení žádosti. Data zpětně za 18 měsíců, zpoždění několik dní.'),
+            'approval' => t('Nejdřív požádej Google o přístup k API. Bez schválení má projekt kvótu 0 a synchronizace vrací chybu. V Google Cloud Console si zjisti číslo projektu a vyplň formulář „Application for Basic API Access“ (odkaz v návodu níže). Podmínky: profil firmy ověřený a aktivní aspoň 60 dní a s vyplněným webem. Schválení trvá řádově dny, přijde e-mailem.'),
+            'token_note' => t('Používá se stejný OAuth klient jako u GA4 a Search Console (tlačítko „Převzít údaje z …“). Přihlas se účtem, který je vlastník nebo správce profilu firmy.'),
+            'steps' => [
+                t('Požádej o přístup k API: formulář „Application for Basic API Access“ na developers.google.com/my-business/content/prereqs, uveď číslo projektu z Google Cloud Console (Přehled projektu). Počkej na schválení.'),
+                t('V Google Cloud Console ve stejném projektu povol „Business Profile Performance API“, „My Business Account Management API“ a „My Business Business Information API“ (Rozhraní API a služby → Knihovna).'),
+                t('V AllStatu převezmi Client ID a Client secret z Google napojení (tlačítko „Převzít údaje“) a ověř, že OAuth klient má callback URL z rámečku nad návodem.'),
+                t('Location ID nech prázdné, AllStat profil najde sám. Ulož a klikni „Spustit OAuth“, přihlas se účtem správce profilu a potvrď přístup.'),
+                t('Klikni „Otestovat napojení“. Když hlásí kvótu 0 nebo chybu 403/429, Google ještě žádost neschválil. Po schválení „Stáhnout historii“ (18 měsíců).'),
+            ],
+            'troubleshooting' => [
+                t('HTTP 429 / „quota“ / kvóta 0: projekt nemá schválený přístup k API. Podej nebo zkontroluj žádost „Application for Basic API Access“.'),
+                t('„API has not been used in project“: v Cloud Console nejsou povolená všechna tři API. Povol je a zkus to znovu.'),
+                t('„účet nespravuje žádný profil“: OAuth proběhl jiným Google účtem. Spusť OAuth znovu účtem správce profilu.'),
+            ],
+        ],
+        'tiktok_ads' => [
+            'console_url' => 'https://business-api.tiktok.com/portal/apps',
+            'console_label' => 'TikTok API for Business',
+            'enable_apis' => [t('oprávnění Ads Management a Reporting')],
+            'property_id_format' => t('Advertiser ID (číslo, volitelné)'),
+            'property_id_where' => t('TikTok Ads Manager → účet vpravo nahoře. Když pole necháš prázdné, doplní se po OAuth (první účet, který inzerent autorizuje).'),
+            'pricing_note' => t('API je zdarma. Report po dnech jde nejvýš po 30 dnech, AllStat okno dělí sám.'),
+            'approval' => t('TikTok musí vaši vývojářskou aplikaci schválit (App review), teprve pak jde přihlásit skutečný reklamní účet. Registrace jako developer a schválení aplikace trvají řádově dny až týdny. Bez schválení OAuth neprojde nebo report vrátí chybu oprávnění.'),
+            'token_note' => t('TikTok používá vlastní OAuth: App ID = Client ID, Secret = Client secret. Přihlašuje se účet, který má přístup k reklamnímu účtu (Business Center).'),
+            'steps' => [
+                t('Na business-api.tiktok.com se zaregistruj jako developer a vytvoř aplikaci („My Apps“ → „Create new“). Zaškrtni oprávnění pro reklamní účty a Reporting.'),
+                t('Jako „Advertiser redirect URL“ vlož callback URL z rámečku nad návodem (přesně, včetně https://).'),
+                t('Odešli aplikaci ke schválení a počkej, až ji TikTok schválí.'),
+                t('Zkopíruj App ID do pole Client ID a Secret do pole Client secret. Ulož a klikni „Spustit OAuth“, přihlas se a vyber reklamní účty.'),
+                t('„Otestovat napojení“ ukáže název a měnu účtu. Pak „Stáhnout historii“.'),
+            ],
+            'troubleshooting' => [
+                t('Chyba oprávnění (code 40001): aplikace není schválená, nemá oprávnění Reporting, nebo ji inzerent neautorizoval.'),
+                t('Token neplatí (code 40100/40105): spusť OAuth znovu.'),
+            ],
+        ],
         'seznam_wmt' => [
             'console_url' => 'https://reporter.seznam.cz/wm/',
             'console_label' => 'Seznam Webmaster (reporter.seznam.cz)',
@@ -296,6 +393,7 @@ function allstat_provider_setup_guide(string $providerKey): array
             'property_id_format' => t('urn:li:organization:ČÍSLO   (např. urn:li:organization:12345678)'),
             'property_id_where' => t('Otevři svou LinkedIn stránku jako správce, v adrese je „.../company/ČÍSLO/" (potřebuješ to ČÍSELNÉ ID, ne název). Když v adrese vidíš jen název (např. /company/nazev-firmy/), číslo najdeš v aplikaci na linkedin.com/developers → tvoje app → záložka „Auth" v sekci propojené organizace. Můžeš sem vložit i jen samotné ČÍSLO, AllStat ho sám doplní na urn:li:organization:ČÍSLO.'),
             'pricing_note' => t('API je zdarma. ALE čtení statistik stránky vyžaduje, aby ti LinkedIn schválil produkt „Community Management API" (trvá pár dní). Než schválí: OAuth projde, ale statistiky vrátí chybu 403, to je normální, počkej na schválení.'),
+            'approval' => t('Nejdřív požádej o produkt „Community Management API“ (LinkedIn Developers → tvoje aplikace → Products → Request access). Bez schválení statistiky vrací chybu 403. Schválení trvá řádově dny.'),
             'token_note' => t('Životnost přihlášení: LinkedIn access token platí 60 dní. Automatické obnovování (refresh token s platností 12 měsíců) dostaneš JEN po schválení produktu Community Management API, pak AllStat token obnovuje sám a ručně se přihlašuješ až ~1× ročně. Bez schváleného produktu refresh token nepřijde a OAuth musíš opakovat ručně každých ~60 dní.'),
             'field_map' => [
                 'Web' => 'Vyber web, pod který tohle LinkedIn napojení patří.',
@@ -333,6 +431,7 @@ function allstat_provider_setup_guide(string $providerKey): array
             'property_id_format' => t('1234567890 (Customer ID bez pomlček)'),
             'property_id_where' => t('Google Ads → vpravo nahoře vedle účtu'),
             'pricing_note' => t('Zdarma. Developer token už není potřeba (Google ho zrušil 9. 9. 2026), přístup teď určuje Google Cloud projekt OAuth klienta: nový projekt má úroveň Test (jen testovací účty), na skutečný účet je potřeba Explorer (2 880 operací/den) nebo Basic (15 000/den).'),
+            'approval' => t('Nejdřív požádej o úroveň přístupu Explorer: Google Cloud Console → Google Ads API → Overview → „Upgrade access level“. Nový projekt smí jen na testovací účty, na skutečný účet až po schválení (obvykle do 10 pracovních dnů).'),
             'steps' => [
                 t('Google Cloud Console → povol "Google Ads API", vytvoř OAuth client (Web), redirect URI z patičky.'),
                 t('Google Cloud Console → Google Ads API → Overview → „Upgrade access level" → požádej o Explorer. Bez něj projekt smí jen na testovací účty, schválení trvá obvykle do 10 pracovních dnů.'),
@@ -348,6 +447,7 @@ function allstat_provider_setup_guide(string $providerKey): array
             'property_id_format' => t('Číselné Account ID'),
             'property_id_where' => t('Microsoft Advertising → nastavení účtu → číslo účtu (Account ID). Customer ID je samostatné číslo zákazníka.'),
             'pricing_note' => t('Reporting API vyžaduje Developer Token. Dostupnost a limity závisejí na schváleném přístupu.'),
+            'approval' => t('Nejdřív si vyžádej Developer Token v Microsoft Advertising Developer Portalu (developers.ads.microsoft.com). Bez schváleného tokenu Reporting API neodpovídá.'),
             'token_note' => t('Pro přihlášení Google účtem založ Google OAuth webovou aplikaci. Redirect URI je callback AllStatu. Google OAuth žádá profile, email a offline přístup; uživatel musí mít přístup k reklamnímu účtu. Varianta Microsoft Entra zůstává dostupná přes Pokročilé nastavení.'),
             'steps' => [
                 t('V Google Cloud Console vytvoř OAuth client typu Web application a nastav přesnou adresu callbacku z AllStatu jako Authorized redirect URI.'),
@@ -475,6 +575,38 @@ function allstat_provider_form_schema(string $providerKey): array
                  'help' => t('Jen pro přehled, klíč je vázaný na jeden reklamní účet.'), 'required' => false],
                 ['name' => 'access_token', 'label' => t('API klíč'), 'type' => 'password', 'secret' => 'access_token_enc',
                  'help' => t('Klíč Správce reklam (Ads Manager API key), ne konverzní klíč. Ukládá se šifrovaně.'), 'required' => true],
+            ],
+        ],
+        'bing_wmt' => [
+            'connect' => 'token',
+            'intro' => t('Kliknutí, zobrazení, dotazy a stránky z vyhledávání Bing, procházení webu robotem, indexace a zpětné odkazy (Bing Webmaster Tools).'),
+            'fields' => [
+                ['name' => 'property_id', 'label' => t('Web (URL)'), 'type' => 'text', 'placeholder' => 'https://www.example.cz/',
+                 'help' => t('Adresa webu přesně jako v Bing Webmaster Tools (včetně https:// a lomítka na konci).'), 'required' => true],
+                ['name' => 'access_token', 'label' => t('API klíč'), 'type' => 'password', 'secret' => 'access_token_enc',
+                 'help' => t('Bing Webmaster Tools → Nastavení → Přístup k API → Klíč API. Ukládá se šifrovaně.'), 'required' => true],
+            ],
+        ],
+        'google_business' => [
+            'connect' => 'oauth',
+            'intro' => t('Zobrazení profilu firmy v Hledání a Mapách Google, kliknutí na web, telefonáty, trasy, rezervace a hledané výrazy (Google Business Profile).'),
+            'fields' => [
+                ['name' => 'property_id', 'label' => t('Location ID (volitelné)'), 'type' => 'text', 'placeholder' => 'locations/1234567890',
+                 'help' => t('Nech prázdné, AllStat po přihlášení najde první profil firmy účtu. Vyplň jen u účtu s víc profily.'), 'required' => false],
+                $googleClientId,
+                $clientSecret,
+            ],
+        ],
+        'tiktok_ads' => [
+            'connect' => 'oauth',
+            'intro' => t('Útrata, zobrazení, prokliky, konverze a kampaně z TikTok Ads.'),
+            'fields' => [
+                ['name' => 'property_id', 'label' => t('Advertiser ID (volitelné)'), 'type' => 'text', 'placeholder' => '7012345678901234567',
+                 'help' => t('Číslo reklamního účtu. Když ho necháš prázdné, doplní se po OAuth.'), 'required' => false],
+                ['name' => 'client_id', 'label' => 'App ID', 'type' => 'text',
+                 'help' => t('TikTok API for Business → My Apps → tvoje aplikace → App ID.'), 'required' => true],
+                ['name' => 'client_secret', 'label' => 'Secret', 'type' => 'password', 'secret' => 'client_secret_enc',
+                 'help' => t('Ukládá se šifrovaně. Při úpravě nech prázdné pro zachování.'), 'required' => true],
             ],
         ],
         'seznam_wmt' => [
@@ -609,6 +741,17 @@ function allstat_provider_allowed_hosts(string $providerKey): array
         'openai_ads' => [
             'api.ads.openai.com',
         ],
+        'bing_wmt' => [
+            'ssl.bing.com',
+        ],
+        'google_business' => [
+            'accounts.google.com',
+            'oauth2.googleapis.com',
+            'businessprofileperformance.googleapis.com',
+        ],
+        'tiktok_ads' => [
+            'business-api.tiktok.com',
+        ],
         default => [],
     };
 }
@@ -711,6 +854,12 @@ function allstat_provider_icon_svg(string $providerKey): string
         // OpenAI: černá „květina“ z šesti zaoblených článků (zjednodušeno na kruh se šestiúhelníkem).
         'openai_ads' => $svg('<circle cx="12" cy="12" r="10" fill="#0D0D0D"/><path d="M12 6.2 17 9.1v5.8L12 17.8 7 14.9V9.1z" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/>'),
         'microsoft_ads' => $svg('<path d="M3 4h8l3 8-3 8H3l3-8z" fill="#00A4EF"/><path d="M14 4h7v16h-7l-3-8z" fill="#7FBA00"/>'),
+        // Bing: zjednodušené „b“ s vlajkou v barvě Bing.
+        'bing_wmt' => $svg('<path d="M6 2.5 10 4v12.2l5-2.9-2.3-1.1-1.5-3.6L18.5 11v4.6L10 20.5 6 18.3z" fill="#008373"/>'),
+        // Business Profile: modrý obchod se stříškou.
+        'google_business' => $svg('<path d="M3.5 9.5 5 4h14l1.5 5.5c0 1.4-1.1 2.5-2.5 2.5s-2.5-1.1-2.5-2.5c0 1.4-1.1 2.5-2.5 2.5S10.5 10.9 10.5 9.5C10.5 10.9 9.4 12 8 12S5.5 10.9 5.5 9.5c0 1.4-1 2.5-2 2.5" fill="#4285F4"/><path d="M5 12.5V20h14v-7.5" fill="none" stroke="#4285F4" stroke-width="2"/>'),
+        // TikTok: nota s posunutým azurovým a růžovým stínem.
+        'tiktok_ads' => $svg('<path d="M13 3h3c.3 2 1.6 3.4 3.5 3.6v3c-1.3 0-2.5-.4-3.5-1.1v6.3a5 5 0 1 1-5-5v3a2 2 0 1 0 2 2z" fill="#25F4EE" transform="translate(-.8 -.6)"/><path d="M13 3h3c.3 2 1.6 3.4 3.5 3.6v3c-1.3 0-2.5-.4-3.5-1.1v6.3a5 5 0 1 1-5-5v3a2 2 0 1 0 2 2z" fill="#FE2C55" transform="translate(.8 .6)"/><path d="M13 3h3c.3 2 1.6 3.4 3.5 3.6v3c-1.3 0-2.5-.4-3.5-1.1v6.3a5 5 0 1 1-5-5v3a2 2 0 1 0 2 2z" fill="#111"/>'),
         'youtube' => $svg('<rect x="2" y="5" width="20" height="14" rx="4" fill="#FF0000"/><path d="M10 9v6l5-3z" fill="#fff"/>'),
         'seznam_wmt' => $svg('<circle cx="12" cy="12" r="9.5" fill="#CC0000"/><path d="M15.6 8.4c-.8-.8-2-1.2-3.4-1.2-2.3 0-3.9 1.2-3.9 3 0 3.4 5.6 2.3 5.6 4.1 0 .7-.7 1.1-1.8 1.1-1.2 0-2.3-.5-3.1-1.3l-1.3 1.7c1.1 1 2.7 1.6 4.4 1.6 2.4 0 4-1.2 4-3 0-3.5-5.6-2.5-5.6-4.2 0-.6.6-1 1.6-1 1 0 1.9.4 2.6 1z" fill="#fff"/>'),
         default => $svg('<path d="M4 19V5m0 14h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="m7 14 4-4 3 3 5-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'),

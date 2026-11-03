@@ -62,7 +62,12 @@ if ($connection['provider_key'] === 'microsoft_ads') {
         : 'https://ads.microsoft.com/msads.manage offline_access openid profile';
 }
 
-if (in_array($connection['provider_key'], ['ga4', 'gsc', 'google_ads', 'youtube'], true)
+if ($connection['provider_key'] === 'tiktok_ads') {
+    // TikTok má vlastní tvar: app_id místo client_id, oprávnění se volí v aplikaci, ne scope.
+    $params = ['app_id' => $connection['client_id'], 'redirect_uri' => $redirectUri, 'state' => $state];
+}
+
+if (in_array($connection['provider_key'], ['ga4', 'gsc', 'google_ads', 'youtube', 'google_business'], true)
     || ($connection['provider_key'] === 'microsoft_ads' && ($identity ?? null) === 'Google')) {
     $params['access_type'] = 'offline';
     $params['prompt'] = 'consent';

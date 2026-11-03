@@ -429,6 +429,12 @@ function allstat_share_instructions(string $providerKey, int $viewSourceId): str
 
         'openai_ads' => "Jsi specialista na výkonnostní reklamu (OpenAI Ads, reklamy v ChatGPT) pro organizaci. Co je konverze a jaký je cíl kampaní, vyčti z KONTEXTU ORGANIZACE. Níže jsou data jednoho účtu za období. Vyhodnoť útratu, kliknutí, konverze a kampaně; ROAS/PNO hodnoť jen při dostupné hodnotě konverzí. Piš česky, stručně a prioritizovaně.",
 
+        'tiktok_ads' => "Jsi specialista na výkonnostní reklamu (TikTok Ads) pro organizaci. Co je konverze a jaký je cíl kampaní, vyčti z KONTEXTU ORGANIZACE. Níže jsou data jednoho účtu za období. Vyhodnoť útratu, kliknutí, CPM a konverze po kampaních; ROAS/PNO hodnoť jen při dostupné hodnotě konverzí. Konverze jsou podle atribuce TikToku, ne GA4. Piš česky, stručně a prioritizovaně.",
+
+        'bing_wmt' => "Jsi SEO konzultant pro vyhledávač Bing (Bing Webmaster Tools). Níže jsou data webu za období: kliknutí a zobrazení ve výsledcích Bingu, procházení robotem, index a nejčastější dotazy a stránky. Vyhodnoť viditelnost v Bingu (a v nástrojích, které na něm stojí, např. Copilot nebo DuckDuckGo), CTR a pozice dotazů, chyby procházení a vývoj indexu. Navrhni konkrétní kroky (obsah, title a description, technické chyby). Piš česky, stručně, v odrážkách, prioritizovaně.",
+
+        'google_business' => "Jsi konzultant pro lokální SEO (Google Business Profile). Níže jsou data firemního profilu za období: zobrazení v hledání a Mapách, kliknutí na web, hovory, trasy a hledané výrazy. Vyhodnoť, odkud lidé profil vidí, kolik z nich jedná (web, hovor, trasa) a které výrazy vedou na profil. Navrhni konkrétní kroky (kategorie, popis, fotky, příspěvky, recenze, otvírací doba). Piš česky, stručně, v odrážkách, prioritizovaně.",
+
         'clarity' => "Jsi analytik chování uživatelů na webu (Microsoft Clarity). Níže jsou behaviorální data webu za období. Najdi slabiny UX a kvality provozu a navrhni konkrétní zlepšení. Zaměř se na:\n"
             . "- Kvalitu provozu: podíl botů vs. lidí, nepokřivují boti čísla?\n"
             . "- Zapojení: aktivní čas, scroll depth, stránky/relace, čtou lidé obsah, nebo odcházejí?\n"
@@ -520,8 +526,11 @@ function allstat_share_build(PDO $pdo, array $config, array $share): array
         allstat_share_section_linkedin($pdo, $domainId, $viewSourceId, $start, $end, $granularity, $payload);
     } elseif ($providerKey === 'youtube') {
         allstat_share_section_youtube($pdo, $domainId, $viewSourceId, $start, $end, $granularity, $payload);
-    } elseif (in_array($providerKey, ['google_ads', 'microsoft_ads', 'openai_ads'], true)) {
-        allstat_share_section_google_ads($pdo, $domainId, $viewSourceId, $start, $end, $payload, match ($providerKey) { 'microsoft_ads' => 'Microsoft Ads', 'openai_ads' => 'OpenAI Ads', default => 'Google Ads' });
+    } elseif (in_array($providerKey, ['google_ads', 'microsoft_ads', 'openai_ads', 'tiktok_ads'], true)) {
+        allstat_share_section_google_ads($pdo, $domainId, $viewSourceId, $start, $end, $payload, match ($providerKey) { 'microsoft_ads' => 'Microsoft Ads', 'openai_ads' => 'OpenAI Ads', 'tiktok_ads' => 'TikTok Ads', default => 'Google Ads' });
+    } elseif (in_array($providerKey, ['bing_wmt', 'google_business'], true)) {
+        allstat_share_section_generic($pdo, $domainId, $viewSourceId, $start, $end, $granularity, $providerKey, $payload);
+        allstat_share_section_search_terms($pdo, $viewSourceId, $start, $end, $providerKey, $payload);
     } elseif ($providerKey === 'clarity') {
         allstat_share_section_clarity($pdo, $domainId, $viewSourceId, $start, $end, $payload);
     } elseif ($providerKey === 'seznam_wmt') {
@@ -561,6 +570,9 @@ function allstat_share_source_info(string $providerKey): ?array
         'google_ads' => ['label' => 'Google Ads', 'typical' => 'nejvýš 1 den', 'max_lag' => 2],
         'microsoft_ads' => ['label' => 'Microsoft Ads', 'typical' => 'nejvýš 1 den', 'max_lag' => 2],
         'openai_ads' => ['label' => 'OpenAI Ads', 'typical' => 'nejvýš 1 den', 'max_lag' => 2],
+        'tiktok_ads' => ['label' => 'TikTok Ads', 'typical' => 'nejvýš 1 den', 'max_lag' => 2],
+        'bing_wmt' => ['label' => 'Bing Webmaster Tools', 'typical' => '2 až 3 dny', 'max_lag' => 4],
+        'google_business' => ['label' => 'Google Business Profile', 'typical' => 'až 5 dní', 'max_lag' => 6],
         'clarity' => ['label' => 'Microsoft Clarity', 'typical' => 'nejvýš 1 den', 'max_lag' => 2],
         default => null,
     };
@@ -577,7 +589,9 @@ function allstat_share_flow_keys(string $providerKey): array
         'instagram_business' => ['reach'],
         'linkedin_company' => ['impressions', 'clicks'],
         'meta_ads' => ['spend', 'impressions'],
-        'google_ads', 'microsoft_ads', 'openai_ads' => ['cost', 'impressions'],
+        'google_ads', 'microsoft_ads', 'openai_ads', 'tiktok_ads' => ['cost', 'impressions'],
+        'bing_wmt' => ['clicks', 'impressions'],
+        'google_business' => ['impressions'],
         'youtube' => ['views'],
         'clarity' => ['sessions'],
         default => [],
@@ -605,7 +619,7 @@ function allstat_share_latest_data_date(PDO $pdo, int $domainId, string $provide
             . ($providerKey === 'youtube' ? ' AND metric_value > 0' : '') . ' AND metric_date <= ?',
             array_merge([$domainId, $connectionId], $keys, [$end]));
         $latest = !empty($row['d']) ? (string) $row['d'] : null;
-        if (in_array($providerKey, ['meta_ads', 'google_ads', 'microsoft_ads', 'openai_ads'], true)) {
+        if (in_array($providerKey, ['meta_ads', 'google_ads', 'microsoft_ads', 'openai_ads', 'tiktok_ads'], true)) {
             // Reklama zapisuje řádek jen ve dnech s provozem: bez kampaně nic nechybí. Důkazem, že se stahovalo,
             // je den poslední synchronizace.
             $sync = allstat_fetch_one($pdo, 'SELECT DATE(last_sync_at) AS d FROM domain_sources WHERE id = ?', [$connectionId]);
@@ -1546,6 +1560,27 @@ function allstat_share_section_generic(PDO $pdo, int $domainId, int $viewSourceI
 {
     $pv = allstat_get_provider_view($pdo, $domainId, $viewSourceId, $start, $end, $gran, $providerKey);
     $payload['sections'][] = allstat_share_page_metrics_section('Metriky zdroje', $pv);
+}
+
+/** Bing: nejčastější dotazy a stránky; Google Business Profile: hledané výrazy za celé měsíce. */
+function allstat_share_section_search_terms(PDO $pdo, int $viewSourceId, string $start, string $end, string $providerKey, array &$payload): void
+{
+    if ($providerKey === 'bing_wmt') {
+        foreach (['query' => 'Dotazy v Bingu', 'page' => 'Stránky v Bingu'] as $prefix => $title) {
+            $rows = allstat_get_bing_wmt_top($pdo, $viewSourceId, $start, $end, $prefix, 20);
+            if ($rows) {
+                $payload['sections'][] = ['title' => $title, 'cols' => [$prefix === 'query' ? 'Dotaz' : 'Stránka', 'Kliknutí', 'Zobrazení', 'CTR', 'Pozice'],
+                    'rows' => array_map(static fn (array $r): array => [$r['label'], allstat_number($r['clicks'], 0), allstat_number($r['impressions'], 0),
+                        $r['ctr'] !== null ? allstat_percent($r['ctr'], 2) : '–', $r['position'] !== null ? allstat_number($r['position'], 1) : '–'], $rows)];
+            }
+        }
+        return;
+    }
+    $kw = allstat_get_google_business_keywords($pdo, $viewSourceId, $start, $end, 30);
+    if ($kw['rows']) {
+        $payload['sections'][] = ['title' => 'Hledané výrazy (měsíce ' . substr($kw['from'], 0, 7) . ' až ' . substr($kw['to'], 0, 7) . ')', 'cols' => ['Výraz', 'Zobrazení'],
+            'rows' => array_map(static fn (array $r): array => [$r['keyword'], ($r['below'] ? 'méně než ' : '') . allstat_number($r['impressions'], 0)], $kw['rows'])];
+    }
 }
 
 /** Počet uzavřených měsíců okna Růstu kanálů z uloženého start/end (3 / 6 / 12). */

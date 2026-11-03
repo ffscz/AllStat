@@ -70,11 +70,15 @@ if (($stored['flow'] ?? '') === 'meta_bulk') {
 $id = (int) $stored['connection_id'];
 $connection = allstat_get_connection($pdo, $id);
 $error = (string) ($_GET['error'] ?? '');
-$code = (string) ($_GET['code'] ?? '');
 
 if (!$connection) {
     allstat_flash('error', t('Napojení zdroje neexistuje.'));
     allstat_redirect($config, 'admin/sources.php');
+}
+
+$code = (string) ($_GET['code'] ?? '');
+if ($code === '' && $connection['provider_key'] === 'tiktok_ads') {
+    $code = (string) ($_GET['auth_code'] ?? '');
 }
 
 if ($error !== '') {
@@ -96,6 +100,31 @@ if (empty($connection['token_url']) || empty($connection['client_id']) || !$clie
 
 if (!allstat_provider_url_allowed((string) $connection['provider_key'], (string) $connection['token_url'])) {
     allstat_flash('error', t('Token URL není pro tohoto providera povolená.'));
+    allstat_redirect($config, 'admin/source-edit.php?id=' . $id);
+}
+
+if ($connection['provider_key'] === 'tiktok_ads') {
+    require_once __DIR__ . '/../lib/tiktok-ads.php';
+    $tiktok = allstat_tiktok_ads_exchange($connection, (string) $clientSecret, $code);
+    if (!$tiktok['ok']) {
+        allstat_add_sync_log($pdo, (int) $connection['domain_id'], (int) $connection['source_id'], 'error', 'TikTok Ads OAuth token exchange failed: ' . mb_substr((string) $tiktok['message'], 0, 160));
+        allstat_flash('error', (string) $tiktok['message']);
+        allstat_redirect($config, 'admin/source-edit.php?id=' . $id);
+    }
+    $expiresAt = $tiktok['expires_in'] > 0 ? (new DateTimeImmutable('now'))->modify('+' . $tiktok['expires_in'] . ' seconds')->format('Y-m-d H:i:s') : null;
+    $advertiser = trim((string) ($connection['property_id'] ?? '')) === '' ? (string) ($tiktok['advertiser_ids'][0] ?? '') : '';
+    $pdo->prepare("UPDATE domain_sources SET access_token_enc = ?, refresh_token_enc = COALESCE(?, refresh_token_enc), token_expires_at = ?, property_id = IF(? = '', property_id, ?), status = 'ok', note = ?, updated_at = NOW() WHERE id = ?")
+        ->execute([
+            allstat_encrypt_secret($tiktok['access_token'], $config),
+            $tiktok['refresh_token'] !== '' ? allstat_encrypt_secret($tiktok['refresh_token'], $config) : null,
+            $expiresAt, $advertiser, $advertiser, t('OAuth token uložen'), $id,
+        ]);
+    allstat_add_sync_log($pdo, (int) $connection['domain_id'], (int) $connection['source_id'], 'info', 'OAuth callback uložil tokeny.');
+    allstat_audit($pdo, (int) $user['id'], null, 'oauth_connected', (string) $id);
+    $count = count($tiktok['advertiser_ids']);
+    allstat_flash('ok', $count > 1 && $advertiser !== ''
+        ? t('TikTok Ads připojeno. Aplikace má přístup k {count} účtům, použit první ({id}); jiný vyplňte do Advertiser ID.', ['count' => $count, 'id' => $advertiser])
+        : t('OAuth callback proběhl a tokeny byly uloženy.'));
     allstat_redirect($config, 'admin/source-edit.php?id=' . $id);
 }
 

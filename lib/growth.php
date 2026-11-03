@@ -114,6 +114,8 @@ function allstat_growth_defs(): array
     return [
         'ga4' => ['name' => 'Google Analytics', 'metric' => t('Návštěvy webu'), 'short' => t('návštěvy'), 'color' => 'ga4', 'web' => 'visits'],
         'gsc' => ['name' => 'Search Console', 'metric' => t('Kliknutí z Google hledání'), 'short' => t('kliknutí'), 'color' => 'gsc', 'web' => 'clicks'],
+        'bing_wmt' => ['name' => 'Bing Webmaster', 'metric' => t('Kliknutí z Bing hledání'), 'short' => t('kliknutí'), 'color' => 'bing', 'key' => 'clicks'],
+        'google_business' => ['name' => 'Google Business Profile', 'metric' => t('Zobrazení firemního profilu'), 'short' => t('zobrazení'), 'color' => 'gbp', 'key' => 'impressions'],
         'clarity' => ['name' => 'MS Clarity', 'metric' => t('Relace na webu'), 'short' => t('relace'), 'color' => 'clarity', 'key' => 'sessions'],
         'youtube' => ['name' => 'YouTube', 'metric' => t('Zhlédnutí videí'), 'short' => t('zhlédnutí'), 'color' => 'youtube', 'key' => 'views', 'followers' => t('Odběratelé')],
         'facebook_pages' => ['name' => 'Facebook', 'metric' => t('Dosah stránky'), 'short' => t('dosah'), 'color' => 'facebook', 'key' => 'reach', 'followers' => t('Sledující')],
@@ -123,7 +125,43 @@ function allstat_growth_defs(): array
         'google_ads' => ['name' => 'Google Ads', 'metric' => t('Kliknutí na reklamy'), 'short' => t('kliknutí'), 'color' => 'ads', 'key' => 'clicks', 'spend' => 'cost', 'zeroFill' => true],
         'microsoft_ads' => ['name' => 'Microsoft Ads', 'metric' => t('Kliknutí na reklamy'), 'short' => t('kliknutí'), 'color' => 'ads', 'key' => 'clicks', 'spend' => 'cost', 'zeroFill' => true],
         'openai_ads' => ['name' => 'OpenAI Ads', 'metric' => t('Kliknutí na reklamy'), 'short' => t('kliknutí'), 'color' => 'ads', 'key' => 'clicks', 'spend' => 'cost', 'zeroFill' => true],
+        'tiktok_ads' => ['name' => 'TikTok Ads', 'metric' => t('Kliknutí na reklamy'), 'short' => t('kliknutí'), 'color' => 'ads', 'key' => 'clicks', 'spend' => 'cost', 'zeroFill' => true],
     ];
+}
+
+/**
+ * Měna reklamního účtu (ISO kód), jak ji uložil sync jako <provider>.currency.<napojení>. Bez uložené měny
+ * přípisek „(EUR)“ na konci názvu účtu, jinak CZK (účty před 1.5.5 se u Google a Meta Ads počítaly v Kč).
+ */
+function allstat_ads_currency(PDO $pdo, string $providerKey, int $connectionId, string $accountLabel = ''): string
+{
+    static $cache = [];
+    $key = $providerKey . '.currency.' . $connectionId;
+    if (!array_key_exists($key, $cache)) {
+        try {
+            $statement = $pdo->prepare('SELECT setting_value FROM allstat_settings WHERE setting_key = ?');
+            $statement->execute([$key]);
+            $cache[$key] = (string) ($statement->fetchColumn() ?: '');
+        } catch (Throwable) {
+            $cache[$key] = '';
+        }
+    }
+    if (preg_match('/^[A-Z]{3}$/', $cache[$key])) {
+        return $cache[$key];
+    }
+
+    if (preg_match('/\(([A-Z]{3})\)$/', $accountLabel, $matches)) {
+        return $matches[1];
+    }
+
+    // Google a Meta Ads AllStat do 1.5.4 ukazoval v Kč; u ostatních měnu bez uložené hodnoty neznáme.
+    return in_array($providerKey, ['google_ads', 'meta_ads'], true) ? 'CZK' : '';
+}
+
+/** Zobrazovaný symbol měny: CZK = „Kč“ (jak to AllStat ukazoval vždy), ostatní ISO kód, neznámá = ''. */
+function allstat_currency_label(string $currency): string
+{
+    return $currency === 'CZK' ? 'Kč' : $currency;
 }
 
 /**
@@ -507,21 +545,12 @@ function allstat_get_channel_growth(PDO $pdo, int $domainId, int $months, ?DateT
                 . ($fVal > 0 ? ', ' . allstat_growth_pct($diff / $fVal) : '') . ' ' . $since . ')';
         } elseif (!empty($def['spend'])) {
             [$spend] = $byConn[$cid][$def['spend']][$last['ym']] ?? [0.0, 0];
-            if ($pk === 'microsoft_ads' || $pk === 'openai_ads') {
-                // Měnu ukládá sync do nastavení; starší napojení ji mají jen v přípisku „(EUR)“ v názvu účtu.
-                $currencyStmt = $pdo->prepare('SELECT setting_value FROM allstat_settings WHERE setting_key = ?');
-                $currencyStmt->execute([$pk . '.currency.' . $cid]);
-                $currency = (string) ($currencyStmt->fetchColumn() ?: '');
-                if (!preg_match('/^[A-Z]{3}$/', $currency)) {
-                    $currency = preg_match('/\(([A-Z]{3})\)$/', (string) ($o['label'] ?? ''), $matches) ? $matches[1] : '';
-                }
-                $spendText = t('Útrata za {month} {amount}', ['month' => preg_replace('/ \d{4}$/', '', $last['longLabel']), 'amount' => allstat_number($spend)])
-                    . ($currency !== '' ? ' ' . $currency : '');
-                $spendCurrency = $currency;
-            } else {
-                $spendText = t('Útrata za {month} {amount} Kč', ['month' => preg_replace('/ \d{4}$/', '', $last['longLabel']), 'amount' => allstat_number($spend)]);
-                $spendCurrency = 'Kč';
-            }
+            // Měnu účtu ukládá sync do nastavení (od 1.5.5 u všech reklamních platforem). Napojení, které se od té
+            // doby nesynchronizovalo, ji nemá: pak přípisek „(EUR)“ v názvu účtu, jinak Kč jako dřív.
+            $currency = allstat_ads_currency($pdo, $pk, $cid, (string) ($o['label'] ?? ''));
+            $spendText = rtrim(t('Útrata za {month} {amount}', ['month' => preg_replace('/ \d{4}$/', '', $last['longLabel']), 'amount' => allstat_number($spend)])
+                . ' ' . allstat_currency_label($currency));
+            $spendCurrency = allstat_currency_label($currency);
             $spendAmount = (float) $spend;
             $extra = $spendText;
         } else {

@@ -318,6 +318,9 @@
 .src-ad { background: var(--src-ad-bg); color: var(--src-ad-fg); }
 .src-ms { background: var(--src-ms-bg); color: var(--src-ms-fg); }
 .src-oa { background: var(--src-oa-bg); color: var(--src-oa-fg); }
+.src-tt { background: var(--src-tt-bg); color: var(--src-tt-fg); }
+.src-bw { background: var(--src-bw-bg); color: var(--src-bw-fg); }
+.src-gb { background: var(--src-gb-bg); color: var(--src-gb-fg); }
 .src-sz { background: var(--src-sz-bg); color: var(--src-sz-fg); }
 
 /* ===================== Štítky ===================== */

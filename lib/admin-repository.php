@@ -164,7 +164,7 @@ function allstat_prefill_connection(PDO $pdo, int $sourceId): array
  */
 function allstat_oauth_family(string $providerKey): ?string
 {
-    if (in_array($providerKey, ['ga4', 'gsc', 'google_ads', 'youtube'], true)) { return 'google'; }
+    if (in_array($providerKey, ['ga4', 'gsc', 'google_ads', 'youtube', 'google_business'], true)) { return 'google'; }
     if (in_array($providerKey, ['facebook_pages', 'instagram_business', 'meta_ads'], true)) { return 'meta'; }
 
     return null;
@@ -173,7 +173,7 @@ function allstat_oauth_family(string $providerKey): ?string
 function allstat_oauth_family_providers(string $family): array
 {
     return match ($family) {
-        'google' => ['ga4', 'gsc', 'google_ads', 'youtube'],
+        'google' => ['ga4', 'gsc', 'google_ads', 'youtube', 'google_business'],
         'meta' => ['facebook_pages', 'instagram_business', 'meta_ads'],
         default => [],
     };
@@ -410,7 +410,10 @@ function allstat_delete_connection(PDO $pdo, ?int $actorId, int $id): array
         $statement = $pdo->prepare('DELETE FROM domain_sources WHERE id = ?');
         $statement->execute([$id]);
         $pdo->prepare('DELETE FROM microsoft_ads_report_jobs WHERE connection_id = ?')->execute([$id]);
-        $pdo->prepare('DELETE FROM allstat_settings WHERE setting_key IN (?, ?)')->execute(['microsoft_ads.currency.' . $id, 'openai_ads.currency.' . $id]);
+        $pdo->prepare('DELETE FROM allstat_settings WHERE setting_key IN (?, ?, ?, ?, ?)')->execute(array_map(
+            static fn (string $pk): string => $pk . '.currency.' . $id,
+            ['microsoft_ads', 'openai_ads', 'google_ads', 'meta_ads', 'tiktok_ads']
+        ));
 
         allstat_audit($pdo, $actorId, null, 'source_connection_deleted', (string) $id);
         $pdo->commit();
