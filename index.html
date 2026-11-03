@@ -695,6 +695,9 @@ return ['keys' =&gt; [
 <h3>Facebook a Instagram: napojení nefunguje nebo Instagram chybí v nabídce</h3>
 <p>Zkontrolujte, že jste přihlášení účtem, který má v Meta aplikaci roli, že Instagram je typu Business nebo Creator a propojený s Facebook stránkou a že v požadovaných oprávněních zůstalo jen to, co aplikace skutečně povolila. Na stránce „Připojit Meta“ je rozbalovací rámeček „Instagram se nenabízí? Co ověřit“ s postupem.</p>
 
+<h3>Facebook a Instagram: čísla se liší od Meta Business Suite</h3>
+<p>Meta počítá den v kalifornském čase (PT), AllStat ukládá dny podle Europe/Prague. Denní hodnoty a součty za krátké období se proto mohou lišit o pár jednotek, součty za 28 dní a za celý měsíc sedí. Business Suite navíc drží čísla uložená a obnovuje je se zpožděním, takže čerstvá data z API bývají o pár procent vyšší. „Dosah“ (u Facebooku „Diváci“) ukazuje AllStat jako různé lidi jen pro období 28 dní do včerejška a pro celý kalendářní měsíc, jinak je to součet denního dosahu a dlaždice to píše. Rozpad Facebooku na sledující a nesledující a kliknutí na odkaz za celou stránku Meta přes API nedává.</p>
+
 <h3>LinkedIn: chyba 403 u statistik</h3>
 <p>LinkedIn ještě neschválil produkt „Community Management API“, nebo nejste správcem firemní stránky. Přihlášení projde, ale statistiky se stáhnou až po schválení. Počkejte a napojení znovu otestujte.</p>
 

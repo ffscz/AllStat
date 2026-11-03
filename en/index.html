@@ -692,6 +692,9 @@ return ['keys' =&gt; [
 <h3>Google: “Access blocked” or the connection stops renewing after a week</h3>
 <p>The app is in testing mode. In Google Auth Platform, open “Audience” and click “Publish app” (chapter 6). Then start the connection again.</p>
 
+<h3>Facebook and Instagram: the numbers differ from Meta Business Suite</h3>
+<p>Meta counts days in California time (PT), AllStat stores days in Europe/Prague. Daily values and totals for short periods may therefore differ by a few units; totals for 28 days and for a whole month match. Business Suite also keeps its numbers cached and refreshes them with a delay, so fresh API data is usually a few percent higher. AllStat shows “Reach” (“Viewers” on Facebook) as different people only for the 28 days to yesterday and for a whole calendar month; otherwise it is a sum of daily reach and the tile says so. Meta does not provide the Facebook follower / non-follower breakdown or Page-level link clicks through the API.</p>
+
 <h3>Facebook and Instagram: the connection does not work or Instagram is missing from the list</h3>
 <p>Check that you are signed in with an account that has a role in the Meta app, that Instagram is a Business or Creator account and linked to a Facebook page, and that the permissions requested include only what the app is actually allowed to use. On the “Connect Meta” page, there is an expandable box, “Instagram is not offered? What to check”, with the procedure.</p>
 
