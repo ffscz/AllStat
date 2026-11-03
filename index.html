@@ -186,6 +186,10 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
     <tr><td>LinkedIn</td><td>statistiky firemní stránky</td><td>aplikace na LinkedIn Developers a její schválení</td><td>nejnáročnější, schválení trvá dny</td></tr>
     <tr><td>Google Ads</td><td>výkon reklam</td><td>projekt v Google Cloud se schváleným přístupem k Google Ads API</td><td>náročnější, schválení do 10 pracovních dnů</td></tr>
     <tr><td>Microsoft Ads</td><td>výkon účtu a kampaní</td><td>OAuth klient (Google nebo Microsoft Entra) a Developer Token</td><td>náročnější, asi 30 minut</td></tr>
+    <tr><td>TikTok Ads</td><td>výkon účtu a kampaní</td><td>aplikace na TikTok API for Business schválená TikTokem</td><td>náročnější, schválení trvá dny</td></tr>
+    <tr><td>OpenAI Ads</td><td>výkon reklam v ChatGPT</td><td>API klíč Správce reklam (Ads Manager)</td><td>snadná</td></tr>
+    <tr><td>Bing Webmaster Tools</td><td>kliknutí, dotazy a indexace v Bingu</td><td>API klíč z Bing Webmaster Tools</td><td>snadná, asi 5 minut</td></tr>
+    <tr><td>Google Business Profile</td><td>zobrazení profilu firmy, kliknutí na web, hovory, trasy</td><td>stejný Google projekt a schválený přístup k API</td><td>náročnější, schválení trvá dny</td></tr>
     <tr><td>Seznam Webmaster</td><td>stav indexace</td><td>API klíč z reporter.seznam.cz</td><td>snadná</td></tr>
   </tbody>
 </table>
@@ -455,6 +459,47 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
   <li>Částky jsou v měně reklamního účtu. Report se počítá v časové zóně Praha, účet v jiné zóně ji nastaví ve formuláři.</li>
 </ul>
 
+<h4 id="openai-ads">OpenAI Ads</h4>
+<ul>
+  <li>Napojení čte denní výkon reklam v ChatGPT: útratu, zobrazení, kliknutí, konverze a kampaně. Do účtu nic nezapisuje.</li>
+  <li>Potřebujete API klíč ze Správce reklam (Ads Manager, nastavení účtu, API klíče). Klíč pro konverze (Conversions API) nestačí. Klíč patří k jednomu reklamnímu účtu, pro další účet přidejte další napojení.</li>
+  <li>Částky jsou v měně reklamního účtu, AllStat ji zjistí sám.</li>
+</ul>
+
+<h4 id="tiktok-ads">TikTok Ads</h4>
+<ul>
+  <li>Napojení čte denní výkon účtu a kampaní (útrata, zobrazení, kliknutí, konverze, hodnota konverzí, je-li k dispozici).</li>
+  <li><strong>Přístup musí schválit TikTok.</strong> Na business-api.tiktok.com/portal se zaregistrujte jako vývojář, vytvořte aplikaci, zaškrtněte oprávnění pro správu reklamního účtu a reporty a jako Advertiser redirect URL vložte adresu z rámečku OAuth callback URL. Aplikaci odešlete ke schválení (App review), trvá to řádově dny.</li>
+  <li>Po schválení zadejte v AllStatu App ID a Secret aplikace a klikněte na „Spustit OAuth“. Advertiser ID se doplní samo z prvního účtu, ke kterému jste přístup povolili. Jiný účet zadáte do pole Advertiser ID.</li>
+  <li>Částky jsou v měně reklamního účtu. Konverze jsou podle atribuce TikToku, ne podle GA4.</li>
+</ul>
+
+<h4 id="bing">Bing Webmaster Tools</h4>
+<ul>
+  <li>Napojení čte kliknutí a zobrazení z hledání Bing (a nástrojů, které na něm stojí), nejčastější dotazy a stránky, procházení robotem, počet stránek v indexu a zpětné odkazy.</li>
+  <li>V Bing Webmaster Tools otevřete Nastavení (ozubené kolo), Přístup k API a vygenerujte API klíč. Klíč platí pro všechny weby vašeho účtu.</li>
+  <li>Do pole Adresa webu zadejte web přesně tak, jak ho máte v Bing Webmaster Tools. Web tam musí být ověřený.</li>
+  <li>Bing drží zhruba půl roku historie a dotazy a stránky dává po týdnech. AllStat si při každé synchronizaci uloží všechno, co přijde, takže historie se dál skládá u vás.</li>
+</ul>
+
+<h4 id="google-business">Google Business Profile</h4>
+<ul>
+  <li>Napojení čte, kolikrát lidé viděli profil firmy v Google hledání a Mapách (počítač i mobil), kliknutí na web, hovory, trasy, rezervace a hledané výrazy, po kterých profil našli.</li>
+  <li>Použijete stejný Google projekt a OAuth klienta jako u Google Analytics. V Google Cloud Console navíc zapněte „Business Profile Performance API“, „My Business Account Management API“ a „My Business Business Information API“.</li>
+  <li><strong>Přístup musí schválit Google.</strong> Nový projekt má k těmto API kvótu 0. Požádejte formulářem „Application for Basic API Access“ (najdete ho v dokumentaci Google Business Profile API). Profil musí být ověřený aspoň 60 dní a mít web. Do schválení AllStat při testu napojení hlásí, že přístup ještě schválený není.</li>
+  <li>Přihlaste se účtem, který je vlastníkem nebo správcem profilu. Location ID vyplňovat nemusíte, AllStat vezme první profil účtu.</li>
+  <li>Hledané výrazy dává Google jen za celé měsíce a malá čísla jen jako horní hranici („méně než 15“). Denní čísla mají zpoždění až 5 dní.</li>
+</ul>
+
+<h3 id="reklama">Reklama napříč platformami</h3>
+<p>Když máte napojený aspoň jeden reklamní účet, najdete v nabídce „Přepnout zdroj“ pohled <strong>Reklama napříč platformami</strong>. Ukazuje všechny reklamní účty webu vedle sebe za zvolené období: útratu, podíl na útratě, zobrazení, kliknutí, CTR, CPC, CPM, konverze, CPA a ROAS.</p>
+<ul>
+  <li>Útrata je v měně každého účtu. Součty a podíly se počítají jen mezi účty ve stejné měně, kurzy AllStat nepřepočítává.</li>
+  <li>Konverze platforem se nesčítají. Každá platforma je počítá podle vlastní atribuce (i po zobrazení reklamy a s různě dlouhými okny), takže by součet započítal tutéž objednávku víckrát.</li>
+  <li>Vedle konverzí platforem stojí návštěvy, klíčové události a tržby, které Google Analytics přiřadilo zdroji každé platformy podle UTM parametrů v odkazech reklam. Google Ads a Microsoft Ads GA4 pozná i bez UTM, když je v účtu zapnuté automatické označování.</li>
+  <li>Tržby z GA4 se ukládají od verze 1.5.5. Pro starší dny klikněte u napojení Google Analytics na „Stáhnout historii“.</li>
+</ul>
+
 <h4 id="clarity">Microsoft Clarity</h4>
 <ul>
   <li>V Clarity vygenerujete přístupový klíč (Settings, Data Export) a vložíte ho do AllStatu spolu s ID projektu. Clarity povoluje jen 10 dotazů denně na projekt.</li>
@@ -565,11 +610,13 @@ RewriteRule ^\.well-known/oauth-protected-resource/allstat(?:/mcp)?/?$ /allstat/
     <tr><td><code>get_report</code></td><td>hotový analytický report webu nebo jednoho zdroje za období</td></tr>
     <tr><td><code>get_channel_growth</code></td><td>měsíční vývoj hlavní metriky každého kanálu za 3, 6 nebo 12 měsíců</td></tr>
     <tr><td><code>get_overview</code></td><td>přehled webu z Google Analytics 4 a Search Console</td></tr>
-    <tr><td><code>get_source_metrics</code></td><td>metriky jednoho zdroje: sociální sítě, reklamy, YouTube, Clarity, Seznam Webmaster</td></tr>
+    <tr><td><code>get_source_metrics</code></td><td>metriky jednoho zdroje: sociální sítě, reklamy, YouTube, Clarity, Bing Webmaster, Google Business Profile, Seznam Webmaster</td></tr>
     <tr><td><code>get_top_content</code></td><td>nejlepší příspěvky a videa za období</td></tr>
     <tr><td><code>get_search_queries</code></td><td>dotazy a stránky z Google vyhledávání</td></tr>
     <tr><td><code>get_funnel</code></td><td>trychtýře webu: kroky, úbytek mezi nimi a rozpad podle kanálu, zdroje nebo kampaně</td></tr>
     <tr><td><code>get_sync_status</code></td><td>stav synchronizace zdrojů a upozornění na zastaralá data</td></tr>
+    <tr><td><code>compare_ad_platforms</code></td><td>reklamní účty vedle sebe: útrata, CTR, CPC, CPA, ROAS a návštěvy, konverze a tržby z GA4 podle platformy</td></tr>
+    <tr><td><code>detect_changes</code></td><td>neobvyklé změny: poslední týden, dva týdny nebo měsíc každé řady proti typické hodnotě z předchozích období</td></tr>
     <tr><td><code>query_data</code></td><td>dotaz na cokoli, co AllStat ukládá: konkrétní stránka, kampaň, dotaz nebo příspěvek, seznamy až 500 řádků, vývoj v čase a srovnání s předchozím obdobím nebo meziročně</td></tr>
   </tbody>
 </table>

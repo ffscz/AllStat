@@ -186,6 +186,10 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
     <tr><td>LinkedIn</td><td>company page statistics</td><td>an app on LinkedIn Developers and its approval</td><td>hardest, approval takes days</td></tr>
     <tr><td>Google Ads</td><td>ad performance</td><td>a Google Cloud project with approved access to the Google Ads API</td><td>harder, approval within 10 business days</td></tr>
     <tr><td>Microsoft Ads</td><td>account and campaign performance</td><td>an OAuth client (Google or Microsoft Entra) and a Developer Token</td><td>harder, about 30 minutes</td></tr>
+    <tr><td>TikTok Ads</td><td>account and campaign performance</td><td>an app on TikTok API for Business approved by TikTok</td><td>harder, approval takes days</td></tr>
+    <tr><td>OpenAI Ads</td><td>performance of ads in ChatGPT</td><td>an Ads Manager API key</td><td>easy</td></tr>
+    <tr><td>Bing Webmaster Tools</td><td>clicks, queries and indexing in Bing</td><td>an API key from Bing Webmaster Tools</td><td>easy, about 5 minutes</td></tr>
+    <tr><td>Google Business Profile</td><td>business profile views, website clicks, calls, directions</td><td>the same Google project and approved API access</td><td>harder, approval takes days</td></tr>
     <tr><td>Seznam Webmaster</td><td>indexing status</td><td>an API key from reporter.seznam.cz</td><td>easy</td></tr>
   </tbody>
 </table>
@@ -455,6 +459,47 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
   <li>Amounts are in the ad account’s currency. The report uses the Prague time zone; for an account in another zone, change it in the form.</li>
 </ul>
 
+<h4 id="openai-ads">OpenAI Ads</h4>
+<ul>
+  <li>The connection reads the daily performance of your ads in ChatGPT: spend, impressions, clicks, conversions and campaigns. It writes nothing to the account.</li>
+  <li>You need an API key from Ads Manager (account settings, API keys). A Conversions API key is not enough. The key belongs to one ad account; add another connection for another account.</li>
+  <li>Amounts are in the ad account's currency, which AllStat detects on its own.</li>
+</ul>
+
+<h4 id="tiktok-ads">TikTok Ads</h4>
+<ul>
+  <li>The connection reads the daily performance of the account and its campaigns (spend, impressions, clicks, conversions, and conversion value when available).</li>
+  <li><strong>TikTok has to approve access.</strong> At business-api.tiktok.com/portal, register as a developer, create an app, select the permissions for ad account management and reporting, and paste the address from the OAuth callback URL box as the Advertiser redirect URL. Submit the app for review (App review); it takes days.</li>
+  <li>Once approved, enter the app's App ID and Secret in AllStat and click “Start OAuth”. The Advertiser ID is filled in from the first account you granted access to. Enter a different one in the Advertiser ID field.</li>
+  <li>Amounts are in the ad account's currency. Conversions follow TikTok's attribution, not GA4.</li>
+</ul>
+
+<h4 id="bing">Bing Webmaster Tools</h4>
+<ul>
+  <li>The connection reads clicks and impressions from Bing search (and the tools built on it), top queries and pages, crawling, the number of indexed pages and backlinks.</li>
+  <li>In Bing Webmaster Tools, open Settings (the gear icon), API access, and generate an API key. The key works for all websites in your account.</li>
+  <li>Enter the website address exactly as it appears in Bing Webmaster Tools. The site must be verified there.</li>
+  <li>Bing keeps about six months of history and reports queries and pages by week. AllStat stores everything it receives on every sync, so the history keeps growing on your side.</li>
+</ul>
+
+<h4 id="google-business">Google Business Profile</h4>
+<ul>
+  <li>The connection reads how often people saw your business profile in Google Search and Maps (desktop and mobile), website clicks, calls, directions, bookings, and the search terms that led to the profile.</li>
+  <li>You use the same Google project and OAuth client as for Google Analytics. In Google Cloud Console, also enable “Business Profile Performance API”, “My Business Account Management API” and “My Business Business Information API”.</li>
+  <li><strong>Google has to approve access.</strong> A new project has a quota of 0 for these APIs. Apply with the “Application for Basic API Access” form (linked from the Google Business Profile API documentation). The profile has to be verified for at least 60 days and have a website. Until approval, the connection test in AllStat says that access is not approved yet.</li>
+  <li>Sign in with an account that owns or manages the profile. You don't need to fill in the Location ID; AllStat takes the account's first profile.</li>
+  <li>Google reports search terms only for whole months, and small numbers only as an upper bound (“fewer than 15”). Daily numbers are delayed by up to 5 days.</li>
+</ul>
+
+<h3 id="reklama">Advertising across platforms</h3>
+<p>Once at least one ad account is connected, the “Switch source” menu offers the <strong>Advertising across platforms</strong> view. It shows all of the website's ad accounts side by side for the selected period: spend, share of spend, impressions, clicks, CTR, CPC, CPM, conversions, CPA and ROAS.</p>
+<ul>
+  <li>Spend is in each account's currency. Totals and shares are calculated only between accounts in the same currency; AllStat does not convert exchange rates.</li>
+  <li>Conversions from different platforms are not added up. Each platform counts them with its own attribution (including after an ad view and with windows of different lengths), so a sum would count the same order several times.</li>
+  <li>Next to the platforms' conversions are the sessions, key events and revenue that Google Analytics attributed to each platform's source based on the UTM parameters in the ad links. GA4 recognizes Google Ads and Microsoft Ads even without UTM when auto-tagging is on in the account.</li>
+  <li>GA4 revenue is stored from version 1.5.5. For older days, click “Download history” on the Google Analytics connection.</li>
+</ul>
+
 <h4 id="clarity">Microsoft Clarity</h4>
 <ul>
   <li>In Clarity you generate an access key (Settings, Data Export) and enter it in AllStat together with the project ID. Clarity allows only 10 requests per day per project.</li>
@@ -565,11 +610,13 @@ RewriteRule ^\.well-known/oauth-protected-resource/allstat(?:/mcp)?/?$ /allstat/
     <tr><td><code>get_report</code></td><td>a ready-made analytics report for a website or a single source over a period</td></tr>
     <tr><td><code>get_channel_growth</code></td><td>the monthly trend of each channel’s main metric over 3, 6 or 12 months</td></tr>
     <tr><td><code>get_overview</code></td><td>an overview of a website from Google Analytics 4 and Search Console</td></tr>
-    <tr><td><code>get_source_metrics</code></td><td>metrics of one source: social networks, ads, YouTube, Clarity, Seznam Webmaster</td></tr>
+    <tr><td><code>get_source_metrics</code></td><td>metrics of one source: social networks, ads, YouTube, Clarity, Bing Webmaster, Google Business Profile, Seznam Webmaster</td></tr>
     <tr><td><code>get_top_content</code></td><td>the best posts and videos over a period</td></tr>
     <tr><td><code>get_search_queries</code></td><td>queries and pages from Google search</td></tr>
     <tr><td><code>get_funnel</code></td><td>a website’s funnels: steps, drop-off between them and a breakdown by channel, source or campaign</td></tr>
     <tr><td><code>get_sync_status</code></td><td>the synchronization status of sources and warnings about stale data</td></tr>
+    <tr><td><code>compare_ad_platforms</code></td><td>ad accounts side by side: spend, CTR, CPC, CPA, ROAS, and GA4 sessions, conversions and revenue by platform</td></tr>
+    <tr><td><code>detect_changes</code></td><td>unusual changes: the last week, two weeks or month of each series compared with the typical value of earlier periods</td></tr>
     <tr><td><code>query_data</code></td><td>a query for anything AllStat stores: a specific page, campaign, query or post, lists of up to 500 rows, trends over time and comparisons with the previous period or year over year</td></tr>
   </tbody>
 </table>
