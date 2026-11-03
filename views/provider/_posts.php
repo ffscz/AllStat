@@ -35,7 +35,7 @@ $postRow = static function (array $post) use (&$detailId, $postsCols, $postsExtr
     $toggle = $groups ? '<button type="button" class="btn-ghost btn-sm" data-post-detail="' . $id . '" aria-expanded="false" aria-controls="' . $id . '">'
         . h(t('Detail')) . allstat_icon('chevron-down', 'icon-sm') . '</button>' : '';
     $html = '<tr data-content-type="' . $postType($post) . '">'
-        . '<td><div class="post">' . $text . '<span class="post-meta"><span class="chip">' . h($postTypeLabel($post)) . '</span><span class="num">' . h($post['date']) . '</span>' . $toggle . '</span></div></td>'
+        . '<td><div class="post' . (($post['thumb'] ?? '') !== '' ? ' has-thumb' : '') . '">' . allstat_thumb_img((string) ($post['thumb'] ?? '')) . $text . '<span class="post-meta"><span class="chip">' . h($postTypeLabel($post)) . '</span><span class="num">' . h($post['date']) . '</span>' . $toggle . '</span></div></td>'
         . '<td class="num is-strong">' . h($post['viewsLabel'] ?? '–') . '</td>'
         . '<td class="num">' . h($post['reachLabel'] ?? '–') . '</td>'
         . '<td class="num" data-sort="' . (int) $post['reactions'] . '">' . $rxCell($post) . '</td>'

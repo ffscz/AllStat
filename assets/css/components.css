@@ -317,6 +317,7 @@
 .src-ma { background: var(--src-ma-bg); color: var(--src-ma-fg); }
 .src-ad { background: var(--src-ad-bg); color: var(--src-ad-fg); }
 .src-ms { background: var(--src-ms-bg); color: var(--src-ms-fg); }
+.src-oa { background: var(--src-oa-bg); color: var(--src-oa-fg); }
 .src-sz { background: var(--src-sz-bg); color: var(--src-sz-fg); }
 
 /* ===================== Štítky ===================== */
@@ -952,6 +953,59 @@ a.pill:hover {
     white-space: normal;
 }
 
+/* Hlavní číslo bloku za 28 dní (views/provider/_ig_window.php) */
+.w28-value {
+    display: block;
+    margin: 4px 0 8px;
+    font-size: 28px;
+    line-height: 36px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Náhled příspěvku vlevo od textu (FB/IG, lib/social-thumbs.php) */
+.post.has-thumb {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr);
+    column-gap: 12px;
+    align-items: start;
+    /* Ať se text vedle náhledu v úzkém okně nesmrskne na jedno písmeno: tabulka se raději posune do strany. */
+    min-width: 260px;
+}
+
+.post.has-thumb > .post-thumb {
+    grid-row: 1 / span 2;
+}
+
+.post-thumb {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+}
+
+@media (max-width: 640px) {
+    .post.has-thumb {
+        grid-template-columns: 40px minmax(0, 1fr);
+        column-gap: 8px;
+        min-width: 200px;
+    }
+
+    .post.has-thumb > .post-thumb {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+td.ellipsis > .post-thumb {
+    width: 32px;
+    height: 32px;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
 .post-text {
     display: -webkit-box;
     overflow: hidden;
@@ -963,9 +1017,26 @@ a.pill:hover {
 
 .post-meta {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
+    gap: 4px 8px;
     color: var(--muted);
+    font-size: 12px;
+    line-height: 16px;
+}
+
+/* Štítek, datum a „Detail" na jedné ose: všechno 22 px vysoké a svisle na střed (tlačítko dřív mělo 32 px
+   a šipka bez flexu padala pod text). */
+.post-meta > * {
+    align-self: center;
+}
+
+.post-meta [data-post-detail] {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    height: 22px;
+    padding: 0 6px;
     font-size: 12px;
     line-height: 16px;
 }

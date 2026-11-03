@@ -11,6 +11,9 @@
  * per-provider table/dashboard code is ever needed.
  */
 
+require_once __DIR__ . '/social-thumbs.php';
+require_once __DIR__ . '/openai-ads.php';
+
 require_once __DIR__ . '/oauth.php';
 require_once __DIR__ . '/microsoft-ads.php';
 
@@ -78,18 +81,25 @@ function allstat_sync_recipe(string $providerKey): ?array
             // All are daily counts → safely summable over a range. The engine skips any that Meta
             // rejects (further deprecations land 15. 6. 2026), so the sync never 400s as a whole.
             'metrics' => [
-                // Dosah: legacy unique-impressions + its 15.6.2026 replacement, both → reach. The engine
-                // retries metrics one-by-one and skips any the API rejects, so requesting both is safe
-                // before AND after the deprecation — whichever Meta still serves populates reach.
+                // Dosah = počet různých lidí (Business Suite mu od 31. 10. 2026 říká „Diváci“). Starý
+                // page_impressions_unique Meta zrušila 15. 6. 2026, proto se už nežádá.
                 // page_fan_adds/page_fan_removes are ALREADY dead (verified live → "must be a valid insights
                 // metric"); the surviving follower-change metrics are page_daily_follows/page_daily_unfollows.
-                'page_impressions_unique' => 'reach',
                 'page_total_media_view_unique' => 'reach',
                 'page_media_view' => 'page_impressions',
                 'page_post_engagements' => 'engagements',
                 'page_views_total' => 'page_views',
-                'page_daily_follows' => 'new_follows',
+                // Noví sledující jako v Business Suite („Sledování“): unikátní varianta. page_daily_follows počítal
+                // i opakovaná sledování a vycházel jinak (ověřeno sondou 3. 11. 2026: unikátní 2 = Business Suite 2).
+                'page_daily_follows_unique' => 'new_follows',
                 'page_daily_unfollows' => 'unfollows',
+                // Zhlédnutí videí aspoň na 3 s (Business Suite „Zhlédnutí 3 sekund“). Zrušená je jen unikátní
+                // varianta page_video_views_unique; kdyby Meta vzala i tuhle, engine ji sám ztlumí.
+                'page_video_views' => 'video_views',
+                // Doba sledování videí stránky v ms (Business Suite „Doba sledování“) a reakce na obsah stránky po dnech
+                // (objekt like/love/… → engine ho sečte). Komentáře a sdílení za stránku API jako metriku nedává.
+                'page_video_view_time' => 'video_view_time',
+                'page_actions_post_reactions_total' => 'reactions',
             ],
         ],
         'instagram_business' => [
@@ -123,6 +133,10 @@ function allstat_sync_recipe(string $providerKey): ?array
         'google_ads' => [
             'engine' => 'google_ads',
             'metrics' => ['impressions' => 'impressions', 'clicks' => 'clicks', 'cost' => 'cost', 'conversions' => 'conversions', 'conversion_value' => 'conversion_value'],
+        ],
+        'openai_ads' => [
+            'engine' => 'openai_ads',
+            'metrics' => ['impressions' => 'impressions', 'clicks' => 'clicks', 'spend' => 'cost', 'conversions' => 'conversions', 'order_created_attributed_sales' => 'conversion_value'],
         ],
         'microsoft_ads' => [
             'engine' => 'microsoft_ads',
@@ -176,6 +190,7 @@ function allstat_run_engine(string $engine, PDO $pdo, array $config, array $conn
         'linkedin' => allstat_engine_linkedin($pdo, $config, $connection, $token, $startDate, $endDate, $recipe),
         'clarity' => allstat_engine_clarity($pdo, $config, $connection, $token, $startDate, $endDate, $recipe),
         'google_ads' => allstat_engine_google_ads($pdo, $config, $connection, $token, $startDate, $endDate, $recipe),
+        'openai_ads' => allstat_engine_openai_ads($pdo, $config, $connection, $token, $startDate, $endDate, $recipe),
         'microsoft_ads' => allstat_engine_microsoft_ads($pdo, $config, $connection, $token, $startDate, $endDate, $recipe),
         'seznam_wmt' => allstat_engine_seznam_wmt($pdo, $config, $connection, $token, $startDate, $endDate, $recipe),
         'youtube' => allstat_engine_youtube($pdo, $config, $connection, $token, $startDate, $endDate, $recipe),
@@ -198,6 +213,53 @@ function allstat_meta_paging_next(array $resp, string $base): string
     }
 
     return $next;
+}
+
+/**
+ * Stejná pole pro víc objektů Graph API najednou → [id => objekt]. Dřív přes `GET /?ids=a,b&fields=…`, jenže Meta
+ * tenhle dotaz od Graph API v26.0 ruší a od 27. 10. 2026 i ve všech starších verzích („Root requests using
+ * GET /?ids=... return an error. Use per-object requests or supported batching."). Teď přes Batch API:
+ * POST na kořen verze s `batch=[{method, relative_url}]`, nejvýš 50 požadavků v dávce, každý vrací vlastní
+ * `code` a `body`. Objekt s chybou (třeba metrika, kterou daný typ příspěvku nemá) se jen vynechá, ostatní
+ * z dávky zůstanou; dřív jedna chyba zahodila celých 50 id. Položky, které Meta nestihla (null v odpovědi),
+ * se jednou zopakují. Selhání celé dávky (síť, 5xx) se zopakuje jednou, pak dávka chybí, jako dřív.
+ */
+function allstat_meta_batch_get(string $base, string $token, array $ids, string $fields): array
+{
+    $out = [];
+    $relative = static fn (string $id): string => rawurlencode($id) . '?fields=' . rawurlencode($fields);
+    $post = static function (array $chunk) use ($base, $token, $relative): array {
+        $batch = array_map(static fn (string $id): array => ['method' => 'GET', 'relative_url' => $relative($id)], $chunk);
+        $body = 'access_token=' . rawurlencode($token) . '&include_headers=false&batch=' . rawurlencode((string) json_encode($batch));
+        $headers = ['Accept' => 'application/json', 'Content-Type' => 'application/x-www-form-urlencoded'];
+        $resp = allstat_http_request('POST', rtrim($base, '/') . '/', $headers, $body, 90);
+        if ($resp['status'] === 0 || $resp['status'] >= 500) {
+            usleep(1500000);
+            $resp = allstat_http_request('POST', rtrim($base, '/') . '/', $headers, $body, 90);
+        }
+        return $resp['status'] === 200 && is_array($resp['json'] ?? null) ? $resp['json'] : [];
+    };
+    $ids = array_values(array_unique(array_map('strval', $ids)));
+    foreach (array_chunk($ids, 50) as $chunk) {
+        $retry = [];
+        foreach ([$chunk, null] as $round => $todo) {
+            $todo ??= $retry;
+            if (!$todo) { break; }
+            $answers = $post($todo);
+            foreach ($todo as $i => $id) {
+                $item = $answers[$i] ?? null;
+                if (!is_array($item)) {
+                    if ($round === 0 && $answers) { $retry[] = $id; }
+                    continue;
+                }
+                $obj = json_decode((string) ($item['body'] ?? ''), true);
+                if ((int) ($item['code'] ?? 0) === 200 && is_array($obj)) {
+                    $out[$id] = $obj;
+                }
+            }
+        }
+    }
+    return $out;
 }
 
 /**
@@ -514,11 +576,32 @@ function allstat_engine_meta_graph(PDO $pdo, array $config, array $connection, s
         $active = array_values(array_diff($active, ['follower_count']));
     }
 
-    $fetch = static function (array $names) use ($base, $id, $startDate, $endDate, $token): array {
-        $url = $base . '/' . rawurlencode($id) . '/insights?metric=' . urlencode(implode(',', $names))
-            . '&period=day&since=' . urlencode($startDate) . '&until=' . urlencode($endDate)
-            . '&access_token=' . urlencode($token);
-        return allstat_http_request('GET', $url, ['Accept' => 'application/json'], null, 60);
+    // until je výlučné: bod za den X má end_time X+1, takže until = konec + 1 den, jinak by poslední den okna
+    // (u historie konec každé dávky) zůstal nepřepsaný. Instagram bere nejvýš 30 dní (v sekundách, pozor na
+    // přechod času), proto se dotaz dělí na úseky po 28 dnech a řady se spojí.
+    $fetch = static function (array $names) use ($base, $id, $startDate, $endDate, $token, $object): array {
+        $until = (new DateTimeImmutable($endDate))->modify('+1 day');
+        $step = $object === 'ig' ? 28 : 90;
+        $merged = [];
+        $last = ['status' => 200, 'json' => ['data' => []], 'body' => ''];
+        for ($from = new DateTimeImmutable($startDate); $from < $until; $from = $to) {
+            $to = min($until, $from->modify('+' . $step . ' days'));
+            $url = $base . '/' . rawurlencode($id) . '/insights?metric=' . urlencode(implode(',', $names))
+                . '&period=day&since=' . urlencode($from->format('Y-m-d')) . '&until=' . urlencode($to->format('Y-m-d'))
+                . '&access_token=' . urlencode($token);
+            $last = allstat_http_request('GET', $url, ['Accept' => 'application/json'], null, 60);
+            if (($last['status'] ?? 0) !== 200) {
+                return $last; // chyba úseku = chyba dotazu (stejně jako dřív u jednoho volání)
+            }
+            foreach ($last['json']['data'] ?? [] as $series) {
+                $name = (string) ($series['name'] ?? '');
+                if (!isset($merged[$name])) { $merged[$name] = $series; $merged[$name]['values'] = []; }
+                array_push($merged[$name]['values'], ...($series['values'] ?? []));
+            }
+        }
+        $last['json']['data'] = array_values($merged);
+
+        return $last;
     };
 
     $writeSeries = function (array $data) use (&$written, $metrics, $stmt, $domainId, $sourceId, $connectionId): void {
@@ -527,7 +610,11 @@ function allstat_engine_meta_graph(PDO $pdo, array $config, array $connection, s
             $localKey = $metrics[$apiKey] ?? null;
             if (!$localKey) { continue; }
             foreach ($series['values'] ?? [] as $point) {
-                $date = substr((string) ($point['end_time'] ?? ''), 0, 10);
+                // end_time je půlnoc PT NA KONCI dne, hodnota patří dni předtím (since=1. 10. vrátí první bod
+                // s end_time 2. 10. 07:00). Business Suite ji ukazuje k 1. 10.; ověřeno živě 3. 11. 2026.
+                $endTime = substr((string) ($point['end_time'] ?? ''), 0, 10);
+                if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $endTime)) { continue; }
+                $date = (new DateTimeImmutable($endTime))->modify('-1 day')->format('Y-m-d');
                 $value = $point['value'] ?? null;
                 // A few metrics return a per-breakdown object instead of a scalar — sum its numeric parts.
                 if (is_array($value)) { $value = array_sum(array_filter($value, 'is_numeric')); }
@@ -633,23 +720,187 @@ function allstat_engine_meta_graph(PDO $pdo, array $config, array $connection, s
             $floor = $today->modify('-44 days');
             $lo = new DateTimeImmutable($startDate);
             $from = $lo > $floor ? $lo : $floor;
-            $okruhMetrics = ($from <= $last) ? ['reach' => 'reach_follow', 'views' => 'views_follow'] : [];
+            // follows_and_unfollows: rozpad FOLLOWER = nová sledování, NON_FOLLOWER = zrušená sledování (Business Suite
+            // „Sledování“ a „Zrušení sledování“). Interakce podle sledujících / nesledujících ukazuje jen Business Suite,
+            // API rozpad follow_type u total_interactions nedává (ověřeno živě 3. 11. 2026), proto se nežádá.
+            $okruhMetrics = ($from <= $last) ? ['reach' => 'reach_follow', 'views' => 'views_follow',
+                'follows_and_unfollows' => 'follows_follow'] : [];
             foreach ($okruhMetrics as $metric => $key) {
+                // Rozpad, který Meta odmítne (HTTP 400), se ztlumí na 30 dní stejně jako mrtvé metriky výš, ať se
+                // nezkouší den po dni při každém běhu.
+                $muteName = 'okruh.' . $metric;
+                if (isset($muted[$muteName]) && (string) $muted[$muteName] >= $today->format('Y-m-d')) {
+                    continue;
+                }
                 for ($day = $from; $day <= $last; $day = $day->modify('+1 day')) {
                     $u = $base . '/' . rawurlencode($id) . '/insights?metric=' . $metric . '&period=day&metric_type=total_value'
                         . '&breakdown=follow_type&since=' . $day->getTimestamp() . '&until=' . $day->modify('+1 day')->getTimestamp()
                         . '&access_token=' . urlencode($token);
                     $r = allstat_http_request('GET', $u, ['Accept' => 'application/json'], null, 25);
+                    if (($r['status'] ?? 0) === 400) {
+                        // Ztlumit jen neplatnou metriku/rozpad (#100) v čerstvém okně. Limit API (#4, #17, #32) chodí
+                        // taky jako 400 a staré okno může Meta odmítnout jen kvůli stáří; tam stačí skončit a zkusit příště.
+                        if ($recentWindow && (int) ($r['json']['error']['code'] ?? 0) === 100) {
+                            $muted[$muteName] = date('Y-m-d', strtotime('+30 days'));
+                            $saveMuted();
+                        }
+                        $skipped[] = $metric . ' (follow_type)';
+                        break;
+                    }
+                    $daySum = 0.0;
                     foreach ($r['json']['data'][0]['total_value']['breakdowns'][0]['results'] ?? [] as $res) {
                         $dim = trim((string) ($res['dimension_values'][0] ?? ''));
                         if ($dim !== '' && is_numeric($res['value'] ?? null)) {
+                            $daySum += (float) $res['value'];
                             allstat_pm_put($stmt, $domainId, $sourceId, $connectionId, $day->format('Y-m-d'), $key, (float) $res['value'], $dim);
                             $written++;
+                            // Zrušená sledování jako běžná denní metrika (sčítá se jako u Facebooku a YouTube).
+                            if ($key === 'follows_follow' && strtoupper($dim) === 'NON_FOLLOWER') {
+                                allstat_pm_put($stmt, $domainId, $sourceId, $connectionId, $day->format('Y-m-d'), 'unfollows', (float) $res['value']);
+                            }
                         }
+                    }
+                    // Zobrazení účtu za den jako běžná denní metrika (horní karta „Zobrazení“ s grafem): views se
+                    // sčítat smí, každé zobrazení je samostatná událost.
+                    if ($key === 'views_follow' && $daySum > 0) {
+                        $dayViews = $r['json']['data'][0]['total_value']['value'] ?? $daySum;
+                        allstat_pm_put($stmt, $domainId, $sourceId, $connectionId, $day->format('Y-m-d'), 'views', (float) (is_numeric($dayViews) ? $dayViews : $daySum));
                     }
                 }
             }
         } catch (Throwable) { /* okruh best-effort */ }
+
+        // Interakce za den (lajky, komentáře, uložení, sdílení na příspěvcích, reels i stories) pro horní kartu
+        // „Interakce“. Jen total_value za 1denní okna, stejně jako okruh. Napoprvé (napojení ještě nemá žádný den)
+        // se dorovná rovnou posledních 45 dní, dál jen okno synchronizace.
+        try {
+            $today = new DateTimeImmutable('today');
+            $last = new DateTimeImmutable($endDate);
+            if ($last > $today) { $last = $today; }
+            $floor = $today->modify('-44 days');
+            $hasAny = $pdo->prepare("SELECT 1 FROM provider_metrics_daily WHERE connection_id = ? AND metric_key = 'interactions' LIMIT 1");
+            $hasAny->execute([$connectionId]);
+            $lo = $hasAny->fetchColumn() ? new DateTimeImmutable($startDate) : $floor;
+            for ($day = $lo > $floor ? $lo : $floor; $day <= $last; $day = $day->modify('+1 day')) {
+                $r = allstat_http_request('GET', $base . '/' . rawurlencode($id) . '/insights?metric=total_interactions&period=day&metric_type=total_value'
+                    . '&since=' . $day->getTimestamp() . '&until=' . $day->modify('+1 day')->getTimestamp() . '&access_token=' . urlencode($token),
+                    ['Accept' => 'application/json'], null, 25);
+                if (($r['status'] ?? 0) !== 200) {
+                    break; // limit, oprávnění nebo zrušená metrika: zbytek příště
+                }
+                $v = $r['json']['data'][0]['total_value']['value'] ?? null;
+                if (is_numeric($v) && allstat_pm_put($stmt, $domainId, $sourceId, $connectionId, $day->format('Y-m-d'), 'interactions', (float) $v)) {
+                    $written++;
+                }
+            }
+        } catch (Throwable) { /* best-effort */ }
+
+        // Demografie lidí, kteří s obsahem reagovali (ne jen sledujících). Lifetime snímek za tento měsíc jako
+        // u sledujících; Meta ho dává až od 100 zapojených účtů, jinak se jen přeskočí.
+        foreach (['age' => 'eng_dem_age', 'gender' => 'eng_dem_gender', 'country' => 'eng_dem_country', 'city' => 'eng_dem_city'] as $bd => $key) {
+            try {
+                $u = $base . '/' . rawurlencode($id) . '/insights?metric=engaged_audience_demographics&period=lifetime'
+                    . '&metric_type=total_value&timeframe=this_month&breakdown=' . $bd . '&access_token=' . urlencode($token);
+                $r = allstat_http_request('GET', $u, ['Accept' => 'application/json'], null, 30);
+                foreach ($r['json']['data'][0]['total_value']['breakdowns'][0]['results'] ?? [] as $res) {
+                    $dim = trim((string) ($res['dimension_values'][0] ?? ''));
+                    if ($dim !== '' && is_numeric($res['value'] ?? null)
+                        && allstat_pm_put($stmt, $domainId, $sourceId, $connectionId, date('Y-m-d'), $key, (float) $res['value'], $dim)) {
+                        $written++;
+                    }
+                }
+            } catch (Throwable) { /* best-effort */ }
+        }
+    }
+
+    // Různí lidé za období (Business Suite „Diváci“ / „Dosah“). Denní dosah se sčítat nedá, stejný člověk by se
+    // počítal každý den znovu, proto se ptáme na celé okno najednou. Dvě okna:
+    // - posledních 28 dní do včerejška, stejně jako výchozí pohled Business Suite → `reach_28d_unique`, dimenze =
+    //   poslední den okna (Y-m-d), uloženo k tomu dni; čísla jdou porovnat se Suite 1:1,
+    // - kalendářní měsíc pro měsíční reporty → `reach_month_unique`, dimenze „YYYY-MM“ k prvnímu dni měsíce,
+    //   `reach_month_unique_days` = kolik dní číslo pokrývá. Instagram bere okno nejvýš 30 dní (u 31denních
+    //   měsíců tedy 1.–30.), FB total_over_range až 93 dní. Běžný měsíc pokrývá dny do včerejška.
+    // Dimenze zajistí, že tyto řádky obecné součty metrik (dimension = '') nesečtou. Běžný sync: 28 dní, běžný
+    // a minulý měsíc. Stažení historie: každý celý měsíc dávky (1 dotaz na měsíc), aby Přehled a Růst kanálů
+    // mohly ukázat různé lidi za měsíc jako Business Suite místo součtu denních dosahů.
+    $uniqMonths = [];
+    if ($recentWindow) {
+        $uniqMonths = [date('Y-m'), date('Y-m', strtotime('first day of last month'))];
+    }
+    for ($m = new DateTimeImmutable(substr($startDate, 0, 7) . '-01'); $m->format('Y-m-d') <= $endDate; $m = $m->modify('first day of next month')) {
+        // Dávky historie nejdou po kalendářních měsících (2. 7. – 1. 8.), proto se měsíc stáhne v dávce, kde leží
+        // jeho poslední den (dotaz je vždy na celý měsíc). Uzavřené měsíce, ne starší než 2 roky (víc Meta nedrží).
+        $mLast = $m->modify('last day of this month')->format('Y-m-d');
+        if ($mLast >= $startDate && $mLast <= $endDate && $mLast < date('Y-m-d') && $m >= new DateTimeImmutable('first day of -23 months midnight')) {
+            $uniqMonths[] = $m->format('Y-m');
+        }
+    }
+    if (($object === 'page' || $object === 'ig') && $uniqMonths) {
+        $todayDt = new DateTimeImmutable('today');
+        $uniqWindows = $recentWindow ? [[$todayDt->modify('-28 days'), $todayDt, 'reach_28d_unique', $todayDt->modify('-1 day')->format('Y-m-d'), $todayDt->modify('-1 day')]] : [];
+        foreach (array_unique($uniqMonths) as $ym) {
+            $mStart = new DateTimeImmutable($ym . '-01');
+            $mEnd = $mStart->modify('first day of next month');
+            if ($mEnd > $todayDt) { $mEnd = $todayDt; }
+            // Limit Instagramu je 30 × 24 h v sekundách: měsíc s přechodem na zimní čas (říjen) má od půlnoci do
+            // půlnoci o hodinu víc, proto se konec počítá od začátku v sekundách, ne v kalendářních dnech.
+            if ($object === 'ig' && $mEnd->getTimestamp() - $mStart->getTimestamp() > 30 * 86400) { $mEnd = $mStart->setTimestamp($mStart->getTimestamp() + 30 * 86400); }
+            $uniqWindows[] = [$mStart, $mEnd, 'reach_month_unique', $ym, $mStart];
+        }
+        foreach ($uniqWindows as [$wStart, $wEnd, $wKey, $wDim, $wDate]) {
+            if ($wEnd <= $wStart) { continue; }
+            try {
+                $u = $object === 'ig'
+                    ? $base . '/' . rawurlencode($id) . '/insights?metric=reach&period=day&metric_type=total_value'
+                        . '&since=' . $wStart->getTimestamp() . '&until=' . $wEnd->getTimestamp() . '&access_token=' . urlencode($token)
+                    : $base . '/' . rawurlencode($id) . '/insights?metric=page_total_media_view_unique&period=total_over_range'
+                        . '&since=' . $wStart->format('Y-m-d') . '&until=' . $wEnd->format('Y-m-d') . '&access_token=' . urlencode($token);
+                $r = allstat_http_request('GET', $u, ['Accept' => 'application/json'], null, 30);
+                $series = $r['json']['data'][0] ?? [];
+                $val = $series['total_value']['value'] ?? ($series['values'][0]['value'] ?? null);
+                if (($r['status'] ?? 0) === 200 && is_numeric($val)
+                    && allstat_pm_put($stmt, $domainId, $sourceId, $connectionId, $wDate->format('Y-m-d'), $wKey, (float) $val, $wDim)) {
+                    if ($wKey === 'reach_month_unique') {
+                        allstat_pm_put($stmt, $domainId, $sourceId, $connectionId, $wDate->format('Y-m-d'), 'reach_month_unique_days', (float) round(($wEnd->getTimestamp() - $wStart->getTimestamp()) / 86400), $wDim);
+                    }
+                    $written++;
+                }
+            } catch (Throwable) { /* best-effort */ }
+
+            // Instagram za stejných 28 dní všechno, co ukazuje přehled Business Suite (ověřeno sondou 3. 11. 2026):
+            // zobrazení, interakce a zapojené účty celkem, dosah a zobrazení podle sledujících / nesledujících,
+            // nová a zrušená sledování a interakce podle typu obsahu. Klíče `w28_*` s dimenzí = poslední den okna.
+            if ($object === 'ig' && $wKey === 'reach_28d_unique') {
+                $w28 = static function (string $q) use ($base, $id, $token, $wStart, $wEnd): array {
+                    $r = allstat_http_request('GET', $base . '/' . rawurlencode($id) . '/insights?' . $q . '&period=day&metric_type=total_value&since='
+                        . $wStart->getTimestamp() . '&until=' . $wEnd->getTimestamp() . '&access_token=' . urlencode($token), ['Accept' => 'application/json'], null, 30);
+                    return ($r['status'] ?? 0) === 200 ? ($r['json']['data'] ?? []) : [];
+                };
+                $put28 = function (string $key, $value) use ($stmt, $domainId, $sourceId, $connectionId, $wDate, $wDim, &$written): void {
+                    if (is_numeric($value) && allstat_pm_put($stmt, $domainId, $sourceId, $connectionId, $wDate->format('Y-m-d'), $key, (float) $value, $wDim)) {
+                        $written++;
+                    }
+                };
+                try {
+                    foreach ($w28('metric=views,total_interactions,accounts_engaged') as $d) {
+                        $put28('w28_' . (string) ($d['name'] ?? ''), $d['total_value']['value'] ?? null);
+                    }
+                    $parts = [
+                        'metric=reach&breakdown=follow_type' => ['FOLLOWER' => 'w28_reach_follower', 'NON_FOLLOWER' => 'w28_reach_nonfollower'],
+                        'metric=views&breakdown=follow_type' => ['FOLLOWER' => 'w28_views_follower', 'NON_FOLLOWER' => 'w28_views_nonfollower'],
+                        'metric=follows_and_unfollows&breakdown=follow_type' => ['FOLLOWER' => 'w28_follows', 'NON_FOLLOWER' => 'w28_unfollows'],
+                        'metric=total_interactions&breakdown=media_product_type' => null, // POST / REEL / STORY / AD …
+                    ];
+                    foreach ($parts as $q => $map) {
+                        foreach ($w28($q)[0]['total_value']['breakdowns'][0]['results'] ?? [] as $res) {
+                            $dim = strtoupper(trim((string) ($res['dimension_values'][0] ?? '')));
+                            $key = $map === null ? 'w28_inter_' . strtolower(preg_replace('/[^A-Z_]/', '', $dim)) : ($map[$dim] ?? null);
+                            if ($key !== null && $dim !== '') { $put28($key, $res['value'] ?? null); }
+                        }
+                    }
+                } catch (Throwable) { /* best-effort */ }
+            }
+        }
     }
 
     // Per-post engagement (FB posts + Reels + Stories / IG media) → social_posts, for the "Top
@@ -658,7 +909,7 @@ function allstat_engine_meta_graph(PDO $pdo, array $config, array $connection, s
     // when it can't compute that summary (e.g. some ZoomSphere / third-party-published posts;
     // verified live: the same window returned 4 posts without summary but only 3 with it). Engagement,
     // reach/impressions/clicks, reaction breakdown and post metadata (status_type / object_id) are all
-    // fetched separately via batched ?ids= object lookups, which do NOT drop posts — and each as its OWN
+    // fetched separately via batched object lookups (Batch API), which do NOT drop posts — and each as its OWN
     // call so a missing read_insights permission only zeroes the insights, never the base engagement.
     // We also page in small sub-windows (FB's since/until is flaky on wide windows). Best-effort.
     $postsWritten = 0;
@@ -778,22 +1029,11 @@ function allstat_engine_meta_graph(PDO $pdo, array $config, array $connection, s
         }
         return $rows;
     };
-    // Batch a field set by ids (chunks of 50): GET /?ids=a,b&fields=... A direct object lookup, so it does
-    // NOT drop posts the way a list+summary query does. Returns id => row. Best-effort: a non-200 chunk
-    // (e.g. read_insights not granted) just yields no entries for that chunk — callers default to 0.
-    $batchById = function (array $ids, string $fields) use ($base, $token): array {
-        $out = [];
-        foreach (array_chunk($ids, 50) as $chunk) {
-            $url = $base . '/?ids=' . rawurlencode(implode(',', $chunk)) . '&fields=' . rawurlencode($fields) . '&access_token=' . urlencode($token);
-            $resp = allstat_http_request('GET', $url, ['Accept' => 'application/json'], null, 60);
-            if ($resp['status'] !== 200) { continue; }
-            foreach (($resp['json'] ?? []) as $pid => $obj) {
-                if (is_array($obj)) { $out[(string) $pid] = $obj; }
-            }
-        }
-        return $out;
-    };
-    // Parse a post-insights object into our fields. The batched ?ids=&fields=insights.metric(...){name,values}
+    // Batch a field set by ids (Batch API, chunks of 50, see allstat_meta_batch_get). A direct object lookup,
+    // so it does NOT drop posts the way a list+summary query does. Returns id => row. Best-effort: an object
+    // that errors (e.g. read_insights not granted) just yields no entry — callers default to 0.
+    $batchById = static fn (array $ids, string $fields): array => allstat_meta_batch_get($base, $token, $ids, $fields);
+    // Parse a post-insights object into our fields. The batched fields=insights.metric(...){name,values}
     // form returns entries WITH `name` (we also fall back to the `id` path); reactions arrive as ONE
     // post_reactions_by_type_total metric whose value is a {like,love,haha,wow,sorry,anger} object.
     // VERIFIED LIVE on a production account: reactions.summary 403s, but these insight metrics all return 200.
@@ -814,10 +1054,12 @@ function allstat_engine_meta_graph(PDO $pdo, array $config, array $connection, s
                 // reach: FB new media-views-unique / legacy unique-impressions, OR IG media's plain `reach`.
                 case 'reach':
                 case 'post_total_media_view_unique':
+                case 'story_total_media_view_unique':
                 case 'post_impressions_unique': $out['reach'] = $keepMax($out['reach'], $val); break;
                 // total views/impressions: new media_view (FB) / views (IG universal metric) replaces retired impressions.
                 case 'views':
                 case 'post_media_view':
+                case 'story_media_view':
                 case 'post_impressions': $out['impressions'] = $keepMax($out['impressions'], $val); break;
                 case 'post_clicks': $out['post_clicks'] = $keepMax($out['post_clicks'], $val); break;
                 // Rozpad kliků (Business Suite „Kliknutí na odkazy" je položka „link clicks"; zbytek jsou
@@ -909,13 +1151,15 @@ function allstat_engine_meta_graph(PDO $pdo, array $config, array $connection, s
             // IG Stories — ephemeral (~24 h), captured only while live (run cron/story-sync.php frequently).
             // Best-effort: reach + views if the account exposes them; IG hides stories with < 5 views.
             try {
-                $igStories = $collect('stories', 'id,media_type,timestamp,permalink', $timeStory);
+                $igStories = $collect('stories', 'id,media_type,timestamp,permalink,media_url,thumbnail_url', $timeStory);
                 $sids = array_keys($igStories);
                 // reach + views (známé dobré) v jedné dávce; replies a navigation ISOLOVANĚ, ať jejich
                 // případná deprecace/nedostupnost nevoidne reach/views.
                 $sins = $sids ? $batchById($sids, 'insights.metric(reach,views){name,values}') : [];
                 $srepl = $sids ? $batchById($sids, 'insights.metric(replies){name,values}') : [];
                 $snav = $sids ? $batchById($sids, 'insights.metric(navigation){name,values}') : [];
+                $stHas = $pdo->prepare('SELECT thumb_file FROM social_posts WHERE connection_id = ? AND post_id = ?');
+                $stSet = $pdo->prepare('UPDATE social_posts SET thumb_file = ? WHERE connection_id = ? AND post_id = ?');
                 foreach ($igStories as $spid => $sr) {
                     $sp = $sr['p'];
                     $si = $insOf($sins[$spid] ?? []);
@@ -927,6 +1171,15 @@ function allstat_engine_meta_graph(PDO $pdo, array $config, array $connection, s
                         'story_replies' => $insOf($srepl[$spid] ?? [])['replies'],
                         'story_navigation' => $insOf($snav[$spid] ?? [])['navigation'],
                     ]);
+                    // Náhled story jde stáhnout jen, dokud je živá (pak odkaz z API zmizí), proto hned tady.
+                    $stSrc = (string) (($sp['thumbnail_url'] ?? '') !== '' ? $sp['thumbnail_url'] : ($sp['media_url'] ?? ''));
+                    $stHas->execute([$connectionId, (string) $spid]);
+                    if ($stSrc !== '' && (string) $stHas->fetchColumn() === '') {
+                        $stFile = allstat_thumb_store($stSrc, $connectionId, (string) $spid);
+                        if ($stFile !== null) {
+                            $stSet->execute([is_string($stFile) ? $stFile : '-', $connectionId, (string) $spid]);
+                        }
+                    }
                 }
             } catch (Throwable) { /* IG stories edge unsupported / none active */ }
         } else {
@@ -942,7 +1195,7 @@ function allstat_engine_meta_graph(PDO $pdo, array $config, array $connection, s
             // 10 sdíleních) a u příspěvků typu created_event vrací prázdno, tedy nulu místo reálných reakcí.
             // Summary edge tenhle problém nemá. Historický komentář tvrdil, že 403uje — to už neplatí, ověřeno
             // živě na produkčním účtu. Drží se ale pravidlo výše: summary NIKDY v list dotazu (tam mizí příspěvky),
-            // vždy jen v dávkovém ?ids= lookupu, který nic nezahazuje.
+            // vždy jen v dávkovém dotazu po id (Batch API), který nic nezahazuje.
             $rxTypes = ['LIKE' => 'rx_like', 'LOVE' => 'rx_love', 'HAHA' => 'rx_haha', 'WOW' => 'rx_wow', 'SAD' => 'rx_sad', 'ANGRY' => 'rx_angry'];
             $rxFields = ['reactions.limit(0).summary(total_count).as(rx_all)', 'comments.limit(0).summary(total_count).as(cm_all)'];
             foreach ($rxTypes as $t => $alias) { $rxFields[] = "reactions.type($t).limit(0).summary(total_count).as($alias)"; }
@@ -952,15 +1205,14 @@ function allstat_engine_meta_graph(PDO $pdo, array $config, array $connection, s
             // reactions-by-type + activity-by-type. The last one carries the COMMENT count — comments.summary
             // as a field-expansion returns null on this page (verified live), so comments come from here.
             $insMain = $ids ? $batchById($ids, 'insights.metric(post_total_media_view_unique,post_media_view,post_clicks,post_clicks_by_type,post_fan_reach,post_reactions_by_type_total,post_activity_by_action_type){name,values}') : [];
-            // Legacy reach (dies 15.6.2026) and 3s video (no replacement) — isolated so each death can't void the rest.
-            $insLegacy = $ids ? $batchById($ids, 'insights.metric(post_impressions_unique){name,values}') : [];
+            // 3s video (no replacement) — isolated so its death can't void the rest. Starý dosah post_impressions_unique
+            // Meta zrušila 15. 6. 2026, jeho samostatné volání jen pálilo limit API, proto zmizelo.
             $insVideo = $ids ? $batchById($ids, 'insights.metric(post_video_views,post_video_view_time){name,values}') : [];
             foreach ($posts as $pid => $r) {
                 $p = $r['p'];
                 $m = $met[$pid] ?? [];
                 $fmt = $formatOf($p, $m);
                 $main = $insOf($insMain[$pid] ?? []);
-                $legacy = $insOf($insLegacy[$pid] ?? []);
                 $ex = $edgeRx[$pid] ?? [];
                 // Edge je zdroj pravdy pro reakce/komentáře; insight zůstává jen jako fallback (kdyby edge
                 // chybělo) a jako samostatná „virální" hodnota do detailu. null = edge nic nevrátil.
@@ -975,7 +1227,7 @@ function allstat_engine_meta_graph(PDO $pdo, array $config, array $connection, s
                     'reactions_viral' => $main['reactions_total'],
                     'comments_viral' => $main['comments'],
                     'shares' => (int) ($p['shares']['count'] ?? 0),
-                    'reach' => $main['reach'] ?: $legacy['reach'],
+                    'reach' => $main['reach'],
                     'fan_reach' => $main['fan_reach'],
                     'impressions' => $main['impressions'],
                     'post_clicks' => $main['post_clicks'],
@@ -998,8 +1250,10 @@ function allstat_engine_meta_graph(PDO $pdo, array $config, array $connection, s
             try {
                 $fbStories = $collect('stories', 'id,creation_time,media_type,permalink_url', $timeStory);
                 $stIds = array_keys($fbStories);
-                // Story insights are limited and only available while live; best-effort views + reach.
-                $stIns = $stIds ? $batchById($stIds, 'insights.metric(post_impressions,post_impressions_unique){name,values}') : [];
+                // Story insights are limited and only available while live; best-effort views + reach. Původní
+                // post_impressions(_unique) Meta zrušila, náhrada podle changelogu v25.0 je story_media_view
+                // (zobrazení) a story_total_media_view_unique (diváci).
+                $stIns = $stIds ? $batchById($stIds, 'insights.metric(story_media_view,story_total_media_view_unique){name,values}') : [];
                 foreach ($fbStories as $pid => $r) {
                     $p = $r['p'];
                     $si = $insOf($stIns[$pid] ?? []);
@@ -1017,7 +1271,16 @@ function allstat_engine_meta_graph(PDO $pdo, array $config, array $connection, s
         $listErrors['posts'] = mb_substr($e->getMessage(), 0, 80);
     }
 
+    // Náhledy příspěvků (best-effort, nesmí shodit synchronizaci): nejnovější příspěvky bez náhledu.
+    $thumbsSaved = 0;
+    try {
+        $thumbsSaved = allstat_thumbs_fill($pdo, $base, $token, $connectionId, $object);
+    } catch (Throwable) { /* náhledy jsou bonus */ }
+
     $summary = sprintf('%d metrik, %d příspěvků (%s → %s)', $written, $postsWritten, $startDate, $endDate);
+    if ($thumbsSaved > 0) {
+        $summary .= sprintf('; %d nových náhledů', $thumbsSaved);
+    }
     if ($skipped) {
         $summary .= '; přeskočeno (zrušené/neplatné): ' . implode(', ', $skipped);
     }
@@ -1029,12 +1292,15 @@ function allstat_engine_meta_graph(PDO $pdo, array $config, array $connection, s
     return ['rows' => $written, 'posts' => $postsWritten, 'summary' => $summary];
 }
 
+
 /**
  * LinkedIn organizationalEntityShareStatistics with daily time granularity.
  */
 function allstat_engine_linkedin(PDO $pdo, array $config, array $connection, string $token, string $startDate, string $endDate, array $recipe): array
 {
-    $base = rtrim((string) ($connection['api_base_url'] ?: 'https://api.linkedin.com/v2'), '/');
+    // Verzované REST API (/rest + hlavička LinkedIn-Version). Neverzované /v2 LinkedIn oficiálně ukončil 16. 12. 2024
+    // a dál ho jen toleruje; starší napojení mají /v2 uložené v api_base_url, proto se tu převádí.
+    $base = preg_replace('#/v2$#', '/rest', rtrim((string) ($connection['api_base_url'] ?: 'https://api.linkedin.com/rest'), '/'));
     $urn = trim((string) ($connection['property_id'] ?? ''));
     if ($urn === '') {
         throw new RuntimeException('LinkedIn: vyplň Property ID (urn:li:organization:…).');
@@ -1056,6 +1322,7 @@ function allstat_engine_linkedin(PDO $pdo, array $config, array $connection, str
     $resp = allstat_http_request('GET', $url, [
         'Authorization' => 'Bearer ' . $token,
         'X-Restli-Protocol-Version' => '2.0.0',
+        'LinkedIn-Version' => ALLSTAT_LINKEDIN_VERSION,
         'Accept' => 'application/json',
     ], null, 60);
     if ($resp['status'] !== 200) {
@@ -1101,9 +1368,11 @@ function allstat_engine_linkedin(PDO $pdo, array $config, array $connection, str
     // endpoint /networkSizes. Ukládá se k dnešku jako followers_total (denní syncy → řada vývoje,
     // zpětnou historii API nedává). Best-effort, nesmí shodit sync.
     try {
-        $nsResp = allstat_http_request('GET', $base . '/networkSizes/' . rawurlencode($urn) . '?edgeType=CompanyFollowedByMember', [
+        // REST API chce hodnotu velkými písmeny; CompanyFollowedByMember (zápis z /v2) vrací HTTP 400 (ověřeno 3. 11. 2026).
+        $nsResp = allstat_http_request('GET', $base . '/networkSizes/' . rawurlencode($urn) . '?edgeType=COMPANY_FOLLOWED_BY_MEMBER', [
             'Authorization' => 'Bearer ' . $token,
             'X-Restli-Protocol-Version' => '2.0.0',
+            'LinkedIn-Version' => ALLSTAT_LINKEDIN_VERSION,
             'Accept' => 'application/json',
         ], null, 30);
         if ($nsResp['status'] === 200 && is_numeric($nsResp['json']['firstDegreeSize'] ?? null)) {
@@ -1247,7 +1516,7 @@ function allstat_linkedin_sync_follower_demographics(PDO $pdo, array $connection
     $headers = [
         'Authorization' => 'Bearer ' . $token,
         'X-Restli-Protocol-Version' => '2.0.0',
-        'LinkedIn-Version' => '202606',
+        'LinkedIn-Version' => ALLSTAT_LINKEDIN_VERSION,
         'Accept' => 'application/json',
     ];
     $url = 'https://api.linkedin.com/rest/organizationalEntityFollowerStatistics?q=organizationalEntity&organizationalEntity=' . rawurlencode($orgUrn);
@@ -1313,7 +1582,7 @@ function allstat_linkedin_sync_visitor_demographics(PDO $pdo, array $connection,
     $headers = [
         'Authorization' => 'Bearer ' . $token,
         'X-Restli-Protocol-Version' => '2.0.0',
-        'LinkedIn-Version' => '202606',
+        'LinkedIn-Version' => ALLSTAT_LINKEDIN_VERSION,
         'Accept' => 'application/json',
     ];
     $url = 'https://api.linkedin.com/rest/organizationPageStatistics?q=organization&organization=' . rawurlencode($orgUrn);
@@ -1390,7 +1659,7 @@ function allstat_linkedin_sync_follower_gains(PDO $pdo, array $connection, strin
     $headers = [
         'Authorization' => 'Bearer ' . $token,
         'X-Restli-Protocol-Version' => '2.0.0',
-        'LinkedIn-Version' => '202606',
+        'LinkedIn-Version' => ALLSTAT_LINKEDIN_VERSION,
         'Accept' => 'application/json',
     ];
     $url = 'https://api.linkedin.com/rest/organizationalEntityFollowerStatistics?q=organizationalEntity&organizationalEntity=' . rawurlencode($orgUrn)
@@ -1419,7 +1688,7 @@ function allstat_linkedin_sync_page_views(PDO $pdo, array $connection, string $t
     $headers = [
         'Authorization' => 'Bearer ' . $token,
         'X-Restli-Protocol-Version' => '2.0.0',
-        'LinkedIn-Version' => '202606',
+        'LinkedIn-Version' => ALLSTAT_LINKEDIN_VERSION,
         'Accept' => 'application/json',
     ];
     $url = 'https://api.linkedin.com/rest/organizationPageStatistics?q=organization&organization=' . rawurlencode($orgUrn)
@@ -1449,7 +1718,7 @@ function allstat_linkedin_sync_page_views(PDO $pdo, array $connection, string $t
  */
 function allstat_linkedin_post_stats(string $orgUrn, array $postUrns, array $headers): array
 {
-    $base = 'https://api.linkedin.com/v2/organizationalEntityShareStatistics';
+    $base = 'https://api.linkedin.com/rest/organizationalEntityShareStatistics'; // $headers nesou LinkedIn-Version
     $out = [];
     $byType = ['shares' => [], 'ugcPosts' => []];
     foreach ($postUrns as $u) {
@@ -1489,7 +1758,7 @@ function allstat_linkedin_sync_posts(PDO $pdo, array $config, array $connection,
         'X-Restli-Protocol-Version' => '2.0.0',
         // Verzované REST API: verze žijí ~12 měsíců (202506 = červen 2025, sunset ~červen 2026).
         // Při dalším ročním bumpu stačí přepsat tady.
-        'LinkedIn-Version' => '202606',
+        'LinkedIn-Version' => ALLSTAT_LINKEDIN_VERSION,
         'Accept' => 'application/json',
     ];
     $tz = new DateTimeZone((string) ($config['app']['timezone'] ?? 'Europe/Prague'));

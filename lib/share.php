@@ -427,6 +427,8 @@ function allstat_share_instructions(string $providerKey, int $viewSourceId): str
             . "Piš česky, stručně, v odrážkách, od největšího dopadu, s konkrétními akcemi (co ŠKÁLOVAT, co OSEKAT, co doměřit).",
         'microsoft_ads' => "Jsi specialista na výkonnostní reklamu (Microsoft Ads) pro organizaci. Co je konverze a jaký je cíl kampaní, vyčti z KONTEXTU ORGANIZACE. Níže jsou data jednoho účtu za období. Vyhodnoť útratu, kliknutí, konverze a kampaně; ROAS/PNO hodnoť jen při dostupné hodnotě konverzí. Piš česky, stručně a prioritizovaně.",
 
+        'openai_ads' => "Jsi specialista na výkonnostní reklamu (OpenAI Ads, reklamy v ChatGPT) pro organizaci. Co je konverze a jaký je cíl kampaní, vyčti z KONTEXTU ORGANIZACE. Níže jsou data jednoho účtu za období. Vyhodnoť útratu, kliknutí, konverze a kampaně; ROAS/PNO hodnoť jen při dostupné hodnotě konverzí. Piš česky, stručně a prioritizovaně.",
+
         'clarity' => "Jsi analytik chování uživatelů na webu (Microsoft Clarity). Níže jsou behaviorální data webu za období. Najdi slabiny UX a kvality provozu a navrhni konkrétní zlepšení. Zaměř se na:\n"
             . "- Kvalitu provozu: podíl botů vs. lidí, nepokřivují boti čísla?\n"
             . "- Zapojení: aktivní čas, scroll depth, stránky/relace, čtou lidé obsah, nebo odcházejí?\n"
@@ -518,8 +520,8 @@ function allstat_share_build(PDO $pdo, array $config, array $share): array
         allstat_share_section_linkedin($pdo, $domainId, $viewSourceId, $start, $end, $granularity, $payload);
     } elseif ($providerKey === 'youtube') {
         allstat_share_section_youtube($pdo, $domainId, $viewSourceId, $start, $end, $granularity, $payload);
-    } elseif (in_array($providerKey, ['google_ads', 'microsoft_ads'], true)) {
-        allstat_share_section_google_ads($pdo, $domainId, $viewSourceId, $start, $end, $payload, $providerKey === 'microsoft_ads' ? 'Microsoft Ads' : 'Google Ads');
+    } elseif (in_array($providerKey, ['google_ads', 'microsoft_ads', 'openai_ads'], true)) {
+        allstat_share_section_google_ads($pdo, $domainId, $viewSourceId, $start, $end, $payload, match ($providerKey) { 'microsoft_ads' => 'Microsoft Ads', 'openai_ads' => 'OpenAI Ads', default => 'Google Ads' });
     } elseif ($providerKey === 'clarity') {
         allstat_share_section_clarity($pdo, $domainId, $viewSourceId, $start, $end, $payload);
     } elseif ($providerKey === 'seznam_wmt') {
@@ -558,6 +560,7 @@ function allstat_share_source_info(string $providerKey): ?array
         'meta_ads' => ['label' => 'Meta Ads', 'typical' => 'nejvýš 1 den', 'max_lag' => 2],
         'google_ads' => ['label' => 'Google Ads', 'typical' => 'nejvýš 1 den', 'max_lag' => 2],
         'microsoft_ads' => ['label' => 'Microsoft Ads', 'typical' => 'nejvýš 1 den', 'max_lag' => 2],
+        'openai_ads' => ['label' => 'OpenAI Ads', 'typical' => 'nejvýš 1 den', 'max_lag' => 2],
         'clarity' => ['label' => 'Microsoft Clarity', 'typical' => 'nejvýš 1 den', 'max_lag' => 2],
         default => null,
     };
@@ -574,7 +577,7 @@ function allstat_share_flow_keys(string $providerKey): array
         'instagram_business' => ['reach'],
         'linkedin_company' => ['impressions', 'clicks'],
         'meta_ads' => ['spend', 'impressions'],
-        'google_ads', 'microsoft_ads' => ['cost', 'impressions'],
+        'google_ads', 'microsoft_ads', 'openai_ads' => ['cost', 'impressions'],
         'youtube' => ['views'],
         'clarity' => ['sessions'],
         default => [],
@@ -602,7 +605,7 @@ function allstat_share_latest_data_date(PDO $pdo, int $domainId, string $provide
             . ($providerKey === 'youtube' ? ' AND metric_value > 0' : '') . ' AND metric_date <= ?',
             array_merge([$domainId, $connectionId], $keys, [$end]));
         $latest = !empty($row['d']) ? (string) $row['d'] : null;
-        if (in_array($providerKey, ['meta_ads', 'google_ads', 'microsoft_ads'], true)) {
+        if (in_array($providerKey, ['meta_ads', 'google_ads', 'microsoft_ads', 'openai_ads'], true)) {
             // Reklama zapisuje řádek jen ve dnech s provozem: bez kampaně nic nechybí. Důkazem, že se stahovalo,
             // je den poslední synchronizace.
             $sync = allstat_fetch_one($pdo, 'SELECT DATE(last_sync_at) AS d FROM domain_sources WHERE id = ?', [$connectionId]);
@@ -1051,6 +1054,23 @@ function allstat_share_section_social(PDO $pdo, int $domainId, int $viewSourceId
     $pv = allstat_get_provider_view($pdo, $domainId, $viewSourceId, $start, $end, $gran, $providerKey);
     $payload['sections'][] = allstat_share_page_metrics_section($netLabel . ', metriky stránky (úroveň celé stránky za období)', $pv);
 
+    $payload['meta']['poznamka_den_meta'] = 'Meta počítá den v kalifornském čase (PT), AllStat ukládá dny podle Europe/Prague. Denní hodnoty a součty za krátké období se proto od Business Suite mohou lišit o pár jednotek; součty za 28 dní a za měsíc sedí.';
+
+    // Různí lidé za okna, která AllStat zná (každý se počítá jednou, stejně jako Business Suite). Dosah v metrikách
+    // stránky je pro jiná období součet dní, tady je přesné číslo pro srovnání.
+    $uniqRows = [];
+    $l28 = allstat_get_last28_unique_reach($pdo, $viewSourceId, $end);
+    if ($l28) {
+        $uniqRows[] = ['Posledních 28 dní do ' . allstat_iso_to_cz_date($l28['end']), allstat_number((int) $l28['value'])];
+    }
+    foreach (allstat_get_month_unique_reach($pdo, $viewSourceId, $start, $end) as $mr) {
+        $partial = $mr['days'] !== null && $mr['days'] < $mr['monthDays'];
+        $uniqRows[] = ['Kalendářní měsíc ' . $mr['month'] . ($partial ? ' (jen 1.–' . (int) $mr['days'] . '.)' : ''), allstat_number((int) $mr['value'])];
+    }
+    if ($uniqRows) {
+        $payload['sections'][] = ['title' => $netLabel . ', různí lidé za období (každý jednou, jako Business Suite' . ($providerKey === 'facebook_pages' ? ' „Diváci“' : ' „Dosah“') . ')', 'cols' => ['Okno', 'Různí lidé'], 'rows' => $uniqRows];
+    }
+
     $spanDays = (int) floor((strtotime($end) - strtotime($start)) / 86400) + 1;
     allstat_share_append_post_sections($pdo, $viewSourceId, $start, $end, $spanDays, $payload, $providerKey === 'instagram_business' ? 'instagram' : 'facebook');
 
@@ -1064,6 +1084,31 @@ function allstat_share_section_social(PDO $pdo, int $domainId, int $viewSourceId
                 'rows' => array_map(static fn (array $r): array => [$r['label'] ?? '', allstat_percent((float) ($r['share'] ?? 0), 1)], array_slice($demo[$slot], 0, 10))];
         }
         if (!empty($demo['date'])) { $payload['meta']['demografie_publika_z'] = allstat_iso_to_cz_date($demo['date']); }
+    }
+    // IG: demografie lidí, kteří s obsahem reagovali (i nesledujících), lifetime snímek za tento měsíc.
+    if ($isIg) {
+        $eng = allstat_get_ig_demographics($pdo, $viewSourceId, 'eng_dem_');
+        if (!empty($eng['hasData'])) {
+            foreach ([['age', 'Věk', 'věku'], ['gender', 'Pohlaví', 'pohlaví'], ['country', 'Země', 'zemí'], ['city', 'Města', 'měst']] as [$slot, $lab, $gen]) {
+                if (empty($eng[$slot])) { continue; }
+                $payload['sections'][] = ['title' => 'Instagram, zapojené publikum (reagovali na obsah) podle ' . $gen, 'cols' => [$lab, 'Podíl'],
+                    'rows' => array_map(static fn (array $r): array => [$r['label'] ?? '', allstat_percent((float) ($r['share'] ?? 0), 1)], array_slice($eng[$slot], 0, 10))];
+            }
+        }
+        // Rozpad za posledních 28 dní jako přehled Business Suite.
+        $win = allstat_get_ig_window28($pdo, $viewSourceId, $end);
+        $wv = $win['values'] ?? [];
+        if ($wv) {
+            $n = static fn (string $k): string => isset($wv[$k]) ? allstat_number((int) round($wv[$k])) : '—';
+            $payload['sections'][] = ['title' => 'Instagram, rozpad za posledních 28 dní (' . allstat_iso_to_cz_date($win['start']) . ' – ' . allstat_iso_to_cz_date($win['end']) . ', každý účet jednou, jako Business Suite)',
+                'cols' => ['Metrika', 'Hodnota', 'Rozpad'], 'rows' => [
+                    ['Zobrazení', $n('w28_views'), 'od sledujících ' . $n('w28_views_follower') . ', od nesledujících ' . $n('w28_views_nonfollower')],
+                    ['Dosah (různé účty)', $n('reach_28d_unique'), 'sledující ' . $n('w28_reach_follower') . ', nesledující ' . $n('w28_reach_nonfollower')],
+                    ['Sledování', $n('w28_follows'), 'zrušení sledování ' . $n('w28_unfollows')],
+                    ['Interakce', $n('w28_total_interactions'), 'příspěvky ' . $n('w28_inter_post') . ', reels ' . $n('w28_inter_reel') . ', stories ' . $n('w28_inter_story')],
+                    ['Zapojené účty', $n('w28_accounts_engaged'), 'různé účty, které s obsahem reagovaly'],
+                ]];
+        }
     }
 
     // Okruh (IG): dosah a zobrazení v rozpadu sledující / nesledující.
@@ -1091,7 +1136,7 @@ function allstat_share_section_social(PDO $pdo, int $domainId, int $viewSourceId
     }
 
     $wk = allstat_share_weekly_section($pdo, $domainId, $viewSourceId,
-        $isIg ? ['reach' => 'Dosah', 'new_follows' => 'Noví sledující'] : ['page_impressions' => 'Zobrazení', 'reach' => 'Dosah', 'engagements' => 'Engagement', 'new_follows' => 'Noví sledující'],
+        $isIg ? ['reach' => 'Dosah (součet dní)', 'views' => 'Zobrazení', 'interactions' => 'Interakce', 'new_follows' => 'Noví sledující'] : ['page_impressions' => 'Zobrazení', 'reach' => 'Dosah (součet dní)', 'reactions' => 'Reakce', 'engagements' => 'Engagement', 'new_follows' => 'Noví sledující'],
         $start, $end);
     if ($wk) { $payload['sections'][] = $wk; }
 

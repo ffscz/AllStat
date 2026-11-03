@@ -1,5 +1,8 @@
 <?php
 
+/** Verze LinkedIn Marketing API (hlavička LinkedIn-Version, formát YYYYMM). 202606 platí do 15. 6. 2027. Používá sync i test napojení. */
+const ALLSTAT_LINKEDIN_VERSION = '202606';
+
 function allstat_default_providers(): array
 {
     return [
@@ -79,7 +82,7 @@ function allstat_default_providers(): array
             'default_scopes' => 'r_organization_social,rw_organization_admin',
             'auth_url' => 'https://www.linkedin.com/oauth/v2/authorization',
             'token_url' => 'https://www.linkedin.com/oauth/v2/accessToken',
-            'api_base_url' => 'https://api.linkedin.com/v2',
+            'api_base_url' => 'https://api.linkedin.com/rest',
             'docs_url' => 'https://learn.microsoft.com/linkedin/marketing/',
         ],
         [
@@ -103,6 +106,18 @@ function allstat_default_providers(): array
             'token_url' => 'https://oauth2.googleapis.com/token',
             'api_base_url' => 'https://reporting.api.bingads.microsoft.com',
             'docs_url' => 'https://learn.microsoft.com/en-us/advertising/guides/request-download-report?view=bingads-13',
+        ],
+        [
+            // Reklamy v ChatGPT. Ads API key je vázaný na jeden reklamní účet, žádný OAuth.
+            'provider_key' => 'openai_ads',
+            'name' => 'OpenAI Ads',
+            'category' => 'ppc',
+            'supports_oauth' => 0,
+            'default_scopes' => '',
+            'auth_url' => '',
+            'token_url' => '',
+            'api_base_url' => 'https://api.ads.openai.com',
+            'docs_url' => 'https://developers.openai.com/ads/reporting',
         ],
         [
             'provider_key' => 'meta_ads',
@@ -215,6 +230,20 @@ function allstat_provider_setup_guide(string $providerKey): array
                 t('Vlož token do pole Access token (Client ID/Secret jsou prázdné, Clarity nepoužívá OAuth).'),
                 t('Project ID vlož do Property ID.'),
                 t('OAuth tlačítko se nezobrazí, sync běží přes API token přímo.'),
+            ],
+        ],
+        'openai_ads' => [
+            'console_url' => 'https://ads.openai.com/',
+            'console_label' => 'OpenAI Ads Manager',
+            'enable_apis' => [],
+            'property_id_format' => t('název nebo ID reklamního účtu (volitelné, jen pro přehled)'),
+            'property_id_where' => t('Klíč je vázaný na jeden reklamní účet, AllStat čte výkon právě toho účtu.'),
+            'pricing_note' => t('Reportingové API je součástí reklamního účtu, platí se jen reklama. Reklamy v ChatGPT běží v EU od srpna 2026 (bezplatná verze a Go).'),
+            'steps' => [
+                t('V OpenAI Ads Manager vytvoř API klíč Správce reklam (Ads Manager API key). Konverzní klíč (Conversions API) nestačí: slouží jen k odesílání událostí z webu a čtení výkonu vrátí HTTP 403.'),
+                t('Klíč vlož do pole API klíč. Ukládá se šifrovaně, OAuth se nepoužívá.'),
+                t('Do pole Účet můžeš napsat název účtu (nepovinné). Ulož a klikni „Otestovat napojení“.'),
+                t('„Stáhnout historii“ natáhne denní výkon účtu a kampaní (API drží 365 dní). Pak běží denní synchronizace.'),
             ],
         ],
         'seznam_wmt' => [
@@ -438,6 +467,16 @@ function allstat_provider_form_schema(string $providerKey): array
                  'help' => t('Clarity → Settings → Data Export → Generate API token. Ukládá se šifrovaně. Clarity nepoužívá OAuth.'), 'required' => true],
             ],
         ],
+        'openai_ads' => [
+            'connect' => 'token',
+            'intro' => t('Útrata, zobrazení, prokliky, konverze a kampaně reklam v ChatGPT (OpenAI Ads).'),
+            'fields' => [
+                ['name' => 'property_id', 'label' => t('Účet (název nebo ID)'), 'type' => 'text', 'placeholder' => 'Firma – ChatGPT',
+                 'help' => t('Jen pro přehled, klíč je vázaný na jeden reklamní účet.'), 'required' => false],
+                ['name' => 'access_token', 'label' => t('API klíč'), 'type' => 'password', 'secret' => 'access_token_enc',
+                 'help' => t('Klíč Správce reklam (Ads Manager API key), ne konverzní klíč. Ukládá se šifrovaně.'), 'required' => true],
+            ],
+        ],
         'seznam_wmt' => [
             'connect' => 'token',
             'intro' => t('Stav INDEXACE webu ve vyhledávači Seznam.cz (kolik stránek je zaindexovaných, obsahových, s chybou) a jeho vývoj v čase. Pozn.: Seznam Webmaster API nedává návštěvnost/dotazy, jen indexaci.'),
@@ -567,6 +606,9 @@ function allstat_provider_allowed_hosts(string $providerKey): array
         'seznam_wmt' => [
             'reporter.seznam.cz',
         ],
+        'openai_ads' => [
+            'api.ads.openai.com',
+        ],
         default => [],
     };
 }
@@ -666,6 +708,8 @@ function allstat_provider_icon_svg(string $providerKey): string
         'linkedin_company' => $svg('<rect x="2.5" y="2.5" width="19" height="19" rx="3" fill="#0A66C2"/><rect x="6" y="10" width="2.8" height="8" fill="#fff"/><circle cx="7.4" cy="6.9" r="1.6" fill="#fff"/><path d="M11.5 10h2.7v1.2c.5-.8 1.4-1.4 2.7-1.4 2.1 0 3.1 1.3 3.1 3.6V18h-2.8v-4.1c0-1.1-.4-1.7-1.3-1.7-1 0-1.6.7-1.6 1.9V18h-2.8z" fill="#fff"/>'),
         'meta_ads' => $svg('<circle cx="7.5" cy="12" r="4.4" fill="none" stroke="#0081FB" stroke-width="2.2"/><circle cx="16.5" cy="12" r="4.4" fill="none" stroke="#0081FB" stroke-width="2.2"/>'),
         'google_ads' => $svg('<rect x="9.4" y="3.2" width="5.2" height="15.4" rx="2.6" transform="rotate(-30 12 11)" fill="#4285F4"/><rect x="9.4" y="3.2" width="5.2" height="15.4" rx="2.6" transform="rotate(30 12 11)" fill="#FBBC04"/><circle cx="5.4" cy="18.3" r="2.7" fill="#34A853"/>'),
+        // OpenAI: černá „květina“ z šesti zaoblených článků (zjednodušeno na kruh se šestiúhelníkem).
+        'openai_ads' => $svg('<circle cx="12" cy="12" r="10" fill="#0D0D0D"/><path d="M12 6.2 17 9.1v5.8L12 17.8 7 14.9V9.1z" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/>'),
         'microsoft_ads' => $svg('<path d="M3 4h8l3 8-3 8H3l3-8z" fill="#00A4EF"/><path d="M14 4h7v16h-7l-3-8z" fill="#7FBA00"/>'),
         'youtube' => $svg('<rect x="2" y="5" width="20" height="14" rx="4" fill="#FF0000"/><path d="M10 9v6l5-3z" fill="#fff"/>'),
         'seznam_wmt' => $svg('<circle cx="12" cy="12" r="9.5" fill="#CC0000"/><path d="M15.6 8.4c-.8-.8-2-1.2-3.4-1.2-2.3 0-3.9 1.2-3.9 3 0 3.4 5.6 2.3 5.6 4.1 0 .7-.7 1.1-1.8 1.1-1.2 0-2.3-.5-3.1-1.3l-1.3 1.7c1.1 1 2.7 1.6 4.4 1.6 2.4 0 4-1.2 4-3 0-3.5-5.6-2.5-5.6-4.2 0-.6.6-1 1.6-1 1 0 1.9.4 2.6 1z" fill="#fff"/>'),

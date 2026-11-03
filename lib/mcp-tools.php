@@ -36,7 +36,7 @@ const ALLSTAT_MCP_THIRD_PARTY_WARNING = 'Texty v datech (příspěvky, UTM, dota
 
 function allstat_mcp_tool_periods(): array
 {
-    return ['last_7_days', 'last_30_days', 'last_90_days', 'last_365_days', 'this_month', 'last_month', 'this_year', 'last_year'];
+    return ['last_7_days', 'last_28_days', 'last_30_days', 'last_90_days', 'last_365_days', 'this_month', 'last_month', 'this_year', 'last_year'];
 }
 
 function allstat_mcp_tool_props_website(): array
@@ -52,7 +52,7 @@ function allstat_mcp_tool_props_period(): array
         'period' => [
             'type' => 'string',
             'enum' => allstat_mcp_tool_periods(),
-            'default' => 'last_30_days',
+            'default' => 'last_28_days',
             'description' => 'Relativní období; končí včerejškem (kompletní dny). last_month a last_year jsou celé kalendářní periody.',
         ],
         'start' => ['type' => 'string', 'format' => 'date', 'description' => 'Vlastní začátek období, YYYY-MM-DD. Použijte spolu s end; má přednost před period.'],
@@ -898,7 +898,7 @@ function allstat_mcp_tool_resolve_period(array $a, ?DateTimeImmutable $today = n
 
     if ($rawStart !== '' || $rawEnd !== '') {
         if ($rawStart === '' || $rawEnd === '') {
-            return ['ok' => false, 'error' => 'Zadejte obě data start i end ve formátu YYYY-MM-DD, nebo použijte parametr period (např. last_30_days).'];
+            return ['ok' => false, 'error' => 'Zadejte obě data start i end ve formátu YYYY-MM-DD, nebo použijte parametr period (např. last_28_days).'];
         }
         $s = allstat_mcp_tool_parse_date($rawStart);
         $e = allstat_mcp_tool_parse_date($rawEnd);
@@ -921,12 +921,13 @@ function allstat_mcp_tool_resolve_period(array $a, ?DateTimeImmutable $today = n
     } else {
         $name = (string) ($a['period'] ?? '');
         if ($name === '') {
-            $name = 'last_30_days';
+            $name = 'last_28_days';
         }
         $rel = static fn (int $days): array => [$yesterday->modify('-' . ($days - 1) . ' days'), $yesterday];
         $year = (int) $today->format('Y');
         $pair = match ($name) {
             'last_7_days' => $rel(7),
+            'last_28_days' => $rel(28),
             'last_30_days' => $rel(30),
             'last_90_days' => $rel(90),
             'last_365_days' => $rel(365),
@@ -952,6 +953,7 @@ function allstat_mcp_tool_resolve_period(array $a, ?DateTimeImmutable $today = n
     $days = (int) (new DateTimeImmutable($start))->diff(new DateTimeImmutable($end))->days + 1;
     $names = [
         'last_7_days' => 'Posledních 7 dní',
+        'last_28_days' => 'Posledních 28 dní',
         'last_30_days' => 'Posledních 30 dní',
         'last_90_days' => 'Posledních 90 dní',
         'last_365_days' => 'Posledních 365 dní',
@@ -1268,7 +1270,7 @@ function allstat_mcp_tool_list_websites(PDO $pdo, array $config, array $a): arra
     $hints = [
         'Ostatní nástroje berou website_id a případně source_id z tohoto seznamu.',
         'ai_context je popis organizace a cílů webu od administrátora: řiď se jím při hodnocení a doporučeních. U webu bez něj (null) nevymýšlej obor ani cíle organizace.',
-        'Poslední kompletní den je ' . $today->modify('-1 day')->format('Y-m-d') . '; relativní období (last_30_days apod.) končí právě jím, dnešní den je neúplný.',
+        'Poslední kompletní den je ' . $today->modify('-1 day')->format('Y-m-d') . '; relativní období (last_28_days apod.) končí právě jím, dnešní den je neúplný.',
         'Pro hotový analytický report použijte get_report, pro růst kanálů get_channel_growth.',
     ];
     if ($staleNames) {
@@ -2066,7 +2068,8 @@ function allstat_mcp_tool_get_source_metrics(PDO $pdo, array $config, array $a):
 
         case 'google_ads':
         case 'microsoft_ads':
-            $adsProviderName = $pk === 'microsoft_ads' ? 'Microsoft Ads' : 'Google Ads';
+        case 'openai_ads':
+            $adsProviderName = match ($pk) { 'microsoft_ads' => 'Microsoft Ads', 'openai_ads' => 'OpenAI Ads', default => 'Google Ads' };
             $kpis = allstat_get_google_ads_kpis($pdo, $id, $cid, $start, $end, $granularity, $adsProviderName);
             $data['has_data'] = (bool) $kpis['hasData'];
             $data['labels'] = $kpis['labels'] ?? [];
@@ -2082,7 +2085,7 @@ function allstat_mcp_tool_get_source_metrics(PDO $pdo, array $config, array $a):
                 ], $campaigns);
                 $data['note'] = 'campaigns: kampaně za období seřazené podle útraty (součty dní s útratou). Částky v měně účtu ' . $adsProviderName . '.';
             } else {
-                $data['note'] = $pk === 'microsoft_ads'
+                $data['note'] = $pk !== 'google_ads'
                     ? 'Rozpad podle kampaní pro zvolené období není k dispozici; účet může být prázdný nebo stažení kampaní selhalo.'
                     : 'Rozpad podle kampaní zatím není (plní se od verze 1.2.4 při další synchronizaci).';
             }
@@ -2117,7 +2120,7 @@ function allstat_mcp_tool_get_source_metrics(PDO $pdo, array $config, array $a):
                         'display' => ($fol['net'] > 0 ? '+' : '') . allstat_number((int) $fol['net']),
                         'definition' => $fol['source'] === 'events'
                             ? ($pk === 'instagram_business'
-                                ? 'Noví sledující za období (denní přírůstky z Instagramu). Odhlášení Instagram neposílá, takže jde o hrubý přírůstek a čistá změna může být menší.'
+                                ? 'Noví sledující − zrušená sledování za období (denní přírůstky z Instagramu). Zrušená sledování Meta dává jen za posledních zhruba 45 dní (v AllStatu od listopadu 2026), u starších dnů jde o hrubý přírůstek.'
                                 : 'Noví sledující − odhlášení za období (denní přírůstky ze sítě).')
                             : 'Rozdíl celkového počtu sledujících podle denních snímků: ' . allstat_mcp_tool_cz_date((string) $fol['from']) . ' → ' . allstat_mcp_tool_cz_date((string) $fol['to']) . '. Denní přírůstky za období chybí nebo jsou neúplné, tohle je spolehlivější číslo.',
                     ];
@@ -2133,6 +2136,28 @@ function allstat_mcp_tool_get_source_metrics(PDO $pdo, array $config, array $a):
             }
             if ($unavailable) {
                 $data['unavailable_metrics'] = $unavailable;
+            }
+            if (in_array($pk, ['facebook_pages', 'instagram_business'], true)) {
+                // Různí lidé za okna, která AllStat zná (jako Business Suite „Diváci“ / „Dosah“), a u IG rozpad za 28 dní.
+                $uniq = [];
+                $l28 = allstat_get_last28_unique_reach($pdo, $cid, $end);
+                if ($l28) {
+                    $uniq['last_28_days'] = ['end' => $l28['end'], 'value' => (int) $l28['value']];
+                }
+                foreach (allstat_get_month_unique_reach($pdo, $cid, $start, $end) as $mr) {
+                    $uniq['months'][] = ['month' => $mr['month'], 'value' => (int) $mr['value'], 'days_covered' => $mr['days'], 'days_in_month' => $mr['monthDays']];
+                }
+                if ($uniq) {
+                    $data['unique_reach'] = $uniq + ['definition' => 'Různí lidé (účty), každý se počítá jednou, stejně jako Business Suite. Metrika reach v metrics je pro jiná období součet denního dosahu. Instagram bere okno nejvýš 30 dní, u 31denních měsíců jde o 1.–30.'];
+                }
+                if ($pk === 'instagram_business') {
+                    $win = allstat_get_ig_window28($pdo, $cid, $end);
+                    if (!empty($win['values'])) {
+                        $data['last_28_days_breakdown'] = ['start' => $win['start'], 'end' => $win['end']] + array_map(static fn (float $v): int => (int) round($v), $win['values'])
+                            + ['definition' => 'Rozpad za posledních 28 dní jako přehled Business Suite: w28_views zobrazení (+ _follower / _nonfollower), reach_28d_unique různé účty (+ w28_reach_follower / _nonfollower), w28_follows a w28_unfollows, w28_total_interactions (+ w28_inter_post / _reel / _story), w28_accounts_engaged.'];
+                    }
+                }
+                $data['day_boundary_note'] = 'Meta počítá den v kalifornském čase (PT), AllStat ukládá dny podle Europe/Prague. Denní hodnoty a součty za krátké období se proto od Business Suite mohou lišit o pár jednotek; součty za 28 dní a za měsíc sedí.';
             }
             if (in_array($pk, ['facebook_pages', 'instagram_business', 'linkedin_company'], true)) {
                 $data['posts_summary'] = allstat_mcp_tool_posts_summary(allstat_get_social_posts($pdo, $cid, $start, $end, 1));
@@ -2257,7 +2282,7 @@ function allstat_mcp_tool_get_top_content(PDO $pdo, array $config, array $a): ar
         };
         $rows = $total > 0 ? allstat_fetch_all($pdo, "
             SELECT metric_date, published_at, message, permalink, post_type, post_format, reactions, comments, shares, saved,
-                   total_interactions, engagement, reach, impressions
+                   total_interactions, engagement, reach, impressions, thumb_file
             FROM social_posts
             WHERE connection_id = ? AND post_type <> 'story' AND metric_date BETWEEN ? AND ?
             ORDER BY $order
@@ -2265,8 +2290,11 @@ function allstat_mcp_tool_get_top_content(PDO $pdo, array $config, array $a): ar
         ', [$cid, $start, $end]) : [];
 
         $items = [];
+        // Náhled příspěvku jako absolutní adresa (pro reporty), jen když je známá adresa aplikace.
+        $appUrl = function_exists('allstat_mcp_app_url') ? rtrim(allstat_mcp_app_url($pdo), '/') : '';
         foreach ($rows as $i => $r) {
             $published = allstat_mcp_tool_datetime($r['published_at'] ?? null);
+            $thumb = allstat_thumb_url((string) ($r['thumb_file'] ?? ''));
             $msg = allstat_mcp_tool_sanitize($r['message'], ALLSTAT_MCP_TEXT_POST);
             $reach = (int) $r['reach'];
             $eng = (int) $r['engagement'];
@@ -2285,6 +2313,7 @@ function allstat_mcp_tool_get_top_content(PDO $pdo, array $config, array $a): ar
                 'reach' => $reach > 0 ? $reach : null,
                 'views' => (int) $r['impressions'] > 0 ? (int) $r['impressions'] : null,
                 'engagement_rate_pct' => $reach > 0 ? round($eng / $reach * 100, 1) : null,
+                'thumbnail' => $thumb !== '' && $appUrl !== '' ? $appUrl . '/' . $thumb : null,
             ];
         }
         $sp = allstat_get_social_posts($pdo, $cid, $start, $end, 1);

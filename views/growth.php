@@ -98,7 +98,7 @@ $partialTitle = static fn (array $e): string => t('Data jen za {days} z {expecte
 $groupOf = [
     'ga4' => 'web', 'gsc' => 'web', 'clarity' => 'web',
     'facebook_pages' => 'social', 'instagram_business' => 'social', 'linkedin_company' => 'social', 'youtube' => 'social',
-    'meta_ads' => 'ads', 'google_ads' => 'ads', 'microsoft_ads' => 'ads',
+    'meta_ads' => 'ads', 'google_ads' => 'ads', 'microsoft_ads' => 'ads', 'openai_ads' => 'ads',
 ];
 $groups = [
     'web' => ['title' => t('Web'), 'desc' => t('Návštěvnost a vyhledávání'), 'icon' => 'globe', 'items' => []],

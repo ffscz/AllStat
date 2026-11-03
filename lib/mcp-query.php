@@ -644,7 +644,8 @@ function allstat_mcp_query_source_metrics(PDO $pdo, array $q): array
 /** Rozpady, které jsou denním snímkem stavu (demografie, země odběratelů): platí poslední den, ne součet. */
 function allstat_mcp_query_breakdown_is_snapshot(string $metricKey): bool
 {
-    return (bool) preg_match('/^(dem_|foll_|pv_|viewer_)/', $metricKey) || $metricKey === 'geo_country';
+    // reach_28d_unique / reach_month_unique(_days) = různí lidé za okno; okna se překrývají, sčítat je nejde.
+    return (bool) preg_match('/^(dem_|eng_dem_|foll_|pv_|viewer_|reach_28d_|reach_month_|w28_)/', $metricKey) || $metricKey === 'geo_country';
 }
 
 function allstat_mcp_query_source_breakdown(PDO $pdo, array $q): array

@@ -3,6 +3,9 @@
 require_once __DIR__ . '/crypto.php';
 require_once __DIR__ . '/providers.php';
 
+/** Hláška výjimky, když odpověď přesáhne $maxResponseBytes (volající ji rozpoznává podle shody s touto konstantou). */
+const ALLSTAT_HTTP_TOO_LARGE = 'Odpověď API přesahuje povolenou velikost.';
+
 function allstat_http_request(string $method, string $url, array $headers = [], ?string $body = null, int $timeout = 20, bool $followRedirects = true, ?int $maxResponseBytes = null): array
 {
     // Testovací háček: testy synchronizace podstrčí odpovědi API bez sítě (v provozu proměnná nikdy neexistuje).
@@ -30,7 +33,7 @@ function allstat_http_request(string $method, string $url, array $headers = [], 
         ? @file_get_contents($url, false, $context)
         : @file_get_contents($url, false, $context, 0, $maxResponseBytes + 1);
     if (is_string($response) && $maxResponseBytes !== null && strlen($response) > $maxResponseBytes) {
-        throw new RuntimeException('Odpověď API přesahuje povolenou velikost.');
+        throw new RuntimeException(ALLSTAT_HTTP_TOO_LARGE);
     }
     $statusLine = $http_response_header[0] ?? '';
     $status = 0;
@@ -217,6 +220,11 @@ function allstat_test_connection(PDO $pdo, array $config, array $connection): ar
         return ['ok' => false, 'http' => $response['status'], 'message' => t('Clarity API: {detail}', ['detail' => substr($response['body'], 0, 200)])];
     }
 
+    if ($providerKey === 'openai_ads') {
+        require_once __DIR__ . '/openai-ads.php';
+        return allstat_openai_ads_test($connection, (string) allstat_decrypt_secret($connection['access_token_enc'] ?? null, $config));
+    }
+
     $tokenResult = allstat_get_valid_access_token($pdo, $config, $connection);
     if (!$tokenResult['ok']) {
         return $tokenResult;
@@ -338,7 +346,7 @@ function allstat_test_connection(PDO $pdo, array $config, array $connection): ar
             // /v2/me is the member-profile endpoint (needs r_liteprofile/openid); a company token
             // (r_organization_social, rw_organization_admin) has no access to it, so it always 403'd with
             // "ACCESS_DENIED … me.GET.NO_VERSION" — saying nothing about whether the org sync would work.
-            $base = rtrim((string) ($connection['api_base_url'] ?: 'https://api.linkedin.com/v2'), '/');
+            $base = preg_replace('#/v2$#', '/rest', rtrim((string) ($connection['api_base_url'] ?: 'https://api.linkedin.com/rest'), '/'));
             $urn = trim((string) ($connection['property_id'] ?? ''));
             if ($urn === '') {
                 return ['ok' => false, 'message' => t('Vyplň Property ID = URN organizace (urn:li:organization:ČÍSLO) a ulož napojení; teprve pak jde test spustit.')];
@@ -351,7 +359,8 @@ function allstat_test_connection(PDO $pdo, array $config, array $connection): ar
                 $urn = 'urn:li:organization:' . $m[1];
             }
             $url = $base . '/organizationalEntityShareStatistics?q=organizationalEntity&organizationalEntity=' . rawurlencode($urn);
-            $response = allstat_http_request('GET', $url, array_merge($authHeader, ['X-Restli-Protocol-Version' => '2.0.0']));
+            $response = allstat_http_request('GET', $url, array_merge($authHeader, ['X-Restli-Protocol-Version' => '2.0.0',
+                'LinkedIn-Version' => ALLSTAT_LINKEDIN_VERSION]));
             if ($response['status'] === 200) {
                 return ['ok' => true, 'http' => 200, 'message' => t('LinkedIn: token má přístup ke statistikám organizace {urn}. Napojení funguje.', ['urn' => $urn])];
             }

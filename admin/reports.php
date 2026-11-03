@@ -85,7 +85,7 @@ allstat_admin_header(t('Reporty'), 'reports', $user, $config);
 $rangeLabel = allstat_date_label($start) . ' – ' . allstat_date_label($end);
 $quickRanges = [
     t('posledních 7 dní') => 6,
-    t('posledních 30 dní') => 29,
+    t('posledních 28 dní') => 27,
     t('posledních 90 dní') => 89,
 ];
 // Metriky napojených služeb mimo GA4/GSC (Meta, LinkedIn, Clarity, Meta Ads…) - počítá se už tady,

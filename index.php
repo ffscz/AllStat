@@ -37,9 +37,9 @@ $user = allstat_require_user($pdo, $config);
 // Default = last 7 days incl. today, so the range is unambiguous and matches the "7 dní" quick-range chip.
 $defaultEnd = (new DateTimeImmutable('today'))->format('Y-m-d');
 $defaultStart = (new DateTimeImmutable('today'))->modify('-6 days')->format('Y-m-d');
-// Pohled „Trychtýř“ (?view=funnel) bez zadaného období ukáže 30 dní: 7 dní je pro trychtýř s málo eventy příliš krátké okno.
+// Pohled „Trychtýř“ (?view=funnel) bez zadaného období ukáže 28 dní: 7 dní je pro trychtýř s málo eventy příliš krátké okno.
 if ((string) ($_GET['view'] ?? '') === 'funnel' && !isset($_GET['start']) && !isset($_GET['end'])) {
-    $defaultStart = (new DateTimeImmutable('today'))->modify('-29 days')->format('Y-m-d');
+    $defaultStart = (new DateTimeImmutable('today'))->modify('-27 days')->format('Y-m-d');
 }
 $start = allstat_normalize_date($_GET['start'] ?? null, $defaultStart);
 $end = allstat_normalize_date($_GET['end'] ?? null, $defaultEnd);
@@ -181,7 +181,7 @@ if ($isGenericView) {
             'showChart' => count($adsKpis['labels']) > 1,
             'hasData' => $adsKpis['hasData'],
         ];
-    } elseif (in_array(($selectedProvider['provider_key'] ?? ''), ['google_ads', 'microsoft_ads'], true)) {
+    } elseif (in_array(($selectedProvider['provider_key'] ?? ''), ['google_ads', 'microsoft_ads', 'openai_ads'], true)) {
         // Google Ads gets its own rich PPC view: derived ROAS/PNO/CPA/CPC/CTR/CPM KPIs from the synced
         // cost/clicks/impressions/conversions/conversion_value (account-level).
         $adsKpis = allstat_get_google_ads_kpis($pdo, (int) $domainId, $viewSourceId, $start, $end, $granularity, (string) $selectedProvider['name']);
@@ -248,8 +248,12 @@ if ($isGenericView) {
             }
             if (($selectedProvider['provider_key'] ?? '') === 'instagram_business') {
                 $igDemographics = allstat_get_ig_demographics($pdo, $viewSourceId);
+                $igEngDemographics = allstat_get_ig_demographics($pdo, $viewSourceId, 'eng_dem_');
                 $igAudience = allstat_get_ig_audience($pdo, $viewSourceId, $start, $end);
+                $igWindow = allstat_get_ig_window28($pdo, $viewSourceId, $end);
             }
+            $monthReach = allstat_get_month_unique_reach($pdo, $viewSourceId, $start, $end);
+            $last28Reach = allstat_get_last28_unique_reach($pdo, $viewSourceId, $end);
         }
         $pv = allstat_get_provider_view($pdo, (int) $domainId, $viewSourceId, $start, $end, $granularity, (string) $selectedProvider['provider_key']);
         $providerPayload = [

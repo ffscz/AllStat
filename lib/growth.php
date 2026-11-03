@@ -122,6 +122,7 @@ function allstat_growth_defs(): array
         'meta_ads' => ['name' => 'Meta Ads', 'metric' => t('Kliknutí na reklamy'), 'short' => t('kliknutí'), 'color' => 'ads', 'key' => 'clicks', 'spend' => 'spend', 'zeroFill' => true],
         'google_ads' => ['name' => 'Google Ads', 'metric' => t('Kliknutí na reklamy'), 'short' => t('kliknutí'), 'color' => 'ads', 'key' => 'clicks', 'spend' => 'cost', 'zeroFill' => true],
         'microsoft_ads' => ['name' => 'Microsoft Ads', 'metric' => t('Kliknutí na reklamy'), 'short' => t('kliknutí'), 'color' => 'ads', 'key' => 'clicks', 'spend' => 'cost', 'zeroFill' => true],
+        'openai_ads' => ['name' => 'OpenAI Ads', 'metric' => t('Kliknutí na reklamy'), 'short' => t('kliknutí'), 'color' => 'ads', 'key' => 'clicks', 'spend' => 'cost', 'zeroFill' => true],
     ];
 }
 
@@ -300,6 +301,7 @@ function allstat_get_channel_growth(PDO $pdo, int $domainId, int $months, ?DateT
     $spendByConn = [];
     $firstDate = [];
     $followers = [];
+    $uniqueReachConns = [];
     if ($provConns) {
         $ids = array_map(static fn (array $o): int => (int) $o['connection_id'], $provConns);
         $keys = [];
@@ -321,6 +323,48 @@ function allstat_get_channel_growth(PDO $pdo, int $domainId, int $months, ?DateT
             GROUP BY connection_id, metric_key, ym",
             array_merge([$domainId], $ids, array_keys($keys), [$w['queryStart'], $w['dataEnd']])) as $r) {
             $byConn[(int) $r['connection_id']][(string) $r['metric_key']][(string) $r['ym']] = [(float) $r['v'], (int) $r['days']];
+        }
+
+        // Facebook a Instagram: dosah za měsíc = různí lidé (reach_month_unique, jako Business Suite a detail zdroje),
+        // ne součet denních dosahů, který stejného člověka počítá každý den znovu (u běžné stránky zhruba 1,5× víc).
+        // Použije se jen u napojení, které má unikátní číslo pro každý uzavřený měsíc s daty, jinak by se v řadě
+        // míchaly dvě různé veličiny a růst by byl falešný. Dny zůstávají podle denních dat (přepočet na den).
+        $reachIds = array_values(array_map(static fn (array $o): int => (int) $o['connection_id'],
+            array_filter($provConns, static fn (array $o): bool => in_array($o['provider_key'], ['facebook_pages', 'instagram_business'], true))));
+        if ($reachIds) {
+            $uniq = [];
+            $rPh = implode(',', array_fill(0, count($reachIds), '?'));
+            foreach (allstat_fetch_all($pdo, "SELECT connection_id, metric_key, dimension, metric_value FROM provider_metrics_daily
+                WHERE domain_id = ? AND connection_id IN ($rPh) AND metric_key IN ('reach_month_unique', 'reach_month_unique_days')
+                  AND metric_date BETWEEN ? AND ?",
+                array_merge([$domainId], $reachIds, [$w['queryStart'], $w['dataEnd']])) as $r) {
+                $uniq[(int) $r['connection_id']][(string) $r['dimension']][(string) $r['metric_key']] = (float) $r['metric_value'];
+            }
+            foreach ($reachIds as $cid) {
+                $daily = $byConn[$cid]['reach'] ?? [];
+                $complete = $daily !== [];
+                // IG bere okno nejvýš 30 dní, 31denní měsíc má tedy 30; o den kratší okno se toleruje.
+                // Unikát i denní data musí krýt (skoro) stejné dny: měsíc s dírou v denních datech by jinak dělil
+                // číslo za celý měsíc menším počtem dní a přepočet na den by vyšel nadsazený.
+                $has = static fn (string $ym, int $days): bool => isset($uniq[$cid][$ym]['reach_month_unique'], $uniq[$cid][$ym]['reach_month_unique_days'])
+                    && abs($uniq[$cid][$ym]['reach_month_unique_days'] - $days) <= 1;
+                foreach ($daily as $ym => [$v, $days]) {
+                    // Rozhodují zobrazené uzavřené měsíce; starší (jen pro meziroční srovnání) se případně vynechají.
+                    if ($ym >= substr($w['start'], 0, 7) && $ym !== $w['current'] && !$has($ym, $days)) {
+                        $complete = false;
+                        break;
+                    }
+                }
+                if (!$complete) { continue; }
+                foreach ($daily as $ym => [$v, $days]) {
+                    if ($ym === $w['current'] ? isset($uniq[$cid][$ym]['reach_month_unique']) : $has($ym, $days)) {
+                        $byConn[$cid]['reach'][$ym] = [$uniq[$cid][$ym]['reach_month_unique'], $days];
+                    } else {
+                        unset($byConn[$cid]['reach'][$ym]); // součet dní by se s různými lidmi nedal srovnat
+                    }
+                }
+                $uniqueReachConns[$cid] = true;
+            }
         }
 
         $zeroIds = array_values(array_map(static fn (array $o): int => (int) $o['connection_id'],
@@ -463,10 +507,10 @@ function allstat_get_channel_growth(PDO $pdo, int $domainId, int $months, ?DateT
                 . ($fVal > 0 ? ', ' . allstat_growth_pct($diff / $fVal) : '') . ' ' . $since . ')';
         } elseif (!empty($def['spend'])) {
             [$spend] = $byConn[$cid][$def['spend']][$last['ym']] ?? [0.0, 0];
-            if ($pk === 'microsoft_ads') {
+            if ($pk === 'microsoft_ads' || $pk === 'openai_ads') {
                 // Měnu ukládá sync do nastavení; starší napojení ji mají jen v přípisku „(EUR)“ v názvu účtu.
                 $currencyStmt = $pdo->prepare('SELECT setting_value FROM allstat_settings WHERE setting_key = ?');
-                $currencyStmt->execute(['microsoft_ads.currency.' . $cid]);
+                $currencyStmt->execute([$pk . '.currency.' . $cid]);
                 $currency = (string) ($currencyStmt->fetchColumn() ?: '');
                 if (!preg_match('/^[A-Z]{3}$/', $currency)) {
                     $currency = preg_match('/\(([A-Z]{3})\)$/', (string) ($o['label'] ?? ''), $matches) ? $matches[1] : '';
@@ -496,7 +540,7 @@ function allstat_get_channel_growth(PDO $pdo, int $domainId, int $months, ?DateT
             'provider' => $pk,
             'name' => $def['name'],
             'account' => $account,
-            'metric' => $def['metric'],
+            'metric' => isset($uniqueReachConns[$cid]) ? $def['metric'] . ' ' . t('(různí lidé)') : $def['metric'],
             'short' => $def['short'],
             'color' => $def['color'],
             'dashed' => $countByProvider[$pk] > 1,

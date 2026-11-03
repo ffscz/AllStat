@@ -44,6 +44,30 @@ Je vždy pro nejnovější verzi a jde vytisknout nebo uložit jako PDF. Tento s
 po instalaci ze serveru smazat.
 
 
+Změny ve verzi 1.5.4
+--------------------
+ * Facebook a Instagram: dosah jako v Meta Business Suite, tedy různí lidé za posledních 28 dní
+   a za kalendářní měsíc (dosud součet denních dosahů, který stejného člověka počítal každý den
+   znovu). Výchozí období přehledů je 28 dní do včerejška. Přehled (Růst kanálů) ukazuje u Facebooku
+   a Instagramu měsíční dosah jako různé lidi, jakmile ho má pro všechny zobrazené měsíce.
+ * Oprava: denní hodnoty z Meta (dosah, zobrazení, sledující…) se ukládaly o den později, měsíční
+   součty se proto od Business Suite lišily o 1 až 2 %. Po aktualizaci u každého napojení Facebooku
+   a Instagramu klikněte na „Stáhnout historii“, přepíše dny správně a doplní dosah za měsíce.
+ * Facebook: nové karty Reakce, Doba sledování videí a Zhlédnutí videí, noví sledující jako unikátní
+   lidé. Instagram: karty Zobrazení, Interakce a Odhlášení, rozpad za posledních 28 dní (sledující
+   a nesledující, typ obsahu) a demografie lidí, kteří reagovali.
+ * Náhledy obrázků u příspěvků a stories (malé JPEG, kolem 5 kB, ukládají se na server).
+ * Meta: hromadné dotazy přes Graph Batch API místo ukončovaného tvaru ?ids=.
+ * Upozornění v nápovědě: Meta počítá den v kalifornském čase, krátká období se proto od Business
+   Suite mohou lišit o pár jednotek.
+ * LinkedIn: verzované REST API (LinkedIn-Version 202606, platí do června 2027), neverzované /v2
+   LinkedIn ukončil. Uložená napojení se převedou sama.
+ * Google Analytics 4: metrika keyEvents místo ukončené conversions.
+ * Nový zdroj OpenAI Ads (reklamy v ChatGPT): útrata, zobrazení, kliknutí, konverze a kampaně.
+   Potřebuje API klíč Správce reklam (Ads Manager API key), konverzní klíč nestačí.
+ * Analyzovat s AI a připojení AI (MCP) dostávají všechny nové údaje.
+ * Databáze: nový sloupec pro náhledy příspěvků a zdroj OpenAI Ads, vytvoří se samy po aktualizaci.
+
 Změny ve verzi 1.5.3
 --------------------
  * Připojení AI (Claude, ChatGPT) se nově povoluje i kódem z autentizační aplikace. U administrátora
