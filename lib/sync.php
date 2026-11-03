@@ -285,7 +285,9 @@ function allstat_ga4_sync(PDO $pdo, array $config, array $connection, string $ac
             ['name' => 'userEngagementDuration'],
             ['name' => 'activeUsers'],
             ['name' => 'newUsers'],
-            ['name' => 'conversions'],
+            // keyEvents = klíčové události (dřív „conversions“, Google metriku přejmenoval 6. 5. 2024 a starý název
+            // vede jako zastaralý). Stejná data; v DB i v aplikaci zůstává sloupec conversions.
+            ['name' => 'keyEvents'],
             // totalRevenue = GA4 headline revenue (purchase + ad + subscription). For ecommerce-only
             // sales swap to purchaseRevenue. Universal metric → returns 0 on properties without revenue,
             // so it's safe in the core (unwrapped) report.
@@ -326,7 +328,7 @@ function allstat_ga4_sync(PDO $pdo, array $config, array $connection, string $ac
     $sources = $report([
         'dateRanges' => [['startDate' => $startDate, 'endDate' => $endDate]],
         'dimensions' => [['name' => 'date'], ['name' => 'sessionDefaultChannelGroup']],
-        'metrics' => [['name' => 'sessions'], ['name' => 'conversions']],
+        'metrics' => [['name' => 'sessions'], ['name' => 'keyEvents']],
     ]);
     $sourceStatement = $pdo->prepare('
         INSERT INTO traffic_sources_daily (domain_id, metric_date, source, sessions, conversions)
@@ -359,7 +361,7 @@ function allstat_ga4_sync(PDO $pdo, array $config, array $connection, string $ac
         $landings = $report([
             'dateRanges' => [['startDate' => $startDate, 'endDate' => $endDate]],
             'dimensions' => [['name' => 'date'], ['name' => 'landingPage']],
-            'metrics' => [['name' => 'sessions'], ['name' => 'conversions']],
+            'metrics' => [['name' => 'sessions'], ['name' => 'keyEvents']],
             'limit' => $pageLimit,
             'offset' => $offset,
         ]);
@@ -384,7 +386,7 @@ function allstat_ga4_sync(PDO $pdo, array $config, array $connection, string $ac
     $geo = $report([
         'dateRanges' => [['startDate' => $startDate, 'endDate' => $endDate]],
         'dimensions' => [['name' => 'date'], ['name' => 'country'], ['name' => 'region']],
-        'metrics' => [['name' => 'sessions'], ['name' => 'activeUsers'], ['name' => 'conversions']],
+        'metrics' => [['name' => 'sessions'], ['name' => 'activeUsers'], ['name' => 'keyEvents']],
         'limit' => 10000,
     ]);
     $geoStatement = $pdo->prepare('
@@ -477,7 +479,7 @@ function allstat_ga4_sync(PDO $pdo, array $config, array $connection, string $ac
         $aiReport = $report([
             'dateRanges' => [['startDate' => $startDate, 'endDate' => $endDate]],
             'dimensions' => [['name' => 'date'], ['name' => 'sessionSource']],
-            'metrics' => [['name' => 'sessions'], ['name' => 'conversions']],
+            'metrics' => [['name' => 'sessions'], ['name' => 'keyEvents']],
             'dimensionFilter' => [
                 'filter' => [
                     'fieldName' => 'sessionSource',
@@ -524,7 +526,7 @@ function allstat_ga4_sync(PDO $pdo, array $config, array $connection, string $ac
         $referrers = $report([
             'dateRanges' => [['startDate' => $startDate, 'endDate' => $endDate]],
             'dimensions' => [['name' => 'date'], ['name' => 'sessionSource']],
-            'metrics' => [['name' => 'sessions'], ['name' => 'conversions']],
+            'metrics' => [['name' => 'sessions'], ['name' => 'keyEvents']],
             'dimensionFilter' => [
                 'filter' => [
                     'fieldName' => 'sessionMedium',
@@ -560,7 +562,7 @@ function allstat_ga4_sync(PDO $pdo, array $config, array $connection, string $ac
         $devices = $report([
             'dateRanges' => [['startDate' => $startDate, 'endDate' => $endDate]],
             'dimensions' => [['name' => 'date'], ['name' => 'deviceCategory']],
-            'metrics' => [['name' => 'sessions'], ['name' => 'totalUsers'], ['name' => 'conversions']],
+            'metrics' => [['name' => 'sessions'], ['name' => 'totalUsers'], ['name' => 'keyEvents']],
             'limit' => 10000,
         ]);
         $deviceStatement = $pdo->prepare('
@@ -598,7 +600,7 @@ function allstat_ga4_sync(PDO $pdo, array $config, array $connection, string $ac
             $pages = $report([
                 'dateRanges' => [['startDate' => $startDate, 'endDate' => $endDate]],
                 'dimensions' => [['name' => 'date'], ['name' => 'pagePath']],
-                'metrics' => [['name' => 'screenPageViews'], ['name' => 'sessions'], ['name' => 'conversions']],
+                'metrics' => [['name' => 'screenPageViews'], ['name' => 'sessions'], ['name' => 'keyEvents']],
                 'limit' => $pageLimit,
                 'offset' => $offset,
             ]);
@@ -639,7 +641,7 @@ function allstat_ga4_sync(PDO $pdo, array $config, array $connection, string $ac
             $utm = $report([
                 'dateRanges' => [['startDate' => $startDate, 'endDate' => $endDate]],
                 'dimensions' => [['name' => 'date'], ['name' => 'sessionCampaignName'], ['name' => 'sessionSource'], ['name' => 'sessionMedium'], ['name' => 'sessionManualAdContent'], ['name' => 'landingPage']],
-                'metrics' => [['name' => 'sessions'], ['name' => 'conversions'], ['name' => 'engagedSessions']],
+                'metrics' => [['name' => 'sessions'], ['name' => 'keyEvents'], ['name' => 'engagedSessions']],
                 'limit' => $pageLimit,
                 'offset' => $offset,
             ]);

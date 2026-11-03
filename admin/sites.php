@@ -8,7 +8,7 @@ $pdo = allstat_admin_require_database($pdo, $config);
 $user = allstat_require_user($pdo, $config);
 
 $periods = allstat_sites_periods();
-$periodKey = is_string($_GET['p'] ?? null) && isset($periods[$_GET['p']]) ? $_GET['p'] : '30d';
+$periodKey = is_string($_GET['p'] ?? null) && isset($periods[$_GET['p']]) ? $_GET['p'] : '28d';
 $sort = is_string($_GET['sort'] ?? null) && in_array($_GET['sort'], ['visits', 'change', 'name'], true) ? $_GET['sort'] : 'visits';
 $accountFilter = is_string($_GET['account'] ?? null) ? trim($_GET['account']) : '';
 

@@ -65,6 +65,7 @@ function allstat_save_domain(PDO $pdo, ?int $actorId, array $data): array
 
 function allstat_delete_domain(PDO $pdo, ?int $actorId, int $id): array
 {
+    $connectionIds = array_map('intval', array_column(allstat_fetch_all($pdo, 'SELECT id FROM domain_sources WHERE domain_id = ?', [$id]), 'id'));
     $pdo->beginTransaction();
 
     try {
@@ -78,6 +79,11 @@ function allstat_delete_domain(PDO $pdo, ?int $actorId, int $id): array
     } catch (Throwable $exception) {
         $pdo->rollBack();
         return ['ok' => false, 'message' => t('Doménu se nepodařilo odstranit.')];
+    }
+
+    require_once __DIR__ . '/social-thumbs.php';
+    foreach ($connectionIds as $connectionId) {
+        allstat_thumbs_delete_connection($connectionId);
     }
 
     return ['ok' => true, 'message' => t('Doména byla odstraněna včetně navázaných dat.')];
@@ -404,7 +410,7 @@ function allstat_delete_connection(PDO $pdo, ?int $actorId, int $id): array
         $statement = $pdo->prepare('DELETE FROM domain_sources WHERE id = ?');
         $statement->execute([$id]);
         $pdo->prepare('DELETE FROM microsoft_ads_report_jobs WHERE connection_id = ?')->execute([$id]);
-        $pdo->prepare('DELETE FROM allstat_settings WHERE setting_key = ?')->execute(['microsoft_ads.currency.' . $id]);
+        $pdo->prepare('DELETE FROM allstat_settings WHERE setting_key IN (?, ?)')->execute(['microsoft_ads.currency.' . $id, 'openai_ads.currency.' . $id]);
 
         allstat_audit($pdo, $actorId, null, 'source_connection_deleted', (string) $id);
         $pdo->commit();
@@ -412,6 +418,8 @@ function allstat_delete_connection(PDO $pdo, ?int $actorId, int $id): array
         $pdo->rollBack();
         return ['ok' => false, 'message' => t('Napojení se nepodařilo odstranit.')];
     }
+    require_once __DIR__ . '/social-thumbs.php';
+    allstat_thumbs_delete_connection($id);
 
     return ['ok' => true, 'message' => t('Napojení zdroje bylo odstraněno. Statistiky zůstanou v DB minimálně 30 dnů pro export.')];
 }

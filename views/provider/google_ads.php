@@ -4,7 +4,7 @@
  * Záložky metrik (Útrata/ROAS/PNO/CPA/CPC/CTR/CPM…) a graf kreslí views/provider.php.
  * V rozsahu z index.php: $googleAdsNoConversions, $googleAdsCampaigns, $selectedProvider. Jen prezentace.
  */
-$adsProviderName = ($selectedProvider['provider_key'] ?? '') === 'microsoft_ads' ? 'Microsoft Ads' : 'Google Ads';
+$adsProviderName = match ($selectedProvider['provider_key'] ?? '') { 'microsoft_ads' => 'Microsoft Ads', 'openai_ads' => 'OpenAI Ads', default => 'Google Ads' };
 ?>
 <?php if (!empty($googleAdsNoConversions)): ?>
 <div class="callout tone-warn">
@@ -22,7 +22,7 @@ $adsProviderName = ($selectedProvider['provider_key'] ?? '') === 'microsoft_ads'
                 <?php foreach ($googleAdsCampaigns as $campaign): ?>
                     <tr>
                         <td><div class="post"><span class="post-text"><?= h($campaign['name']) ?></span><span class="post-meta"><?= h($campaign['runLabel']) ?></span></div></td>
-                        <td class="num is-strong"><?= h(allstat_number($campaign['cost'], $adsProviderName === 'Microsoft Ads' ? 2 : 0)) ?></td>
+                        <td class="num is-strong"><?= h(allstat_number($campaign['cost'], $adsProviderName === 'Google Ads' ? 0 : 2)) ?></td>
                         <td class="num"><?= h(allstat_number($campaign['impressions'], 0)) ?></td>
                         <td class="num"><?= h(allstat_number($campaign['clicks'], 0)) ?></td>
                         <td class="num"><?= h($campaign['ctr'] !== null ? allstat_percent($campaign['ctr'], 2) : '–') ?></td>

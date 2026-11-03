@@ -106,6 +106,7 @@
     --src-ma-bg: #FEF3D7; --src-ma-fg: #93370D;
     --src-ad-bg: #E9F6EA; --src-ad-fg: #2B6B30;
     --src-ms-bg: #E3F4F7; --src-ms-fg: #0E7090;
+    --src-oa-bg: #ECEDEF; --src-oa-fg: #1F2328;
     --src-sz-bg: #FDEDE8; --src-sz-fg: #C4320A;
 
     /* Písmo a rozměry */
@@ -183,5 +184,6 @@
     --src-ma-bg: #362508; --src-ma-fg: #FEC84B;
     --src-ad-bg: #14301A; --src-ad-fg: #8BD69A;
     --src-ms-bg: #0B2C33; --src-ms-fg: #67E3F9;
+    --src-oa-bg: #23262B; --src-oa-fg: #E6E8EB;
     --src-sz-bg: #3A1B10; --src-sz-fg: #F9A07A;
 }

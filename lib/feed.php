@@ -25,6 +25,7 @@ function allstat_feed_shapes(): array
 function allstat_feed_ranges(): array
 {
     return [
+        'last_28_days'   => 'Posledních 28 dní',
         'last_30_days'   => 'Posledních 30 dní',
         'last_90_days'   => 'Posledních 90 dní',
         'this_month'     => 'Tento měsíc',
@@ -43,6 +44,7 @@ function allstat_feed_resolve_range(string $key): array
     $d = static fn (DateTimeImmutable $x): string => $x->format('Y-m-d');
 
     return match ($key) {
+        'last_28_days'   => [$d($today->modify('-28 days')), $d($today->modify('-1 day'))],
         'last_30_days'   => [$d($today->modify('-29 days')), $d($today)],
         'last_90_days'   => [$d($today->modify('-89 days')), $d($today)],
         'this_month'     => [$d($today->modify('first day of this month')), $d($today)],

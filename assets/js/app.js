@@ -642,7 +642,7 @@ const AllStat = (() => {
                     // Přehled (Růst kanálů) má vlastní měsíční období, denní rozsah se nepřenáší.
                     q.set('view', 'growth');
                 } else {
-                    // Z Růstu kanálů picker nemá denní rozsah → prázdné start/end = výchozích 7 dní (u trychtýře 30 dní).
+                    // Z Růstu kanálů picker nemá denní rozsah → prázdné start/end = výchozích 7 dní (u trychtýře 28 dní).
                     if (picker.dataset.start) { q.set('start', picker.dataset.start); }
                     if (picker.dataset.end) { q.set('end', picker.dataset.end); }
                     if (item.dataset.view === 'overview') {

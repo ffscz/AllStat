@@ -25,7 +25,7 @@ $stT = $socialStories['totals'] ?? [];
                 <tbody>
                     <?php foreach ($socialStories['rows'] as $st): ?>
                         <tr>
-                            <td class="ellipsis"><?php if (($st['permalink'] ?? '') !== ''): ?><a href="<?= h($st['permalink']) ?>" target="_blank" rel="noopener"><?= h($st['message']) ?></a><?php else: ?><?= h($st['message']) ?><?php endif; ?></td>
+                            <td class="ellipsis"><?= allstat_thumb_img((string) ($st['thumb'] ?? '')) ?><?php if (($st['permalink'] ?? '') !== ''): ?><a href="<?= h($st['permalink']) ?>" target="_blank" rel="noopener"><?= h($st['message']) ?></a><?php else: ?><?= h($st['message']) ?><?php endif; ?></td>
                             <td class="num"><?= h($st['date']) ?></td>
                             <?php if ($stHasMetrics): ?>
                             <td class="num"><?= h($st['reachLabel'] ?? '–') ?></td>

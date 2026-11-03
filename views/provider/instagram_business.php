@@ -33,6 +33,14 @@ $igReactions = static function (array $post): string {
         . ($shares > 0 ? ' · 🔁 ' . allstat_number($shares) : '');
 };
 ?>
+<?php include __DIR__ . '/_ig_window.php'; ?>
+<?php
+// Posledních 28 dní ukazuje karta výš; tady zůstanou jen kalendářní měsíce.
+if (!empty($igWindow['values'])) { $last28Reach = null; }
+$monthReachLabel = t('Dosah bez opakování');
+include __DIR__ . '/_month_reach.php';
+?>
+
 <div class="grid grid-3">
     <?php include __DIR__ . '/_followers.php'; ?>
     <section class="card">
@@ -84,34 +92,40 @@ $igReactions = static function (array $post): string {
     }, $rows));
     $audReach = $audBuild($igAudience['reach']);
     $audViews = $audBuild($igAudience['views']);
+    $audInter = $audBuild($igAudience['interactions'] ?? []);
 ?>
 <section class="card">
-    <?= allstat_ui_card_head(t('Okruh uživatelů'), t('sledující vs. nesledující'), h(t('Podíl dosahu a zobrazení za období na sledující a nesledující účty. Vysoký podíl nesledujících znamená, že se obsah šíří dál.'))) ?>
-    <div class="card-body grid grid-2">
+    <?= allstat_ui_card_head(t('Okruh uživatelů'), t('sledující vs. nesledující'), h(t('Podíl dosahu, zobrazení a interakcí za období na sledující a nesledující účty. Vysoký podíl nesledujících znamená, že se obsah šíří dál.'))) ?>
+    <div class="card-body grid <?= $audInter ? 'grid-3' : 'grid-2' ?>">
         <?php if ($audReach): ?><?= $audStack(t('Dosah'), $audReach) ?><?php endif; ?>
         <?php if ($audViews): ?><?= $audStack(t('Zobrazení'), $audViews) ?><?php endif; ?>
+        <?php if ($audInter): ?><?= $audStack(t('Interakce'), $audInter) ?><?php endif; ?>
     </div>
 </section>
 <?php endif; ?>
 
-<?php if ($igDemographics['hasData'] ?? false):
-    $ageRows = $igDemographics['age'];
+<?php foreach ([
+    [$igDemographics ?? [], t('sledující'), t('Věk, pohlaví a lokalita aktuálních sledujících, snímek z Meta API nezávislý na období. Dostupné u účtů se 100+ sledujícími.')],
+    [$igEngDemographics ?? [], t('reagovali na obsah'), t('Věk, pohlaví a lokalita lidí, kteří tento měsíc s obsahem reagovali (lajk, komentář, uložení, sdílení), i když účet nesledují. Meta je dává od 100 zapojených účtů.')],
+] as [$demo, $demoWho, $demoHint]):
+    if (!($demo['hasData'] ?? false)) { continue; }
+    $ageRows = $demo['age'];
     usort($ageRows, static fn ($a, $b) => strcmp((string) $a['label'], (string) $b['label']));
 ?>
 <section class="card">
-    <?= allstat_ui_card_head(t('Demografické údaje'), t('sledující'), h(t('Věk, pohlaví a lokalita aktuálních sledujících, snímek z Meta API nezávislý na období. Dostupné u účtů se 100+ sledujícími.')),
-        !empty($igDemographics['date']) ? allstat_ui_card_total(t('k {date}', ['date' => allstat_date_label($igDemographics['date'])])) : '') ?>
+    <?= allstat_ui_card_head(t('Demografické údaje'), $demoWho, h($demoHint),
+        !empty($demo['date']) ? allstat_ui_card_total(t('k {date}', ['date' => allstat_date_label($demo['date'])])) : '') ?>
     <div class="card-body grid grid-facets">
         <?php if ($ageRows): ?><div class="meter"><span class="block-title"><?= h(t('Věk')) ?></span><?= $igMeters($ageRows) ?></div><?php endif; ?>
-        <?php if ($igDemographics['gender']): ?>
-            <?php $gTotal = max(1, array_sum(array_map(static fn (array $g): int => (int) $g['value'], $igDemographics['gender']))); ?>
-            <?= allstat_ui_stack(t('Pohlaví'), '', array_map(static fn (array $g): array => ['label' => $g['label'], 'value' => allstat_number((int) $g['value']), 'share' => allstat_percent(round((int) $g['value'] / $gTotal * 100), 0), 'pct' => (int) $g['value'] / $gTotal * 100], $igDemographics['gender'])) ?>
+        <?php if ($demo['gender']): ?>
+            <?php $gTotal = max(1, array_sum(array_map(static fn (array $g): int => (int) $g['value'], $demo['gender']))); ?>
+            <?= allstat_ui_stack(t('Pohlaví'), '', array_map(static fn (array $g): array => ['label' => $g['label'], 'value' => allstat_number((int) $g['value']), 'share' => allstat_percent(round((int) $g['value'] / $gTotal * 100), 0), 'pct' => (int) $g['value'] / $gTotal * 100], $demo['gender'])) ?>
         <?php endif; ?>
-        <?php if ($igDemographics['country']): ?><div class="meter"><span class="block-title"><?= h(t('Země')) ?></span><?= $igMeters(array_slice($igDemographics['country'], 0, 5)) ?></div><?php endif; ?>
-        <?php if ($igDemographics['city']): ?><div class="meter"><span class="block-title"><?= h(t('Města (top 8)')) ?></span><?= $igMeters(array_slice($igDemographics['city'], 0, 8)) ?></div><?php endif; ?>
+        <?php if ($demo['country']): ?><div class="meter"><span class="block-title"><?= h(t('Země')) ?></span><?= $igMeters(array_slice($demo['country'], 0, 5)) ?></div><?php endif; ?>
+        <?php if ($demo['city']): ?><div class="meter"><span class="block-title"><?= h(t('Města (top 8)')) ?></span><?= $igMeters(array_slice($demo['city'], 0, 8)) ?></div><?php endif; ?>
     </div>
 </section>
-<?php endif; ?>
+<?php endforeach; ?>
 
 <?php include __DIR__ . '/_stories.php'; ?>
 
@@ -127,7 +141,7 @@ $igReactions = static function (array $post): string {
                 <tbody>
                     <?php foreach ($socialPosts['topSaved'] as $post): ?>
                         <tr>
-                            <td><div class="post"><?php if (($post['permalink'] ?? '') !== ''): ?><a class="post-text" href="<?= h($post['permalink']) ?>" target="_blank" rel="noopener"><?= h($post['message']) ?></a><?php else: ?><span class="post-text"><?= h($post['message']) ?></span><?php endif; ?></div></td>
+                            <td><div class="post<?= ($post['thumb'] ?? '') !== '' ? ' has-thumb' : '' ?>"><?= allstat_thumb_img((string) ($post['thumb'] ?? '')) ?><?php if (($post['permalink'] ?? '') !== ''): ?><a class="post-text" href="<?= h($post['permalink']) ?>" target="_blank" rel="noopener"><?= h($post['message']) ?></a><?php else: ?><span class="post-text"><?= h($post['message']) ?></span><?php endif; ?></div></td>
                             <td class="num"><?= h($post['date']) ?></td>
                             <td class="num is-strong"><?= h($post['savedLabel'] ?? '–') ?></td>
                             <td class="num"><?= h($post['viewsLabel'] ?? '–') ?></td>

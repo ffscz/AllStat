@@ -12,6 +12,8 @@ if (empty($socialPosts)) {
 $importUrl = allstat_url($config, 'admin/social-import.php');
 $deltaRow = static fn (string $label, string $value, ?array $delta = null, string $title = ''): array => ['label' => $label, 'value' => $value, 'title' => $title] + allstat_ui_social_delta($delta);
 ?>
+<?php $monthReachLabel = t('Diváci'); include __DIR__ . '/_month_reach.php'; ?>
+
 <div class="grid grid-3">
     <?php include __DIR__ . '/_followers.php'; ?>
     <section class="card">

@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/demo-data.php';
 require_once __DIR__ . '/ai-sources.php';
+require_once __DIR__ . '/social-thumbs.php';
 
 /**
  * Czech labels for standard GA4 event names + default channel groups. Custom/unknown names pass through.
@@ -972,8 +973,9 @@ function allstat_social_followers(PDO $pdo, int $connectionId, string $start, st
     $events = static fn (): array => ['new' => (int) round((float) ($row['adds'] ?? 0)), 'lost' => (int) round((float) ($row['lost'] ?? 0)),
         'net' => (int) round((float) ($row['adds'] ?? 0)) - (int) round((float) ($row['lost'] ?? 0)),
         'source' => 'events', 'from' => $start, 'to' => $end, 'days' => $eventDays];
-    // Instagram posílá jen nové sledující, odhlášení ne: čistá změna z denních přírůstků by byla nadsazená.
-    // U něj má přednost rozdíl denních snímků, pokud pokrývá skoro celé období.
+    // Instagram dává zrušená sledování jen za posledních zhruba 45 dní (AllStat je ukládá od listopadu 2026), u
+    // starších dnů by čistá změna z denních přírůstků byla nadsazená. Proto má u něj přednost rozdíl denních
+    // snímků, pokud pokrývá skoro celé období.
     $grossOnly = false;
     try {
         $grossOnly = (string) (allstat_fetch_one($pdo, 'SELECT s.provider_key FROM domain_sources ds JOIN data_sources s ON s.id = ds.source_id WHERE ds.id = ?', [$connectionId])['provider_key'] ?? '') === 'instagram_business';
@@ -1059,7 +1061,7 @@ function allstat_get_social_posts(PDO $pdo, int $connectionId, string $start, st
         $fol = allstat_social_followers($pdo, $connectionId, $start, $end);
         $folPrev = allstat_social_followers($pdo, $connectionId, $prevStart, $prevEnd);
         $topCols = "metric_date, published_at, message, permalink, post_type, post_format, reactions, comments, shares, saved, total_interactions, engagement, reach, impressions,
-                   r_like, r_love, r_haha, r_wow, r_sad, r_angry, reactions_viral, comments_viral, post_clicks, link_clicks, clicks_json, fan_reach";
+                   r_like, r_love, r_haha, r_wow, r_sad, r_angry, reactions_viral, comments_viral, post_clicks, link_clicks, clicks_json, fan_reach, thumb_file";
         $top = allstat_fetch_all($pdo, "
             SELECT $topCols
             FROM social_posts
@@ -1111,6 +1113,7 @@ function allstat_get_social_posts(PDO $pdo, int $connectionId, string $start, st
             'date' => allstat_social_post_date((string) ($p['published_at'] ?? ''), (string) $p['metric_date']),
             'message' => mb_strimwidth($msg, 0, 90, '…'),
             'permalink' => (string) $p['permalink'],
+            'thumb' => allstat_thumb_url((string) ($p['thumb_file'] ?? '')),
             'type' => (string) ($p['post_type'] ?? 'post'),
             'format' => (string) ($p['post_format'] ?? ''),
             'reactions' => (int) $p['reactions'],
@@ -1381,7 +1384,7 @@ function allstat_get_social_posts_page(PDO $pdo, int $connectionId, string $star
         $offset = ($page - 1) * $perPage;
         $rows = allstat_fetch_all($pdo, "
             SELECT metric_date, published_at, message, permalink, post_type, post_format, reactions, comments, shares, saved, total_interactions, engagement, reach, impressions,
-                   r_like, r_love, r_haha, r_wow, r_sad, r_angry, reactions_viral, comments_viral, post_clicks, link_clicks, clicks_json, fan_reach
+                   r_like, r_love, r_haha, r_wow, r_sad, r_angry, reactions_viral, comments_viral, post_clicks, link_clicks, clicks_json, fan_reach, thumb_file
             FROM social_posts
             WHERE connection_id = ? AND post_type <> 'story' AND metric_date BETWEEN ? AND ?
             ORDER BY published_at DESC, metric_date DESC, engagement DESC
@@ -1407,6 +1410,7 @@ function allstat_get_social_posts_page(PDO $pdo, int $connectionId, string $star
                 'date' => allstat_social_post_date((string) ($p['published_at'] ?? ''), (string) $p['metric_date']),
                 'message' => mb_strimwidth($msg, 0, 140, '…'),
                 'permalink' => (string) $p['permalink'],
+                'thumb' => allstat_thumb_url((string) ($p['thumb_file'] ?? '')),
                 'type' => (string) ($p['post_type'] ?? 'post'),
                 'format' => (string) ($p['post_format'] ?? ''),
                 'reactions' => (int) $p['reactions'],
@@ -1454,11 +1458,12 @@ function allstat_ig_country_label(string $iso): string
  * (follower_demographics je lifetime, ukládá se na datum syncu). Vrací per breakdown seřazené
  * sestupně s podílem v %. Z dimenzovaných řádků provider_metrics_daily (dem_age/gender/country/city).
  */
-function allstat_get_ig_demographics(PDO $pdo, int $connectionId): array
+function allstat_get_ig_demographics(PDO $pdo, int $connectionId, string $prefix = 'dem_'): array
 {
+    // $prefix 'eng_dem_' = demografie lidí, kteří s obsahem reagovali (IG engaged_audience_demographics).
     $out = ['age' => [], 'gender' => [], 'country' => [], 'city' => [], 'date' => '', 'hasData' => false];
     try {
-        foreach (['dem_age' => 'age', 'dem_gender' => 'gender', 'dem_country' => 'country', 'dem_city' => 'city'] as $key => $slot) {
+        foreach ([$prefix . 'age' => 'age', $prefix . 'gender' => 'gender', $prefix . 'country' => 'country', $prefix . 'city' => 'city'] as $key => $slot) {
             $d = allstat_fetch_one($pdo, "SELECT MAX(metric_date) AS d FROM provider_metrics_daily WHERE connection_id = ? AND metric_key = ?", [$connectionId, $key])['d'] ?? null;
             if (!$d) { continue; }
             $rows = allstat_fetch_all($pdo, "SELECT dimension, metric_value FROM provider_metrics_daily
@@ -1563,25 +1568,126 @@ function allstat_get_linkedin_reactions(PDO $pdo, int $connectionId, string $sta
 }
 
 /**
- * Okruh uživatelů IG = dosah a zobrazení v rozpadu sledující / nesledující, sečteno přes období
- * (reach_follow / views_follow, dimension FOLLOWER/NON_FOLLOWER/UNKNOWN).
+ * Okruh uživatelů IG = dosah, zobrazení a interakce v rozpadu sledující / nesledující, sečteno přes období
+ * (reach_follow / views_follow / interactions_follow, dimension FOLLOWER/NON_FOLLOWER/UNKNOWN).
  */
 function allstat_get_ig_audience(PDO $pdo, int $connectionId, string $start, string $end): array
 {
-    $out = ['reach' => ['follower' => 0, 'nonFollower' => 0, 'unknown' => 0], 'views' => ['follower' => 0, 'nonFollower' => 0, 'unknown' => 0], 'hasData' => false];
+    $empty = ['follower' => 0, 'nonFollower' => 0, 'unknown' => 0];
+    $out = ['reach' => $empty, 'views' => $empty, 'interactions' => $empty, 'hasData' => false];
+    $slots = ['reach_follow' => 'reach', 'views_follow' => 'views', 'interactions_follow' => 'interactions'];
     try {
         $rows = allstat_fetch_all($pdo, "SELECT metric_key, dimension, SUM(metric_value) AS v FROM provider_metrics_daily
-            WHERE connection_id = ? AND metric_key IN ('reach_follow','views_follow') AND metric_date BETWEEN ? AND ?
+            WHERE connection_id = ? AND metric_key IN ('reach_follow','views_follow','interactions_follow') AND metric_date BETWEEN ? AND ?
             GROUP BY metric_key, dimension", [$connectionId, $start, $end]);
         $map = ['FOLLOWER' => 'follower', 'NON_FOLLOWER' => 'nonFollower', 'UNKNOWN' => 'unknown'];
         foreach ($rows as $r) {
-            $slot = $r['metric_key'] === 'reach_follow' ? 'reach' : 'views';
+            $slot = $slots[(string) $r['metric_key']] ?? null;
             $dim = $map[strtoupper((string) $r['dimension'])] ?? null;
-            if ($dim !== null) { $out[$slot][$dim] = (int) $r['v']; }
+            if ($slot !== null && $dim !== null) { $out[$slot][$dim] = (int) $r['v']; }
         }
-        $out['hasData'] = array_sum($out['reach']) > 0 || array_sum($out['views']) > 0;
+        $out['hasData'] = array_sum($out['reach']) > 0 || array_sum($out['views']) > 0 || array_sum($out['interactions']) > 0;
     } catch (Throwable) { /* okruh zatím bez dat */ }
     return $out;
+}
+
+/**
+ * Různí lidé za kalendářní měsíc (FB Diváci, IG dosah bez dvojího počítání) pro měsíce, které zasahují do
+ * období. Rozpad reach_month_unique / reach_month_unique_days s dimenzí „YYYY-MM“ (lib/sync-engines.php).
+ * Vrací nejnovější první: month (YYYY-MM), value, days (pokryté dny) a monthDays.
+ */
+function allstat_get_month_unique_reach(PDO $pdo, int $connectionId, string $start, string $end): array
+{
+    $out = [];
+    try {
+        $from = (new DateTimeImmutable($start))->format('Y-m-01');
+        $rows = allstat_fetch_all($pdo, "SELECT metric_key, dimension, metric_value FROM provider_metrics_daily
+            WHERE connection_id = ? AND metric_key IN ('reach_month_unique','reach_month_unique_days') AND metric_date BETWEEN ? AND ?",
+            [$connectionId, $from, $end]);
+        foreach ($rows as $r) {
+            $ym = (string) $r['dimension'];
+            if (preg_match('/^\d{4}-\d{2}$/', $ym) !== 1) { continue; }
+            $out[$ym] ??= ['month' => $ym, 'value' => null, 'days' => null, 'monthDays' => (int) (new DateTimeImmutable($ym . '-01'))->format('t')];
+            if ($r['metric_key'] === 'reach_month_unique') { $out[$ym]['value'] = (int) $r['metric_value']; }
+            else { $out[$ym]['days'] = (int) $r['metric_value']; }
+        }
+    } catch (Throwable) { /* zatím bez dat */ }
+    $out = array_values(array_filter($out, static fn (array $m): bool => $m['value'] !== null));
+    usort($out, static fn (array $a, array $b): int => strcmp($b['month'], $a['month']));
+
+    return $out;
+}
+
+/**
+ * Instagram za posledních 28 dní jako přehled Business Suite: poslední okno končící nejpozději $end
+ * (reach_28d_unique + w28_*, dimenze = poslední den okna). Vrací ['start', 'end', 'values' => [klíč => hodnota]].
+ */
+function allstat_get_ig_window28(PDO $pdo, int $connectionId, string $end): array
+{
+    try {
+        $last = allstat_fetch_one($pdo, "SELECT MAX(metric_date) AS d FROM provider_metrics_daily
+            WHERE connection_id = ? AND metric_key = 'reach_28d_unique' AND metric_date <= ?", [$connectionId, $end])['d'] ?? null;
+        if (!$last) {
+            return ['values' => []];
+        }
+        $rows = allstat_fetch_all($pdo, "SELECT metric_key, metric_value FROM provider_metrics_daily
+            WHERE connection_id = ? AND metric_date = ? AND dimension = ? AND (metric_key = 'reach_28d_unique' OR metric_key LIKE 'w28\_%')",
+            [$connectionId, $last, $last]);
+    } catch (Throwable) {
+        return ['values' => []];
+    }
+    $values = [];
+    foreach ($rows as $r) {
+        $values[(string) $r['metric_key']] = (float) $r['metric_value'];
+    }
+
+    return ['start' => (new DateTimeImmutable((string) $last))->modify('-27 days')->format('Y-m-d'), 'end' => (string) $last, 'values' => $values];
+}
+
+/**
+ * Různí lidé za přesně zadané období, pokud ho AllStat má: 28 dní končících $end (reach_28d_unique) nebo celý
+ * kalendářní měsíc (reach_month_unique, jen když okno pokrývá všechny jeho dny). Jinak null.
+ */
+function allstat_get_unique_reach_for_range(PDO $pdo, int $connectionId, string $start, string $end): ?int
+{
+    try {
+        $s = new DateTimeImmutable($start);
+        $e = new DateTimeImmutable($end);
+        $days = (int) $s->diff($e)->days + 1;
+        if ($days === 28) {
+            $v = allstat_fetch_one($pdo, "SELECT metric_value FROM provider_metrics_daily
+                WHERE connection_id = ? AND metric_key = 'reach_28d_unique' AND metric_date = ? AND dimension = ?", [$connectionId, $end, $end]);
+            return $v ? (int) $v['metric_value'] : null;
+        }
+        if ($s->format('d') === '01' && $s->format('Y-m') === $e->format('Y-m')) {
+            $ym = $s->format('Y-m');
+            $rows = allstat_fetch_all($pdo, "SELECT metric_key, metric_value FROM provider_metrics_daily
+                WHERE connection_id = ? AND metric_key IN ('reach_month_unique', 'reach_month_unique_days') AND metric_date = ? AND dimension = ?",
+                [$connectionId, $s->format('Y-m-d'), $ym]);
+            $byKey = array_column($rows, 'metric_value', 'metric_key');
+            if (isset($byKey['reach_month_unique'], $byKey['reach_month_unique_days']) && (int) $byKey['reach_month_unique_days'] === $days) {
+                return (int) $byKey['reach_month_unique'];
+            }
+        }
+    } catch (Throwable) { /* bez dat */ }
+
+    return null;
+}
+
+/**
+ * Různí lidé za posledních 28 dní (výchozí pohled Business Suite) k nejbližšímu dni ≤ $end, kdy proběhla
+ * synchronizace (reach_28d_unique, dimenze = poslední den okna). null = zatím nestaženo.
+ */
+function allstat_get_last28_unique_reach(PDO $pdo, int $connectionId, string $end): ?array
+{
+    try {
+        $r = allstat_fetch_one($pdo, "SELECT metric_date, metric_value FROM provider_metrics_daily
+            WHERE connection_id = ? AND metric_key = 'reach_28d_unique' AND metric_date <= ? ORDER BY metric_date DESC LIMIT 1", [$connectionId, $end]);
+    } catch (Throwable) {
+        return null;
+    }
+
+    return $r ? ['value' => (int) $r['metric_value'], 'end' => (string) $r['metric_date']] : null;
 }
 
 /**
@@ -1597,7 +1703,7 @@ function allstat_get_social_stories(PDO $pdo, int $connectionId, string $start, 
             SELECT COUNT(*) c FROM social_posts WHERE connection_id = ? AND post_type = 'story' AND metric_date BETWEEN ? AND ?
         ", [$connectionId, $start, $end])['c'] ?? 0);
         $rows = allstat_fetch_all($pdo, "
-            SELECT metric_date, published_at, message, permalink, reach, impressions, story_replies, story_navigation
+            SELECT metric_date, published_at, message, permalink, reach, impressions, story_replies, story_navigation, thumb_file
             FROM social_posts
             WHERE connection_id = ? AND post_type = 'story' AND metric_date BETWEEN ? AND ?
             ORDER BY published_at DESC, metric_date DESC
@@ -1632,6 +1738,7 @@ function allstat_get_social_stories(PDO $pdo, int $connectionId, string $start, 
                 'date' => allstat_social_post_date((string) ($p['published_at'] ?? ''), (string) $p['metric_date']),
                 'message' => mb_strimwidth($msg !== '' ? $msg : '(Story)', 0, 70, '…'),
                 'permalink' => (string) $p['permalink'],
+                'thumb' => allstat_thumb_url((string) ($p['thumb_file'] ?? '')),
                 'reachLabel' => $reach > 0 ? allstat_number($reach) : '—',
                 'viewsLabel' => $views > 0 ? allstat_number($views) : '—',
                 'replies' => (int) ($p['story_replies'] ?? 0),
@@ -2062,15 +2169,21 @@ function allstat_provider_metric_meta(string $providerKey): array
             'followers_total' => ['label' => t('Sledující celkem'), 'icon' => 'users', 'color' => 'green', 'tooltip' => t('Celkový počet sledujících stránky (Facebook followers_count), aktuální stav k poslednímu syncu. Ukládá se denně, takže postupně vznikne graf vývoje; zpětnou historii Facebook API nedává.')],
             'reach' => ['label' => t('Dosah'), 'icon' => 'eye', 'color' => 'blue', 'tooltip' => t('Unikátní lidé, kteří viděli obsah stránky (Facebook page_impressions_unique, po 15. 6. 2026 page_total_media_view_unique). Součet za období, klíčová metrika organického dosahu.')],
             'page_impressions' => ['label' => t('Zobrazení'), 'icon' => 'eye', 'color' => 'cyan', 'tooltip' => t('Kolikrát se obsah stránky zobrazil celkem, vč. opakovaných (Facebook page_media_view, náhrada zrušené page_impressions). Součet za období.')],
+            'reactions' => ['label' => t('Reakce'), 'icon' => 'thumbs-up', 'color' => 'rose', 'tooltip' => t('Reakce na obsah stránky po dnech (To se mi líbí, Super a další), Facebook page_actions_post_reactions_total. Je to největší část „Interakcí s obsahem“ v Business Suite; komentáře a sdílení za stránku API nedává, najdeš je u příspěvků.')],
             'engagements' => ['label' => t('Engagement'), 'icon' => 'activity', 'color' => 'violet', 'tooltip' => t('Interakce s příspěvky (reakce, komentáře, sdílení, prokliky), Facebook page_post_engagements. Součet za období.')],
             'page_views' => ['label' => t('Návštěvy profilu'), 'icon' => 'users-round', 'color' => 'teal', 'tooltip' => t('Kolikrát si lidé zobrazili profil stránky (Facebook page_views_total). Součet za období.')],
             'new_follows' => ['label' => t('Noví sledující'), 'icon' => 'user-plus', 'color' => 'green', 'tooltip' => t('Noví sledující za období (Facebook page_daily_follows). Nahrazuje zrušené page_fan_adds.')],
             'unfollows' => ['label' => tc('social', 'Odhlášení'), 'icon' => 'user-minus', 'color' => 'rose', 'tooltip' => t('Kolik lidí přestalo sledovat stránku (Facebook page_daily_unfollows). Noví − odhlášení = čistý přírůstek.')],
+            'video_views' => ['label' => t('Zhlédnutí 3 sekund'), 'icon' => 'play-circle', 'color' => 'orange', 'tooltip' => t('Kolikrát lidé sledovali video stránky aspoň 3 sekundy (Facebook page_video_views). Součet za období.')],
+            'video_view_time' => ['label' => t('Doba sledování'), 'icon' => 'clock', 'color' => 'cyan', 'tooltip' => t('Kolik času lidé celkem strávili sledováním videí a reels stránky (Facebook page_video_view_time). Součet za období.')],
         ],
         'instagram_business' => [
             'followers_total' => ['label' => t('Sledující celkem'), 'icon' => 'users', 'color' => 'green', 'tooltip' => t('Celkový počet sledujících profilu (Instagram followers_count), aktuální stav k poslednímu syncu. Ukládá se denně, takže postupně vznikne graf vývoje; zpětnou historii API nedává.')],
             'reach' => ['label' => t('Dosah'), 'icon' => 'eye', 'color' => 'blue', 'tooltip' => t('Unikátní účty, které viděly obsah (Instagram reach). Součet denního dosahu za období.')],
+            'views' => ['label' => t('Zobrazení'), 'icon' => 'eye', 'color' => 'cyan', 'tooltip' => t('Kolikrát se obsah účtu zobrazil, včetně opakovaných (Instagram views: příspěvky, reels, stories i profil). Součet za období.')],
+            'interactions' => ['label' => t('Interakce'), 'icon' => 'activity', 'color' => 'violet', 'tooltip' => t('Lajky, komentáře, uložení a sdílení na příspěvcích, reels i stories (Instagram total_interactions). Součet za období.')],
             'new_follows' => ['label' => t('Noví sledující'), 'icon' => 'user-plus', 'color' => 'green', 'tooltip' => t('Noví sledující za období (Instagram follower_count, denní přírůstek). Nahradilo „Návštěvy profilu", tu Meta překlopila na jiný tvar dotazu (metric_type=total_value), který nejde po dnech.')],
+            'unfollows' => ['label' => tc('social', 'Odhlášení'), 'icon' => 'user-minus', 'color' => 'rose', 'tooltip' => t('Kolik účtů přestalo profil sledovat (Instagram follows_and_unfollows, rozpad NON_FOLLOWER), stejně jako „Zrušení sledování" v Business Suite. Data jsou od listopadu 2026, Meta je dává jen za posledních zhruba 45 dní.')],
         ],
         'meta_ads' => [
             'spend' => ['label' => t('Útrata'), 'icon' => 'wallet', 'color' => 'rose', 'tooltip' => t('Útrata za reklamu (Meta Ads spend) za období. Fáze 2 doplní odvozené ROAS / CPC / CPM / CTR / frequency.')],
@@ -2244,6 +2357,46 @@ function allstat_get_provider_view(PDO $pdo, int $domainId, int $connectionId, s
                 $metric['tooltip'] = $meta['tooltip'] ?? '';
                 $metrics[] = $metric;
             }
+        }
+
+        // FB doba sledování: API dává milisekundy, dlaždice ukáže „h min“ / „min s“, graf minuty.
+        if ($providerKey === 'facebook_pages') {
+            foreach ($metrics as &$m) {
+                if ($m['key'] === 'video_view_time') {
+                    $sec = (int) round((float) $m['total'] / 1000);
+                    $m['displayMain'] = $sec >= 3600 ? allstat_number(intdiv($sec, 3600), 0) . ' h' : intdiv($sec, 60) . ' min';
+                    $m['displaySuffix'] = $sec >= 3600 ? intdiv($sec % 3600, 60) . ' min' : ($sec % 60) . ' s';
+                    $m['totalLabel'] = $m['displayMain'] . ' ' . $m['displaySuffix'];
+                    $m['series'] = array_map(static fn (float $v): float => round($v / 60000, 1), $m['series']);
+                }
+            }
+            unset($m);
+        }
+
+        // FB/IG dosah: denní hodnoty se sčítají, takže člověk, který obsah viděl víc dní, je v součtu vícekrát.
+        // Když vybrané období odpovídá oknu, za které AllStat zná různé lidi (28 dní do včerejška nebo celý
+        // kalendářní měsíc), ukáže dlaždice to číslo (stejné jako Business Suite). Jinak dlaždice výslovně říká,
+        // že jde o součet dní. Graf pod ní zůstává po dnech.
+        if (in_array($providerKey, ['facebook_pages', 'instagram_business'], true)) {
+            $unique = allstat_get_unique_reach_for_range($pdo, $connectionId, $start, $end);
+            foreach ($metrics as &$m) {
+                if ($m['key'] !== 'reach') {
+                    continue;
+                }
+                $daySum = allstat_number((float) $m['total']);
+                if ($unique !== null) {
+                    // Celek dlaždice (a tím i sdílení pro AI a MCP) = různí lidé; graf zůstává po dnech.
+                    $m['total'] = (float) $unique;
+                    $m['totalLabel'] = allstat_number($unique);
+                    $m['displayMain'] = allstat_number($unique);
+                    $m['displaySuffix'] = t('různých lidí');
+                    $m['tooltip'] = t('Kolik různých lidí obsah za období vidělo, každý se počítá jednou, stejně jako v Business Suite. Součet denního dosahu je {sum}.', ['sum' => $daySum]);
+                } else {
+                    $m['label'] = t('Dosah (součet dní)');
+                    $m['tooltip'] = t('Součet denního dosahu: kdo obsah viděl víc dní, počítá se vícekrát. Různé lidi ukáže AllStat pro období 28 dní (do včerejška) nebo pro celý kalendářní měsíc.');
+                }
+            }
+            unset($m);
         }
 
         // YouTube: sledovaný čas z minut na „h min" a Ø doba zhlédnutí = sledovaný čas ÷ zhlédnutí (denní
@@ -2733,8 +2886,15 @@ function allstat_get_google_ads_kpis(PDO $pdo, int $domainId, int $connectionId,
                 'conversion_value' => t('Hodnota konverzí přiřazených Microsoft Ads v měně účtu.'),
                 default => $tooltip,
             };
+        } elseif ($providerName === 'OpenAI Ads') {
+            $tooltip = match ($d['key']) {
+                'cost' => t('Útrata za reklamy v ChatGPT za období v měně reklamního účtu.'),
+                'conversions' => t('Konverze přiřazené reklamám v ChatGPT (měří je pixel nebo Conversions API OpenAI Ads).'),
+                'conversion_value' => t('Tržby z objednávek přiřazené reklamám v ChatGPT. Jen u účtů, které posílají hodnotu objednávky.'),
+                default => $tooltip,
+            };
         }
-        $displayValue = match ($providerName === 'Microsoft Ads' && in_array($d['key'], ['cost', 'conversion_value'], true) ? 'money2' : $d['format']) {
+        $displayValue = match (in_array($providerName, ['Microsoft Ads', 'OpenAI Ads'], true) && in_array($d['key'], ['cost', 'conversion_value'], true) ? 'money2' : $d['format']) {
             'percent' => allstat_percent($v, 2),
             'money0' => allstat_number($v, 0),
             'money2' => allstat_number($v, 2),
@@ -2752,6 +2912,9 @@ function allstat_get_google_ads_kpis(PDO $pdo, int $domainId, int $connectionId,
     $noConversions = $rows !== [] && $sum['conversions'] <= 0 && $sum['conversion_value'] <= 0;
     if ($noConversions) {
         $metrics = array_values(array_filter($metrics, static fn (array $m): bool => !in_array($m['key'], ['roas', 'pno', 'conversions', 'cpa', 'conversion_value'], true)));
+    } elseif ($providerName === 'OpenAI Ads' && $sum['conversion_value'] <= 0) {
+        // OpenAI Ads hlásí hodnotu jen u objednávek (commerce); u leadových konverzí by ROAS/PNO byly falešné nuly.
+        $metrics = array_values(array_filter($metrics, static fn (array $m): bool => !in_array($m['key'], ['roas', 'pno', 'conversion_value'], true)));
     }
 
     return [

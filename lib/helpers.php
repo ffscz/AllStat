@@ -289,6 +289,7 @@ function allstat_help_anchor_for_provider(string $providerKey): string
         'linkedin_company' => 'linkedin',
         'google_ads' => 'google-ads',
         'microsoft_ads' => 'microsoft-ads',
+        'openai_ads' => 'openai-ads',
         'clarity' => 'clarity',
         default => 'sluzby',
     };

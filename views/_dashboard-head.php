@@ -61,7 +61,8 @@ $labelStack = static function (string $attr, string $label, array $sizers): stri
             $quickRanges = [
                 t('Dnes') => [$today, $today],
                 t('7 dní') => [(new DateTimeImmutable('today'))->modify('-6 days')->format('Y-m-d'), $today],
-                t('30 dní') => [(new DateTimeImmutable('today'))->modify('-29 days')->format('Y-m-d'), $today],
+                // 28 dní do včerejška = výchozí okno Meta Business Suite (a sítí obecně), čísla jdou porovnat přímo.
+                t('28 dní') => [(new DateTimeImmutable('yesterday'))->modify('-27 days')->format('Y-m-d'), (new DateTimeImmutable('yesterday'))->format('Y-m-d')],
                 t('90 dní') => [(new DateTimeImmutable('today'))->modify('-89 days')->format('Y-m-d'), $today],
                 t('Vše') => [(new DateTimeImmutable('today'))->modify('-16 months')->format('Y-m-d'), $today],
             ];

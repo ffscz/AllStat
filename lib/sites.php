@@ -30,7 +30,7 @@ function allstat_sites_periods(?DateTimeImmutable $today = null): array
 
     return [
         '7d' => ['label' => t('7 dní'), 'start' => $yesterday->modify('-6 days')->format('Y-m-d'), 'end' => $yesterday->format('Y-m-d')],
-        '30d' => ['label' => t('30 dní'), 'start' => $yesterday->modify('-29 days')->format('Y-m-d'), 'end' => $yesterday->format('Y-m-d')],
+        '28d' => ['label' => t('28 dní'), 'start' => $yesterday->modify('-27 days')->format('Y-m-d'), 'end' => $yesterday->format('Y-m-d')],
         '90d' => ['label' => t('90 dní'), 'start' => $yesterday->modify('-89 days')->format('Y-m-d'), 'end' => $yesterday->format('Y-m-d')],
         'month' => ['label' => t('Tento měsíc'), 'start' => $monthStart->format('Y-m-d'), 'end' => max($monthStart, $yesterday)->format('Y-m-d')],
         'prev_month' => ['label' => t('Minulý měsíc'), 'start' => $today->modify('first day of last month')->format('Y-m-d'), 'end' => $today->modify('last day of last month')->format('Y-m-d')],

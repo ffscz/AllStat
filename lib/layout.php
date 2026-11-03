@@ -54,6 +54,7 @@ function allstat_source_badge(string $providerKey): array
         'meta_ads' => ['MA', 'src-ma'],
         'google_ads' => ['AD', 'src-ad'],
         'microsoft_ads' => ['MS', 'src-ms'],
+        'openai_ads' => ['OA', 'src-oa'],
         'seznam_wmt' => ['SZ', 'src-sz'],
     ];
     [$code, $class] = $map[$providerKey] ?? [strtoupper(substr($providerKey, 0, 2)), ''];

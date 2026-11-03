@@ -11,7 +11,7 @@ require_once __DIR__ . '/providers.php';
  * v allstat_default_providers, nové výchozí settings) ZVEDNI tuhle konstantu — jinak se změna na
  * produkci neprovede. Formát: YYYY-MM-DD.N.
  */
-const ALLSTAT_SCHEMA_VERSION = '2026-10-30.2';
+const ALLSTAT_SCHEMA_VERSION = '2026-11-03.3';
 
 function allstat_schema_is_current(PDO $pdo): bool
 {
@@ -579,6 +579,24 @@ function allstat_migrate(PDO $pdo): void
     // YouTube videa (network='youtube'): délka videa, průměrná doba/procento zhlédnutí, odběratelé získaní
     // z videa a náhled — JSON, ať kvůli každé další per-video metrice nevzniká nový sloupec.
     allstat_add_column($pdo, 'social_posts', 'stats_json', "stats_json VARCHAR(500) NOT NULL DEFAULT '' AFTER clicks_json");
+    // Náhled příspěvku FB/IG uložený v media/thumbs (lib/social-thumbs.php): název souboru, '-' = příspěvek
+    // obrázek nemá, '' = zatím nestaženo.
+    allstat_add_column($pdo, 'social_posts', 'thumb_file', "thumb_file VARCHAR(64) NOT NULL DEFAULT '' AFTER stats_json");
+    // One-time (idempotentní): LinkedIn napojení na verzované REST API. Neverzované /v2 LinkedIn ukončil 16. 12. 2024.
+    try {
+        $pdo->exec("UPDATE domain_sources SET api_base_url = 'https://api.linkedin.com/rest' WHERE api_base_url = 'https://api.linkedin.com/v2'");
+        $pdo->exec("UPDATE data_sources SET api_base_url = 'https://api.linkedin.com/rest' WHERE provider_key = 'linkedin_company' AND api_base_url = 'https://api.linkedin.com/v2'");
+    } catch (Throwable) { /* starší schéma bez sloupce */ }
+
+    // One-time (idempotentní): denní zobrazení Instagramu jako běžná metrika `views` pro horní kartu „Zobrazení“.
+    // Synchronizace je od 3. 11. 2026 ukládá sama; starší dny se doplní z uloženého rozpadu views_follow
+    // (sledující + nesledující + neznámí = zobrazení za den). Doplní jen chybějící dny, hodnoty uložené synchronizací nepřepisuje.
+    try {
+        $pdo->exec("INSERT IGNORE INTO provider_metrics_daily (domain_id, source_id, connection_id, metric_date, metric_key, dimension, metric_value)
+            SELECT domain_id, source_id, connection_id, metric_date, 'views', '', SUM(metric_value)
+            FROM provider_metrics_daily WHERE metric_key = 'views_follow' AND dimension <> ''
+            GROUP BY domain_id, source_id, connection_id, metric_date");
+    } catch (Throwable) { /* bez okruhu není co doplňovat */ }
     // One-time cleanup (naturally idempotent): the now-retired video_reels edge stored reels under a BARE
     // video id (no underscore), on which post insights 400 → reach stayed 0; after a re-backfill they would
     // also duplicate the real pageid_postid reels that come from published_posts. The current engine never
