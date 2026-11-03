@@ -1,10 +1,10 @@
 {
-    "version": "1.5.3",
-    "published": "2026-10-30T11:38:13Z",
-    "zip_url": "https://github.com/ffscz/AllStat/releases/download/v1.5.3/allstat-1.5.3.zip",
-    "sha256": "2b26533fa1e45a43657748b9ed8973bcd4c87b6bb76c739942f2fb4fb1a0e542",
-    "signature": "MEQCIFfK6hqgXysBCbLbqQ6UUigCaV7lH90QpWsd6BR4+AL7AiA2WadWHKxDFe4R5Fen0QaPc/KpHy7se6tbHAvOZUndOw==",
+    "version": "1.5.4",
+    "published": "2026-11-03T11:19:17Z",
+    "zip_url": "https://github.com/ffscz/AllStat/releases/download/v1.5.4/allstat-1.5.4.zip",
+    "sha256": "43913af68591340943d6ea2c5c2cd3ac19313da03c40909be530bc97b3eb4efe",
+    "signature": "MEQCICbCpLg2ydBix1+GY3dyxaoVdvyb5LfnDzCr+7Rp66M/AiB3SWNjjrtChTi4+MemzkVT2E9T+UlEKfGBAcPUggLtHw==",
     "min_php": "8.1",
-    "html_url": "https://github.com/ffscz/AllStat/releases/tag/v1.5.3",
-    "notes": "* Připojení AI (Claude, ChatGPT) se nově povoluje i kódem z autentizační aplikace. U administrátora\n   se zapnutým 2FA už převzaté přihlášení v prohlížeči ani se znalostí hesla nestačí na připojení,\n   které běží až 180 dní. Dosavadní připojení fungují dál. Doporučujeme zapnout v Nastavení povinné\n   2FA pro všechny.\n * Zapnutí 2FA chce heslo, když od přihlášení heslem uběhlo víc než 10 minut.\n * Uživatelé: vytvoření účtu, nové heslo jinému uživateli, povýšení na administrátora (i znovuzapnutí\n   vypnutého administrátora) a reset cizího 2FA se potvrzují heslem a kódem z aplikace administrátora\n   (bez 2FA jen heslem). Reset cizího 2FA je nově na stránce úpravy uživatele; úprava jména, webů nebo\n   vypnutí účtu potvrzení nepotřebuje.\n * Databáze beze změny."
+    "html_url": "https://github.com/ffscz/AllStat/releases/tag/v1.5.4",
+    "notes": "* Facebook a Instagram: dosah jako v Meta Business Suite, tedy různí lidé za posledních 28 dní\n   a za kalendářní měsíc (dosud součet denních dosahů, který stejného člověka počítal každý den\n   znovu). Výchozí období přehledů je 28 dní do včerejška. Přehled (Růst kanálů) ukazuje u Facebooku\n   a Instagramu měsíční dosah jako různé lidi, jakmile ho má pro všechny zobrazené měsíce.\n * Oprava: denní hodnoty z Meta (dosah, zobrazení, sledující…) se ukládaly o den později, měsíční\n   součty se proto od Business Suite lišily o 1 až 2 %. Po aktualizaci u každého napojení Facebooku\n   a Instagramu klikněte na „Stáhnout historii“, přepíše dny správně a doplní dosah za měsíce.\n * Facebook: nové karty Reakce, Doba sledování videí a Zhlédnutí videí, noví sledující jako unikátní\n   lidé. Instagram: karty Zobrazení, Interakce a Odhlášení, rozpad za posledních 28 dní (sledující\n   a nesledující, typ obsahu) a demografie lidí, kteří reagovali.\n * Náhledy obrázků u příspěvků a stories (malé JPEG, kolem 5 kB, ukládají se na server).\n * Meta: hromadné dotazy přes Graph Batch API místo ukončovaného tvaru ?ids=.\n * Upozornění v nápovědě: Meta počítá den v kalifornském čase, krátká období se proto od Business\n   Suite mohou lišit o pár jednotek.\n * LinkedIn: verzované REST API (LinkedIn-Version 202606, platí do června 2027), neverzované /v2\n   LinkedIn ukončil. Uložená napojení se převedou sama.\n * Google Analytics 4: metrika keyEvents místo ukončené conversions.\n * Nový zdroj OpenAI Ads (reklamy v ChatGPT): útrata, zobrazení, kliknutí, konverze a kampaně.\n   Potřebuje API klíč Správce reklam (Ads Manager API key), konverzní klíč nestačí.\n * Analyzovat s AI a připojení AI (MCP) dostávají všechny nové údaje.\n * Databáze: nový sloupec pro náhledy příspěvků a zdroj OpenAI Ads, vytvoří se samy po aktualizaci."
 }
