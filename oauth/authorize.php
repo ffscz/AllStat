@@ -366,7 +366,22 @@ if ($method === 'POST') {
     $name = mb_substr($client['client_name'] !== '' ? $client['client_name'] : allstat_mcp_oauth_uri_host_label($request['redirect_uri']), 0, 120);
     $host = allstat_mcp_oauth_uri_host_only($request['redirect_uri']);
     $isAdmin = allstat_mcp_oauth_active_admin($pdo, (int) $user['id']) !== null;
-    $allow = ($_POST['decision'] ?? '') === 'allow' && $isAdmin;
+    $decision = $_POST['decision'] ?? '';
+
+    // Bez platné volby se nic nerozhodlo: nezamítat za uživatele, ale ukázat stránku souhlasu znovu.
+    if ($decision !== 'allow' && $decision !== 'deny') {
+        if ($isAdmin && !allstat_user_has_totp($user)) {
+            allstat_mcp_authz_totp_required_page($config);
+        }
+
+        if (!allstat_mcp_authz_allow_form_target($request['redirect_uri'])) {
+            allstat_mcp_authz_error($config, 400, t('Nelze pokračovat'), t('Návratová adresa aplikace není povolená.'));
+        }
+
+        allstat_mcp_authz_consent_page($config, $client, $request, $user, allstat_mcp_oauth_consent_token($config, $request, (int) $user['id']), $isAdmin, $isAdmin && allstat_mcp_authz_needs_password(), t('Volba se neodeslala, přístup zatím nebyl povolen ani zamítnut. Zkuste to znovu.'));
+    }
+
+    $allow = $decision === 'allow' && $isAdmin;
 
     if ($allow && !allstat_user_has_totp($user)) {
         allstat_mcp_authz_totp_required_page($config);

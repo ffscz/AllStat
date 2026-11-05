@@ -98,7 +98,8 @@ function allstat_get_ads_overview(PDO $pdo, int $domainId, string $start, string
         $impressions = (float) ($s['impressions'] ?? 0);
         $conversions = (float) ($s['conversions'] ?? 0);
         $value = (float) ($s['conversion_value'] ?? 0);
-        $currency = allstat_ads_currency($pdo, $pk, $cid, (string) ($c['account_label'] ?? ''));
+        // Bez odhadu CZK: účet s dosud neuloženou měnou se nesmí sečíst s korunovými účty.
+        $currency = allstat_ads_currency($pdo, $pk, $cid, (string) ($c['account_label'] ?? ''), false);
         $curKey = $currency !== '' ? $currency : '?';
         if ($cost > 0 || $clicks > 0 || $impressions > 0) {
             $out['hasData'] = true;

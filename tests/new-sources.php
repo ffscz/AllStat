@@ -215,8 +215,9 @@ try {
     $pdo->exec("INSERT INTO traffic_sources_daily (domain_id, metric_date, source, sessions, conversions, revenue) VALUES (1, '2026-10-05', 'Paid Search', 70, 3, 1500.5), (1, '2026-10-05', 'Organic Search', 500, 10, 300)");
     $o = allstat_get_ads_overview($pdo, 1, '2026-10-01', '2026-10-15');
     $byCid = array_column($o['accounts'], null, 'connection_id');
-    check($byCid[14]['currency'] === 'CZK' && $byCid[13]['currency'] === 'EUR', 'každý účet ve své měně (Google bez uložené měny = CZK)');
-    check(isset($o['currencies']['CZK'], $o['currencies']['EUR']) && $o['currencies']['CZK']['spend'] === 500.0, 'útrata sečtená jen v rámci měny');
+    check($byCid[14]['currency'] === '' && $byCid[13]['currency'] === 'EUR', 'každý účet ve své měně (Google bez uložené měny = neznámá, ne CZK)');
+    check(isset($o['currencies']['?'], $o['currencies']['EUR']) && !isset($o['currencies']['CZK']) && $o['currencies']['?']['spend'] === 500.0, 'útrata sečtená jen v rámci měny, neznámá měna zvlášť');
+    check(allstat_ads_currency($pdo, 'google_ads', 14) === 'CZK', 'na přehledu účtu zůstává pro staré účty Kč');
     check(round($byCid[14]['share']) === 100.0 && round($byCid[13]['share']) === 100.0, 'podíl na útratě jen mezi účty stejné měny');
     check(round((float) $byCid[14]['cpa'], 2) === 100.0 && $byCid[14]['roas'] === null, 'CPA 500 / 5, ROAS bez hodnoty konverzí není');
     check(($o['ga4']['google_ads']['revenue'] ?? 0) === 1500.5 && ($o['ga4']['tiktok_ads']['sessions'] ?? 0) === 25, 'GA4 návštěvy a tržby podle zdroje platformy');
@@ -239,6 +240,21 @@ try {
     check($visits['direction'] === 'up' && $visits['good'] === true && $visits['change_pct'] > 100, 'směr, hodnocení a změna v procentech');
     check(!in_array('web.impressions', $ids, true) && !in_array('web.conversions', $ids, true), 'stabilní řady a malé hodnoty se nehlásí');
     check($r['checked'] >= 4, 'prověřeno víc řad (' . $r['checked'] . ')');
+
+    // Nový účet: dny před prvními daty nejsou nuly, jinak falešný poplach „high“ proti nulové základně.
+    $pdo->exec('DELETE FROM provider_metrics_daily WHERE connection_id = 14');
+    for ($d = $today->modify('-7 days'); $d < $today; $d = $d->modify('+1 day')) {
+        allstat_pm_put($stmt, 1, $sid('google_ads'), 14, $d->format('Y-m-d'), 'cost', 1000.0);
+    }
+    $r = allstat_detect_changes($pdo, 1, 7, $today);
+    $falseAlarm = array_filter($r['changes'], static fn (array $c): bool => (float) $c['typical'] === 0.0 && str_contains($c['series'], 'cost'));
+    check($falseAlarm === [], 'nový reklamní účet bez historie nehlásí změnu proti nule');
+    // Zavedený účet se skokem se ohlásit musí.
+    for ($d = $today->modify('-70 days'); $d < $today->modify('-7 days'); $d = $d->modify('+1 day')) {
+        allstat_pm_put($stmt, 1, $sid('google_ads'), 14, $d->format('Y-m-d'), 'cost', 100.0 + (int) $d->format('j') % 5);
+    }
+    $r = allstat_detect_changes($pdo, 1, 7, $today);
+    check(array_filter($r['changes'], static fn (array $c): bool => str_contains($c['series'], 'cost')) !== [], 'skok útraty u účtu s historií se ohlásí');
 
     echo "Hotovo: všechny kontroly prošly.\n";
 } finally {

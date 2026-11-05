@@ -57,7 +57,11 @@
         // Během odesílání tlačítko vypnout: druhý klik by poslal stejný kód se starou session a skončil na přihlášení.
         input.form?.addEventListener('submit', () => {
             submitted = input.value;
-            input.form.querySelectorAll('button[type=submit]').forEach((button) => { button.disabled = true; });
+            // Až po sestavení dat formuláře (další úloha): vypnuté tlačítko se do nich nedostane a server by nepoznal,
+            // které bylo stisknuto (u souhlasu s připojením AI by se tak „Povolit“ bralo jako zamítnutí).
+            setTimeout(() => {
+                input.form.querySelectorAll('button[type=submit]').forEach((button) => { button.disabled = true; });
+            }, 0);
         });
         // Návrat tlačítkem Zpět (bfcache) vrátí stránku i s vypnutým tlačítkem.
         window.addEventListener('pageshow', (event) => {

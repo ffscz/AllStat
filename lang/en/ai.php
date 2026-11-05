@@ -428,6 +428,7 @@ return [
     'Příliš mnoho požadavků' => 'Too many requests',
     'Z této adresy přišlo příliš mnoho požadavků na připojení. Zkuste to za minutu.' => 'Too many connection requests came from this address. Try again in a minute.',
     'Požadavek vypršel' => 'Request expired',
+    'Volba se neodeslala, přístup zatím nebyl povolen ani zamítnut. Zkuste to znovu.' => 'Your choice was not sent, so access has been neither allowed nor denied yet. Please try again.',
     'Žádost o připojení vypršela nebo není platná. Vraťte se do aplikace a připojení zopakujte.' => 'The connection request has expired or is not valid. Go back to the app and connect again.',
     'Požadavek už byl vyřízen' => 'Request already handled',
     'Tato žádost o připojení už byla vyřízena. Vraťte se do aplikace, případně připojení zopakujte.' => 'This connection request has already been handled. Go back to the app or connect again.',

@@ -67,6 +67,9 @@ Změny ve verzi 1.5.5
    v eurech má útratu v EUR (projeví se po další synchronizaci).
  * Připojení AI (MCP): nové nástroje compare_ad_platforms (srovnání reklamních platforem) a
    detect_changes (neobvyklé změny proti typickému týdnu nebo měsíci) a data nových zdrojů.
+ * Oprava: připojení AI (Claude, ChatGPT) nešlo nově povolit, protože tlačítko Povolit se kvůli
+   chybě ve formuláři s kódem 2FA bralo jako zamítnutí (od verze 1.5.3). Stejná chyba od verze 1.5.2
+   rušila tlačítko Vygenerovat nový kód při nastavování 2FA.
  * Databáze: nové sloupce pro tržby a nové zdroje, vytvoří se samy po aktualizaci.
 
 Změny ve verzi 1.5.4

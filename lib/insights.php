@@ -147,8 +147,14 @@ function allstat_detect_changes(PDO $pdo, int $domainId, int $days = 7, ?DateTim
         }
         $current = $sum($s['days'], $last, $days, $s['zeroFill']);
         $baseline = [];
+        $firstDay = min($dates);
         for ($w = 1; $w <= $windows; $w++) {
-            $v = $sum($s['days'], $last->modify('-' . ($w * $days) . ' days'), $days, $s['zeroFill']);
+            $windowEnd = $last->modify('-' . ($w * $days) . ' days');
+            // Dny před prvními daty zdroje nejsou nuly: nový reklamní účet jinak hlásí falešný poplach proti nulové základně.
+            if ($s['zeroFill'] && $windowEnd->modify('-' . ($days - 1) . ' days')->format('Y-m-d') < $firstDay) {
+                continue;
+            }
+            $v = $sum($s['days'], $windowEnd, $days, $s['zeroFill']);
             if ($v !== null) {
                 $baseline[] = $v;
             }

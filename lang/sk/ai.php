@@ -428,6 +428,7 @@ return [
     'Příliš mnoho požadavků' => 'Príliš veľa požiadaviek',
     'Z této adresy přišlo příliš mnoho požadavků na připojení. Zkuste to za minutu.' => 'Z tejto adresy prišlo príliš veľa požiadaviek na pripojenie. Skúste to o minútu.',
     'Požadavek vypršel' => 'Požiadavka vypršala',
+    'Volba se neodeslala, přístup zatím nebyl povolen ani zamítnut. Zkuste to znovu.' => 'Voľba sa neodoslala, prístup zatiaľ nebol povolený ani zamietnutý. Skúste to znova.',
     'Žádost o připojení vypršela nebo není platná. Vraťte se do aplikace a připojení zopakujte.' => 'Žiadosť o pripojenie vypršala alebo nie je platná. Vráťte sa do aplikácie a pripojenie zopakujte.',
     'Požadavek už byl vyřízen' => 'Požiadavka už bola vybavená',
     'Tato žádost o připojení už byla vyřízena. Vraťte se do aplikace, případně připojení zopakujte.' => 'Táto žiadosť o pripojenie už bola vybavená. Vráťte sa do aplikácie, prípadne pripojenie zopakujte.',

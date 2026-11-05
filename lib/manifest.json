@@ -230,8 +230,8 @@
             "h": "a258a81aa9603e16908b2541e03c2965bd0d3cdf35723f6091cf4310638ce9e0"
         },
         "assets/js/otp.js": {
-            "s": 5664,
-            "h": "d3d123cffc9f80166b5a60ea345bff46c07767d5f0e2354fb5af8d8de4da7990"
+            "s": 5964,
+            "h": "99f265e282cc8cd30061716c2b082c00792ab14f8eabf65b4838974c45e536c0"
         },
         "assets/js/select-search.js": {
             "s": 6599,
@@ -286,8 +286,8 @@
             "h": "cf9567e428dbe75f608b0cdf6c2643c15eb013b01d8e85507e562528cc8ec159"
         },
         "lang/en/ai.php": {
-            "s": 72345,
-            "h": "6131ecb6ec948b3d49d25d90c895decd41e64f944d4d5158a4bffac7f31ba5b5"
+            "s": 72536,
+            "h": "69ffcbc339b7308c5023f3abb2af87a9e5d98d1a49919d17496f0c40d51c40d1"
         },
         "lang/en/core.php": {
             "s": 69887,
@@ -318,8 +318,8 @@
             "h": "2268cf042a80c2dabcd55facf535f803906bb023a74962d2089693674dee8a2f"
         },
         "lang/sk/ai.php": {
-            "s": 73518,
-            "h": "2645bb2c5ab043aff295ec4c3b19a2fc44c42145b72c520d99d907efe950f4b2"
+            "s": 73704,
+            "h": "09b9dfdac112a4eb9fa65916808155d28abec93331b645dc7460d9808a8c7991"
         },
         "lang/sk/core.php": {
             "s": 71666,
@@ -350,8 +350,8 @@
             "h": "a2eeb350070331ae4d300d55090586e41ccfe9ee91b11e922ec4b98388053fb0"
         },
         "lib/ads-overview.php": {
-            "s": 8295,
-            "h": "d999e77444331cc6235660b851af9fde18cb28f8de52f2a17c61450ce6eeb7f8"
+            "s": 8404,
+            "h": "27f031515688e619b816171ee13b26ca9b34c187c19fd90d0ca3956edbfd7bae"
         },
         "lib/ai-sources.php": {
             "s": 2157,
@@ -402,8 +402,8 @@
             "h": "12177e5cc2c9719fd0b1eb55df67bced4039c7e517bff133086d312a7addcafa"
         },
         "lib/growth.php": {
-            "s": 36338,
-            "h": "031df64a55c293d9dd81701570cb9baa4d7e066ea30ee2314f94263009df5230"
+            "s": 36489,
+            "h": "c1e2e141de4f85f3e6623b61a5236d62af874f72d68f1f2cf8848f9793465c8e"
         },
         "lib/helpers.php": {
             "s": 15978,
@@ -414,8 +414,8 @@
             "h": "3ec116676caf12b4dd25ed972c62e778f7c39acacf05e626b3a6d478dc1e9d17"
         },
         "lib/insights.php": {
-            "s": 9944,
-            "h": "817c464d810d3379b93cc396d7eb336279218514f35896460e2c88b1f7c8cea3"
+            "s": 10308,
+            "h": "ecce373b7695bbfa1e98a298718e9e57fe16cdd7e0dc0ac18637c9e16176f1cd"
         },
         "lib/install-wizard.php": {
             "s": 89224,
@@ -514,8 +514,8 @@
             "h": "904dce973e8e7533e4d49aa802a1cc5457a77bb2aafdd819cf9433f62242686a"
         },
         "oauth/authorize.php": {
-            "s": 24193,
-            "h": "023a00ae1cfc9423f4cfddde1127a757256fb745c80435582aa7a89c5491ece7"
+            "s": 25026,
+            "h": "33276b51ba54fc8e0981a22d165bb69aa198a7dbe82adb8e8e4200da3bfc08ea"
         },
         "privacy.php": {
             "s": 9867,

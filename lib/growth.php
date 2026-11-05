@@ -132,8 +132,9 @@ function allstat_growth_defs(): array
 /**
  * Měna reklamního účtu (ISO kód), jak ji uložil sync jako <provider>.currency.<napojení>. Bez uložené měny
  * přípisek „(EUR)“ na konci názvu účtu, jinak CZK (účty před 1.5.5 se u Google a Meta Ads počítaly v Kč).
+ * $assumeCzk = false: místo odhadu CZK vrátí '' (neznámá měna), když se částky mezi účty sčítají.
  */
-function allstat_ads_currency(PDO $pdo, string $providerKey, int $connectionId, string $accountLabel = ''): string
+function allstat_ads_currency(PDO $pdo, string $providerKey, int $connectionId, string $accountLabel = '', bool $assumeCzk = true): string
 {
     static $cache = [];
     $key = $providerKey . '.currency.' . $connectionId;
@@ -155,7 +156,7 @@ function allstat_ads_currency(PDO $pdo, string $providerKey, int $connectionId, 
     }
 
     // Google a Meta Ads AllStat do 1.5.4 ukazoval v Kč; u ostatních měnu bez uložené hodnoty neznáme.
-    return in_array($providerKey, ['google_ads', 'meta_ads'], true) ? 'CZK' : '';
+    return $assumeCzk && in_array($providerKey, ['google_ads', 'meta_ads'], true) ? 'CZK' : '';
 }
 
 /** Zobrazovaný symbol měny: CZK = „Kč“ (jak to AllStat ukazoval vždy), ostatní ISO kód, neznámá = ''. */
