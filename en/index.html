@@ -114,7 +114,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
   <div class="brand"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span> AllStat<nav class="lang no-print" aria-label="Language"><a href="../" hreflang="cs" lang="cs">Čeština</a><span aria-current="page" lang="en">English</span></nav></div>
   <h1>Installation guide</h1>
   <p class="lead">AllStat collects the statistics of your website and social networks in one place and stores them in your own database. This guide walks you through installing it on ordinary web hosting, step by step. Allow 30 minutes.</p>
-  <p class="meta">Guide for version 1.5.0 · <a href="https://github.com/ffscz/AllStat/releases/latest">Download AllStat</a> · <a href="https://github.com/ffscz/AllStat">Source code on GitHub</a><span class="no-print"> · <button type="button" class="print-btn" data-print>Print or save as PDF</button></span></p>
+  <p class="meta">Guide for version 1.5.5 · <a href="https://github.com/ffscz/AllStat/releases/latest">Download AllStat</a> · <a href="https://github.com/ffscz/AllStat">Source code on GitHub</a><span class="no-print"> · <button type="button" class="print-btn" data-print>Print or save as PDF</button></span></p>
 </header>
 
 <nav class="toc" aria-label="Contents">
@@ -247,7 +247,7 @@ footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:v
 
 <ol class="steps">
   <li><h4>Unpack the package on your computer</h4>
-    <p>Unpack the <code>allstat-1.5.0.zip</code> package (in Windows: right-click, “Extract All…”). This creates an <code>allstat</code> folder.</p></li>
+    <p>Unpack the <code>allstat-1.5.5.zip</code> package (in Windows: right-click, “Extract All…”). This creates an <code>allstat</code> folder.</p></li>
   <li><h4>Connect to your hosting</h4>
     <p>In FileZilla (or another FTP client), enter the host, user, password and port you got from your hosting provider. If your hosting offers an encrypted connection (FTPS or SFTP), choose it.</p></li>
   <li><h4>Open the website folder</h4>
@@ -592,8 +592,8 @@ RewriteRule ^\.well-known/oauth-protected-resource/allstat(?:/mcp)?/?$ /allstat/
   <li><h4>Add the connector in Claude or ChatGPT</h4>
     <p>The “AI connectors” page contains guides with your server’s address filled in. In short:</p>
     <ul>
-      <li><strong>Claude</strong> (web, desktop, mobile): open Customize, Connectors, Add custom connector. Enter AllStat as the name and the MCP server address with the <code>/mcp</code> ending as the URL. Click Connect, sign in to AllStat as an administrator, enter the code from your authenticator app and click “Allow”. The “Add to Claude” button on the page fills in the details for you.</li>
-      <li><strong>ChatGPT</strong> (web version): in Settings, Security and login, turn on Developer mode, open Plugins, click the plus and fill in the name AllStat, the MCP URL and Authentication OAuth. Then sign in to AllStat as an administrator, enter the code from your authenticator app and click “Allow”.</li>
+      <li><strong>Claude</strong> (web, desktop, mobile): open Customize, Connectors, Add custom connector. Enter AllStat as the name and the MCP server address with the <code>/mcp</code> ending as the URL. Click Connect, sign in to AllStat as an administrator, enter the code from your authenticator app and click “Allow”. If you have just signed in, you do not need to enter a code a second time. The “Add to Claude” button on the page fills in the details for you.</li>
+      <li><strong>ChatGPT</strong> (web version): in Settings, Security and login, turn on Developer mode, open Plugins, click the plus and fill in the name AllStat, the MCP URL and Authentication OAuth. Then sign in to AllStat as an administrator, enter the code from your authenticator app and click “Allow”. If you have just signed in, you do not need to enter a code a second time.</li>
       <li><strong>Claude Code</strong> (command line): <code>claude mcp add --transport http allstat https://www.your-company.com/allstat/mcp</code> and then, in Claude Code, the <code>/mcp</code> command, select allstat and choose Authenticate.</li>
     </ul>
     <figure><a class="zoom" href="img/17b-ai-konektory-navody.webp" title="Open full size"><img src="img/17b-ai-konektory-navody.webp" alt="Guides to connecting Claude, ChatGPT and Claude Code" width="780" height="802" loading="lazy" decoding="async"></a><figcaption>The guides on the AI connectors page. The server address is already filled in.</figcaption></figure>
@@ -803,7 +803,7 @@ location ~ ^/allstat/(lib|views|docs)/ { deny all; }</code></pre>
 <table>
   <thead><tr><th>Item</th><th>Value</th></tr></thead>
   <tbody>
-    <tr><td>Package version</td><td>1.5.0</td></tr>
+    <tr><td>Package version</td><td>1.5.5</td></tr>
     <tr><td>License</td><td>GNU GPL version 3 (the <code>LICENSE</code> file), source code and updates at github.com/ffscz/AllStat</td></tr>
     <tr><td>Application language</td><td>Czech, Slovak and English</td></tr>
     <tr><td>Server requirements</td><td>PHP 8.1 or newer (8.3 recommended), MySQL 5.7.8 or newer or MariaDB 10.3 or newer, Apache or LiteSpeed (nginx with custom rules, see chapter 10)</td></tr>
@@ -839,7 +839,7 @@ location ~ ^/allstat/(lib|views|docs)/ { deny all; }</code></pre>
 </main>
 
 <footer>
-  AllStat, version 1.5.0 · Installation guide. The screenshots show sample data.
+  AllStat, version 1.5.5 · Installation guide. The screenshots show sample data.
 </footer>
 
 </div>
