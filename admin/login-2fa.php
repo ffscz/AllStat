@@ -36,6 +36,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         : allstat_complete_totp_login($pdo, $config, (string) ($_POST['code'] ?? ''));
 
     if ($result['ok']) {
+        // Výjimka z druhého kódu u souhlasu s připojením AI platí jen pro přihlášení vyvolané tímto připojením.
+        if ((string) parse_url($next, PHP_URL_PATH) !== allstat_url($config, 'oauth/authorize.php')) {
+            unset($_SESSION['totp_login_at']);
+        }
         if ($result['backup_remaining'] !== null) {
             // Stejný tvar jako allstat_flash() z admin/_layout.php, který tahle stránka nenačítá.
             $_SESSION['flashes'][] = ['type' => 'ok', 'message' => t('Přihlásili jste se záložním kódem, zbývá {count}. Pokud jste přišli o telefon, resetujte 2FA nebo si vygenerujte nové kódy na stránce Dvoufaktorové ověření.', ['count' => $result['backup_remaining']])];

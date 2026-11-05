@@ -70,6 +70,17 @@
         render();
     }
 
+    // Formulář bez pole na kód, který se nesmí odeslat dvakrát. Vypnutí až v další úloze, ať se pošle hodnota tlačítka.
+    document.querySelectorAll('form[data-submit-once]').forEach((form) => {
+        const buttons = () => form.querySelectorAll('button[type=submit]');
+        form.addEventListener('submit', () => {
+            setTimeout(() => { buttons().forEach((button) => { button.disabled = true; }); }, 0);
+        });
+        window.addEventListener('pageshow', (event) => {
+            if (event.persisted) { buttons().forEach((button) => { button.disabled = false; }); }
+        });
+    });
+
     // Záložní kódy: kopírovat do schránky a stáhnout jako .txt (zobrazené jednou po vygenerování).
     function codesText(button) {
         const list = document.querySelector('[data-backup-codes]');

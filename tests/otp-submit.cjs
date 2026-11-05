@@ -21,7 +21,9 @@ const server = http.createServer((req, res) => {
         res.end(otp);
     } else {
         res.setHeader('Content-Type', 'text/html');
-        res.end(html);
+        res.end(req.url === '/once'
+            ? '<!doctype html><form method="post" action="/echo" data-submit-once><button id="allow" type="submit" name="decision" value="allow">A</button></form><script src="/otp.js"></script>'
+            : html);
     }
 });
 
@@ -45,6 +47,13 @@ server.listen(0, '127.0.0.1', async () => {
         failed = failed || !ok;
         await page.close();
     }
+    const once = await browser.newPage();
+    await once.goto('http://127.0.0.1:' + server.address().port + '/once');
+    await once.click('#allow');
+    await once.waitForURL('**/echo');
+    const onceBody = await once.textContent('body');
+    console.log((onceBody.includes('decision=allow') ? 'OK   ' : 'CHYBA ') + 'data-submit-once: ' + onceBody);
+    failed = failed || !onceBody.includes('decision=allow');
     await browser.close();
     server.close();
     process.exit(failed ? 1 : 0);

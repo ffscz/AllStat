@@ -70,6 +70,9 @@ Změny ve verzi 1.5.5
  * Oprava: připojení AI (Claude, ChatGPT) nešlo nově povolit, protože tlačítko Povolit se kvůli
    chybě ve formuláři s kódem 2FA bralo jako zamítnutí (od verze 1.5.3). Stejná chyba od verze 1.5.2
    rušila tlačítko Vygenerovat nový kód při nastavování 2FA.
+ * Připojení AI hned po přihlášení už nežádá druhý kód 2FA: přihlášení kódem z aplikace nejvýš před
+   5 minutami, které připojení samo vyvolalo, poslouží pro jeden souhlas. Jinak se kód na stránce
+   souhlasu zadává jako dřív.
  * Databáze: nové sloupce pro tržby a nové zdroje, vytvoří se samy po aktualizaci.
 
 Změny ve verzi 1.5.4

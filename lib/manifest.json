@@ -58,8 +58,8 @@
             "h": "99f09ecf5818dd29a57e4bdde6efb92dbcc5abaac05a8d7603d9f9c454198b0d"
         },
         "admin/login-2fa.php": {
-            "s": 5375,
-            "h": "10ff8e1e31d6a330d11dea6b425cb8db52e5051b4cd7c4775c01008d6bb2fff8"
+            "s": 5662,
+            "h": "a0d1f2e7fbecb0121e3e29a1084ab4d98ea42c60585312015ddfc9dafbf18e94"
         },
         "admin/login.php": {
             "s": 3476,
@@ -230,8 +230,8 @@
             "h": "a258a81aa9603e16908b2541e03c2965bd0d3cdf35723f6091cf4310638ce9e0"
         },
         "assets/js/otp.js": {
-            "s": 5964,
-            "h": "99f265e282cc8cd30061716c2b082c00792ab14f8eabf65b4838974c45e536c0"
+            "s": 6586,
+            "h": "3bc51ce34142b86b1934414bde7d29a35f1f67096d3a90fe4f8ddb38a7a60005"
         },
         "assets/js/select-search.js": {
             "s": 6599,
@@ -358,8 +358,8 @@
             "h": "13d62cf1aa8a431f1f909a9a16885b33a1a293729cda43b184dc8e64447fe29b"
         },
         "lib/auth.php": {
-            "s": 22211,
-            "h": "472f76f2af583085d57751374b7d3d39511da9db52fee0edb74646f0cac0c556"
+            "s": 22444,
+            "h": "e47ac194bac995e82d320d60d18e8a898dbc2749d1ef4103f524a4678e0f2249"
         },
         "lib/backup-codes.php": {
             "s": 5037,
@@ -514,8 +514,8 @@
             "h": "904dce973e8e7533e4d49aa802a1cc5457a77bb2aafdd819cf9433f62242686a"
         },
         "oauth/authorize.php": {
-            "s": 25026,
-            "h": "33276b51ba54fc8e0981a22d165bb69aa198a7dbe82adb8e8e4200da3bfc08ea"
+            "s": 26104,
+            "h": "1617d4918c554e6a3068d93c5c9ad597d31582e1f1682ac4ca0ee8c0d6bced1c"
         },
         "privacy.php": {
             "s": 9867,

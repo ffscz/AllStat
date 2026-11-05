@@ -6,7 +6,8 @@
  * GET  = ověření požadavku aplikace (Claude, ChatGPT, Claude Code ...), přihlášení přes session AllStatu (vč. 2FA,
  *        návrat na tuto adresu přes next=) a stránka souhlasu. Souhlas smí udělit jen aktivní administrátor. Když
  *        poslední přihlášení heslem v session (nebo potvrzení hesla na této stránce) je starší než 10 minut, stránka žádá
- *        i heslo k AllStatu. Povolení vždy vyžaduje i čerstvý kód z autentizační aplikace (allstat_confirm_totp).
+ *        i heslo k AllStatu. Povolení vyžaduje čerstvý kód z autentizační aplikace (allstat_confirm_totp); místo něj
+ *        jednou poslouží kód z přihlášení, které proběhlo nejvýš před 5 minutami (stejný kód podruhé platit nesmí).
  * POST = rozhodnutí (Povolit / Zamítnout): CSRF, podepsané pole `req` (10 minut, vázané na uživatele a jednorázové
  *        v rámci session), případně ověření hesla (pokus se rezervuje před ověřením: 5 za 15 minut na uživatele a
  *        adresu, 10 za hodinu na uživatele ze všech adres), znovu ověření klienta a návratové adresy, pak 303 zpět do
@@ -227,12 +228,24 @@ function allstat_mcp_authz_confirm_password(PDO $pdo, array $user, mixed $passwo
     return $failure;
 }
 
+/**
+ * Bylo přihlášení kódem z aplikace (ne záložním kódem), které vyvolal souhlas (login-2fa.php s next na tuto stránku),
+ * nejvýš před 5 minutami a ještě se nepoužilo? Uživatel by jinak musel čekat na další kód, protože stejný platí jen jednou.
+ */
+function allstat_mcp_authz_login_totp_fresh(): bool
+{
+    $at = (int) ($_SESSION['totp_login_at'] ?? 0);
+
+    return $at > 0 && $at <= time() && time() - $at <= 300;
+}
+
 /** Stránka souhlasu (administrátor) nebo upozornění pro běžného uživatele. */
 function allstat_mcp_authz_consent_page(array $config, array $client, array $request, array $user, string $token, bool $isAdmin, bool $needsPassword = false, ?string $error = null, int $status = 200): never
 {
     $redirectLabel = allstat_mcp_oauth_uri_host_label($request['redirect_uri']);
     $appName = $client['client_name'] !== '' ? $client['client_name'] : $redirectLabel;
     $identityHost = $client['type'] === 'cimd' ? allstat_mcp_oauth_uri_host_label($client['client_id']) : '';
+    $needsCode = !allstat_mcp_authz_login_totp_fresh();
 
     ob_start();
 
@@ -255,14 +268,16 @@ function allstat_mcp_authz_consent_page(array $config, array $client, array $req
             <p class="auth-desc"><?= h(t('Bude moci číst metriky, reporty a přehledy všech webů v AllStatu. Nemůže nic měnit ani mazat.')) ?></p>
             <p class="auth-desc"><strong><?= h(t('Povolte jen tehdy, když jste připojení právě sami spustili v Claude, ChatGPT nebo jiné aplikaci.')) ?></strong></p>
             <p class="field-help"><?= t('Přihlášen(a) jako {email}', ['email' => h($user['email'])]) ?></p>
-            <form method="post" class="auth-form">
+            <form method="post" class="auth-form"<?= $needsCode ? '' : ' data-submit-once' ?>>
                 <?= allstat_csrf_field() ?>
                 <input type="hidden" name="req" value="<?= h($token) ?>">
                 <?php if ($needsPassword): ?>
                     <label class="field"><span class="field-label"><?= h(t('Pro potvrzení zadejte své heslo k AllStatu')) ?></span><input class="input" type="password" name="password" autocomplete="current-password" required></label>
                 <?php endif; ?>
                 <?php // Bez automatického odeslání: formulář má dvě tlačítka a odeslání bez tlačítka by znamenalo zamítnutí. ?>
-                <label class="field"><span class="field-label"><?= h(t('Kód z aplikace')) ?></span><input class="input input-code" type="text" name="totp_code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required autocomplete="one-time-code" spellcheck="false" data-otp></label>
+                <?php if ($needsCode): ?>
+                    <label class="field"><span class="field-label"><?= h(t('Kód z aplikace')) ?></span><input class="input input-code" type="text" name="totp_code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required autocomplete="one-time-code" spellcheck="false" data-otp></label>
+                <?php endif; ?>
                 <div class="form-actions">
                     <button class="btn btn-primary" type="submit" name="decision" value="allow"><?= h(t('Povolit')) ?></button>
                     <button class="btn btn-secondary" type="submit" name="decision" value="deny" formnovalidate><?= h(t('Zamítnout')) ?></button>
@@ -402,10 +417,13 @@ if ($method === 'POST') {
         }
     }
 
-    // Vždy i čerstvý kód z aplikace: převzatá session se znalostí hesla nesmí stačit na připojení, které běží
-    // až 180 dní. Jen kód z aplikace, záložní kódy jsou pro přihlášení bez telefonu. Heslo se ověřilo dřív,
-    // takže chybné heslo okno kódu nespotřebuje.
-    if ($allow) {
+    // Čerstvý kód z aplikace: převzatá session se znalostí hesla nesmí stačit na připojení, které běží až 180 dní.
+    // Jen kód z aplikace, záložní kódy jsou pro přihlášení bez telefonu. Heslo se ověřilo dřív, takže chybné heslo
+    // okno kódu nespotřebuje. Výjimka: kód z přihlášení vyvolaného tímto připojením poslouží nejvýš 5 minut a pro
+    // jeden souhlas (admin/login-2fa.php); převzatá session v tom okně kód nepotřebuje, je to vědomý kompromis.
+    if ($allow && allstat_mcp_authz_login_totp_fresh()) {
+        unset($_SESSION['totp_login_at']);
+    } elseif ($allow) {
         $codeError = allstat_confirm_totp($pdo, $config, $user, $_POST['totp_code'] ?? null, 'mcp_consent');
 
         if ($codeError !== null) {

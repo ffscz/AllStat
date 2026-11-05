@@ -306,6 +306,7 @@ function allstat_login(PDO $pdo, array $config, string $email, string $password)
     $_SESSION['user_authed_at'] = time();
     $_SESSION['totp_verified'] = empty($user['totp_secret_enc']);
     $_SESSION['totp_action_verified_at'] = 0;
+    $_SESSION['totp_login_at'] = 0;
     // Zaznamenat poslední přihlášení už po úspěšném hesle — dřív se nastavovalo jen po 2FA, takže
     // účty bez 2FA měly v seznamu uživatelů navždy „Nikdy". U 2FA účtů to complete_totp_login přepíše.
     $pdo->prepare('UPDATE allstat_users SET last_login_at = NOW() WHERE id = ?')->execute([(int) $user['id']]);
@@ -391,6 +392,8 @@ function allstat_complete_totp_login(PDO $pdo, array $config, string $code, bool
     $_SESSION['user_id'] = $userId;
     $_SESSION['totp_verified'] = true;
     $_SESSION['totp_action_verified_at'] = time();
+    // Čas přihlášení kódem z aplikace (ne záložním kódem): souhlas s připojením AI hned po přihlášení nežádá druhý kód.
+    $_SESSION['totp_login_at'] = $backup ? 0 : time();
     allstat_audit($pdo, $userId, $userId, $backup ? 'login_backup_code_ok' : 'login_2fa_ok');
 
     return ['ok' => true, 'backup_remaining' => $backup ? allstat_backup_codes_remaining($pdo, $userId) : null];
